@@ -1,0 +1,723 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { Search, ChevronDown, Sparkles, X } from 'lucide-react';
+
+const models = [
+  {
+    id: 'sofia-andersen',
+    name: 'Sofia Andersen',
+    image: 'https://images.unsplash.com/photo-1742540425779-4172d3ac460a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwb3J0cmFpdCUyMHByb2Zlc3Npb25hbCUyMHN0dWRpb3xlbnwxfHx8fDE3NzMxNjUyODN8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    primaryContext: 'EDITORIAL',
+    contexts: ['FR', 'ED', 'RW', 'CA'],
+    renderedContexts: ['FR', 'ED', 'RW', 'CA'],
+    topScore: 96,
+    lastRender: '3 days ago',
+    status: 'ACTIVE',
+    recentlySigned: true,
+    division: 'women'
+  },
+  {
+    id: 'marcus-chen',
+    name: 'Marcus Chen',
+    image: 'https://images.unsplash.com/photo-1768742466928-7eb18e2fcb6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxlJTIwZmFzaGlvbiUyMG1vZGVsJTIwaGVhZHNob3R8ZW58MXx8fHwxNzczMTY1MjgzfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    primaryContext: 'CAMPAIGN',
+    contexts: ['FR', 'ED', 'RW', 'CA'],
+    renderedContexts: ['FR', 'CA'],
+    topScore: 91,
+    lastRender: '1 week ago',
+    status: 'ACTIVE',
+    recentlySigned: false,
+    division: 'men'
+  },
+  {
+    id: 'ava-laurent',
+    name: 'Ava Laurent',
+    image: 'https://images.unsplash.com/photo-1646805925007-510be75f20f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmZW1hbGUlMjBtb2RlbCUyMGVkaXRvcmlhbCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE2NTI4NHww&ixlib=rb-4.1.0&q=80&w=1080',
+    primaryContext: 'FRAGRANCE',
+    contexts: ['FR', 'ED', 'RW', 'CA'],
+    renderedContexts: ['FR', 'ED', 'RW'],
+    topScore: 89,
+    lastRender: '2 weeks ago',
+    status: 'ACTIVE',
+    recentlySigned: false,
+    division: 'women'
+  },
+  {
+    id: 'luca-moretti',
+    name: 'Luca Moretti',
+    image: 'https://images.unsplash.com/photo-1758613653843-87c253aea8cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwcm9mZXNzaW9uYWwlMjBwaG90b3xlbnwxfHx8fDE3NzMxNjUyODR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    primaryContext: 'RUNWAY',
+    contexts: ['FR', 'ED', 'RW', 'CA'],
+    renderedContexts: ['RW'],
+    topScore: 85,
+    lastRender: '1 month ago',
+    status: 'ON HOLD',
+    recentlySigned: false,
+    division: 'men'
+  },
+  {
+    id: 'isabella-novak',
+    name: 'Isabella Novak',
+    image: 'https://images.unsplash.com/photo-1616002430110-ab30442021fe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHBvcnRmb2xpbyUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE2NTI4NHww&ixlib=rb-4.1.0&q=80&w=1080',
+    primaryContext: 'EDITORIAL',
+    contexts: ['FR', 'ED', 'RW', 'CA'],
+    renderedContexts: ['FR', 'ED', 'RW', 'CA'],
+    topScore: 93,
+    lastRender: '5 days ago',
+    status: 'ACTIVE',
+    recentlySigned: true,
+    division: 'women'
+  },
+  {
+    id: 'zara-klein',
+    name: 'Zara Klein',
+    image: 'https://images.unsplash.com/photo-1650094762225-3561578643c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwcnVud2F5JTIwbW9kZWwlMjBjbG9zZXVwfGVufDF8fHx8MTc3MzE2NTI4NXww&ixlib=rb-4.1.0&q=80&w=1080',
+    primaryContext: 'FRAGRANCE',
+    contexts: ['FR', 'ED', 'RW', 'CA'],
+    renderedContexts: ['FR', 'CA'],
+    topScore: 88,
+    lastRender: '3 weeks ago',
+    status: 'ACTIVE',
+    recentlySigned: false,
+    division: 'women'
+  }
+];
+
+interface DropdownProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  currentLabel: string;
+}
+
+function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between gap-[12px] px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+        style={{ 
+          fontFamily: 'var(--font-mono)', 
+          fontSize: '13px', 
+          color: '#f0f0ec'
+        }}
+      >
+        <span>{currentLabel}</span>
+        <ChevronDown size={14} style={{ color: '#a0a09a' }} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-10" 
+            onClick={() => setIsOpen(false)} 
+          />
+          <div 
+            className="absolute top-full mt-[4px] left-0 min-w-full bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden z-20"
+            style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' }}
+          >
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className="w-full text-left px-[16px] py-[10px] hover:bg-[#1a1a1a] transition-colors"
+                style={{ 
+                  fontFamily: 'var(--font-mono)', 
+                  fontSize: '13px', 
+                  color: value === option.value ? '#f0f0ec' : '#a0a09a'
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function Roster() {
+  const [search, setSearch] = useState('');
+  const [contextFilter, setContextFilter] = useState('all');
+  const [divisionFilter, setDivisionFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('last-rendered');
+  const [briefMatchActive, setBriefMatchActive] = useState(false);
+  const [briefQuery, setBriefQuery] = useState('');
+  const [showMatchResults, setShowMatchResults] = useState(false);
+  const [showDevReportModal, setShowDevReportModal] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<typeof models[0] | null>(null);
+  const [showCopiedConfirmation, setShowCopiedConfirmation] = useState(false);
+  const navigate = useNavigate();
+
+  const contextCodeMap: Record<string, string> = {
+    'fragrance': 'FR',
+    'editorial': 'ED',
+    'runway':    'RW',
+    'campaign':  'CA',
+    'beauty':    'BE',
+    'sportswear':'SP',
+    'couture':   'CO',
+    'swimwear':  'SW',
+    'street':    'ST'
+  };
+
+  const contextOptions = [
+    { value: 'all', label: 'All Contexts' },
+    { value: 'fragrance', label: 'Fragrance' },
+    { value: 'editorial', label: 'Editorial' },
+    { value: 'runway', label: 'Runway' },
+    { value: 'campaign', label: 'Campaign' }
+  ];
+
+  const divisionOptions = [
+    { value: 'all', label: 'All Divisions' },
+    { value: 'women', label: 'Women' },
+    { value: 'men', label: 'Men' }
+  ];
+
+  const sortOptions = [
+    { value: 'last-rendered', label: 'Sort: Last Rendered' },
+    { value: 'top-score', label: 'Sort: Top Score' },
+    { value: 'name', label: 'Sort: Name' }
+  ];
+
+  const handleExportCSV = () => {
+    const headers = ['Name', 'Status', 'Top Score', 'Contexts Evaluated', 'Last Evaluated', 'Date Signed'];
+    const rows = models.map(m => [
+      m.name,
+      m.status,
+      m.topScore.toString(),
+      m.renderedContexts.join(' | '),
+      m.lastRender,
+      m.recentlySigned ? 'Recently Signed' : ''
+    ]);
+    const csv = [headers, ...rows]
+      .map(r => r.map(v => `"${v}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'castview-roster.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const filteredModels = models.filter(model => {
+    const matchesSearch = search.trim() === ''
+      || model.name.toLowerCase()
+          .includes(search.trim().toLowerCase());
+    
+    const matchesContext = contextFilter === 'all'
+      || model.primaryContext?.toLowerCase() 
+          === contextFilter;
+    
+    const matchesDivision = divisionFilter === 'all'
+      || model.division?.toLowerCase() 
+          === divisionFilter;
+    return matchesSearch && matchesContext 
+      && matchesDivision;
+  })
+  .sort((a, b) => {
+    if (sortBy === 'name') {
+      return a.name.localeCompare(b.name);
+    }
+    if (sortBy === 'top-score') {
+      return (b.topScore || 0) - (a.topScore || 0);
+    }
+    if (sortBy === 'last-rendered') {
+      const order = [
+        '3 days ago', '5 days ago', '1 week ago',
+        '2 weeks ago', '3 weeks ago', '1 month ago'
+      ];
+      return order.indexOf(a.lastRender) - 
+             order.indexOf(b.lastRender);
+    }
+    return 0;
+  });
+
+  return (
+    <div className="p-[20px] md:p-[48px]">
+      <div className="flex items-center mb-[48px]">
+        <h1 
+          className="text-[48px]" 
+          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+        >
+          Roster
+        </h1>
+        <button
+          onClick={handleExportCSV}
+          className="ml-auto px-[16px] py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
+          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+        >
+          EXPORT CSV
+        </button>
+      </div>
+
+      {/* Controls Row */}
+      <div 
+        className="flex flex-col md:flex-row items-stretch md:items-center gap-[12px] md:gap-[24px] mb-[32px] md:mb-[48px] sticky top-0 z-20 py-[16px] -mx-[48px] px-[48px] bg-[#080808]"
+        style={{ boxShadow: '0 1px 0 #1e1e1e' }}
+      >
+        {!briefMatchActive ? (
+          <>
+            {/* Normal Controls - Search Input */}
+            <div className="flex-1 relative">
+              <Search 
+                size={16} 
+                className="absolute left-[16px] top-1/2 -translate-y-1/2" 
+                style={{ color: '#6a6a64' }} 
+              />
+              <input
+                type="text"
+                placeholder="Search models..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-[44px] pr-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
+                style={{ 
+                  fontFamily: 'var(--font-mono)', 
+                  fontSize: '13px', 
+                  color: '#f0f0ec'
+                }}
+              />
+            </div>
+
+            {/* Context Filter */}
+            <Dropdown
+              value={contextFilter}
+              onChange={(value) => setContextFilter(value)}
+              options={contextOptions}
+              currentLabel={contextOptions.find(opt => opt.value === contextFilter)?.label || 'All Contexts'}
+            />
+
+            {/* Division Filter */}
+            <Dropdown
+              value={divisionFilter}
+              onChange={(value) => setDivisionFilter(value)}
+              options={divisionOptions}
+              currentLabel={divisionOptions.find(opt => opt.value === divisionFilter)?.label || 'All Divisions'}
+            />
+
+            {/* Sort Selector */}
+            <Dropdown
+              value={sortBy}
+              onChange={(value) => setSortBy(value)}
+              options={sortOptions}
+              currentLabel={sortOptions.find(opt => opt.value === sortBy)?.label || 'Sort: Last Rendered'}
+            />
+
+            {/* Brief Match Button */}
+            <button
+              onClick={() => setBriefMatchActive(true)}
+              className="flex items-center gap-[8px] px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] text-[12px] uppercase tracking-[0.1em] hover:bg-[#1a1a1a] transition-colors whitespace-nowrap"
+              style={{ 
+                fontFamily: 'var(--font-mono)', 
+                color: '#f0f0ec',
+                cursor: 'pointer'
+              }}
+            >
+              <Sparkles size={14} style={{ color: '#f0f0ec' }} />
+              BRIEF MATCH
+            </button>
+          </>
+        ) : (
+          <>
+            {/* Brief Match Input */}
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="Describe the brief — e.g. luxury fragrance, aspirational, European market, strong bone structure..."
+                value={briefQuery}
+                onChange={(e) => setBriefQuery(e.target.value)}
+                className="w-full px-[16px] py-[10px] bg-[#111111] border rounded-[4px]"
+                style={{ 
+                  fontFamily: 'var(--font-mono)', 
+                  fontSize: '13px', 
+                  color: '#f0f0ec',
+                  borderColor: '#f0f0ec'
+                }}
+              />
+            </div>
+
+            {/* Match Button */}
+            <button
+              onClick={() => setShowMatchResults(true)}
+              className="px-[16px] py-[10px] rounded-[4px] text-[12px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 whitespace-nowrap"
+              style={{ 
+                fontFamily: 'var(--font-mono)', 
+                backgroundColor: '#f0f0ec',
+                color: '#080808'
+              }}
+            >
+              MATCH
+            </button>
+
+            {/* Cancel Button */}
+            <button
+              onClick={() => {
+                setBriefMatchActive(false);
+                setShowMatchResults(false);
+                setBriefQuery('');
+              }}
+              className="px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors"
+            >
+              <X size={16} style={{ color: '#f0f0ec' }} />
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Match Results Strip */}
+      {showMatchResults && briefMatchActive && (
+        <div 
+          className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[16px] mb-[16px]"
+        >
+          <div 
+            className="text-[11px] uppercase tracking-[0.1em] mb-[12px]"
+            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+          >
+            TOP MATCHES
+          </div>
+
+          {/* Match Results */}
+          <div className="space-y-[1px]">
+            {[
+              { name: 'Sofia Andersen', percentage: 96, image: models[0].image },
+              { name: 'Zara Klein', percentage: 91, image: models[5].image },
+              { name: 'Ava Laurent', percentage: 88, image: models[2].image }
+            ].map((match, index) => (
+              <div 
+                key={index}
+                className="flex items-center gap-[12px] py-[12px]"
+                style={{ 
+                  borderTop: index > 0 ? '1px solid #1a1a1a' : 'none'
+                }}
+              >
+                {/* Thumbnail */}
+                <div 
+                  className="w-[40px] h-[40px] bg-[#1a1a1a] rounded-[4px] overflow-hidden flex-shrink-0"
+                >
+                  <img 
+                    src={match.image} 
+                    alt={match.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Name */}
+                <div 
+                  className="flex-1 text-[13px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                >
+                  {match.name}
+                </div>
+
+                {/* Match Percentage */}
+                <div 
+                  className="text-[16px] font-bold"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                >
+                  {match.percentage}%
+                </div>
+
+                {/* View Link */}
+                <div 
+                  className="text-[12px] cursor-pointer hover:opacity-70 transition-opacity"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+                  onClick={() => navigate(`/roster/${match.name.toLowerCase().replace(' ', '-')}`)}
+                >
+                  VIEW →
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Model Cards Grid or Empty State */}
+      {filteredModels.length === 0 ? (
+        search.trim() !== '' ? (
+          <div 
+            className="py-[48px] text-center"
+            style={{ 
+              fontFamily: 'var(--font-mono)', 
+              fontSize: '13px', 
+              color: '#666660' 
+            }}
+          >
+            No models match "{search}"
+          </div>
+        ) : (
+          <div 
+            className="flex flex-col items-center justify-center py-[64px] border border-dashed border-[#2a2a2a] bg-[#0d0d0d] rounded-[4px]"
+          >
+            <div 
+              className="text-[14px] mb-[8px]"
+              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+            >
+              No models on the roster yet.
+            </div>
+            <div 
+              className="text-[13px] mb-[24px]"
+              style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+            >
+              Sign a prospect to get started.
+            </div>
+            <button
+              onClick={() => navigate('/prospects')}
+              className="px-[24px] py-[12px] bg-[#111111] border border-[#f0f0ec] rounded-[4px] text-[13px] transition-opacity hover:opacity-80"
+              style={{ 
+                fontFamily: 'var(--font-mono)', 
+                color: '#f0f0ec'
+              }}
+            >
+              Go to Prospects
+            </button>
+          </div>
+        )
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-[20px]">
+          {filteredModels.map((model) => (
+            <Link
+              key={model.id}
+              to={`/roster/${model.id}`}
+              className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden hover:border-[#3a3a3a] transition-colors"
+            >
+              {/* Image with Badge */}
+              <div className="relative bg-[#1a1a1a] h-[160px] md:h-[220px]">
+                <img 
+                  src={model.image} 
+                  alt={model.name}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* New to Roster Badge - Top Right */}
+                {model.recentlySigned && (
+                  <div 
+                    className="absolute top-[8px] right-[8px] px-[10px] py-[6px] rounded-[4px] text-[10px] uppercase tracking-tight"
+                    style={{ 
+                      fontFamily: 'var(--font-label)', 
+                      backgroundColor: '#f0f0ec',
+                      color: '#080808'
+                    }}
+                  >
+                    NEW TO ROSTER
+                  </div>
+                )}
+                
+                {/* Primary Context Badge - Bottom Left */}
+                <div 
+                  className="absolute bottom-[12px] left-[12px] px-[10px] py-[4px] rounded-full text-[9px] uppercase tracking-[0.1em]"
+                  style={{ 
+                    fontFamily: 'var(--font-label)', 
+                    backgroundColor: 'rgba(8, 8, 8, 0.8)',
+                    color: '#f0f0ec',
+                    backdropFilter: 'blur(8px)'
+                  }}
+                >
+                  {model.primaryContext}
+                </div>
+              </div>
+
+              {/* Card Content */}
+              <div className="p-[14px]">
+                {/* Model Name */}
+                <div 
+                  className="text-[20px] mb-[12px]"
+                  style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                >
+                  {model.name}
+                </div>
+
+                {/* Context Chips */}
+                <div className="flex gap-[8px] mb-[16px]">
+                  {model.contexts.map((context) => {
+                    const isRendered = model.renderedContexts.includes(context);
+                    return (
+                      <div
+                        key={context}
+                        className="w-[24px] h-[24px] rounded-[4px] border flex items-center justify-center text-[8px] uppercase tracking-[0.1em]"
+                        style={{
+                          fontFamily: 'var(--font-label)',
+                          backgroundColor: isRendered ? '#f0f0ec' : 'transparent',
+                          borderColor: isRendered ? '#f0f0ec' : '#2a2a2a',
+                          color: isRendered ? '#080808' : '#6a6a64'
+                        }}
+                      >
+                        {context}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Score and Date */}
+                <div className="flex items-center justify-between mb-[16px]">
+                  <div 
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: '#f0f0ec' }}
+                  >
+                    {model.topScore}%
+                  </div>
+                  <div 
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a' }}
+                  >
+                    {model.lastRender}
+                  </div>
+                </div>
+
+                {/* Separator */}
+                <div className="h-[1px] bg-[#2a2a2a] mb-[12px]" />
+
+                {/* Status */}
+                <div 
+                  className="text-[9px] uppercase tracking-[0.1em] mb-[8px]"
+                  style={{ 
+                    fontFamily: 'var(--font-label)',
+                    color: model.status === 'ACTIVE' ? '#5d7d5d' : '#7d6d4d'
+                  }}
+                >
+                  {model.status}
+                </div>
+
+                {/* Compare Renders Link - Only show for models with multiple sessions */}
+                {model.id === 'sofia-andersen' && (
+                  <div
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate(`/roster/${model.id}`);
+                    }}
+                    className="text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
+                    style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+                  >
+                    COMPARE RENDERS
+                  </div>
+                )}
+
+                {/* Development Report Button */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSelectedModel(model);
+                    setShowDevReportModal(true);
+                  }}
+                  className="w-full mt-[12px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-all hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
+                  style={{ 
+                    fontFamily: 'var(--font-mono)', 
+                    height: '36px',
+                    borderColor: '#2a2a2a',
+                    color: '#888880',
+                    backgroundColor: 'transparent',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ↗ SHARE DEVELOPMENT REPORT
+                </button>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Development Report Modal */}
+      {showDevReportModal && selectedModel && (
+        <>
+          {/* Modal Overlay */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+            onClick={() => {
+              setShowDevReportModal(false);
+              setShowCopiedConfirmation(false);
+            }}
+          >
+            {/* Modal */}
+            <div 
+              className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[32px]"
+              style={{ width: '480px' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <h2 
+                className="text-[24px] mb-[24px]"
+                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+              >
+                Development Report — {selectedModel.name}
+              </h2>
+
+              {/* Preview Summary - hardcoded for Sofia Andersen, generic for others */}
+              <div 
+                className="mb-[32px] text-[12px] leading-relaxed whitespace-pre-line"
+                style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
+              >
+                {selectedModel.id === 'sofia-andersen' ? (
+                  `July 2025 (Prospect era)
+Fragrance 71% · Editorial 72%
+
+November 2025
+Fragrance 81% · Editorial 83% · Campaign 78%
+
+March 2026
+Fragrance 94% · Editorial 96% · Campaign 88% · Beauty 91%
+
+Overall trajectory: +23 points across primary contexts since signing.`
+                ) : (
+                  `Development data for ${selectedModel.name} will be available after multiple evaluation sessions.`
+                )}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-between gap-[12px]">
+                {/* Cancel Button */}
+                <button
+                  onClick={() => {
+                    setShowDevReportModal(false);
+                    setShowCopiedConfirmation(false);
+                  }}
+                  className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec]"
+                  style={{ 
+                    fontFamily: 'var(--font-mono)',
+                    borderColor: '#2a2a2a',
+                    color: '#888880',
+                    backgroundColor: 'transparent'
+                  }}
+                >
+                  CANCEL
+                </button>
+
+                {/* Copy Share Link Button */}
+                <button
+                  onClick={() => {
+                    setShowCopiedConfirmation(true);
+                    setTimeout(() => {
+                      setShowCopiedConfirmation(false);
+                    }, 2000);
+                  }}
+                  className="px-[16px] py-[10px] rounded-[4px] text-[12px] transition-opacity hover:opacity-80"
+                  style={{ 
+                    fontFamily: 'var(--font-mono)',
+                    backgroundColor: '#f0f0ec',
+                    color: '#080808'
+                  }}
+                >
+                  {showCopiedConfirmation ? (
+                    <span style={{ color: '#888880', backgroundColor: 'transparent', fontSize: '11px' }}>
+                      Link copied to clipboard
+                    </span>
+                  ) : (
+                    'COPY SHARE LINK'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
