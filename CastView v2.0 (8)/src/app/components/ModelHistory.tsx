@@ -318,7 +318,7 @@ export function ModelHistory() {
           </div>
         </div>
 
-        {/* Right Column - Render History */}
+        {/* Right Column - Evaluation History */}
         <div>
           {/* Header with Compare Button */}
           <div className="flex items-center justify-between mb-[24px]">

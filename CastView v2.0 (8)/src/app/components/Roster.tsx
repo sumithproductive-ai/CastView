@@ -646,7 +646,7 @@ export function Roster() {
                     className="text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
                     style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
                   >
-                    COMPARE RENDERS
+                    COMPARE DIGITALS
                   </div>
                 )}
 

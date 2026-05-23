@@ -945,35 +945,58 @@ export function ProspectRenderHistory({
                         }}
                       />
                       {imageUrl ? (
-                        <div>
-                          <div
-                            className="relative bg-[#0d0d0d] border border-[#2a2a2a] rounded-[4px] overflow-hidden"
-                            style={{ height: '80px' }}
-                          >
-                            <img
-                              src={imageUrl}
-                              alt={field.label}
-                              className="w-full h-full rounded-[4px]"
-                              style={{ objectFit: 'cover', height: '80px' }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleClearUploadField(fieldKey)}
-                              className="absolute top-[8px] right-[8px] w-[24px] h-[24px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-full flex items-center justify-center hover:bg-[#222222] transition-colors"
-                              style={{ cursor: 'pointer' }}
-                            >
-                              <X size={12} style={{ color: '#f0f0ec' }} />
-                            </button>
-                          </div>
-                          <div
-                            className="mt-[6px]"
+                        <div style={{ position: 'relative' }}>
+                          <img
+                            src={uploadForm[fieldKey]}
+                            alt={field.label}
                             style={{
-                              fontFamily: 'var(--font-mono)',
-                              fontSize: '9px',
-                              color: '#888880',
+                              width: '100%',
+                              aspectRatio: '3/4',
+                              objectFit: 'cover',
+                              objectPosition: 'center top',
+                              display: 'block',
+                              borderRadius: '2px',
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              URL.revokeObjectURL(uploadForm[fieldKey]);
+                              setUploadForm((prev) => ({
+                                ...prev,
+                                [fieldKey]: '',
+                              }));
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: '6px',
+                              right: '6px',
+                              background: 'rgba(0,0,0,0.7)',
+                              border: '1px solid #333',
+                              borderRadius: '50%',
+                              width: '20px',
+                              height: '20px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              color: '#f0f0ec',
+                              fontSize: '10px',
                             }}
                           >
-                            {uploadFileNames[fieldKey] || 'Uploaded'}
+                            ×
+                          </button>
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '8px',
+                              color: '#888880',
+                              marginTop: '4px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.1em',
+                            }}
+                          >
+                            {field.label} — UPLOADED
                           </div>
                         </div>
                       ) : (

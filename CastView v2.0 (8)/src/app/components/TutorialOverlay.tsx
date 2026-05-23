@@ -55,7 +55,7 @@ const defaultTutorialSteps: TutorialStep[] = [
   },
   {
     headline: 'Understanding the score',
-    body: 'Every evaluation produces a Fit Score with a full breakdown — Composition, Style Match, Versatility, Market Fit. Use AGREE to log your confirmation or OVERRIDE to record your own judgment. Both signals improve the model over time.',
+    body: 'Every evaluation produces a Fit Score with a full breakdown — Composition, Style Match, Versatility, Market Fit. Use Confirm Alignment to log your confirmation or Override to record your own judgment. Both signals improve the model over time.',
     spotlightSelector: '[data-tutorial="score-panel"]',
     tooltipPosition: 'left',
     requiredPath: '/results'

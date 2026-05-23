@@ -474,7 +474,7 @@ export function Results() {
 
               <p className="mb-[12px]" style={{ marginTop: '16px' }}>
                 <strong style={{ color: '#f0f0ec' }}>Your feedback improves accuracy over time.</strong><br />
-                Every time you click AGREE or OVERRIDE, that signal is used to refine the scoring model specifically for your agency's casting standards. Your overrides are private to your agency — they are never shared with other agencies or used to train a shared model.
+                Every time you confirm or override an alignment score, that signal is used to refine the evaluation model specifically for your agency's casting standards. Your overrides are private to your agency — they are never shared with other agencies or used to train a shared model.
               </p>
             </div>
 
