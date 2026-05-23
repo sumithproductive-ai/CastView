@@ -45,7 +45,7 @@ const SEED_PROSPECTS: Prospect[] = [
     evaluations: 1,
     submissionDate: '2 days ago',
     source: 'DIRECT',
-    image: 'https://i.imgur.com/F70z8kX.jpg',
+    image: 'https://imgur.com/TZxydSw',
     contexts: ['FR', 'ED', 'CA'],
     renderedContexts: ['FR'],
     division: 'men',
