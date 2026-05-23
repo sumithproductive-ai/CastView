@@ -1,6 +1,28 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { ChevronRight, ChevronDown } from 'lucide-react';
+
+const sumithProspectData = {
+  name: 'Sumith Chittimalla',
+  status: 'IN REVIEW',
+  statusColor: '#C8A96E',
+  sessions: [
+    {
+      date: 'May 20, 2026',
+      contextsCount: 1,
+      topScore: 94,
+      renders: [
+        {
+          id: 1,
+          context: 'Fragrance',
+          score: 94,
+          image: 'https://i.imgur.com/jZHp7Ei.jpg'
+        }
+      ],
+      expanded: true
+    }
+  ]
+};
 
 const prospectData = {
   name: 'Sofia Andersen',
@@ -43,8 +65,13 @@ const prospectData = {
 };
 
 export function ProspectRenderHistory() {
-  const [status, setStatus] = useState(prospectData.status);
-  const [statusColor, setStatusColor] = useState(prospectData.statusColor);
+  const { prospectId } = useParams();
+  const activeProspectData = prospectId === 'sumith-chittimalla'
+    ? sumithProspectData
+    : prospectData;
+
+  const [status, setStatus] = useState(activeProspectData.status);
+  const [statusColor, setStatusColor] = useState(activeProspectData.statusColor);
   const [pendingStatusChange, setPendingStatusChange] = useState<null | {
     previousStatus: string;
     previousColor: string;
@@ -103,7 +130,7 @@ export function ProspectRenderHistory() {
           className="text-[13px]"
           style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
         >
-          {prospectData.name}
+          {activeProspectData.name}
         </span>
       </div>
 
@@ -111,7 +138,7 @@ export function ProspectRenderHistory() {
         className="text-[48px] mb-[48px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
-        {prospectData.name} — Render History
+        {activeProspectData.name} — Render History
       </h1>
 
       {/* Status Actions */}
@@ -151,7 +178,7 @@ export function ProspectRenderHistory() {
 
       {/* Evaluation Sessions */}
       <div className="space-y-[24px] mb-[48px]">
-        {prospectData.sessions.map((session, index) => {
+        {activeProspectData.sessions.map((session, index) => {
           const isExpanded = expandedSessions.includes(index);
           
           return (
@@ -206,7 +233,7 @@ export function ProspectRenderHistory() {
                           {/* Download Button */}
                           <a
                             href={render.image}
-                            download={`${prospectData.name.replace(' ', '-')}-${render.context}.jpg`}
+                            download={`${activeProspectData.name.replace(' ', '-')}-${render.context}.jpg`}
                             onClick={(e) => e.stopPropagation()}
                             className="absolute top-[8px] right-[8px] w-[28px] h-[28px] bg-[#080808] bg-opacity-80 border border-[#2a2a2a] rounded-[4px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
                             title="Download render"

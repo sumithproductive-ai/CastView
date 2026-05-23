@@ -1,15 +1,29 @@
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Upload, X, Check, Lock } from 'lucide-react';
+
+const sumithDigitals = {
+  front: 'https://i.imgur.com/jZHp7Ei.jpg',
+  profile: 'https://i.imgur.com/aBlfi1y.jpg',
+  three_quarter: 'https://i.imgur.com/AlYexxj.jpg',
+  full_body: 'https://i.imgur.com/sH8hoNb.jpg'
+};
 
 export function NewProspectDigitals() {
   const navigate = useNavigate();
+  const { prospectId: routeProspectId } = useParams();
+  const [searchParams] = useSearchParams();
+  const prospectId = routeProspectId ?? searchParams.get('prospectId');
 
-  const uploadedImages = {
+  const defaultUploadedImages = {
     front: 'https://images.unsplash.com/photo-1669643783392-09d0a26c79e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwcm9mZXNzaW9uYWwlMjBoZWFkc2hvdCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE3MzUyMHww&ixlib=rb-4.1.0&q=80&w=1080',
     profile: 'https://images.unsplash.com/photo-1763987275895-72f645d0acbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHByb2ZpbGUlMjBzaWRlJTIwdmlldyUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE3MzUyMnww&ixlib=rb-4.1.0&q=80&w=1080',
     three_quarter: null,
     full_body: null
   };
+
+  const uploadedImages = prospectId === 'sumith-chittimalla'
+    ? sumithDigitals
+    : defaultUploadedImages;
 
   const uploadZones = [
     { key: 'front', label: 'FRONT', uploaded: uploadedImages.front },

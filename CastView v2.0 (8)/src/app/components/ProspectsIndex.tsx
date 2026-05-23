@@ -2,9 +2,31 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Search, ChevronDown, Plus, X } from 'lucide-react';
 
-type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL';
+type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL' | 'DIRECT';
 
 const initialProspects = [
+  {
+    id: 'sumith-chittimalla',
+    name: 'Sumith Chittimalla',
+    status: 'IN REVIEW',
+    statusColor: '#C8A96E',
+    renders: 1,
+    submissionDate: '2 days ago',
+    source: 'DIRECT' as Source,
+    image: 'https://i.imgur.com/jZHp7Ei.jpg',
+    contexts: ['FR', 'ED', 'CA'],
+    renderedContexts: ['FR'],
+    division: 'men',
+    primaryContext: 'FRAGRANCE',
+    markets: ['NYC', 'London'],
+    height: "6'1\"",
+    measurements: {
+      chest: '38',
+      waist: '30',
+      hips: '33',
+      shoe: '11'
+    }
+  },
   {
     id: 'camille-rousseau',
     name: 'Camille Rousseau',
