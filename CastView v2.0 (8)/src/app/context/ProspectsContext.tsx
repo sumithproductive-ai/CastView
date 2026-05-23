@@ -102,6 +102,7 @@ type ProspectsContextType = {
   prospects: Prospect[];
   addProspect: (prospect: Prospect) => void;
   updateProspect: (id: string, updates: Partial<Prospect>) => void;
+  removeProspect: (id: string) => void;
   getProspectById: (id: string) => Prospect | undefined;
 };
 
@@ -126,6 +127,10 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const removeProspect = useCallback((id: string) => {
+    setProspects((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+
   const getProspectById = useCallback(
     (id: string) => prospects.find((prospect) => prospect.id === id),
     [prospects],
@@ -136,9 +141,10 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       prospects,
       addProspect,
       updateProspect,
+      removeProspect,
       getProspectById,
     }),
-    [prospects, addProspect, updateProspect, getProspectById],
+    [prospects, addProspect, updateProspect, removeProspect, getProspectById],
   );
 
   return (

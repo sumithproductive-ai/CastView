@@ -10,7 +10,7 @@ export function NewProspectBasicInfo() {
   const navigate = useNavigate();
   const { isTutorialOpen } = useTutorial();
   const [searchParams] = useSearchParams();
-  const [name, setName] = useState('Sumith Chittimalla');
+  const [name, setName] = useState('');
   const [markets, setMarkets] = useState<Market[]>([]);
   const [source, setSource] = useState<Source | null>(null);
   const [measurements, setMeasurements] = useState({

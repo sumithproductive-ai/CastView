@@ -173,7 +173,7 @@ export function ProspectRenderHistory({
   profileType = 'prospect',
 }: ProspectRenderHistoryProps) {
   const { prospectId, modelId } = useParams();
-  const { getProspectById, updateProspect } = useProspects();
+  const { getProspectById, updateProspect, removeProspect } = useProspects();
   const isProspect = profileType === 'prospect';
   const isModel = profileType === 'model';
   const contextProspect = isProspect
@@ -204,6 +204,7 @@ export function ProspectRenderHistory({
   const [notesBySet, setNotesBySet] = useState<Record<string, string>>({});
   const [digitalSets, setDigitalSets] = useState<DigitalSet[]>(activeProfile.digitalSets);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [uploadForm, setUploadForm] = useState(emptyUploadForm);
   const [uploadFileNames, setUploadFileNames] = useState<
@@ -335,6 +336,12 @@ export function ProspectRenderHistory({
 
   const toggleOpenSet = (setId: string) => {
     setOpenedSetId((current) => (current === setId ? null : setId));
+  };
+
+  const handleConfirmDelete = () => {
+    if (!prospectId) return;
+    removeProspect(prospectId);
+    navigate('/prospects');
   };
 
   return (
@@ -471,6 +478,14 @@ export function ProspectRenderHistory({
                 PASS
               </button>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="w-full px-[16px] py-[10px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
+              style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a', cursor: 'pointer' }}
+            >
+              DELETE PROSPECT
+            </button>
           </div>
         ) : (
           <div className="flex flex-col gap-[12px]">

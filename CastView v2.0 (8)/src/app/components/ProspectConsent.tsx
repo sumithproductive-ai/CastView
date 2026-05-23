@@ -62,7 +62,7 @@ export function ProspectConsent() {
       >
         Before we generate evaluations for {prospectName}, we want to make sure they know their photos are being used.
         <br /><br />
-        CastView creates AI visualisations from uploaded digitals for internal evaluation purposes only. Evaluations aren't shared with clients until you choose to share them. Photos can be deleted from the prospect's profile at any time.
+        CastView analyses uploaded digitals to generate structured context alignment evaluations for internal agency use only. Evaluations are not shared with clients until you choose to share them. Photos can be deleted from the prospect's profile at any time.
       </div>
 
       {/* Checkbox Row */}
@@ -88,7 +88,7 @@ export function ProspectConsent() {
             color: '#f0f0ec'
           }}
         >
-          I've let {prospectName} know their photos will be used for AI evaluation.
+          I've confirmed {prospectName} has consented to their photos being used for internal evaluation.
         </label>
       </div>
 
