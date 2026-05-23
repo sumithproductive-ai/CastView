@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { ChevronRight, Lock } from 'lucide-react';
 
 import { sumithDigitalsList } from '../constants/sumithProspect';
@@ -27,6 +27,12 @@ const qualities = ['Standard', 'High', 'Ultra'];
 
 export function Profile() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const prospectName = searchParams.get('name')
+    ? decodeURIComponent(searchParams.get('name')!)
+    : 'Sumith Chittimalla';
+  const prospectId = searchParams.get('prospectId') || '';
+  const profileType = searchParams.get('profileType') || 'prospect';
   const [selectedContexts, setSelectedContexts] = useState<string[]>(['Fragrance', 'Editorial']);
   const [selectedQuality, setSelectedQuality] = useState('High');
   
@@ -39,7 +45,10 @@ export function Profile() {
   };
   
   const handleGenerate = () => {
-    navigate('/rendering');
+    const contextsParam = selectedContexts.join(',');
+    navigate(
+      `/rendering?name=${encodeURIComponent(prospectName)}&contexts=${contextsParam}&prospectId=${prospectId}&profileType=${profileType}`
+    );
   };
   
   const contextDescriptions: Record<string, string> = {

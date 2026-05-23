@@ -7,7 +7,7 @@ import type { DigitalSet } from '../types/talent';
 
 const ROSTER_STORAGE_KEY = 'castview_roster';
 const ROSTER_VERSION_KEY = 'castview_roster_version';
-const ROSTER_STORAGE_VERSION = 'v1';
+const ROSTER_STORAGE_VERSION = 'v3';
 
 function readRosterModelsFromStorage(): RosterModel[] {
   try {

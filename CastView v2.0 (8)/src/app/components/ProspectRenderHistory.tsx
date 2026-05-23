@@ -466,7 +466,11 @@ export function ProspectRenderHistory({
               disabled={!canRunEvaluationOnSelected}
               title={!canRunEvaluationOnSelected ? runEvaluationDisabledTitle : undefined}
               onClick={() => {
-                if (canRunEvaluationOnSelected) navigate('/profile');
+                if (canRunEvaluationOnSelected) {
+                  navigate(
+                    `/profile?name=${encodeURIComponent(activeProfile.name)}&prospectId=${resolvedEntityId}&profileType=${profileType}`
+                  );
+                }
               }}
               className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
               style={{
@@ -513,7 +517,11 @@ export function ProspectRenderHistory({
               disabled={!canRunEvaluationOnSelected}
               title={!canRunEvaluationOnSelected ? runEvaluationDisabledTitle : undefined}
               onClick={() => {
-                if (canRunEvaluationOnSelected) navigate('/profile');
+                if (canRunEvaluationOnSelected) {
+                  navigate(
+                    `/profile?name=${encodeURIComponent(activeProfile.name)}&prospectId=${resolvedEntityId}&profileType=${profileType}`
+                  );
+                }
               }}
               className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
               style={{
@@ -663,7 +671,11 @@ export function ProspectRenderHistory({
                         disabled={digitalsOnFile === 0}
                         title={digitalsOnFile === 0 ? runEvaluationDisabledTitle : undefined}
                         onClick={() => {
-                          if (digitalsOnFile > 0) navigate('/profile');
+                          if (digitalsOnFile > 0) {
+                            navigate(
+                              `/profile?name=${encodeURIComponent(activeProfile.name)}&prospectId=${resolvedEntityId}&profileType=${profileType}`
+                            );
+                          }
                         }}
                         className={ghostButtonClass}
                         style={{

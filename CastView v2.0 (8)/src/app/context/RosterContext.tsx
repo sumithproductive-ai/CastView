@@ -9,6 +9,10 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import sumithThumbnail from '@/assets/sumith-thumbnail.jpg';
+import sumithFront from '@/assets/sumith-front.jpg';
+import sumithProfile from '@/assets/sumith-profile.jpg';
+import sumithThreeQuarter from '@/assets/sumith-three-quarter.jpg';
+import sumithFullBody from '@/assets/sumith-full-body.jpg';
 import type { DigitalSet } from '../types/talent';
 
 export type RosterModel = {
@@ -26,7 +30,7 @@ export type RosterModel = {
   digitalSets: DigitalSet[];
 };
 
-const STORAGE_VERSION = 'v2';
+const STORAGE_VERSION = 'v3';
 const STORAGE_VERSION_KEY = 'castview_roster_version';
 const STORAGE_KEY = 'castview_roster';
 
@@ -43,7 +47,116 @@ const SEED_MODELS: RosterModel[] = [
     status: 'ACTIVE',
     recentlySigned: true,
     division: 'men',
-    digitalSets: [],
+    digitalSets: [
+      {
+        id: 'sumith-roster-ds-1',
+        uploadedAt: 'May 2026',
+        title: 'May 2026 Update',
+        front: sumithFront,
+        profile: sumithProfile,
+        threeQuarter: sumithThreeQuarter,
+        fullBody: sumithFullBody,
+        additionalImages: [],
+        notes: 'Updated digitals post first season.',
+        tags: ['updated', 'post-season'],
+        evaluations: [],
+      },
+    ],
+  },
+  {
+    id: 'john-doe-roster',
+    name: 'John Doe',
+    image: null,
+    primaryContext: 'EDITORIAL',
+    contexts: ['FR', 'ED', 'RW'],
+    renderedContexts: ['FR', 'ED'],
+    topScore: 87,
+    lastEvaluation: '1 week ago',
+    status: 'ACTIVE',
+    recentlySigned: false,
+    division: 'men',
+    digitalSets: [
+      {
+        id: 'john-ds-2',
+        uploadedAt: 'May 2026',
+        title: 'Updated Digitals',
+        front: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?w=800',
+        profile: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?w=800',
+        threeQuarter: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?w=800',
+        fullBody: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?w=800',
+        additionalImages: [],
+        notes: 'Second submission — updated after first season.',
+        tags: ['updated'],
+        evaluations: [
+          {
+            id: 'john-eval-2',
+            completedAt: 'May 10, 2026',
+            contexts: [
+              {
+                context: 'Fragrance',
+                alignmentScore: 87,
+                fitLabel: 'STRONG ALIGNMENT',
+                reasoning: 'Updated digitals show improved bone structure visibility.',
+                strengths: ['Improved contrast range', 'Stronger profile definition'],
+                risks: ['Limited market data'],
+                marketSignals: ['Strong demand in EU markets'],
+                suggestedNextSteps: ['Schedule fragrance test shoot'],
+              },
+              {
+                context: 'Editorial',
+                alignmentScore: 91,
+                fitLabel: 'STRONG ALIGNMENT',
+                reasoning: 'Editorial indicators improved significantly from first set.',
+                strengths: ['Strong editorial framing', 'Versatile look range'],
+                risks: [],
+                marketSignals: ['NYC editorial market active'],
+                suggestedNextSteps: ['Approach editorial clients in NYC'],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'john-ds-1',
+        uploadedAt: 'January 2026',
+        title: 'Initial Submission',
+        front: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800',
+        profile: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800',
+        threeQuarter: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800',
+        fullBody: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800',
+        additionalImages: [],
+        notes: 'First submission after signing.',
+        tags: ['initial'],
+        evaluations: [
+          {
+            id: 'john-eval-1',
+            completedAt: 'January 15, 2026',
+            contexts: [
+              {
+                context: 'Fragrance',
+                alignmentScore: 78,
+                fitLabel: 'MODERATE ALIGNMENT',
+                reasoning: 'Initial digitals show potential but limited progression data.',
+                strengths: ['Good bone structure baseline'],
+                risks: ['Image quality inconsistent', 'Limited contrast range'],
+                marketSignals: ['Early stage — more data needed'],
+                suggestedNextSteps: ['Schedule updated digitals shoot', 'Focus on lighting quality'],
+              },
+              {
+                context: 'Editorial',
+                alignmentScore: 82,
+                fitLabel: 'STRONG ALIGNMENT',
+                reasoning: 'Editorial potential visible in initial submission.',
+                strengths: ['Natural editorial presence'],
+                risks: ['Needs updated digitals'],
+                marketSignals: ['Editorial market receptive'],
+                suggestedNextSteps: ['Update digitals within 60 days'],
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
 ];
 
