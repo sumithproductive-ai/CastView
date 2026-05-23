@@ -1,3 +1,4 @@
+import React from 'react';
 import { Lock } from 'lucide-react';
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {

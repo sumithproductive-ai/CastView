@@ -1,3 +1,4 @@
+import React from 'react';
 In CompareMode.tsx, add a WHY THIS CHANGED 
 reasoning panel below the score rows in 
 the AFTER column, and add inline reasoning 

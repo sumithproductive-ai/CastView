@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { isSumithProspect, sumithDigitals, SUMITH_PROSPECT_NAME } from '../constants/sumithProspect';

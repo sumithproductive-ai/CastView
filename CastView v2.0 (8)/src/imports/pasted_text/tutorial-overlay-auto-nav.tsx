@@ -1,3 +1,4 @@
+import React from 'react';
 Fix TutorialOverlay.tsx so it navigates the app automatically 
 as the user clicks through steps, instead of asking the user 
 to navigate themselves.

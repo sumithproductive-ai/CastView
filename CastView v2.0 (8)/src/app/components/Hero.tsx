@@ -1,3 +1,4 @@
+import React from 'react';
 // Hero component for CastView landing page
 
 export function Hero() {

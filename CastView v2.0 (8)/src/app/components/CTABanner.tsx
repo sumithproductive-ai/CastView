@@ -1,3 +1,4 @@
+import React from 'react';
 // CTABanner component for CastView landing page
 
 export function CTABanner() {

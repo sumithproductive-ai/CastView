@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { X } from 'lucide-react';

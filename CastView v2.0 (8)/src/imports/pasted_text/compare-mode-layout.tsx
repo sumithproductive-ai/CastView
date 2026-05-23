@@ -1,3 +1,4 @@
+import React from 'react';
 Fully rewrite the return statement in CompareMode.tsx 
 with a clean two-card layout. Keep all existing data 
 arrays (beforeScores, afterScores, useState for 

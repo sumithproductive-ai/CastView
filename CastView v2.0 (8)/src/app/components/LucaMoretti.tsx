@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate } from 'react-router';
 import { Camera } from 'lucide-react';
 

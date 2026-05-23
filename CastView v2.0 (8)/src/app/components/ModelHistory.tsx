@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router';
 import { ChevronRight, ChevronDown, Upload, X, Plus } from 'lucide-react';

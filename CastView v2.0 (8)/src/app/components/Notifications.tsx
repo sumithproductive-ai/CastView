@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import { Image as ImageIcon, UserCheck, Eye, Tag } from 'lucide-react';
 

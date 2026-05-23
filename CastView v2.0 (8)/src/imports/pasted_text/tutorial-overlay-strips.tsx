@@ -1,3 +1,4 @@
+import React from 'react';
 Rewrite the overlay rendering in TutorialOverlay.tsx to 
 use four surrounding strips instead of a single full-screen 
 dark div. This creates a true transparent cutout so the 

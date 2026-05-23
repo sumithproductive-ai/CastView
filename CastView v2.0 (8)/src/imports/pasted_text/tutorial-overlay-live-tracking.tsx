@@ -1,3 +1,4 @@
+import React from 'react';
 Replace the entire spotlight tracking system in 
 TutorialOverlay.tsx with a live tracking approach using 
 scroll listeners, ResizeObserver, and requestAnimationFrame. 

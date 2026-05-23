@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from "react";
 import { RouterProvider } from "react-router";
 import { router } from "./routes";

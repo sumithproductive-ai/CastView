@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect } from 'react';
 import { X, Image as ImageIcon, UserCheck, Eye, Tag } from 'lucide-react';
 

@@ -1,3 +1,4 @@
+import React from 'react';
 Fully rewrite the return statement in CompareMode.tsx 
 with a three-column layout:
 Left column — BEFORE card

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Upload, X, Check, Lock } from 'lucide-react';

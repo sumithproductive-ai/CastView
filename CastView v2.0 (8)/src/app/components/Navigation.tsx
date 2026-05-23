@@ -1,3 +1,4 @@
+import React from 'react';
 // Navigation component for CastView landing page
 
 export function Navigation() {

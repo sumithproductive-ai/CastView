@@ -1,3 +1,4 @@
+import React from 'react';
 export function RenderLab() {
   return (
     <div className="p-[48px]">

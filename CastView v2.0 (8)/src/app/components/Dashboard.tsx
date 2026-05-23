@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link } from 'react-router';
 import { useMemo, useState } from 'react';
 import { useProspects } from '../context/ProspectsContext';

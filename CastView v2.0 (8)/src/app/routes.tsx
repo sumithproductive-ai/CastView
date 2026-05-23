@@ -1,3 +1,4 @@
+import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
 import { ProgressBar } from './components/ProgressBar';
 import { Sidebar } from './components/Sidebar';

@@ -1,3 +1,4 @@
+import React from 'react';
 // Pricing component for CastView landing page
 
 export function Pricing() {

@@ -1,3 +1,4 @@
+import React from 'react';
 interface FrameMarkProps {
   size?: number;
   color?: string;

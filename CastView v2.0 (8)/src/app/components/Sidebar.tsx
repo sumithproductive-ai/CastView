@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { LayoutDashboard, Users, Image, Share2, Settings, Bell, FlaskConical, type LucideIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
