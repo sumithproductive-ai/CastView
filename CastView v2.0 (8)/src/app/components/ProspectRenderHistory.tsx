@@ -687,7 +687,7 @@ export function ProspectRenderHistory({
                                   width: '100%',
                                   aspectRatio: '3/4',
                                   objectFit: 'cover',
-                                  objectPosition: 'center top',
+                                  objectPosition: 'center 15%',
                                   display: 'block',
                                 }}
                               />
@@ -953,7 +953,7 @@ export function ProspectRenderHistory({
                               width: '100%',
                               aspectRatio: '3/4',
                               objectFit: 'cover',
-                              objectPosition: 'center top',
+                              objectPosition: 'center 15%',
                               display: 'block',
                               borderRadius: '2px',
                             }}

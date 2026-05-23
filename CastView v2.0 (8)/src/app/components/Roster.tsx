@@ -458,6 +458,7 @@ export function Roster() {
                     src={match.image} 
                     alt={match.name}
                     className="w-full h-full object-cover"
+                    style={{ objectPosition: 'center 15%' }}
                   />
                 </div>
 
@@ -546,6 +547,7 @@ export function Roster() {
                   src={model.image} 
                   alt={model.name}
                   className="w-full h-full object-cover"
+                  style={{ objectPosition: 'center 15%' }}
                 />
                 
                 {/* New to Roster Badge - Top Right */}

@@ -622,11 +622,7 @@ export function ProspectsIndex() {
                     src={prospect.image} 
                     alt={prospect.name}
                     className="w-full h-full object-cover"
-                    style={
-                      prospect.id === 'sumith-chittimalla'
-                        ? { objectFit: 'cover', objectPosition: 'center top' }
-                        : undefined
-                    }
+                    style={{ objectPosition: 'center 15%' }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">

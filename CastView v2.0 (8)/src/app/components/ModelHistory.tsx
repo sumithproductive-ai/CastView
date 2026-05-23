@@ -235,6 +235,7 @@ export function ModelHistory() {
               src={modelData.primaryImage} 
               alt={modelData.name}
               className="w-full h-full object-cover"
+              style={{ objectPosition: 'center 15%' }}
             />
           </div>
 

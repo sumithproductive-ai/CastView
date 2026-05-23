@@ -464,11 +464,7 @@ export function Dashboard() {
                     src={prospect.image} 
                     alt={prospect.name}
                     className="w-full h-full object-cover"
-                    style={
-                      prospect.id === 'sumith-chittimalla'
-                        ? { objectFit: 'cover', objectPosition: 'center top' }
-                        : undefined
-                    }
+                    style={{ objectPosition: 'center 15%' }}
                   />
                 </div>
 
@@ -535,11 +531,7 @@ export function Dashboard() {
                     src={item.image} 
                     alt={item.name}
                     className="w-full h-full object-cover"
-                    style={
-                      item.id === 'sumith-chittimalla'
-                        ? { objectFit: 'cover', objectPosition: 'center top' }
-                        : undefined
-                    }
+                    style={{ objectPosition: 'center 15%' }}
                   />
                 </div>
 

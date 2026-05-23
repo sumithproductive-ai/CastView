@@ -53,6 +53,7 @@ export function LucaMoretti() {
               src={prospectData.primaryImage} 
               alt={prospectData.name}
               className="w-full h-full object-cover"
+              style={{ objectPosition: 'center 15%' }}
             />
           </div>
 
