@@ -1,1096 +1,566 @@
 import { useState } from 'react';
-
 import { Link, useNavigate, useParams } from 'react-router';
-
 import { ChevronRight } from 'lucide-react';
-
 import { SUMITH_DIGITAL_SET_V1, SUMITH_PROSPECT_NAME } from '../constants/sumithProspect';
-
 import type { DigitalSet, Evaluation } from '../types/talent';
 
-
-
 const sumithProspectData = {
-
   name: SUMITH_PROSPECT_NAME,
-
   status: 'IN REVIEW',
-
   statusColor: '#C8A96E',
-
+  signedDate: 'May 12, 2026',
   digitalSets: [SUMITH_DIGITAL_SET_V1],
-
 };
-
-
 
 const sofiaDigitalSet: DigitalSet = {
-
   id: 'digitals-v1',
-
   uploadedAt: 'March 2026',
-
   title: 'Initial Submission',
-
   front:
-
     'https://images.unsplash.com/photo-1761329842950-f3551938e4da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmFncmFuY2UlMjBlZGl0b3JpYWwlMjBtb2RlbCUyMHBob3RvfGVufDF8fHx8MTc3MzE2NTMzMnww&ixlib=rb-4.1.0&q=80&w=1080',
-
   profile:
-
     'https://images.unsplash.com/photo-1708170236080-6cb6d2d5497c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlZGl0b3JpYWwlMjBmYXNoaW9uJTIwdmVydGljYWwlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzMxNjUzMzF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-
   threeQuarter:
-
     'https://images.unsplash.com/photo-1697677103505-dd4b2dbf1b1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYW1wYWlnbiUyMGZhc2hpb24lMjBzaG9vdHxlbnwxfHx8fDE3NzMxNjUzMzJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-
   fullBody:
-
     'https://images.unsplash.com/photo-1759873911657-8140566c29a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWF1dHklMjBlZGl0b3JpYWwlMjBwb3J0cmFpdCUyMHNxdWFyZXxlbnwxfHx8fDE3NzMxNjUzMzN8MA&ixlib=rb-4.1.0&q=80&w=1080',
-
   additionalImages: [],
-
   notes: '',
-
   tags: [],
-
   evaluations: [
-
     {
-
       id: 'eval-1',
-
       completedAt: 'March 12, 2026',
-
       contexts: [
-
         {
-
           context: 'Fragrance',
-
           alignmentScore: 94,
-
           fitLabel: 'STRONG ALIGNMENT',
-
-          reasoning: '',
-
+          reasoning:
+            'Strong bone structure and contrast range align with luxury fragrance casting criteria.',
           strengths: [],
-
           risks: [],
-
           marketSignals: [],
-
           suggestedNextSteps: [],
-
         },
-
         {
-
           context: 'Editorial',
-
           alignmentScore: 96,
-
           fitLabel: 'STRONG ALIGNMENT',
-
-          reasoning: '',
-
+          reasoning:
+            'Editorial versatility indicators are high with strong framing and posture in digitals.',
           strengths: [],
-
           risks: [],
-
           marketSignals: [],
-
           suggestedNextSteps: [],
-
         },
-
         {
-
           context: 'Campaign',
-
           alignmentScore: 88,
-
           fitLabel: 'STRONG ALIGNMENT',
-
-          reasoning: '',
-
+          reasoning:
+            'Commercial appeal remains strong across campaign context benchmarks.',
           strengths: [],
-
           risks: [],
-
           marketSignals: [],
-
           suggestedNextSteps: [],
-
         },
-
         {
-
           context: 'Runway',
-
           alignmentScore: 91,
-
           fitLabel: 'STRONG ALIGNMENT',
-
-          reasoning: '',
-
+          reasoning:
+            'Proportion indicators support runway context with consistent full-body presentation.',
           strengths: [],
-
           risks: [],
-
           marketSignals: [],
-
           suggestedNextSteps: [],
-
         },
-
       ],
-
     },
-
   ],
-
 };
-
-
 
 const prospectData = {
-
   name: 'Sofia Andersen',
-
   status: 'IN REVIEW',
-
   statusColor: '#4d3d5d',
-
+  signedDate: 'February 18, 2026',
   digitalSets: [sofiaDigitalSet],
-
 };
 
+const sectionLabelStyle = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: '9px',
+  color: '#888880',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+};
 
+const ghostButtonClass =
+  'px-[10px] py-[6px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors';
 
 function countDigitalsOnFile(digitalSet: DigitalSet) {
-
   return [digitalSet.front, digitalSet.profile, digitalSet.threeQuarter, digitalSet.fullBody].filter(
-
     Boolean
-
   ).length;
-
 }
 
-
-
-function getEvaluationTopScore(evaluation: Evaluation) {
-
-  if (evaluation.contexts.length === 0) return 0;
-
-  return Math.max(...evaluation.contexts.map((context) => context.alignmentScore));
-
+function countTotalEvaluations(digitalSets: DigitalSet[]) {
+  return digitalSets.reduce((total, set) => total + set.evaluations.length, 0);
 }
 
-
-
-function getAlignmentLabel(score: number) {
-
-  if (score >= 88) return { label: 'STRONG ALIGNMENT', color: '#4a7a4a' };
-
-  if (score >= 72) return { label: 'MODERATE ALIGNMENT', color: '#7a6a3a' };
-
-  return { label: 'LOW ALIGNMENT', color: '#7a3a3a' };
-
+function getFitLabelColor(fitLabel: string) {
+  if (fitLabel.includes('STRONG')) return '#4a7a4a';
+  if (fitLabel.includes('MODERATE')) return '#888880';
+  if (fitLabel.includes('LOW')) return '#c87a7a';
+  return '#888880';
 }
 
-
-
-function hasAnyEvaluations(digitalSets: DigitalSet[]) {
-
-  return digitalSets.some((digitalSet) => digitalSet.evaluations.length > 0);
-
+function digitalGridSlots(digitalSet: DigitalSet) {
+  return [
+    { label: 'FRONT', src: digitalSet.front },
+    { label: 'PROFILE', src: digitalSet.profile },
+    { label: '3/4', src: digitalSet.threeQuarter },
+    { label: 'FULL BODY', src: digitalSet.fullBody },
+  ];
 }
 
+function formatTagsLine(digitalSet: DigitalSet) {
+  const tags =
+    digitalSet.tags.length > 0 ? digitalSet.tags.join(', ') : 'no tags';
+  return `Uploaded ${digitalSet.uploadedAt}  ·  ${tags}`;
+}
 
+type ContextEvaluationRow = {
+  evaluationId: string;
+  completedAt: string;
+  context: string;
+  alignmentScore: number;
+  fitLabel: string;
+  reasoning: string;
+};
+
+function getContextEvaluationRows(evaluation: Evaluation): ContextEvaluationRow[] {
+  return evaluation.contexts.map((contextEvaluation) => ({
+    evaluationId: evaluation.id,
+    completedAt: evaluation.completedAt,
+    context: contextEvaluation.context,
+    alignmentScore: contextEvaluation.alignmentScore,
+    fitLabel: contextEvaluation.fitLabel,
+    reasoning:
+      contextEvaluation.reasoning ||
+      'Alignment analysis completed from uploaded digitals.',
+  }));
+}
 
 export function ProspectRenderHistory() {
-
   const { prospectId } = useParams();
-
   const activeProspectData =
-
     prospectId === 'sofia-andersen' ? prospectData : sumithProspectData;
 
-
-
   const [status, setStatus] = useState(activeProspectData.status);
-
   const [statusColor, setStatusColor] = useState(activeProspectData.statusColor);
-
   const [pendingStatusChange, setPendingStatusChange] = useState<null | {
-
     previousStatus: string;
-
     previousColor: string;
-
     newStatus: string;
-
     newColor: string;
-
   }>(null);
-
+  const [openedSetId, setOpenedSetId] = useState<string | null>(null);
+  const [notesBySet, setNotesBySet] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
-
-
-  const [notesSaved, setNotesSaved] = useState(false);
-
-  const [notesValue, setNotesValue] = useState('Re-ran after digitals update...');
-
-
-
-  const digitalSlots = (digitalSet: DigitalSet) => [
-
-    { label: 'FRONT', src: digitalSet.front },
-
-    { label: 'PROFILE', src: digitalSet.profile },
-
-    { label: '3/4', src: digitalSet.threeQuarter },
-
-    { label: 'FULL BODY', src: digitalSet.fullBody },
-
-  ];
-
-
+  const digitalSetCount = activeProspectData.digitalSets.length;
+  const evaluationsCompleted = countTotalEvaluations(activeProspectData.digitalSets);
+  const hasDigitalSets = digitalSetCount > 0;
 
   const handleStatusChange = (newStatus: string, newColor: string) => {
-
     setPendingStatusChange({
-
       previousStatus: status,
-
       previousColor: statusColor,
-
       newStatus: newStatus,
-
       newColor: newColor,
-
     });
-
-
-
     setStatus(newStatus);
-
     setStatusColor(newColor);
-
-
-
     setTimeout(() => setPendingStatusChange(null), 5000);
-
   };
-
-
 
   const handleUndoStatusChange = () => {
-
     if (!pendingStatusChange) return;
-
     setStatus(pendingStatusChange.previousStatus);
-
     setStatusColor(pendingStatusChange.previousColor);
-
     setPendingStatusChange(null);
-
   };
 
-
-
-  const showEmptyState = !hasAnyEvaluations(activeProspectData.digitalSets);
-
-
+  const toggleOpenSet = (setId: string) => {
+    setOpenedSetId((current) => (current === setId ? null : setId));
+  };
 
   return (
-
     <div className="p-[20px] md:p-[48px]">
-
-      {/* Breadcrumb */}
-
       <div className="flex items-center gap-[8px] mb-[48px]">
-
         <Link
-
           to="/prospects"
-
           className="text-[13px] hover:opacity-70 transition-opacity"
-
           style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
-
         >
-
           Prospects
-
         </Link>
-
         <ChevronRight size={14} style={{ color: '#6a6a64' }} />
-
         <span
-
           className="text-[13px]"
-
           style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-
         >
-
           {activeProspectData.name}
-
         </span>
-
       </div>
-
-
 
       <h1
-
-        className="text-[48px] mb-[48px]"
-
+        className="text-[48px] mb-[12px]"
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
-
       >
-
         {activeProspectData.name} — Evaluation History
-
       </h1>
 
+      <p
+        className="mb-[48px]"
+        style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
+      >
+        {digitalSetCount} digital set{digitalSetCount !== 1 ? 's' : ''} · {evaluationsCompleted}{' '}
+        evaluation{evaluationsCompleted !== 1 ? 's' : ''} completed · Signed{' '}
+        {activeProspectData.signedDate}
+      </p>
 
-
-      {/* Status Actions */}
-
-      <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[24px]">
-
+      <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[48px]">
         <div
-
           className="text-[10px] uppercase tracking-[0.12em] mb-[16px]"
-
           style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-
         >
-
           CURRENT STATUS
-
         </div>
-
-
-
         <div
-
           className="text-[16px] mb-[24px]"
-
           style={{ fontFamily: 'var(--font-mono)', color: statusColor }}
-
         >
-
           {status}
-
         </div>
-
-
-
         <div className="flex gap-[12px]">
-
           <button
-
             onClick={() => handleStatusChange('SHORTLISTED', '#7d6d4d')}
-
             className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-
             style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-
           >
-
             SHORTLIST
-
           </button>
-
-
-
           <button
-
             onClick={() => handleStatusChange('PASSED', '#5d3d3d')}
-
             className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-
             style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-
           >
-
             PASS
-
           </button>
-
         </div>
-
       </div>
 
-
-
-      <div className="mb-[24px]">
-
-        <div
-
-          className="text-[10px] uppercase tracking-[0.12em] mb-[16px]"
-
-          style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-
-        >
-
-          DIGITAL SETS
-
+      {!hasDigitalSets ? (
+        <div className="text-center py-[80px]">
+          <p
+            className="mb-[24px]"
+            style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#666660' }}
+          >
+            No digital sets uploaded yet.
+          </p>
+          <button
+            type="button"
+            className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+          >
+            UPLOAD FIRST DIGITAL SET
+          </button>
         </div>
+      ) : (
+        <div>
+          <div className="mb-[16px]" style={sectionLabelStyle}>
+            DIGITAL SETS
+          </div>
 
+          <div>
+            {activeProspectData.digitalSets.map((digitalSet) => {
+              const digitalsOnFile = countDigitalsOnFile(digitalSet);
+              const evaluationCount = digitalSet.evaluations.length;
+              const isOpen = openedSetId === digitalSet.id;
+              const contextRows = digitalSet.evaluations.flatMap(getContextEvaluationRows);
 
-
-        <div className="space-y-[12px] mb-[12px]">
-
-          {activeProspectData.digitalSets.map((digitalSet) => (
-
-            <div
-
-              key={digitalSet.id}
-
-              className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] flex gap-[24px]"
-
-            >
-
-              <div className="flex-1">
-
-                <div
-
-                  style={{
-
-                    fontFamily: 'var(--font-display)',
-
-                    fontSize: '16px',
-
-                    fontWeight: 300,
-
-                    color: '#f0f0ec',
-
-                    marginBottom: '4px',
-
-                  }}
-
-                >
-
-                  {digitalSet.title}
-
-                </div>
-
-                <div
-
-                  style={{
-
-                    fontFamily: 'var(--font-mono)',
-
-                    fontSize: '10px',
-
-                    color: '#888880',
-
-                    marginBottom: '12px',
-
-                  }}
-
-                >
-
-                  {digitalSet.uploadedAt}
-
-                </div>
-
-                {digitalSet.tags.length > 0 && (
-
-                  <div className="flex flex-wrap gap-[8px]">
-
-                    {digitalSet.tags.map((tag) => (
-
-                      <span
-
-                        key={tag}
-
-                        className="px-[12px] py-[6px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
-
-                        style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-
+              return (
+                <div key={digitalSet.id}>
+                  <div
+                    className="flex items-center gap-[24px] py-[16px]"
+                    style={{ borderBottom: '1px solid #1a1a1a' }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '12px',
+                          color: '#f0f0ec',
+                          fontWeight: 700,
+                        }}
                       >
-
-                        {tag}
-
-                      </span>
-
-                    ))}
-
-                  </div>
-
-                )}
-
-              </div>
-
-
-
-              <div>
-
-                <div className="flex gap-[8px] mb-[8px]">
-
-                  {[
-
-                    digitalSet.front,
-
-                    digitalSet.profile,
-
-                    digitalSet.threeQuarter,
-
-                    digitalSet.fullBody,
-
-                  ].map((src, index) => (
+                        {digitalSet.title}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          color: '#888880',
+                          marginTop: '4px',
+                        }}
+                      >
+                        {digitalSet.uploadedAt}
+                      </div>
+                    </div>
 
                     <div
-
-                      key={index}
-
-                      className="bg-[#1a1a1a] rounded-[4px] overflow-hidden"
-
-                      style={{ width: '48px', height: '48px' }}
-
+                      className="flex-shrink-0"
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '9px',
+                        color: '#888880',
+                      }}
                     >
-
-                      {src && (
-
-                        <img src={src} alt="" className="w-full h-full object-cover" />
-
-                      )}
-
+                      {digitalsOnFile} digital{digitalsOnFile !== 1 ? 's' : ''} · {evaluationCount}{' '}
+                      evaluation{evaluationCount !== 1 ? 's' : ''}
                     </div>
 
-                  ))}
-
-                </div>
-
-                <span
-
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#888880' }}
-
-                >
-
-                  {digitalSet.evaluations.length} evaluation
-
-                  {digitalSet.evaluations.length !== 1 ? 's' : ''} completed
-
-                </span>
-
-              </div>
-
-            </div>
-
-          ))}
-
-        </div>
-
-
-
-        <button
-
-          className="w-full px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-
-          style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
-
-        >
-
-          + UPLOAD NEW DIGITAL SET
-
-        </button>
-
-      </div>
-
-
-
-      <button
-
-        onClick={() => navigate('/profile')}
-
-        className="w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-colors mb-[24px]"
-
-        style={{
-
-          fontFamily: 'var(--font-label)',
-
-          backgroundColor: '#f0f0ec',
-
-          color: '#080808',
-
-          cursor: 'pointer',
-
-        }}
-
-      >
-
-        New Evaluation
-
-      </button>
-
-
-
-      <div
-
-        className="text-[10px] uppercase tracking-[0.12em] mb-[16px]"
-
-        style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-
-      >
-
-        DIGITAL ANALYSIS HISTORY
-
-      </div>
-
-
-
-      {showEmptyState ? (
-
-        <p
-
-          className="mb-[48px]"
-
-          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a', lineHeight: 1.6 }}
-
-        >
-
-          No evaluations yet. Upload digitals and run an alignment analysis to begin building
-
-          evaluation history.
-
-        </p>
-
-      ) : (
-
-        <div className="space-y-[24px] mb-[48px]">
-
-          {activeProspectData.digitalSets.map((digitalSet) => {
-
-            const digitalsOnFile = countDigitalsOnFile(digitalSet);
-
-
-
-            return (
-
-              <div key={digitalSet.id}>
-
-                <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden">
-
-                  <div className="px-[24px] py-[16px] bg-[#1a1a1a] border-b border-[#2a2a2a]">
-
-                    <span
-
-                      className="text-[10px] uppercase tracking-[0.12em]"
-
-                      style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-
-                    >
-
-                      {digitalSet.title.toUpperCase()} · {digitalSet.uploadedAt}
-
-                    </span>
-
+                    <div className="flex items-center gap-[8px] flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => toggleOpenSet(digitalSet.id)}
+                        className={ghostButtonClass}
+                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                      >
+                        OPEN
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/compare')}
+                        className={ghostButtonClass}
+                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                      >
+                        COMPARE
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/profile')}
+                        className={ghostButtonClass}
+                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                      >
+                        RUN EVALUATION
+                      </button>
+                    </div>
                   </div>
 
-
-
-                  <div className="p-[24px]">
-
-                    <div className="flex gap-[12px] mb-[8px]">
-
-                      {digitalSlots(digitalSet).map((slot) => (
-
-                        <div key={slot.label} className="flex-1">
-
-                          <div
-
-                            className="bg-[#1a1a1a] rounded-[4px] overflow-hidden mb-[4px]"
-
-                            style={{ height: '60px' }}
-
-                          >
-
-                            {slot.src && (
-
-                              <img
-
-                                src={slot.src}
-
-                                alt={slot.label}
-
-                                className="w-full h-full object-cover"
-
-                              />
-
-                            )}
-
-                          </div>
-
-                          <span
-
-                            className="block text-center"
-
-                            style={{
-
-                              fontFamily: 'var(--font-mono)',
-
-                              fontSize: '8px',
-
-                              color: '#888880',
-
-                            }}
-
-                          >
-
-                            {slot.label}
-
-                          </span>
-
-                        </div>
-
-                      ))}
-
-                    </div>
-
-
-
-                    <span
-
-                      className="block mb-[24px]"
-
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#888880' }}
-
-                    >
-
-                      Digitals on file: {digitalsOnFile} of 4
-
-                    </span>
-
-
-
-                    <div className="space-y-[12px] mb-[24px]">
-
-                      {digitalSet.evaluations.map((evaluation) => (
-                          <div
-
-                            key={evaluation.id}
-
-                            className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] p-[16px]"
-
-                          >
-
+                  {isOpen && (
+                    <div className="pb-[32px] pt-[24px]">
+                      <div className="grid grid-cols-2 gap-[2px] mb-[12px]">
+                        {digitalGridSlots(digitalSet).map((slot) => (
+                          <div key={slot.label}>
                             <div
-
-                              className="text-[13px] mb-[4px]"
-
-                              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-
+                              className="w-full overflow-hidden"
+                              style={{ aspectRatio: '3/4' }}
                             >
-
-                              {evaluation.completedAt}
-
+                              {slot.src && (
+                                <img
+                                  src={slot.src}
+                                  alt={slot.label}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
                             </div>
-
                             <div
-
-                              className="text-[13px] mb-[12px]"
-
-                              style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
-
+                              className="mt-[6px]"
+                              style={{
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: '8px',
+                                color: '#666660',
+                                letterSpacing: '0.15em',
+                                textTransform: 'uppercase',
+                              }}
                             >
-
-                              {evaluation.contexts.length} context
-
-                              {evaluation.contexts.length !== 1 ? 's' : ''} evaluated
-
+                              {slot.label}
                             </div>
-
-                            <div className="flex gap-[8px] mb-[12px]">
-
-                              {digitalSlots(digitalSet).map((slot) => (
-
-                                <div key={slot.label} className="flex-1">
-
-                                  <div
-
-                                    className="bg-[#111111] rounded-[4px] overflow-hidden mb-[4px]"
-
-                                    style={{ height: '48px' }}
-
-                                  >
-
-                                    {slot.src && (
-
-                                      <img
-
-                                        src={slot.src}
-
-                                        alt={slot.label}
-
-                                        className="w-full h-full object-cover"
-
-                                      />
-
-                                    )}
-
-                                  </div>
-
-                                  <span
-
-                                    className="block text-center"
-
-                                    style={{
-
-                                      fontFamily: 'var(--font-mono)',
-
-                                      fontSize: '8px',
-
-                                      color: '#888880',
-
-                                    }}
-
-                                  >
-
-                                    {slot.label}
-
-                                  </span>
-
-                                </div>
-
-                              ))}
-
-                            </div>
-
-                            <div className="space-y-[10px]">
-
-                              {evaluation.contexts.map((contextEvaluation) => {
-
-                                const alignment = getAlignmentLabel(contextEvaluation.alignmentScore);
-
-                                return (
-
-                                  <div key={contextEvaluation.context}>
-
-                                    <div className="flex items-center justify-between mb-[4px]">
-
-                                      <span
-
-                                        className="text-[9px] uppercase tracking-[0.1em]"
-
-                                        style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-
-                                      >
-
-                                        {contextEvaluation.context}
-
-                                      </span>
-
-                                      <span
-
-                                        className="text-[20px]"
-
-                                        style={{
-
-                                          fontFamily: 'var(--font-display)',
-
-                                          fontWeight: 300,
-
-                                          color: '#f0f0ec',
-
-                                        }}
-
-                                      >
-
-                                        {contextEvaluation.alignmentScore}%
-
-                                      </span>
-
-                                    </div>
-
-                                    <div
-
-                                      style={{
-
-                                        fontFamily: 'var(--font-mono)',
-
-                                        fontSize: '10px',
-
-                                        color: alignment.color,
-
-                                        letterSpacing: '0.15em',
-
-                                        textTransform: 'uppercase',
-
-                                      }}
-
-                                    >
-
-                                      {contextEvaluation.fitLabel || alignment.label}
-
-                                    </div>
-
-                                  </div>
-
-                                );
-
-                              })}
-
-                            </div>
-
                           </div>
-
                         ))}
-
-                    </div>
-
-
-
-                    <div>
-
-                      <label
-
-                        className="block mb-[8px] text-[11px] uppercase tracking-[0.1em]"
-
-                        style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-
-                      >
-
-                        Session Notes
-
-                      </label>
-
-                      <textarea
-
-                        placeholder="e.g. Re-ran after digitals update"
-
-                        value={notesValue}
-
-                        onChange={(e) => {
-
-                          setNotesValue(e.target.value);
-
-                          setNotesSaved(false);
-
-                          setTimeout(() => setNotesSaved(true), 800);
-
-                        }}
-
-                        className="w-full h-[80px] px-[16px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] resize-none"
-
-                        style={{
-
-                          fontFamily: 'var(--font-mono)',
-
-                          fontSize: '13px',
-
-                          color: '#f0f0ec',
-
-                        }}
-
-                      />
+                      </div>
 
                       <p
-
+                        className="mb-[32px]"
                         style={{
-
                           fontFamily: 'var(--font-mono)',
-
-                          fontSize: '11px',
-
-                          color: notesSaved ? '#5d7d5d' : '#888880',
-
-                          marginTop: '6px',
-
-                          transition: 'color 0.3s ease',
-
+                          fontSize: '10px',
+                          color: '#888880',
                         }}
-
                       >
-
-                        {notesSaved ? '✓ Saved' : 'Unsaved changes'}
-
+                        {formatTagsLine(digitalSet)}
                       </p>
 
+                      {contextRows.length > 0 && (
+                        <div className="mb-[32px]">
+                          <div className="mb-[12px]" style={sectionLabelStyle}>
+                            EVALUATIONS
+                          </div>
+                          <div className="space-y-[8px]">
+                            {contextRows.map((row) => (
+                              <div
+                                key={`${row.evaluationId}-${row.context}`}
+                                className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px]"
+                                style={{ minHeight: '64px', maxHeight: '72px' }}
+                              >
+                                <div className="w-[25%] flex-shrink-0">
+                                  <div
+                                    style={{
+                                      fontFamily: 'var(--font-mono)',
+                                      fontSize: '11px',
+                                      color: '#f0f0ec',
+                                      textTransform: 'uppercase',
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    {row.context}
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontFamily: 'var(--font-mono)',
+                                      fontSize: '9px',
+                                      color: '#888880',
+                                      marginTop: '4px',
+                                    }}
+                                  >
+                                    {row.completedAt}
+                                  </div>
+                                </div>
+
+                                <div className="w-[50%] min-w-0">
+                                  <p
+                                    className="overflow-hidden"
+                                    style={{
+                                      fontFamily: 'var(--font-mono)',
+                                      fontSize: '10px',
+                                      color: '#a0a09a',
+                                      lineHeight: 1.6,
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                    }}
+                                  >
+                                    {row.reasoning}
+                                  </p>
+                                </div>
+
+                                <div className="w-[25%] flex-shrink-0 text-right">
+                                  <div
+                                    style={{
+                                      fontFamily: 'Georgia, serif',
+                                      fontSize: '28px',
+                                      color: '#f0f0ec',
+                                      lineHeight: 1,
+                                    }}
+                                  >
+                                    {row.alignmentScore}
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontFamily: 'var(--font-mono)',
+                                      fontSize: '8px',
+                                      color: getFitLabelColor(row.fitLabel),
+                                      marginTop: '4px',
+                                      letterSpacing: '0.12em',
+                                      textTransform: 'uppercase',
+                                    }}
+                                  >
+                                    {row.fitLabel}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div>
+                        <div
+                          className="mb-[8px]"
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '9px',
+                            color: '#666660',
+                            letterSpacing: '0.12em',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          NOTES
+                        </div>
+                        <textarea
+                          value={notesBySet[digitalSet.id] ?? digitalSet.notes}
+                          onChange={(e) =>
+                            setNotesBySet((prev) => ({
+                              ...prev,
+                              [digitalSet.id]: e.target.value,
+                            }))
+                          }
+                          placeholder="Agent notes..."
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '11px',
+                            color: '#888880',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            borderBottom: '1px solid #1a1a1a',
+                            padding: '4px 0',
+                            width: '100%',
+                            resize: 'vertical',
+                            minHeight: '40px',
+                            outline: 'none',
+                          }}
+                        />
+                      </div>
                     </div>
-
-                  </div>
-
+                  )}
                 </div>
-
-              </div>
-
-            );
-
-          })}
-
+              );
+            })}
+          </div>
         </div>
-
       )}
-
-
-
-      {/* Undo Toast */}
 
       {pendingStatusChange && (
-
         <div
-
           className="fixed bottom-[80px] left-1/2 -translate-x-1/2 flex items-center gap-[16px] px-[20px] py-[14px] border rounded-[4px] z-50"
-
           style={{
-
             backgroundColor: '#1a1a1a',
-
             borderColor: '#2a2a2a',
-
             boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-
           }}
-
         >
-
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}>
-
             Status updated
-
           </span>
-
           <button
-
             onClick={handleUndoStatusChange}
-
             style={{
-
               fontFamily: 'var(--font-mono)',
-
               fontSize: '11px',
-
               color: '#f0f0ec',
-
               textDecoration: 'underline',
-
               cursor: 'pointer',
-
             }}
-
           >
-
             UNDO
-
           </button>
-
         </div>
-
       )}
-
     </div>
-
   );
-
 }
-
-

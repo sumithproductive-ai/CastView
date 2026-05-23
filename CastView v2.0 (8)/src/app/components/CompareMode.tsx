@@ -1,166 +1,287 @@
-import { useState, type CSSProperties } from 'react';
-import type { DigitalSet } from '../types/talent';
+import { useState } from 'react';
 
-type CompareDigitalSet = Pick<
-  DigitalSet,
-  'id' | 'title' | 'uploadedAt' | 'tags' | 'front' | 'profile' | 'threeQuarter' | 'fullBody'
->;
-
-type AlignmentChange = {
-  context: string;
-  direction: 'up' | 'down' | 'neutral';
-  delta: number;
+type DigitalSetOption = {
+  id: string;
+  title: string;
+  date: string;
+  thumbnail: string;
 };
 
-const digitalSetOptions: CompareDigitalSet[] = [
+type MockResult = {
+  context: string;
+  oldScore: number;
+  newScore: number;
+  change: 'improved' | 'declined' | 'stable';
+  reasoning: string;
+  nextStep: string;
+};
+
+const digitalSets: DigitalSetOption[] = [
   {
-    id: 'digitals-v1',
-    title: 'Digitals V1',
-    uploadedAt: 'February 2026',
-    tags: ['archive', 'pre-update'],
-    front:
-      'https://images.unsplash.com/photo-1601288536613-fe4678ea999d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwZXJmdW1lJTIwY2FtcGFpZ24lMjBtb2RlbCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE3NTk4N3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    profile:
-      'https://images.unsplash.com/photo-1601288536613-fe4678ea999d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwZXJmdW1lJTIwY2FtcGFpZ24lMjBtb2RlbCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE3NTk4N3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    threeQuarter:
-      'https://images.unsplash.com/photo-1601288536613-fe4678ea999d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwZXJmdW1lJTIwY2FtcGFpZ24lMjBtb2RlbCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE3NTk4N3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    fullBody:
-      'https://images.unsplash.com/photo-1601288536613-fe4678ea999d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwZXJmdW1lJTIwY2FtcGFpZ24lMjBtb2RlbCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE3NTk4N3ww&ixlib=rb-4.1.0&q=80&w=1080',
+    id: 'ds-1',
+    title: 'Initial Submission',
+    date: 'January 2026',
+    thumbnail: 'https://i.imgur.com/jZHp7Ei.jpg',
   },
   {
-    id: 'digitals-v2',
-    title: 'Digitals V2',
-    uploadedAt: 'March 2026',
-    tags: ['current', 'primary'],
-    front:
-      'https://images.unsplash.com/photo-1761329842950-f3551938e4da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmFncmFuY2UlMjBlZGl0b3JpYWwlMjBtb2RlbCUyMHBob3RvfGVufDF8fHx8MTc3MzE2NTMzMnww&ixlib=rb-4.1.0&q=80&w=1080',
-    profile:
-      'https://images.unsplash.com/photo-1708170236080-6cb6d2d5497c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlZGl0b3JpYWwlMjBmYXNoaW9uJTIwdmVydGljYWwlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzMxNjUzMzF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    threeQuarter:
-      'https://images.unsplash.com/photo-1697677103505-dd4b2dbf1b1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYW1wYWlnbiUyMGZhc2hpb24lMjBzaG9vdHxlbnwxfHx8fDE3NzMxNjUzMzJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    fullBody:
-      'https://images.unsplash.com/photo-1759873911657-8140566c29a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWF1dHklMjBlZGl0b3JpYWwlMjBwb3J0cmFpdCUyMHNxdWFyZXxlbnwxfHx8fDE3NzMxNjUzMzN8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    id: 'ds-2',
+    title: 'Post-Cut Digitals',
+    date: 'March 2026',
+    thumbnail: 'https://i.imgur.com/jZHp7Ei.jpg',
+  },
+  {
+    id: 'ds-3',
+    title: 'May 2026 Update',
+    date: 'May 2026',
+    thumbnail: 'https://i.imgur.com/jZHp7Ei.jpg',
   },
 ];
 
-const alignmentChanges: AlignmentChange[] = [
-  { context: 'Fragrance', direction: 'up', delta: 6 },
-  { context: 'Editorial', direction: 'neutral', delta: 0 },
-  { context: 'Campaign', direction: 'down', delta: -3 },
+const contexts = [
+  'Fragrance',
+  'Editorial',
+  'Runway',
+  'Campaign',
+  'Beauty',
+  'Sportswear',
+  'Couture',
+  'Swimwear',
+  'Streetwear',
+  'E-commerce',
 ];
 
-const digitalSlots = (digitalSet: CompareDigitalSet) => [
-  { label: 'Front', src: digitalSet.front },
-  { label: 'Profile', src: digitalSet.profile },
-  { label: '3/4', src: digitalSet.threeQuarter },
-  { label: 'Full Body', src: digitalSet.fullBody },
+const mockResults: MockResult[] = [
+  {
+    context: 'Fragrance',
+    oldScore: 78,
+    newScore: 91,
+    change: 'improved',
+    reasoning:
+      'Updated digitals show improved bone structure visibility and stronger contrast range. More aligned with current luxury fragrance casting criteria.',
+    nextStep: 'Prioritise fragrance test shoot within next 30 days.',
+  },
+  {
+    context: 'Editorial',
+    oldScore: 82,
+    newScore: 88,
+    change: 'improved',
+    reasoning:
+      'Improved posture and framing in new digitals. Editorial versatility score has increased.',
+    nextStep: 'Submit to editorial clients in NYC and London markets.',
+  },
+  {
+    context: 'Runway',
+    oldScore: 74,
+    newScore: 71,
+    change: 'declined',
+    reasoning:
+      'Slight decline in proportion indicators. May reflect digital quality rather than actual change.',
+    nextStep:
+      'Upload full body digital with better lighting for more accurate runway assessment.',
+  },
+  {
+    context: 'Campaign',
+    oldScore: 85,
+    newScore: 85,
+    change: 'stable',
+    reasoning:
+      'Commercial appeal indicators remain consistent across both digital sets.',
+    nextStep: 'Maintain current positioning for commercial campaign submissions.',
+  },
+  {
+    context: 'Beauty',
+    oldScore: 79,
+    newScore: 86,
+    change: 'improved',
+    reasoning:
+      'Skin clarity and facial detail improved in updated digitals. Better alignment with beauty context criteria.',
+    nextStep: 'Consider beauty and grooming campaign submissions.',
+  },
+  {
+    context: 'Sportswear',
+    oldScore: 81,
+    newScore: 83,
+    change: 'improved',
+    reasoning: 'Slight improvement in physicality indicators from updated digitals.',
+    nextStep: 'Athletic and activewear submissions viable.',
+  },
+  {
+    context: 'Couture',
+    oldScore: 76,
+    newScore: 79,
+    change: 'improved',
+    reasoning: 'Marginal improvement. Couture alignment remains moderate.',
+    nextStep: 'Focus on editorial and fragrance first before couture submissions.',
+  },
+  {
+    context: 'Swimwear',
+    oldScore: 80,
+    newScore: 80,
+    change: 'stable',
+    reasoning: 'Consistent alignment across both digital sets for swimwear context.',
+    nextStep: 'Swimwear submissions viable when seasonally relevant.',
+  },
+  {
+    context: 'Streetwear',
+    oldScore: 88,
+    newScore: 90,
+    change: 'improved',
+    reasoning:
+      'Strong contemporary style alignment. Updated digitals reinforce street style positioning.',
+    nextStep: 'High priority for streetwear and contemporary brand submissions.',
+  },
+  {
+    context: 'E-commerce',
+    oldScore: 83,
+    newScore: 84,
+    change: 'stable',
+    reasoning: 'Consistent commercial versatility across both digital sets.',
+    nextStep: 'Suitable for e-commerce and product campaign work.',
+  },
 ];
 
-function formatAlignmentChange(change: AlignmentChange) {
-  if (change.direction === 'neutral') {
-    return { arrow: '↔', detail: 'No change', color: '#888880' };
-  }
-  if (change.direction === 'up') {
-    return { arrow: '↑', detail: `+${change.delta} points`, color: '#4a7a4a' };
-  }
-  return { arrow: '↓', detail: `${change.delta} points`, color: '#c87a7a' };
+const sectionLabelStyle = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: '9px',
+  color: '#888880',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+};
+
+function toScoreLabel(date: string) {
+  const [month, year] = date.split(' ');
+  return `${month.slice(0, 3).toUpperCase()} ${year}`;
 }
 
-function DigitalSetPanel({
-  digitalSet,
+function getChangeDisplay(change: MockResult['change']) {
+  if (change === 'improved') {
+    return { text: '↑ IMPROVED', color: '#4a7a4a' };
+  }
+  if (change === 'declined') {
+    return { text: '↓ DECLINED', color: '#c87a7a' };
+  }
+  return { text: '↔ STABLE', color: '#888880' };
+}
+
+function DigitalSetSelector({
   panelLabel,
-  panelLabelColor,
-  borderStyle,
+  selectedId,
+  onSelect,
 }: {
-  digitalSet: CompareDigitalSet;
   panelLabel: string;
-  panelLabelColor: string;
-  borderStyle?: CSSProperties;
+  selectedId: string;
+  onSelect: (id: string) => void;
 }) {
   return (
-    <div
-      className="flex flex-col bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden"
-      style={{ width: '320px', flexShrink: 0, ...borderStyle }}
-    >
-      <div className="px-[14px] py-[10px] border-b border-[#1e1e1e] flex-shrink-0">
-        <div
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '9px',
-            color: panelLabelColor,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            marginBottom: '2px',
-          }}
-        >
-          {panelLabel}
-        </div>
-        <div
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '13px',
-            color: '#f0f0ec',
-          }}
-        >
-          {digitalSet.title}
-        </div>
-        <div
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '11px',
-            color: '#555550',
-            marginTop: '2px',
-          }}
-        >
-          {digitalSet.uploadedAt}
-        </div>
-        {digitalSet.tags.length > 0 && (
-          <div className="flex flex-wrap gap-[6px] mt-[8px]">
-            {digitalSet.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-[8px] py-[4px] border border-[#2a2a2a] rounded-[4px] text-[9px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
+    <div className="flex-1 min-w-0">
+      <div
+        className="mb-[12px]"
+        style={sectionLabelStyle}
+      >
+        {panelLabel}
       </div>
-
-      <div className="flex-1 overflow-hidden bg-[#1a1a1a] p-[10px]">
-        <div className="grid grid-cols-2 gap-[8px] h-full">
-          {digitalSlots(digitalSet).map((slot) => (
-            <div key={slot.label} className="overflow-hidden rounded-[4px] bg-[#111111] min-h-0">
-              {slot.src && (
+      <div className="space-y-[8px]">
+        {digitalSets.map((set) => {
+          const isSelected = selectedId === set.id;
+          return (
+            <button
+              key={set.id}
+              type="button"
+              onClick={() => onSelect(set.id)}
+              className="w-full flex items-center gap-[12px] p-[12px] rounded-[4px] text-left transition-colors"
+              style={{
+                backgroundColor: '#111111',
+                border: `1px solid ${isSelected ? '#f0f0ec' : '#2a2a2a'}`,
+                cursor: 'pointer',
+              }}
+            >
+              <div
+                className="flex-shrink-0 overflow-hidden rounded-[4px] bg-[#1a1a1a]"
+                style={{ width: '48px', height: '48px' }}
+              >
                 <img
-                  src={slot.src}
-                  alt={slot.label}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
+                  src={set.thumbnail}
+                  alt=""
+                  className="w-full h-full object-cover"
                 />
-              )}
-            </div>
-          ))}
-        </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '12px',
+                    color: '#f0f0ec',
+                  }}
+                >
+                  {set.title}
+                </div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '11px',
+                    color: '#555550',
+                    marginTop: '2px',
+                  }}
+                >
+                  {set.date}
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
 
 export function CompareMode() {
-  const [progressionNotes, setProgressionNotes] = useState('');
+  const [previousSetId, setPreviousSetId] = useState('ds-1');
+  const [currentSetId, setCurrentSetId] = useState('ds-3');
+  const [selectedContexts, setSelectedContexts] = useState<string[]>([
+    'Fragrance',
+    'Editorial',
+  ]);
+  const [showResults, setShowResults] = useState(false);
+  const [agentNotes, setAgentNotes] = useState<Record<string, string>>({});
 
-  const digitalSetA = digitalSetOptions[0];
-  const digitalSetB = digitalSetOptions[1];
+  const previousSet =
+    digitalSets.find((set) => set.id === previousSetId) ?? digitalSets[0];
+  const currentSet =
+    digitalSets.find((set) => set.id === currentSetId) ?? digitalSets[2];
+
+  const previousScoreLabel = toScoreLabel(previousSet.date);
+  const currentScoreLabel = toScoreLabel(currentSet.date);
+
+  const toggleContext = (context: string) => {
+    setSelectedContexts((prev) =>
+      prev.includes(context)
+        ? prev.filter((c) => c !== context)
+        : [...prev, context]
+    );
+  };
+
+  const handleSelectAll = () => {
+    setSelectedContexts([...contexts]);
+  };
+
+  const handleClear = () => {
+    setSelectedContexts([]);
+  };
+
+  const visibleResults = mockResults.filter((result) =>
+    selectedContexts.includes(result.context)
+  );
+
+  const summaryCounts = visibleResults.reduce(
+    (acc, result) => {
+      acc[result.change] += 1;
+      return acc;
+    },
+    { improved: 0, stable: 0, declined: 0 }
+  );
 
   return (
-    <div className="p-[32px] h-screen flex flex-col overflow-hidden">
-      {/* HEADER — compact single line */}
+    <div className="p-[32px] min-h-screen flex flex-col overflow-y-auto">
       <div className="flex items-baseline justify-between mb-[20px] flex-shrink-0">
         <div>
           <div className="mb-[4px]">
@@ -183,7 +304,7 @@ export function CompareMode() {
               lineHeight: 1.1,
             }}
           >
-            Fragrance — Before & After
+            Digital Set Comparison
           </h1>
           <p
             style={{
@@ -193,205 +314,305 @@ export function CompareMode() {
               marginTop: '4px',
             }}
           >
-            Sofia Andersen · {digitalSetA.title} · {digitalSetA.uploadedAt} →{' '}
-            {digitalSetB.title} · {digitalSetB.uploadedAt}
+            Sofia Andersen · {previousSet.title} · {previousSet.date} →{' '}
+            {currentSet.title} · {currentSet.date}
           </p>
         </div>
       </div>
 
-      {/* THREE COLUMN BODY */}
-      <div className="flex gap-[16px] flex-1 min-h-0">
-        <DigitalSetPanel digitalSet={digitalSetA} panelLabel="BEFORE" panelLabelColor="#666660" />
-
-        <DigitalSetPanel
-          digitalSet={digitalSetB}
-          panelLabel="AFTER"
-          panelLabelColor="#4a7a4a"
-          borderStyle={{ border: '1px solid rgba(240,240,236,0.25)' }}
+      {/* STEP 1 — Digital Set Selection */}
+      <div className="flex gap-[16px] mb-[32px]">
+        <DigitalSetSelector
+          panelLabel="PREVIOUS DIGITALS"
+          selectedId={previousSetId}
+          onSelect={setPreviousSetId}
         />
+        <DigitalSetSelector
+          panelLabel="CURRENT DIGITALS"
+          selectedId={currentSetId}
+          onSelect={setCurrentSetId}
+        />
+      </div>
 
-        {/* ── RIGHT — Analysis panel ── */}
-        <div className="flex-1 flex flex-col min-w-0 gap-[12px]">
-          <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[20px] flex-1 overflow-y-auto">
-            <div className="flex items-center justify-between mb-[14px]">
-              <span
+      {/* STEP 2 — Context Selection */}
+      <div className="mb-[24px]">
+        <div className="mb-[12px]" style={sectionLabelStyle}>
+          SELECT CONTEXTS TO COMPARE
+        </div>
+        <div className="grid grid-cols-5 gap-[12px]">
+          {contexts.map((context) => {
+            const isSelected = selectedContexts.includes(context);
+            return (
+              <button
+                key={context}
+                type="button"
+                onClick={() => toggleContext(context)}
+                className="px-[16px] py-[10px] border rounded-[4px] transition-all text-[11px] uppercase tracking-[0.1em] w-full cursor-pointer"
                 style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '9px',
-                  color: '#888880',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
+                  fontFamily: 'var(--font-label)',
+                  backgroundColor: isSelected ? '#f0f0ec' : 'transparent',
+                  borderColor: isSelected ? '#f0f0ec' : '#2a2a2a',
+                  color: isSelected ? '#080808' : '#a0a09a',
                 }}
               >
-                PROGRESSION ANALYSIS
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '12px',
-                  color: '#4a7a4a',
-                }}
-              >
-                +20% · 8 months
-              </span>
-            </div>
-
-            <div className="mb-[14px]">
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '9px',
-                  color: '#888880',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  marginBottom: '4px',
-                }}
-              >
-                DIGITAL SET A
-              </div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '12px',
-                  color: '#c8c8c2',
-                }}
-              >
-                {digitalSetA.title}
-              </div>
-            </div>
-
-            <div className="mb-[14px]">
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '9px',
-                  color: '#888880',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  marginBottom: '4px',
-                }}
-              >
-                DIGITAL SET B
-              </div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '12px',
-                  color: '#c8c8c2',
-                }}
-              >
-                {digitalSetB.title}
-              </div>
-            </div>
-
-            <div
-              style={{
-                height: '1px',
-                backgroundColor: '#1e1e1e',
-                margin: '16px 0',
-              }}
-            />
-
-            <div className="mb-[14px]">
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '9px',
-                  color: '#888880',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  marginBottom: '10px',
-                }}
-              >
-                ALIGNMENT CHANGES
-              </div>
-              <div className="space-y-[8px]">
-                {alignmentChanges.map((change) => {
-                  const formatted = formatAlignmentChange(change);
-                  return (
-                    <div
-                      key={change.context}
-                      className="flex items-center justify-between"
-                    >
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '12px',
-                          color: '#c8c8c2',
-                        }}
-                      >
-                        {change.context}
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '12px',
-                          color: formatted.color,
-                        }}
-                      >
-                        {formatted.arrow} {formatted.detail}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div
-              style={{
-                height: '1px',
-                backgroundColor: '#1e1e1e',
-                margin: '16px 0',
-              }}
-            />
-
-            <div>
-              <label
-                className="block mb-[8px] text-[11px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-              >
-                PROGRESSION NOTES
-              </label>
-              <textarea
-                value={progressionNotes}
-                onChange={(e) => setProgressionNotes(e.target.value)}
-                placeholder="Add observations on progression between digital sets..."
-                className="w-full h-[80px] px-[16px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] resize-none"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '13px',
-                  color: '#f0f0ec',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex flex-col gap-[8px] flex-shrink-0">
-            <button
-              className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                backgroundColor: '#f0f0ec',
-                color: '#080808',
-                cursor: 'pointer',
-              }}
-            >
-              SHARE COMPARISON
-            </button>
-            <button
-              className="w-full py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#1a1a1a]"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                color: '#a0a09a',
-                cursor: 'pointer',
-              }}
-            >
-              SET MARCH 2026 AS PRIMARY
-            </button>
-          </div>
+                {context}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-[8px] mt-[12px]">
+          <button
+            type="button"
+            onClick={handleSelectAll}
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: '#888880',
+              cursor: 'pointer',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+            }}
+          >
+            SELECT ALL
+          </button>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}>
+            ·
+          </span>
+          <button
+            type="button"
+            onClick={handleClear}
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: '#888880',
+              cursor: 'pointer',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+            }}
+          >
+            CLEAR
+          </button>
         </div>
       </div>
+
+      {/* STEP 3 — Run Comparison */}
+      <button
+        type="button"
+        onClick={() => setShowResults(true)}
+        className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 mb-[32px]"
+        style={{
+          fontFamily: 'var(--font-mono)',
+          backgroundColor: '#f0f0ec',
+          color: '#080808',
+          cursor: 'pointer',
+        }}
+      >
+        RUN COMPARISON
+      </button>
+
+      {showResults && (
+        <div>
+          <div className="mb-[8px]" style={sectionLabelStyle}>
+            PROGRESSION ANALYSIS
+          </div>
+          <p
+            className="mb-[20px]"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
+              color: '#888880',
+            }}
+          >
+            {previousSet.title} → {currentSet.title}
+          </p>
+
+          {/* Summary bar */}
+          <div
+            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[20px] mb-[16px] flex gap-[24px]"
+          >
+            {(
+              [
+                { key: 'improved' as const, label: 'IMPROVED', color: '#4a7a4a' },
+                { key: 'stable' as const, label: 'STABLE', color: '#888880' },
+                { key: 'declined' as const, label: 'DECLINED', color: '#c87a7a' },
+              ] as const
+            ).map((stat) => (
+              <div key={stat.key} className="flex-1 text-center">
+                <div
+                  style={{
+                    fontFamily: 'Georgia, serif',
+                    fontSize: '24px',
+                    color: stat.color,
+                  }}
+                >
+                  {summaryCounts[stat.key]}
+                </div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '9px',
+                    color: stat.color,
+                    marginTop: '4px',
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Result cards */}
+          <div className="space-y-[12px]">
+            {visibleResults.map((result) => {
+              const changeDisplay = getChangeDisplay(result.change);
+              return (
+                <div
+                  key={result.context}
+                  className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[20px]"
+                >
+                  <div className="flex items-center justify-between mb-[16px]">
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '12px',
+                        color: '#f0f0ec',
+                        textTransform: 'uppercase',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {result.context}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '11px',
+                        color: changeDisplay.color,
+                        letterSpacing: '0.08em',
+                      }}
+                    >
+                      {changeDisplay.text}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-[16px] mb-[16px]">
+                    <div className="flex-1">
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          color: '#888880',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        {previousScoreLabel}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: 'Georgia, serif',
+                          fontSize: '28px',
+                          color: '#f0f0ec',
+                        }}
+                      >
+                        {result.oldScore}
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '14px',
+                        color: '#888880',
+                      }}
+                    >
+                      →
+                    </span>
+                    <div className="flex-1">
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          color: '#888880',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        {currentScoreLabel}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: 'Georgia, serif',
+                          fontSize: '28px',
+                          color: '#f0f0ec',
+                        }}
+                      >
+                        {result.newScore}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      height: '1px',
+                      backgroundColor: '#1a1a1a',
+                      marginBottom: '16px',
+                    }}
+                  />
+
+                  <p
+                    className="mb-[12px]"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      color: '#a0a09a',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {result.reasoning}
+                  </p>
+
+                  <p
+                    className="mb-[16px]"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '10px',
+                      color: '#888880',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    <span style={{ color: '#C8A96E' }}>→ </span>
+                    {result.nextStep}
+                  </p>
+
+                  <textarea
+                    value={agentNotes[result.context] ?? ''}
+                    onChange={(e) =>
+                      setAgentNotes((prev) => ({
+                        ...prev,
+                        [result.context]: e.target.value,
+                      }))
+                    }
+                    placeholder="Add agent note for this context..."
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      backgroundColor: '#0d0d0d',
+                      border: '1px solid #2a2a2a',
+                      color: '#f0f0ec',
+                      padding: '8px',
+                      width: '100%',
+                      resize: 'vertical',
+                      borderRadius: '4px',
+                      minHeight: '60px',
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
