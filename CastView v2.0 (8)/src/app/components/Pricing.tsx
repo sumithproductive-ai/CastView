@@ -57,7 +57,7 @@ export function Pricing() {
                 style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
               >
                 <span style={{ color: '#f0f0ec' }}>✓</span>
-                Unlimited evaluations
+                Unlimited render evaluations
               </li>
               <li 
                 className="text-[13px] flex items-start gap-[8px]"
@@ -137,7 +137,7 @@ export function Pricing() {
                 style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
               >
                 <span style={{ color: '#f0f0ec' }}>✓</span>
-                Unlimited evaluations
+                Unlimited render evaluations
               </li>
               <li 
                 className="text-[13px] flex items-start gap-[8px]"

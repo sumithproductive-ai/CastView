@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Upload, X } from 'lucide-react';
 import { SUMITH_DIGITAL_SET_V1, SUMITH_PROSPECT_NAME } from '../constants/sumithProspect';
 import { getRosterModelById } from './Roster';
 import type { DigitalSet, Evaluation } from '../types/talent';
+import { TutorialOverlay, uploadTutorialSteps } from './TutorialOverlay';
 
 type ProfileType = 'prospect' | 'model';
 
@@ -154,6 +155,24 @@ const emptyUploadForm = {
   tags: '',
 };
 
+type UploadFormImageKey = 'front' | 'profile' | 'threeQuarter' | 'fullBody';
+
+const uploadFormImageKeys: UploadFormImageKey[] = [
+  'front',
+  'profile',
+  'threeQuarter',
+  'fullBody',
+];
+
+function revokeUploadFormBlobUrls(form: typeof emptyUploadForm) {
+  uploadFormImageKeys.forEach((key) => {
+    const url = form[key];
+    if (url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
+  });
+}
+
 const formFieldLabelStyle = {
   fontFamily: 'var(--font-mono)',
   fontSize: '9px',
@@ -254,8 +273,20 @@ export function ProspectRenderHistory({
   const [notesBySet, setNotesBySet] = useState<Record<string, string>>({});
   const [digitalSets, setDigitalSets] = useState<DigitalSet[]>(activeProfile.digitalSets);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [uploadForm, setUploadForm] = useState(emptyUploadForm);
+  const [uploadFileNames, setUploadFileNames] = useState<
+    Partial<Record<UploadFormImageKey, string>>
+  >({});
   const navigate = useNavigate();
+
+  const resetUploadFormState = () => {
+    setUploadForm((prev) => {
+      revokeUploadFormBlobUrls(prev);
+      return emptyUploadForm;
+    });
+    setUploadFileNames({});
+  };
 
   useEffect(() => {
     const profile = resolveProfileData(profileType, prospectId, modelId);
@@ -263,7 +294,11 @@ export function ProspectRenderHistory({
     setStatus(profile.status);
     setStatusColor(profile.statusColor);
     setShowUploadForm(false);
-    setUploadForm(emptyUploadForm);
+    setUploadForm((prev) => {
+      revokeUploadFormBlobUrls(prev);
+      return emptyUploadForm;
+    });
+    setUploadFileNames({});
     setOpenedSetId(null);
   }, [profileType, prospectId, modelId]);
 
@@ -318,13 +353,28 @@ export function ProspectRenderHistory({
       evaluations: [],
     };
     setDigitalSets((prev) => [newSet, ...prev]);
-    setUploadForm(emptyUploadForm);
+    resetUploadFormState();
     setShowUploadForm(false);
   };
 
   const handleCancelUpload = () => {
-    setUploadForm(emptyUploadForm);
+    resetUploadFormState();
     setShowUploadForm(false);
+  };
+
+  const handleClearUploadField = (fieldKey: UploadFormImageKey) => {
+    setUploadForm((prev) => {
+      const current = prev[fieldKey];
+      if (current.startsWith('blob:')) {
+        URL.revokeObjectURL(current);
+      }
+      return { ...prev, [fieldKey]: '' };
+    });
+    setUploadFileNames((prev) => {
+      const next = { ...prev };
+      delete next[fieldKey];
+      return next;
+    });
   };
 
   const handleStatusChange = (newStatus: string, newColor: string) => {
@@ -352,21 +402,40 @@ export function ProspectRenderHistory({
 
   return (
     <div className="p-[20px] md:p-[48px]">
-      <div className="flex items-center gap-[8px] mb-[48px]">
-        <Link
-          to={isModel ? '/roster' : '/prospects'}
-          className="text-[13px] hover:opacity-70 transition-opacity"
-          style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+      <div className="flex items-center justify-between mb-[48px]">
+        <div className="flex items-center gap-[8px]">
+          <Link
+            to={isModel ? '/roster' : '/prospects'}
+            className="text-[13px] hover:opacity-70 transition-opacity"
+            style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+          >
+            {isModel ? 'Roster' : 'Prospects'}
+          </Link>
+          <ChevronRight size={14} style={{ color: '#6a6a64' }} />
+          <span
+            className="text-[13px]"
+            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+          >
+            {activeProfile.name}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowTutorial(true)}
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '10px',
+            color: '#888880',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            textUnderlineOffset: '3px',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+          }}
         >
-          {isModel ? 'Roster' : 'Prospects'}
-        </Link>
-        <ChevronRight size={14} style={{ color: '#6a6a64' }} />
-        <span
-          className="text-[13px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-        >
-          {activeProfile.name}
-        </span>
+          HOW TO USE DIGITAL SETS
+        </button>
       </div>
 
       <p
@@ -513,7 +582,7 @@ export function ProspectRenderHistory({
             DIGITAL SETS
           </div>
 
-          <div>
+          <div data-tutorial="digital-sets-timeline">
             {digitalSets.map((digitalSet) => {
               const digitalsOnFile = countDigitalsOnFile(digitalSet);
               const evaluationCount = digitalSet.evaluations.length;
@@ -598,6 +667,7 @@ export function ProspectRenderHistory({
                   {isOpen && (
                     <div className="pb-[32px] pt-[24px]">
                       <div
+                        data-tutorial="digital-grid"
                         style={{
                           display: 'grid',
                           gridTemplateColumns: '1fr 1fr',
@@ -793,6 +863,7 @@ export function ProspectRenderHistory({
           <button
             type="button"
             onClick={() => setShowUploadForm(true)}
+            data-tutorial="upload-new-set"
             className="w-full mt-[16px] px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
             style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
           >
@@ -837,23 +908,107 @@ export function ProspectRenderHistory({
                     { key: 'threeQuarter' as const, label: '3/4' },
                     { key: 'fullBody' as const, label: 'FULL BODY' },
                   ] as const
-                ).map((field) => (
-                  <div key={field.key}>
-                    <label className="block mb-[8px]" style={formFieldLabelStyle}>
-                      {field.label}
-                    </label>
-                    <input
-                      type="text"
-                      value={uploadForm[field.key]}
-                      onChange={(e) =>
-                        setUploadForm((prev) => ({ ...prev, [field.key]: e.target.value }))
-                      }
-                      placeholder="Paste image URL"
-                      className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
-                      style={formInputStyle}
-                    />
-                  </div>
-                ))}
+                ).map((field) => {
+                  const fieldKey = field.key;
+                  const imageUrl = uploadForm[fieldKey];
+
+                  return (
+                    <div key={fieldKey}>
+                      <label className="block mb-[8px]" style={formFieldLabelStyle}>
+                        {field.label}
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        style={{ display: 'none' }}
+                        id={`upload-${fieldKey}`}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+
+                          setUploadForm((prev) => {
+                            const current = prev[fieldKey];
+                            if (current.startsWith('blob:')) {
+                              URL.revokeObjectURL(current);
+                            }
+                            const url = URL.createObjectURL(file);
+                            return {
+                              ...prev,
+                              [fieldKey]: url,
+                            };
+                          });
+                          setUploadFileNames((prev) => ({
+                            ...prev,
+                            [fieldKey]: file.name,
+                          }));
+                          e.target.value = '';
+                        }}
+                      />
+                      {imageUrl ? (
+                        <div>
+                          <div
+                            className="relative bg-[#0d0d0d] border border-[#2a2a2a] rounded-[4px] overflow-hidden"
+                            style={{ height: '80px' }}
+                          >
+                            <img
+                              src={imageUrl}
+                              alt={field.label}
+                              className="w-full h-full rounded-[4px]"
+                              style={{ objectFit: 'cover', height: '80px' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleClearUploadField(fieldKey)}
+                              className="absolute top-[8px] right-[8px] w-[24px] h-[24px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-full flex items-center justify-center hover:bg-[#222222] transition-colors"
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <X size={12} style={{ color: '#f0f0ec' }} />
+                            </button>
+                          </div>
+                          <div
+                            className="mt-[6px]"
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '9px',
+                              color: '#888880',
+                            }}
+                          >
+                            {uploadFileNames[fieldKey] || 'Uploaded'}
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          className="relative bg-[#0d0d0d] border border-dashed rounded-[4px] cursor-pointer hover:border-[#3a3a3a] transition-colors"
+                          style={{ borderColor: '#2a2a2a', height: '80px' }}
+                          onClick={() =>
+                            document.getElementById(`upload-${fieldKey}`)?.click()
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              document.getElementById(`upload-${fieldKey}`)?.click();
+                            }
+                          }}
+                        >
+                          <div className="w-full h-full flex flex-col items-center justify-center">
+                            <Upload
+                              size={24}
+                              style={{ color: '#6a6a64', marginBottom: '8px' }}
+                            />
+                            <div
+                              className="text-[9px] uppercase tracking-[0.1em]"
+                              style={{ fontFamily: 'var(--font-label)', color: '#f0f0ec' }}
+                            >
+                              {field.label}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 <div>
                   <label className="block mb-[8px]" style={formFieldLabelStyle}>
@@ -937,6 +1092,13 @@ export function ProspectRenderHistory({
             UNDO
           </button>
         </div>
+      )}
+
+      {showTutorial && (
+        <TutorialOverlay
+          onClose={() => setShowTutorial(false)}
+          steps={uploadTutorialSteps}
+        />
       )}
     </div>
   );

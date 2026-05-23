@@ -37,7 +37,7 @@ export function NotificationsPanel({ isOpen, onClose, onMarkAllRead }: Notificat
       id: 1,
       unread: true,
       icon: ImageIcon,
-      title: 'Sofia Andersen · Fragrance evaluation complete',
+      title: 'Sofia Andersen · Fragrance render complete',
       time: '2 minutes ago',
       badge: { text: '94%', color: 'green' }
     },
@@ -45,9 +45,9 @@ export function NotificationsPanel({ isOpen, onClose, onMarkAllRead }: Notificat
       id: 2,
       unread: true,
       icon: ImageIcon,
-      title: 'Marcus Chen · Evaluation complete — 3 contexts',
+      title: 'Marcus Chen · Render complete — 3 contexts',
       time: '18 minutes ago',
-      badge: { text: '91% top alignment score', color: 'green' }
+      badge: { text: '91% top score', color: 'green' }
     },
     {
       id: 3,

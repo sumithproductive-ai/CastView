@@ -166,7 +166,7 @@ export function LucaMoretti() {
               className="text-[13px]" 
               style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a', lineHeight: 1.5 }}
             >
-              Run an evaluation to see how Luca aligns across shoot contexts.
+              Run an evaluation to see how Luca scores across shoot contexts.
             </div>
             <button
               onClick={() => navigate('/profile')}

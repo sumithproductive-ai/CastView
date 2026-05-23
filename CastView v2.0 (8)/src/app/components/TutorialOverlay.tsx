@@ -7,11 +7,11 @@ interface TutorialStep {
   body: string;
   spotlightSelector?: string;
   spotlightPosition?: { top: number; left: number; width: number; height: number };
-  tooltipPosition: 'right' | 'below' | 'left' | 'below-center';
+  tooltipPosition: 'right' | 'below' | 'left' | 'below-center' | 'above';
   requiredPath?: string;
 }
 
-const tutorialSteps: TutorialStep[] = [
+const defaultTutorialSteps: TutorialStep[] = [
   {
     headline: 'Your workspace',
     body: 'The sidebar is your main navigation. Prospects are unsigned talent you\'re evaluating. Roster is your signed models. Shared tracks client packages you\'ve sent out.',
@@ -54,8 +54,8 @@ const tutorialSteps: TutorialStep[] = [
     requiredPath: '/profile'
   },
   {
-    headline: 'Understanding the alignment',
-    body: 'Every evaluation produces an Alignment Score with a full breakdown — Composition, Style Match, Versatility, Market Fit. Use AGREE to log your confirmation or OVERRIDE to record your own judgment. Both signals improve the model over time.',
+    headline: 'Understanding the score',
+    body: 'Every evaluation produces a Fit Score with a full breakdown — Composition, Style Match, Versatility, Market Fit. Use AGREE to log your confirmation or OVERRIDE to record your own judgment. Both signals improve the model over time.',
     spotlightSelector: '[data-tutorial="score-panel"]',
     tooltipPosition: 'left',
     requiredPath: '/results'
@@ -69,11 +69,71 @@ const tutorialSteps: TutorialStep[] = [
   }
 ];
 
+export const compareTutorialSteps: TutorialStep[] = [
+  {
+    headline: 'Comparing digital sets',
+    body: 'Compare Mode lets you track how a model or prospect has developed over time. Select two digital sets — an older one and a newer one — to see progression across every context.',
+    spotlightSelector: '[data-tutorial="compare-selectors"]',
+    tooltipPosition: 'below-center',
+    requiredPath: '/compare',
+  },
+  {
+    headline: 'Choose your contexts',
+    body: 'Select which contexts you want to compare. You can compare all contexts at once or focus on the ones most relevant to your current submissions.',
+    spotlightSelector: '[data-tutorial="compare-contexts"]',
+    tooltipPosition: 'below-center',
+    requiredPath: '/compare',
+  },
+  {
+    headline: 'Run the comparison',
+    body: 'Hit Run Comparison to generate a side-by-side progression analysis. You\'ll see the alignment score change for each context, with reasoning and suggested next steps.',
+    spotlightSelector: '[data-tutorial="compare-run"]',
+    tooltipPosition: 'above',
+    requiredPath: '/compare',
+  },
+  {
+    headline: 'Reading the results',
+    body: 'Each context card shows the old score, new score, and direction of change. Green means improved alignment. Red means declined. Use the agent note field to record your own observations alongside the AI analysis.',
+    spotlightSelector: '[data-tutorial="compare-results"]',
+    tooltipPosition: 'above',
+    requiredPath: '/compare',
+  },
+];
+
+export const uploadTutorialSteps: TutorialStep[] = [
+  {
+    headline: 'Digital sets timeline',
+    body: 'Every prospect and roster model has a digital sets timeline. Each set is a snapshot of their digitals at a point in time. Uploading new sets over time lets you track progression and compare development.',
+    spotlightSelector: '[data-tutorial="digital-sets-timeline"]',
+    tooltipPosition: 'right',
+    requiredPath: '/prospects/sumith-chittimalla',
+  },
+  {
+    headline: 'Uploading a new digital set',
+    body: 'Click Upload New Digital Set to add an updated set of digitals. Give it a descriptive title like "Post-Cut Digitals" or "July 2026 Update" so your team can identify it at a glance.',
+    spotlightSelector: '[data-tutorial="upload-new-set"]',
+    tooltipPosition: 'above',
+    requiredPath: '/prospects/sumith-chittimalla',
+  },
+  {
+    headline: 'Your uploaded digitals',
+    body: 'Once uploaded, the four digitals appear in a clean 2x2 grid — front, profile, 3/4, full body. These are the images the alignment analysis reads from. Higher quality digitals in consistent neutral lighting produce more accurate results.',
+    spotlightSelector: '[data-tutorial="digital-grid"]',
+    tooltipPosition: 'right',
+    requiredPath: '/prospects/sumith-chittimalla',
+  },
+];
+
 interface TutorialOverlayProps {
   onClose: () => void;
+  steps?: TutorialStep[];
 }
 
-export function TutorialOverlay({ onClose }: TutorialOverlayProps) {
+export function TutorialOverlay({
+  onClose,
+  steps: stepsProp,
+}: TutorialOverlayProps) {
+  const tutorialSteps = stepsProp || defaultTutorialSteps;
   const navigate = useNavigate();
   const location = useLocation();
   const [currentStep, setCurrentStep] = useState(0);
@@ -274,6 +334,12 @@ export function TutorialOverlay({ onClose }: TutorialOverlayProps) {
           top: `${spotlightRect.top + spotlightRect.height / 2}px`,
           left: `${spotlightRect.left - 340 - padding}px`,
           transform: 'translateY(-50%)'
+        };
+      case 'above':
+        return {
+          top: `${spotlightRect.top - padding}px`,
+          left: `${spotlightRect.left + spotlightRect.width / 2}px`,
+          transform: 'translate(-50%, -100%)'
         };
       default:
         return {};

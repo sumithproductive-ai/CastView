@@ -3,35 +3,19 @@ import { Link, useNavigate } from 'react-router';
 import { Search, ChevronDown, Sparkles, X } from 'lucide-react';
 import type { DigitalSet } from '../types/talent';
 
-type Model = {
-  id: string;
-  name: string;
-  image: string;
-  primaryContext: string;
-  contexts: string[];
-  evaluatedContexts: string[];
-  topScore: number;
-  lastEvaluation: string;
-  status: string;
-  recentlySigned: boolean;
-  division: string;
-  digitalSets: DigitalSet[];
-};
-
-export const rosterModels: Model[] = [
+const models = [
   {
     id: 'sofia-andersen',
     name: 'Sofia Andersen',
     image: 'https://images.unsplash.com/photo-1742540425779-4172d3ac460a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwb3J0cmFpdCUyMHByb2Zlc3Npb25hbCUyMHN0dWRpb3xlbnwxfHx8fDE3NzMxNjUyODN8MA&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'EDITORIAL',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    evaluatedContexts: ['FR', 'ED', 'RW', 'CA'],
+    renderedContexts: ['FR', 'ED', 'RW', 'CA'],
     topScore: 96,
-    lastEvaluation: '3 days ago',
+    lastRender: '3 days ago',
     status: 'ACTIVE',
     recentlySigned: true,
-    division: 'women',
-    digitalSets: [],
+    division: 'women'
   },
   {
     id: 'marcus-chen',
@@ -39,13 +23,12 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1768742466928-7eb18e2fcb6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxlJTIwZmFzaGlvbiUyMG1vZGVsJTIwaGVhZHNob3R8ZW58MXx8fHwxNzczMTY1MjgzfDA&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'CAMPAIGN',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    evaluatedContexts: ['FR', 'CA'],
+    renderedContexts: ['FR', 'CA'],
     topScore: 91,
-    lastEvaluation: '1 week ago',
+    lastRender: '1 week ago',
     status: 'ACTIVE',
     recentlySigned: false,
-    division: 'men',
-    digitalSets: [],
+    division: 'men'
   },
   {
     id: 'ava-laurent',
@@ -53,13 +36,12 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1646805925007-510be75f20f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmZW1hbGUlMjBtb2RlbCUyMGVkaXRvcmlhbCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE2NTI4NHww&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'FRAGRANCE',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    evaluatedContexts: ['FR', 'ED', 'RW'],
+    renderedContexts: ['FR', 'ED', 'RW'],
     topScore: 89,
-    lastEvaluation: '2 weeks ago',
+    lastRender: '2 weeks ago',
     status: 'ACTIVE',
     recentlySigned: false,
-    division: 'women',
-    digitalSets: [],
+    division: 'women'
   },
   {
     id: 'luca-moretti',
@@ -67,13 +49,12 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1758613653843-87c253aea8cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwcm9mZXNzaW9uYWwlMjBwaG90b3xlbnwxfHx8fDE3NzMxNjUyODR8MA&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'RUNWAY',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    evaluatedContexts: ['RW'],
+    renderedContexts: ['RW'],
     topScore: 85,
-    lastEvaluation: '1 month ago',
+    lastRender: '1 month ago',
     status: 'ON HOLD',
     recentlySigned: false,
-    division: 'men',
-    digitalSets: [],
+    division: 'men'
   },
   {
     id: 'isabella-novak',
@@ -81,13 +62,12 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1616002430110-ab30442021fe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHBvcnRmb2xpbyUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE2NTI4NHww&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'EDITORIAL',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    evaluatedContexts: ['FR', 'ED', 'RW', 'CA'],
+    renderedContexts: ['FR', 'ED', 'RW', 'CA'],
     topScore: 93,
-    lastEvaluation: '5 days ago',
+    lastRender: '5 days ago',
     status: 'ACTIVE',
     recentlySigned: true,
-    division: 'women',
-    digitalSets: [],
+    division: 'women'
   },
   {
     id: 'zara-klein',
@@ -95,134 +75,63 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1650094762225-3561578643c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwcnVud2F5JTIwbW9kZWwlMjBjbG9zZXVwfGVufDF8fHx8MTc3MzE2NTI4NXww&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'FRAGRANCE',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    evaluatedContexts: ['FR', 'CA'],
+    renderedContexts: ['FR', 'CA'],
     topScore: 88,
-    lastEvaluation: '3 weeks ago',
+    lastRender: '3 weeks ago',
     status: 'ACTIVE',
     recentlySigned: false,
-    division: 'women',
-    digitalSets: [],
+    division: 'women'
+  }
+];
+
+const sumithRosterDigitalSets: DigitalSet[] = [
+  {
+    id: 'ds-roster-2',
+    title: 'May 2026 Update',
+    uploadedAt: 'May 2026',
+    front: 'https://i.imgur.com/jZHp7Ei.jpg',
+    profile: 'https://i.imgur.com/aBlfily.jpg',
+    threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
+    fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
+    additionalImages: [],
+    notes: 'Updated digitals post first season.',
+    tags: ['updated', 'post-season'],
+    evaluations: [],
   },
   {
-    id: 'sumith-chittimalla-roster',
-    name: 'Sumith Chittimalla',
-    image: 'https://i.imgur.com/39KyFLK.jpg',
-    primaryContext: 'FRAGRANCE',
-    contexts: ['FR', 'ED', 'CA', 'ST'],
-    evaluatedContexts: ['FR', 'ED', 'CA', 'ST'],
-    topScore: 94,
-    lastEvaluation: '3 days ago',
-    status: 'ACTIVE',
-    recentlySigned: true,
-    division: 'men',
-    digitalSets: [
-      {
-        id: 'ds-roster-1',
-        title: 'Initial Submission',
-        uploadedAt: 'January 2026',
-        front: 'https://i.imgur.com/jZHp7Ei.jpg',
-        profile: 'https://i.imgur.com/aBlfily.jpg',
-        threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
-        fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
-        additionalImages: [],
-        notes: 'First submission after signing.',
-        tags: ['initial', 'submission'],
-        evaluations: [
-          {
-            id: 'eval-roster-1',
-            completedAt: 'January 2026',
-            contexts: [
-              {
-                context: 'Fragrance',
-                alignmentScore: 78,
-                fitLabel: 'MODERATE ALIGNMENT',
-                reasoning:
-                  'Strong bone structure with developing editorial presence. Fragrance alignment is solid but has room to grow with updated digitals.',
-                strengths: [],
-                risks: [],
-                marketSignals: [],
-                suggestedNextSteps: [],
-              },
-              {
-                context: 'Editorial',
-                alignmentScore: 82,
-                fitLabel: 'STRONG ALIGNMENT',
-                reasoning:
-                  'Good editorial range visible in initial submission. Versatile framing potential.',
-                strengths: [],
-                risks: [],
-                marketSignals: [],
-                suggestedNextSteps: [],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: 'ds-roster-2',
-        title: 'May 2026 Update',
-        uploadedAt: 'May 2026',
-        front: 'https://i.imgur.com/jZHp7Ei.jpg',
-        profile: 'https://i.imgur.com/aBlfily.jpg',
-        threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
-        fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
-        additionalImages: [],
-        notes: 'Updated digitals post first season.',
-        tags: ['updated', 'post-season'],
-        evaluations: [
-          {
-            id: 'eval-roster-2',
-            completedAt: 'May 2026',
-            contexts: [
-              {
-                context: 'Fragrance',
-                alignmentScore: 94,
-                fitLabel: 'STRONG ALIGNMENT',
-                reasoning:
-                  'Significant improvement in fragrance alignment. Bone structure and contrast range now score at top percentile for luxury fragrance criteria.',
-                strengths: [],
-                risks: [],
-                marketSignals: [],
-                suggestedNextSteps: [],
-              },
-              {
-                context: 'Editorial',
-                alignmentScore: 91,
-                fitLabel: 'STRONG ALIGNMENT',
-                reasoning:
-                  'Editorial presence has strengthened considerably. High versatility across luxury and contemporary editorial contexts.',
-                strengths: [],
-                risks: [],
-                marketSignals: [],
-                suggestedNextSteps: [],
-              },
-              {
-                context: 'Campaign',
-                alignmentScore: 88,
-                fitLabel: 'STRONG ALIGNMENT',
-                reasoning:
-                  'Commercial appeal indicators strong. Well-suited for premium brand campaign work in current market.',
-                strengths: [],
-                risks: [],
-                marketSignals: [],
-                suggestedNextSteps: [],
-              },
-            ],
-          },
-        ],
-      },
-    ],
+    id: 'ds-roster-1',
+    title: 'Initial Submission',
+    uploadedAt: 'January 2026',
+    front: 'https://i.imgur.com/jZHp7Ei.jpg',
+    profile: 'https://i.imgur.com/aBlfily.jpg',
+    threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
+    fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
+    additionalImages: [],
+    notes: 'First submission after signing.',
+    tags: ['initial', 'submission'],
+    evaluations: [],
   },
 ];
 
 export function getRosterModelById(modelId: string) {
-  return rosterModels.find((model) => model.id === modelId);
-}
+  if (modelId === 'sumith-chittimalla-roster') {
+    return {
+      id: modelId,
+      name: 'Sumith Chittimalla',
+      status: 'ACTIVE',
+      digitalSets: sumithRosterDigitalSets,
+    };
+  }
 
-function getRosterStatusColor(status: string) {
-  if (status === 'ACTIVE') return '#5d7d5d';
-  if (status === 'ON HOLD') return '#7d6d4d';
-  return '#5d3d3d';
+  const model = models.find((entry) => entry.id === modelId);
+  if (!model) return undefined;
+
+  return {
+    id: model.id,
+    name: model.name,
+    status: model.status,
+    digitalSets: [] as DigitalSet[],
+  };
 }
 
 interface DropdownProps {
@@ -288,7 +197,7 @@ export function Roster() {
   const [search, setSearch] = useState('');
   const [contextFilter, setContextFilter] = useState('all');
   const [divisionFilter, setDivisionFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('last-evaluated');
+  const [sortBy, setSortBy] = useState('last-rendered');
   const [briefMatchActive, setBriefMatchActive] = useState(false);
   const [briefQuery, setBriefQuery] = useState('');
   const [showMatchResults, setShowMatchResults] = useState(false);
@@ -324,19 +233,19 @@ export function Roster() {
   ];
 
   const sortOptions = [
-    { value: 'last-evaluated', label: 'Sort: Last Evaluated' },
-    { value: 'top-score', label: 'Sort: Top Alignment Score' },
+    { value: 'last-rendered', label: 'Sort: Last Rendered' },
+    { value: 'top-score', label: 'Sort: Top Score' },
     { value: 'name', label: 'Sort: Name' }
   ];
 
   const handleExportCSV = () => {
-    const headers = ['Name', 'Status', 'Top Alignment Score', 'Contexts Evaluated', 'Last Evaluated', 'Date Signed'];
-    const rows = rosterModels.map(m => [
+    const headers = ['Name', 'Status', 'Top Score', 'Contexts Evaluated', 'Last Evaluated', 'Date Signed'];
+    const rows = models.map(m => [
       m.name,
       m.status,
       m.topScore.toString(),
-      m.evaluatedContexts.join(' | '),
-      m.lastEvaluation,
+      m.renderedContexts.join(' | '),
+      m.lastRender,
       m.recentlySigned ? 'Recently Signed' : ''
     ]);
     const csv = [headers, ...rows]
@@ -351,7 +260,7 @@ export function Roster() {
     URL.revokeObjectURL(url);
   };
 
-  const filteredModels = rosterModels.filter(model => {
+  const filteredModels = models.filter(model => {
     const matchesSearch = search.trim() === ''
       || model.name.toLowerCase()
           .includes(search.trim().toLowerCase());
@@ -373,13 +282,13 @@ export function Roster() {
     if (sortBy === 'top-score') {
       return (b.topScore || 0) - (a.topScore || 0);
     }
-    if (sortBy === 'last-evaluated') {
+    if (sortBy === 'last-rendered') {
       const order = [
         '3 days ago', '5 days ago', '1 week ago',
         '2 weeks ago', '3 weeks ago', '1 month ago'
       ];
-      return order.indexOf(a.lastEvaluation) - 
-             order.indexOf(b.lastEvaluation);
+      return order.indexOf(a.lastRender) - 
+             order.indexOf(b.lastRender);
     }
     return 0;
   });
@@ -451,7 +360,7 @@ export function Roster() {
               value={sortBy}
               onChange={(value) => setSortBy(value)}
               options={sortOptions}
-              currentLabel={sortOptions.find(opt => opt.value === sortBy)?.label || 'Sort: Last Evaluated'}
+              currentLabel={sortOptions.find(opt => opt.value === sortBy)?.label || 'Sort: Last Rendered'}
             />
 
             {/* Brief Match Button */}
@@ -530,9 +439,9 @@ export function Roster() {
           {/* Match Results */}
           <div className="space-y-[1px]">
             {[
-              { name: 'Sofia Andersen', percentage: 96, image: rosterModels[0].image },
-              { name: 'Zara Klein', percentage: 91, image: rosterModels[5].image },
-              { name: 'Ava Laurent', percentage: 88, image: rosterModels[2].image }
+              { name: 'Sofia Andersen', percentage: 96, image: models[0].image },
+              { name: 'Zara Klein', percentage: 91, image: models[5].image },
+              { name: 'Ava Laurent', percentage: 88, image: models[2].image }
             ].map((match, index) => (
               <div 
                 key={index}
@@ -680,7 +589,7 @@ export function Roster() {
                 {/* Context Chips */}
                 <div className="flex gap-[8px] mb-[16px]">
                   {model.contexts.map((context) => {
-                    const isRendered = model.evaluatedContexts.includes(context);
+                    const isRendered = model.renderedContexts.includes(context);
                     return (
                       <div
                         key={context}
@@ -708,7 +617,7 @@ export function Roster() {
                   <div 
                     style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a' }}
                   >
-                    Last evaluated · {model.lastEvaluation}
+                    {model.lastRender}
                   </div>
                 </div>
 
@@ -717,32 +626,31 @@ export function Roster() {
 
                 {/* Status */}
                 <div 
-                  className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
+                  className="text-[9px] uppercase tracking-[0.1em] mb-[8px]"
                   style={{ 
                     fontFamily: 'var(--font-label)',
-                    color: getRosterStatusColor(model.status)
+                    color: model.status === 'ACTIVE' ? '#5d7d5d' : '#7d6d4d'
                   }}
                 >
                   {model.status}
                 </div>
 
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    navigate('/profile');
-                  }}
-                  className="w-full mb-[8px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    backgroundColor: '#f0f0ec',
-                    color: '#080808',
-                    cursor: 'pointer',
-                  }}
-                >
-                  RUN EVALUATION
-                </button>
+                {/* Compare Renders Link - Only show for models with multiple sessions */}
+                {model.id === 'sofia-andersen' && (
+                  <div
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate(`/compare?modelId=${model.id}`);
+                    }}
+                    className="text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
+                    style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+                  >
+                    COMPARE RENDERS
+                  </div>
+                )}
 
+                {/* Development Report Button */}
                 <button
                   onClick={(e) => {
                     e.preventDefault();
@@ -750,7 +658,7 @@ export function Roster() {
                     setSelectedModel(model);
                     setShowDevReportModal(true);
                   }}
-                  className="w-full mb-[8px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-all hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
+                  className="w-full mt-[12px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-all hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
                     height: '36px',
@@ -760,42 +668,7 @@ export function Roster() {
                     cursor: 'pointer'
                   }}
                 >
-                  SHARE DEVELOPMENT REPORT
-                </button>
-
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (model.digitalSets.length < 2) return;
-                    navigate('/compare', {
-                      state: {
-                        prospectId: model.id,
-                        prospectName: model.name,
-                        profilePath: `/roster/${model.id}`,
-                        digitalSets: model.digitalSets.map((set) => ({
-                          id: set.id,
-                          title: set.title,
-                          date: set.uploadedAt,
-                          thumbnail: set.front || '',
-                        })),
-                        previousSetId: model.digitalSets[model.digitalSets.length - 1]?.id,
-                      },
-                    });
-                  }}
-                  disabled={model.digitalSets.length < 2}
-                  className="w-full border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-all hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
-                  style={{ 
-                    fontFamily: 'var(--font-mono)', 
-                    height: '36px',
-                    borderColor: '#2a2a2a',
-                    color: '#888880',
-                    backgroundColor: 'transparent',
-                    cursor: model.digitalSets.length >= 2 ? 'pointer' : 'not-allowed',
-                    opacity: model.digitalSets.length >= 2 ? 1 : 0.4,
-                  }}
-                >
-                  COMPARE DIGITALS
+                  ↗ SHARE DEVELOPMENT REPORT
                 </button>
               </div>
             </Link>

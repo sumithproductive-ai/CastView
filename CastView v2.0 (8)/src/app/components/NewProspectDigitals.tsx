@@ -1,6 +1,9 @@
+import { useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Upload, X, Check, Lock } from 'lucide-react';
 import { isSumithProspect, sumithDigitals } from '../constants/sumithProspect';
+
+type DigitalImageKey = 'front' | 'profile' | 'three_quarter' | 'full_body';
 
 export function NewProspectDigitals() {
   const navigate = useNavigate();
@@ -8,23 +11,52 @@ export function NewProspectDigitals() {
   const [searchParams] = useSearchParams();
   const prospectId = routeProspectId ?? searchParams.get('prospectId');
   const prospectName = searchParams.get('name');
+  const isSumithDemo = isSumithProspect(prospectId, prospectName);
 
-  const defaultUploadedImages = {
-    front: null,
-    profile: null,
-    three_quarter: null,
-    full_body: null
+  const [uploadedImages, setUploadedImages] = useState<Record<DigitalImageKey, string | null>>(() =>
+    isSumithDemo
+      ? {
+          front: sumithDigitals.front,
+          profile: sumithDigitals.profile,
+          three_quarter: sumithDigitals.three_quarter,
+          full_body: sumithDigitals.full_body,
+        }
+      : {
+          front: null,
+          profile: null,
+          three_quarter: null,
+          full_body: null,
+        }
+  );
+
+  const fileInputRefs = {
+    front: useRef<HTMLInputElement>(null),
+    profile: useRef<HTMLInputElement>(null),
+    three_quarter: useRef<HTMLInputElement>(null),
+    full_body: useRef<HTMLInputElement>(null),
   };
 
-  const uploadedImages = isSumithProspect(prospectId, prospectName)
-    ? sumithDigitals
-    : defaultUploadedImages;
+  const handleFileSelect = (
+    e: ChangeEvent<HTMLInputElement>,
+    key: DigitalImageKey
+  ) => {
+    if (isSumithDemo) return;
 
-  const uploadZones = [
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const objectUrl = URL.createObjectURL(file);
+    setUploadedImages((prev) => ({
+      ...prev,
+      [key]: objectUrl,
+    }));
+  };
+
+  const uploadZones: { key: DigitalImageKey; label: string; uploaded: string | null }[] = [
     { key: 'front', label: 'FRONT', uploaded: uploadedImages.front },
     { key: 'profile', label: 'PROFILE', uploaded: uploadedImages.profile },
     { key: 'three_quarter', label: '3/4', uploaded: uploadedImages.three_quarter },
-    { key: 'full_body', label: 'FULL BODY', uploaded: uploadedImages.full_body }
+    { key: 'full_body', label: 'FULL BODY', uploaded: uploadedImages.full_body },
   ];
 
   const uploadedCount = uploadZones.filter(zone => zone.uploaded).length;
@@ -141,14 +173,28 @@ export function NewProspectDigitals() {
         data-tutorial="upload-area"
       >
         {uploadZones.map((zone) => (
-          <div 
+          <div
             key={zone.key}
             className="relative bg-[#0d0d0d] border border-dashed rounded-[4px] cursor-pointer hover:border-[#3a3a3a] transition-colors"
             style={{ 
               borderColor: zone.uploaded ? '#2a2a2a' : '#2a2a2a',
               height: '140px'
             }}
+            onClick={
+              isSumithDemo
+                ? undefined
+                : () => fileInputRefs[zone.key].current?.click()
+            }
           >
+            {!isSumithDemo && (
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                style={{ display: 'none' }}
+                ref={fileInputRefs[zone.key]}
+                onChange={(e) => handleFileSelect(e, zone.key)}
+              />
+            )}
             {zone.uploaded ? (
               <>
                 {/* Uploaded Image */}

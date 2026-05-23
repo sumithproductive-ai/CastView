@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 import type { DigitalSet } from '../types/talent';
+import { TutorialOverlay, compareTutorialSteps } from './TutorialOverlay';
+import { getRosterModelById } from './Roster';
 
 type DigitalSetOption = {
   id: string;
@@ -276,24 +278,36 @@ function DigitalSetSelector({
 export function CompareMode() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const modelId = searchParams.get('modelId');
   const navigationState = (location.state ?? null) as CompareNavigationState | null;
+
+  const modelFromQuery = modelId ? getRosterModelById(modelId) : null;
 
   const prospectDigitalSets = useMemo(() => {
     if (navigationState?.digitalSets?.length) {
       return navigationState.digitalSets;
     }
+    if (modelFromQuery?.digitalSets.length) {
+      return modelFromQuery.digitalSets.map(digitalSetToOption);
+    }
     return getFallbackDigitalSets(navigationState?.prospectId);
-  }, [navigationState]);
+  }, [navigationState, modelFromQuery]);
 
   const canCompare = prospectDigitalSets.length >= 2;
-  const prospectName = navigationState?.prospectName ?? 'Sumith Chittimalla';
+  const prospectName =
+    navigationState?.prospectName ?? modelFromQuery?.name ?? 'Sumith Chittimalla';
   const profilePath =
     navigationState?.profilePath ??
-    `/prospects/${navigationState?.prospectId ?? 'sumith-chittimalla'}`;
+    (modelId ? `/roster/${modelId}` : `/prospects/${navigationState?.prospectId ?? 'sumith-chittimalla'}`);
 
   const initialSelection = useMemo(
-    () => resolveCompareSelection(prospectDigitalSets, navigationState?.previousSetId),
-    [prospectDigitalSets, navigationState?.previousSetId]
+    () =>
+      resolveCompareSelection(
+        prospectDigitalSets,
+        modelId ? undefined : navigationState?.previousSetId
+      ),
+    [prospectDigitalSets, navigationState?.previousSetId, modelId]
   );
 
   const [previousSetId, setPreviousSetId] = useState(initialSelection.previousSetId);
@@ -303,15 +317,19 @@ export function CompareMode() {
     'Editorial',
   ]);
   const [showResults, setShowResults] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [agentNotes, setAgentNotes] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!canCompare) return;
-    const next = resolveCompareSelection(prospectDigitalSets, navigationState?.previousSetId);
+    const next = resolveCompareSelection(
+      prospectDigitalSets,
+      modelId ? undefined : navigationState?.previousSetId
+    );
     setPreviousSetId(next.previousSetId);
     setCurrentSetId(next.currentSetId);
     setShowResults(false);
-  }, [location.key, prospectDigitalSets, navigationState?.previousSetId, canCompare]);
+  }, [location.key, prospectDigitalSets, navigationState?.previousSetId, canCompare, modelId]);
 
   if (!canCompare) {
     return (
@@ -415,10 +433,27 @@ export function CompareMode() {
             {currentSet.title} · {currentSet.date}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setShowTutorial(true)}
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '10px',
+            color: '#888880',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            textUnderlineOffset: '3px',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+          }}
+        >
+          HOW TO USE COMPARE MODE
+        </button>
       </div>
 
       {/* STEP 1 — Digital Set Selection */}
-      <div className="flex gap-[16px] mb-[32px]">
+      <div className="flex gap-[16px] mb-[32px]" data-tutorial="compare-selectors">
         <DigitalSetSelector
           panelLabel="PREVIOUS DIGITALS"
           selectedId={previousSetId}
@@ -438,7 +473,7 @@ export function CompareMode() {
         <div className="mb-[12px]" style={sectionLabelStyle}>
           SELECT CONTEXTS TO COMPARE
         </div>
-        <div className="grid grid-cols-5 gap-[12px]">
+        <div className="grid grid-cols-5 gap-[12px]" data-tutorial="compare-contexts">
           {contexts.map((context) => {
             const isSelected = selectedContexts.includes(context);
             return (
@@ -500,6 +535,7 @@ export function CompareMode() {
       <button
         type="button"
         onClick={() => setShowResults(true)}
+        data-tutorial="compare-run"
         className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 mb-[32px]"
         style={{
           fontFamily: 'var(--font-mono)',
@@ -512,7 +548,7 @@ export function CompareMode() {
       </button>
 
       {showResults && (
-        <div>
+        <div data-tutorial="compare-results">
           <div className="mb-[8px]" style={sectionLabelStyle}>
             PROGRESSION ANALYSIS
           </div>
@@ -711,6 +747,13 @@ export function CompareMode() {
             })}
           </div>
         </div>
+      )}
+
+      {showTutorial && (
+        <TutorialOverlay
+          onClose={() => setShowTutorial(false)}
+          steps={compareTutorialSteps}
+        />
       )}
     </div>
   );

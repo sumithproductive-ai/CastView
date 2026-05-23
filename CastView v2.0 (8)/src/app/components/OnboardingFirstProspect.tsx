@@ -126,7 +126,7 @@ export function OnboardingFirstProspect() {
               className="text-[13px] mb-[32px]"
               style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a', lineHeight: 1.6 }}
             >
-              Upload digitals and run your first AI evaluation.
+              Upload digitals and run your first AI render.
             </p>
 
             {/* Button */}
