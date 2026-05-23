@@ -34,6 +34,8 @@ export type Prospect = {
   digitalSets: DigitalSet[];
 };
 
+const STORAGE_VERSION = 'v2';
+const STORAGE_VERSION_KEY = 'castview_prospects_version';
 const STORAGE_KEY = 'castview_prospects';
 
 const SEED_PROSPECTS: Prospect[] = [
@@ -45,7 +47,7 @@ const SEED_PROSPECTS: Prospect[] = [
     evaluations: 1,
     submissionDate: '2 days ago',
     source: 'DIRECT',
-    image: 'https://i.imgur.com/TZxydSw.jpg',
+    image: 'https://i.imgur.com/F70z8kX.jpg',
     contexts: ['FR', 'ED', 'CA'],
     renderedContexts: ['FR'],
     division: 'men',
@@ -76,6 +78,13 @@ function isValidProspect(value: unknown): value is Prospect {
 
 function loadProspectsFromStorage(): Prospect[] {
   try {
+    const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
+    if (storedVersion !== STORAGE_VERSION) {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
+      return SEED_PROSPECTS;
+    }
+
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return SEED_PROSPECTS;
 

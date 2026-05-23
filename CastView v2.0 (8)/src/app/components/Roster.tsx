@@ -5,83 +5,18 @@ import type { DigitalSet } from '../types/talent';
 
 const models = [
   {
-    id: 'sofia-andersen',
-    name: 'Sofia Andersen',
-    image: 'https://images.unsplash.com/photo-1742540425779-4172d3ac460a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwb3J0cmFpdCUyMHByb2Zlc3Npb25hbCUyMHN0dWRpb3xlbnwxfHx8fDE3NzMxNjUyODN8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    primaryContext: 'EDITORIAL',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'ED', 'RW', 'CA'],
-    topScore: 96,
+    id: 'sumith-chittimalla-roster',
+    name: 'Sumith Chittimalla',
+    image: 'https://i.imgur.com/F70z8kX.jpg',
+    primaryContext: 'FRAGRANCE',
+    contexts: ['FR', 'ED', 'CA'],
+    renderedContexts: ['FR', 'ED'],
+    topScore: 94,
     lastRender: '3 days ago',
     status: 'ACTIVE',
     recentlySigned: true,
-    division: 'women'
+    division: 'men',
   },
-  {
-    id: 'marcus-chen',
-    name: 'Marcus Chen',
-    image: 'https://images.unsplash.com/photo-1768742466928-7eb18e2fcb6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxlJTIwZmFzaGlvbiUyMG1vZGVsJTIwaGVhZHNob3R8ZW58MXx8fHwxNzczMTY1MjgzfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    primaryContext: 'CAMPAIGN',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'CA'],
-    topScore: 91,
-    lastRender: '1 week ago',
-    status: 'ACTIVE',
-    recentlySigned: false,
-    division: 'men'
-  },
-  {
-    id: 'ava-laurent',
-    name: 'Ava Laurent',
-    image: 'https://images.unsplash.com/photo-1646805925007-510be75f20f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmZW1hbGUlMjBtb2RlbCUyMGVkaXRvcmlhbCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE2NTI4NHww&ixlib=rb-4.1.0&q=80&w=1080',
-    primaryContext: 'FRAGRANCE',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'ED', 'RW'],
-    topScore: 89,
-    lastRender: '2 weeks ago',
-    status: 'ACTIVE',
-    recentlySigned: false,
-    division: 'women'
-  },
-  {
-    id: 'luca-moretti',
-    name: 'Luca Moretti',
-    image: 'https://images.unsplash.com/photo-1758613653843-87c253aea8cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwcm9mZXNzaW9uYWwlMjBwaG90b3xlbnwxfHx8fDE3NzMxNjUyODR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    primaryContext: 'RUNWAY',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['RW'],
-    topScore: 85,
-    lastRender: '1 month ago',
-    status: 'ON HOLD',
-    recentlySigned: false,
-    division: 'men'
-  },
-  {
-    id: 'isabella-novak',
-    name: 'Isabella Novak',
-    image: 'https://images.unsplash.com/photo-1616002430110-ab30442021fe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHBvcnRmb2xpbyUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE2NTI4NHww&ixlib=rb-4.1.0&q=80&w=1080',
-    primaryContext: 'EDITORIAL',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'ED', 'RW', 'CA'],
-    topScore: 93,
-    lastRender: '5 days ago',
-    status: 'ACTIVE',
-    recentlySigned: true,
-    division: 'women'
-  },
-  {
-    id: 'zara-klein',
-    name: 'Zara Klein',
-    image: 'https://images.unsplash.com/photo-1650094762225-3561578643c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwcnVud2F5JTIwbW9kZWwlMjBjbG9zZXVwfGVufDF8fHx8MTc3MzE2NTI4NXww&ixlib=rb-4.1.0&q=80&w=1080',
-    primaryContext: 'FRAGRANCE',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'CA'],
-    topScore: 88,
-    lastRender: '3 weeks ago',
-    status: 'ACTIVE',
-    recentlySigned: false,
-    division: 'women'
-  }
 ];
 
 const sumithRosterDigitalSets: DigitalSet[] = [
@@ -439,9 +374,7 @@ export function Roster() {
           {/* Match Results */}
           <div className="space-y-[1px]">
             {[
-              { name: 'Sofia Andersen', percentage: 96, image: models[0].image },
-              { name: 'Zara Klein', percentage: 91, image: models[5].image },
-              { name: 'Ava Laurent', percentage: 88, image: models[2].image }
+              { name: 'Sumith Chittimalla', percentage: 94, image: models[0].image },
             ].map((match, index) => (
               <div 
                 key={index}
@@ -482,7 +415,7 @@ export function Roster() {
                 <div 
                   className="text-[12px] cursor-pointer hover:opacity-70 transition-opacity"
                   style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
-                  onClick={() => navigate(`/roster/${match.name.toLowerCase().replace(' ', '-')}`)}
+                  onClick={() => navigate('/roster/sumith-chittimalla-roster/history')}
                 >
                   VIEW →
                 </div>
@@ -494,16 +427,16 @@ export function Roster() {
 
       {/* Model Cards Grid or Empty State */}
       {filteredModels.length === 0 ? (
-        search.trim() !== '' ? (
-          <div 
+        models.length > 0 ? (
+          <div
             className="py-[48px] text-center"
-            style={{ 
-              fontFamily: 'var(--font-mono)', 
-              fontSize: '13px', 
-              color: '#666660' 
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '13px',
+              color: '#666660',
             }}
           >
-            No models match "{search}"
+            No models match your filters
           </div>
         ) : (
           <div 
@@ -538,7 +471,7 @@ export function Roster() {
           {filteredModels.map((model) => (
             <Link
               key={model.id}
-              to={`/roster/${model.id}`}
+              to={`/roster/${model.id}/history`}
               className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden hover:border-[#3a3a3a] transition-colors"
             >
               {/* Image with Badge */}
@@ -638,12 +571,12 @@ export function Roster() {
                 </div>
 
                 {/* Compare Renders Link - Only show for models with multiple sessions */}
-                {model.id === 'sofia-andersen' && (
+                {model.id === 'sumith-chittimalla-roster' && (
                   <div
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      navigate(`/compare?modelId=${model.id}`);
+                      navigate('/compare?prospectId=sumith-chittimalla-roster');
                     }}
                     className="text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
                     style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}

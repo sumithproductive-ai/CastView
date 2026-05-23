@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
-import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 import type { DigitalSet } from '../types/talent';
+import { useProspects } from '../context/ProspectsContext';
 import { TutorialOverlay, compareTutorialSteps } from './TutorialOverlay';
 import { getRosterModelById } from './Roster';
 
@@ -29,14 +29,6 @@ type CompareNavigationState = {
   digitalSets?: DigitalSetOption[];
 };
 
-const SOFIA_FALLBACK_DIGITAL_SET: DigitalSetOption = {
-  id: 'digitals-v1',
-  title: 'Initial Submission',
-  date: 'March 2026',
-  thumbnail:
-    'https://images.unsplash.com/photo-1761329842950-f3551938e4da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmFncmFuY2UlMjBlZGl0b3JpYWwlMjBtb2RlbCUyMHBob3RvfGVufDF8fHx8MTc3MzE2NTMzMnww&ixlib=rb-4.1.0&q=80&w=1080',
-};
-
 function digitalSetToOption(set: DigitalSet): DigitalSetOption {
   return {
     id: set.id,
@@ -44,13 +36,6 @@ function digitalSetToOption(set: DigitalSet): DigitalSetOption {
     date: set.uploadedAt,
     thumbnail: set.front || '',
   };
-}
-
-function getFallbackDigitalSets(prospectId?: string | null): DigitalSetOption[] {
-  if (prospectId === 'sofia-andersen') {
-    return [SOFIA_FALLBACK_DIGITAL_SET];
-  }
-  return [digitalSetToOption(SUMITH_DIGITAL_SET_V1)];
 }
 
 function resolveCompareSelection(
@@ -280,26 +265,63 @@ export function CompareMode() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const modelId = searchParams.get('modelId');
+  const prospectIdFromQuery = searchParams.get('prospectId');
   const navigationState = (location.state ?? null) as CompareNavigationState | null;
+  const { getProspectById } = useProspects();
 
-  const modelFromQuery = modelId ? getRosterModelById(modelId) : null;
+  const resolvedProspectId =
+    prospectIdFromQuery ?? navigationState?.prospectId ?? null;
 
   const prospectDigitalSets = useMemo(() => {
     if (navigationState?.digitalSets?.length) {
       return navigationState.digitalSets;
     }
-    if (modelFromQuery?.digitalSets.length) {
-      return modelFromQuery.digitalSets.map(digitalSetToOption);
+
+    if (modelId) {
+      const model = getRosterModelById(modelId);
+      if (model?.digitalSets.length) {
+        return model.digitalSets.map(digitalSetToOption);
+      }
+      return [];
     }
-    return getFallbackDigitalSets(navigationState?.prospectId);
-  }, [navigationState, modelFromQuery]);
+
+    if (resolvedProspectId) {
+      const prospect = getProspectById(resolvedProspectId);
+      if (prospect?.digitalSets.length) {
+        return prospect.digitalSets.map(digitalSetToOption);
+      }
+      if (resolvedProspectId.endsWith('-roster')) {
+        const rosterModel = getRosterModelById(resolvedProspectId);
+        if (rosterModel?.digitalSets.length) {
+          return rosterModel.digitalSets.map(digitalSetToOption);
+        }
+      }
+    }
+
+    return [];
+  }, [navigationState, modelId, resolvedProspectId, getProspectById]);
+
+  const rosterModelFromQuery =
+    modelId && !prospectIdFromQuery
+      ? getRosterModelById(modelId)
+      : resolvedProspectId?.endsWith('-roster')
+        ? getRosterModelById(resolvedProspectId)
+        : null;
+  const prospectFromContext = resolvedProspectId
+    ? getProspectById(resolvedProspectId)
+    : undefined;
 
   const canCompare = prospectDigitalSets.length >= 2;
   const prospectName =
-    navigationState?.prospectName ?? modelFromQuery?.name ?? 'Sumith Chittimalla';
+    navigationState?.prospectName ??
+    prospectFromContext?.name ??
+    rosterModelFromQuery?.name ??
+    'Prospect';
   const profilePath =
     navigationState?.profilePath ??
-    (modelId ? `/roster/${modelId}` : `/prospects/${navigationState?.prospectId ?? 'sumith-chittimalla'}`);
+    (modelId || resolvedProspectId?.endsWith('-roster')
+      ? `/roster/${modelId ?? resolvedProspectId}/history`
+      : `/prospects/${resolvedProspectId ?? ''}`);
 
   const initialSelection = useMemo(
     () =>
@@ -331,20 +353,42 @@ export function CompareMode() {
     setShowResults(false);
   }, [location.key, prospectDigitalSets, navigationState?.previousSetId, canCompare, modelId]);
 
-  if (!canCompare) {
+  if (prospectDigitalSets.length === 0) {
     return (
       <div className="p-[32px] min-h-screen flex flex-col items-center justify-center text-center">
         <p
-          className="mb-[12px]"
-          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#666660' }}
+          className="mb-[24px] max-w-[420px]"
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#666660', lineHeight: 1.6 }}
         >
-          No progression data yet.
+          No digital sets on file. Upload digitals from the prospect profile to begin comparing.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate(profilePath)}
+          className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+          style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+        >
+          UPLOAD NEW DIGITAL SET
+        </button>
+      </div>
+    );
+  }
+
+  if (!canCompare) {
+    const onlySet = prospectDigitalSets[0];
+    return (
+      <div className="p-[32px] min-h-screen flex flex-col items-center justify-center text-center">
+        <p
+          className="mb-[12px] max-w-[420px]"
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#666660', lineHeight: 1.6 }}
+        >
+          Upload a second digital set to compare progression.
         </p>
         <p
-          className="mb-[24px] max-w-[420px]"
+          className="mb-[24px]"
           style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', lineHeight: 1.6 }}
         >
-          This model has only one digital set on file. Upload a second set to compare progression.
+          {onlySet.title} · {onlySet.date}
         </p>
         <button
           type="button"

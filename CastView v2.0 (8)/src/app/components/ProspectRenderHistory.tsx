@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ChevronRight, Upload, X } from 'lucide-react';
-import { SUMITH_DIGITAL_SET_V1, SUMITH_PROSPECT_NAME } from '../constants/sumithProspect';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
 import { getRosterModelById } from './Roster';
 import type { DigitalSet, Evaluation } from '../types/talent';
@@ -22,91 +21,6 @@ function getRosterStatusColor(status: string) {
   if (status === 'ON HOLD') return '#7d6d4d';
   return '#5d3d3d';
 }
-
-const sumithProspectData = {
-  name: SUMITH_PROSPECT_NAME,
-  status: 'IN REVIEW',
-  statusColor: '#C8A96E',
-  signedDate: 'May 12, 2026',
-  digitalSets: [SUMITH_DIGITAL_SET_V1],
-};
-
-const sofiaDigitalSet: DigitalSet = {
-  id: 'digitals-v1',
-  uploadedAt: 'March 2026',
-  title: 'Initial Submission',
-  front:
-    'https://images.unsplash.com/photo-1761329842950-f3551938e4da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmFncmFuY2UlMjBlZGl0b3JpYWwlMjBtb2RlbCUyMHBob3RvfGVufDF8fHx8MTc3MzE2NTMzMnww&ixlib=rb-4.1.0&q=80&w=1080',
-  profile:
-    'https://images.unsplash.com/photo-1708170236080-6cb6d2d5497c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlZGl0b3JpYWwlMjBmYXNoaW9uJTIwdmVydGljYWwlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzMxNjUzMzF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-  threeQuarter:
-    'https://images.unsplash.com/photo-1697677103505-dd4b2dbf1b1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYW1wYWlnbiUyMGZhc2hpb24lMjBzaG9vdHxlbnwxfHx8fDE3NzMxNjUzMzJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-  fullBody:
-    'https://images.unsplash.com/photo-1759873911657-8140566c29a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWF1dHklMjBlZGl0b3JpYWwlMjBwb3J0cmFpdCUyMHNxdWFyZXxlbnwxfHx8fDE3NzMxNjUzMzN8MA&ixlib=rb-4.1.0&q=80&w=1080',
-  additionalImages: [],
-  notes: '',
-  tags: [],
-  evaluations: [
-    {
-      id: 'eval-1',
-      completedAt: 'March 12, 2026',
-      contexts: [
-        {
-          context: 'Fragrance',
-          alignmentScore: 94,
-          fitLabel: 'STRONG ALIGNMENT',
-          reasoning:
-            'Strong bone structure and contrast range align with luxury fragrance casting criteria.',
-          strengths: [],
-          risks: [],
-          marketSignals: [],
-          suggestedNextSteps: [],
-        },
-        {
-          context: 'Editorial',
-          alignmentScore: 96,
-          fitLabel: 'STRONG ALIGNMENT',
-          reasoning:
-            'Editorial versatility indicators are high with strong framing and posture in digitals.',
-          strengths: [],
-          risks: [],
-          marketSignals: [],
-          suggestedNextSteps: [],
-        },
-        {
-          context: 'Campaign',
-          alignmentScore: 88,
-          fitLabel: 'STRONG ALIGNMENT',
-          reasoning:
-            'Commercial appeal remains strong across campaign context benchmarks.',
-          strengths: [],
-          risks: [],
-          marketSignals: [],
-          suggestedNextSteps: [],
-        },
-        {
-          context: 'Runway',
-          alignmentScore: 91,
-          fitLabel: 'STRONG ALIGNMENT',
-          reasoning:
-            'Proportion indicators support runway context with consistent full-body presentation.',
-          strengths: [],
-          risks: [],
-          marketSignals: [],
-          suggestedNextSteps: [],
-        },
-      ],
-    },
-  ],
-};
-
-const prospectData = {
-  name: 'Sofia Andersen',
-  status: 'IN REVIEW',
-  statusColor: '#4d3d5d',
-  signedDate: 'February 18, 2026',
-  digitalSets: [sofiaDigitalSet],
-};
 
 const sectionLabelStyle = {
   fontFamily: 'var(--font-mono)',
@@ -222,7 +136,6 @@ type ProspectRenderHistoryProps = {
 
 function resolveProfileData(
   profileType: ProfileType,
-  prospectId?: string,
   modelId?: string,
   contextProspect?: Prospect,
 ): ProfileData | null {
@@ -244,16 +157,6 @@ function resolveProfileData(
     };
   }
 
-  if (prospectId === 'sumith-chittimalla') {
-    return {
-      name: sumithProspectData.name,
-      status: sumithProspectData.status,
-      statusColor: sumithProspectData.statusColor,
-      signedDate: sumithProspectData.signedDate,
-      digitalSets: sumithProspectData.digitalSets,
-    };
-  }
-
   if (contextProspect) {
     return {
       name: contextProspect.name,
@@ -270,22 +173,18 @@ export function ProspectRenderHistory({
   profileType = 'prospect',
 }: ProspectRenderHistoryProps) {
   const { prospectId, modelId } = useParams();
-  const { getProspectById } = useProspects();
+  const { getProspectById, updateProspect } = useProspects();
   const isProspect = profileType === 'prospect';
   const isModel = profileType === 'model';
-  const isSumithProspectPage = isProspect && prospectId === 'sumith-chittimalla';
-  const contextProspect =
-    isProspect && !isSumithProspectPage
-      ? getProspectById(prospectId ?? '')
-      : undefined;
+  const contextProspect = isProspect
+    ? getProspectById(prospectId ?? '')
+    : undefined;
   const resolvedProfile = resolveProfileData(
     profileType,
-    prospectId,
     modelId,
     contextProspect,
   );
-  const showProspectNotFound =
-    isProspect && !isSumithProspectPage && !resolvedProfile;
+  const showProspectNotFound = isProspect && !resolvedProfile;
   const activeProfile: ProfileData = resolvedProfile ?? {
     name: '',
     status: '',
@@ -321,12 +220,7 @@ export function ProspectRenderHistory({
   };
 
   useEffect(() => {
-    const profile = resolveProfileData(
-      profileType,
-      prospectId,
-      modelId,
-      contextProspect,
-    );
+    const profile = resolveProfileData(profileType, modelId, contextProspect);
     if (!profile) return;
     setDigitalSets([...profile.digitalSets]);
     setStatus(profile.status);
@@ -375,22 +269,27 @@ export function ProspectRenderHistory({
 
   const handleSaveDigitalSet = () => {
     const newSet: DigitalSet = {
-      id: `digitals-${Date.now()}`,
+      id: Date.now().toString(),
       title: uploadForm.title.trim() || 'Untitled Set',
       uploadedAt: uploadForm.date.trim() || '—',
-      front: uploadForm.front.trim() || null,
-      profile: uploadForm.profile.trim() || null,
-      threeQuarter: uploadForm.threeQuarter.trim() || null,
-      fullBody: uploadForm.fullBody.trim() || null,
+      front: uploadForm.front.trim() || '',
+      profile: uploadForm.profile.trim() || '',
+      threeQuarter: uploadForm.threeQuarter.trim() || '',
+      fullBody: uploadForm.fullBody.trim() || '',
       additionalImages: [],
       notes: uploadForm.notes.trim(),
-      tags: uploadForm.tags
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags: [],
       evaluations: [],
     };
-    setDigitalSets((prev) => [newSet, ...prev]);
+    const updatedSets = [newSet, ...digitalSets];
+    setDigitalSets(updatedSets);
+
+    if (isProspect && prospectId && contextProspect) {
+      updateProspect(prospectId, {
+        digitalSets: [newSet, ...contextProspect.digitalSets],
+      });
+    }
+
     resetUploadFormState();
     setShowUploadForm(false);
   };
@@ -441,11 +340,20 @@ export function ProspectRenderHistory({
   return (
     <div className="p-[20px] md:p-[48px]">
       {showProspectNotFound ? (
-        <div
-          className="text-center py-[64px] text-[13px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
-        >
-          Prospect not found.
+        <div className="text-center py-[64px]">
+          <p
+            className="text-[13px] mb-[16px]"
+            style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+          >
+            Prospect not found.
+          </p>
+          <Link
+            to="/prospects"
+            className="text-[13px] hover:opacity-70 transition-opacity"
+            style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+          >
+            ← Back to Prospects
+          </Link>
         </div>
       ) : (
         <>
