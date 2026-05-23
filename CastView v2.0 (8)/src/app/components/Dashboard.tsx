@@ -32,49 +32,15 @@ function submissionDateRank(submissionDate: string): number {
   return Number.MAX_SAFE_INTEGER;
 }
 
-const rosterStats = [
-  { label: 'ACTIVE MODELS', value: '18' },
-  { label: 'EVALUATIONS THIS MONTH', value: '34' },
-  { label: 'ON HOLD', value: '3' }
-];
+type RosterActivityItem = {
+  id: string;
+  name: string;
+  activity: string;
+  timeAgo: string;
+  image: string;
+};
 
-const rosterActivity = [
-  {
-    id: 'sumith-chittimalla',
-    name: 'Sumith Chittimalla',
-    activity: 'New evaluation — Fragrance',
-    timeAgo: '1 hour ago',
-    image: 'https://i.imgur.com/F70z8kX.jpg'
-  },
-  {
-    id: 'marcus-chen',
-    name: 'Marcus Chen',
-    activity: 'Status updated',
-    timeAgo: '3 hours ago',
-    image: 'https://images.unsplash.com/photo-1768742466928-7eb18e2fcb6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxlJTIwZmFzaGlvbiUyMG1vZGVsJTIwaGVhZHNob3R8ZW58MXx8fHwxNzczMTY1MjgzfDA&ixlib=rb-4.1.0&q=80&w=200'
-  },
-  {
-    id: 'ava-laurent',
-    name: 'Ava Laurent',
-    activity: 'Package shared',
-    timeAgo: '6 hours ago',
-    image: 'https://images.unsplash.com/photo-1646805925007-510be75f20f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmZW1hbGUlMjBtb2RlbCUyMGVkaXRvcmlhbCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE2NTI4NHww&ixlib=rb-4.1.0&q=80&w=200'
-  },
-  {
-    id: 'luca-moretti',
-    name: 'Luca Moretti',
-    activity: 'New evaluation — Editorial',
-    timeAgo: '1 day ago',
-    image: 'https://images.unsplash.com/photo-1758613653843-87c253aea8cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwcm9mZXNzaW9uYWwlMjBwaG90b3xlbnwxfHx8fDE3NzMxNjUyODR8MA&ixlib=rb-4.1.0&q=80&w=200'
-  },
-  {
-    id: 'isabella-novak',
-    name: 'Isabella Novak',
-    activity: 'New evaluation — Campaign',
-    timeAgo: '2 days ago',
-    image: 'https://images.unsplash.com/photo-1616002430110-ab30442021fe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHBvcnRmb2xpbyUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE2NTI4NHww&ixlib=rb-4.1.0&q=80&w=200'
-  }
-];
+const rosterActivity: RosterActivityItem[] = [];
 
 export function Dashboard() {
   const [showSavingsTooltip, setShowSavingsTooltip] = useState(false);
@@ -246,7 +212,7 @@ export function Dashboard() {
                 className="text-[36px]" 
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                18
+                0
               </div>
               <div 
                 className="text-[10px] uppercase tracking-[0.12em]" 
@@ -265,7 +231,7 @@ export function Dashboard() {
                 className="text-[36px]" 
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                34
+                0
               </div>
               <div 
                 className="text-[10px] uppercase tracking-[0.12em]" 
@@ -284,7 +250,7 @@ export function Dashboard() {
                 className="text-[36px]" 
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                3
+                0
               </div>
               <div 
                 className="text-[10px] uppercase tracking-[0.12em]" 
@@ -488,46 +454,57 @@ export function Dashboard() {
             RECENT ROSTER ACTIVITY
           </div>
           
-          <div className="space-y-[16px] mb-[24px]">
-            {rosterActivity.map((item) => (
-              <Link
-                key={item.id}
-                to={`/roster/${item.id}`}
-                className="flex items-center gap-[12px] hover:opacity-80 transition-opacity"
+          <div className="mb-[24px]">
+            {rosterActivity.length === 0 ? (
+              <div
+                className="text-center py-[32px] text-[12px]"
+                style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
               >
-                {/* Thumbnail */}
-                <div className="w-[32px] h-[32px] rounded-[4px] bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden flex-shrink-0">
-                  <img 
-                    src={item.image} 
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                    style={{ objectPosition: 'center 15%' }}
-                  />
-                </div>
+                No roster activity yet.
+              </div>
+            ) : (
+              <div className="space-y-[16px]">
+                {rosterActivity.map((item) => (
+                  <Link
+                    key={item.id}
+                    to={`/roster/${item.id}`}
+                    className="flex items-center gap-[12px] hover:opacity-80 transition-opacity"
+                  >
+                    {/* Thumbnail */}
+                    <div className="w-[32px] h-[32px] rounded-[4px] bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden flex-shrink-0">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        style={{ objectPosition: 'center 15%' }}
+                      />
+                    </div>
 
-                {/* Name */}
-                <div 
-                  className="flex-1"
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
-                >
-                  {item.name}
-                </div>
+                    {/* Name */}
+                    <div
+                      className="flex-1"
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
+                    >
+                      {item.name}
+                    </div>
 
-                {/* Activity Description */}
-                <div 
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6a6a64' }}
-                >
-                  {item.activity}
-                </div>
+                    {/* Activity Description */}
+                    <div
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6a6a64' }}
+                    >
+                      {item.activity}
+                    </div>
 
-                {/* Time Ago */}
-                <div 
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6a6a64' }}
-                >
-                  {item.timeAgo}
-                </div>
-              </Link>
-            ))}
+                    {/* Time Ago */}
+                    <div
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6a6a64' }}
+                    >
+                      {item.timeAgo}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* View All Link */}
