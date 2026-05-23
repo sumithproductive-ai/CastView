@@ -1,6 +1,42 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router';
 import { X } from 'lucide-react';
+
+const BACKDROP_Z_INDEX = 9998;
+const TOOLTIP_Z_INDEX = 9999;
+
+const BOTTOM_CENTER_TOOLTIP: React.CSSProperties = {
+  bottom: '100px',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  maxWidth: '480px',
+  width: 'calc(100% - 48px)',
+};
+
+function getTooltipAnchorX(
+  spotlightRect: { left: number; width: number },
+  tooltipPosition: TutorialStep['tooltipPosition'],
+): number {
+  const padding = 24;
+  switch (tooltipPosition) {
+    case 'right':
+      return spotlightRect.left + spotlightRect.width + padding;
+    case 'left':
+      return spotlightRect.left - 340 - padding;
+    case 'below':
+      return spotlightRect.left;
+    case 'below-center':
+    case 'above':
+      return spotlightRect.left + spotlightRect.width / 2;
+    default:
+      return 0;
+  }
+}
+
+function isTooltipOffscreen(x: number): boolean {
+  return x > window.innerWidth - 200 || x < 0;
+}
 
 interface TutorialStep {
   headline: string;
@@ -306,7 +342,7 @@ export function TutorialOverlay({
     setTimeout(() => onClose(), 300);
   };
 
-  const getTooltipStyle = (): React.CSSProperties => {
+  const getPositionedTooltipStyle = (): React.CSSProperties => {
     if (!spotlightRect) return {};
 
     const padding = 24;
@@ -316,44 +352,57 @@ export function TutorialOverlay({
         return {
           top: `${spotlightRect.top + spotlightRect.height / 2}px`,
           left: `${spotlightRect.left + spotlightRect.width + padding}px`,
-          transform: 'translateY(-50%)'
+          transform: 'translateY(-50%)',
         };
       case 'below':
         return {
           top: `${spotlightRect.top + spotlightRect.height + padding}px`,
-          left: `${spotlightRect.left}px`
+          left: `${spotlightRect.left}px`,
         };
       case 'below-center':
         return {
           top: `${spotlightRect.top + spotlightRect.height + padding}px`,
           left: `${spotlightRect.left + spotlightRect.width / 2}px`,
-          transform: 'translateX(-50%)'
+          transform: 'translateX(-50%)',
         };
       case 'left':
         return {
           top: `${spotlightRect.top + spotlightRect.height / 2}px`,
           left: `${spotlightRect.left - 340 - padding}px`,
-          transform: 'translateY(-50%)'
+          transform: 'translateY(-50%)',
         };
       case 'above':
         return {
           top: `${spotlightRect.top - padding}px`,
           left: `${spotlightRect.left + spotlightRect.width / 2}px`,
-          transform: 'translate(-50%, -100%)'
+          transform: 'translate(-50%, -100%)',
         };
       default:
         return {};
     }
   };
 
-  return (
+  const getTooltipStyle = (): React.CSSProperties => {
+    if (!spotlightRect) {
+      return { zIndex: TOOLTIP_Z_INDEX };
+    }
+
+    const anchorX = getTooltipAnchorX(spotlightRect, step.tooltipPosition);
+    if (isTooltipOffscreen(anchorX)) {
+      return { ...BOTTOM_CENTER_TOOLTIP, zIndex: TOOLTIP_Z_INDEX };
+    }
+
+    return { ...getPositionedTooltipStyle(), zIndex: TOOLTIP_Z_INDEX };
+  };
+
+  const overlay = (
     <div 
       className="fixed inset-0 transition-opacity duration-300"
       style={{ 
-        zIndex: 100,
+        zIndex: BACKDROP_Z_INDEX,
         opacity: isVisible ? 1 : 0,
         cursor: 'default',
-        pointerEvents: isVisible ? 'auto' : 'none'
+        pointerEvents: isVisible ? 'auto' : 'none',
       }}
     >
       {/* SKIP TUTORIAL */}
@@ -365,7 +414,7 @@ export function TutorialOverlay({
           fontSize: '11px',
           color: '#888880',
           cursor: 'pointer',
-          zIndex: 102
+          zIndex: TOOLTIP_Z_INDEX,
         }}
       >
         <X size={14} />
@@ -374,7 +423,7 @@ export function TutorialOverlay({
 
       {spotlightRect && (
         <>
-          {/* Spotlight with dimming shadow */}
+          {/* Spotlight with dimming backdrop (box-shadow spread) */}
           <div
             className="fixed transition-all duration-[400ms] ease-in-out"
             style={{
@@ -386,7 +435,7 @@ export function TutorialOverlay({
               borderRadius: '6px',
               boxShadow: '0 0 0 9999px rgba(8, 8, 8, 0.88), 0 0 24px rgba(240, 240, 236, 0.12)',
               pointerEvents: 'none',
-              zIndex: 102
+              zIndex: BACKDROP_Z_INDEX,
             }}
           />
 
@@ -395,10 +444,11 @@ export function TutorialOverlay({
             className="fixed bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] transition-opacity duration-200"
             style={{
               ...getTooltipStyle(),
-              maxWidth: '340px',
+              maxWidth: isTooltipOffscreen(getTooltipAnchorX(spotlightRect, step.tooltipPosition))
+                ? '480px'
+                : '340px',
               opacity: tooltipVisible ? 1 : 0,
               pointerEvents: tooltipVisible ? 'auto' : 'none',
-              zIndex: 103
             }}
           >
             {/* Step Counter */}
@@ -480,4 +530,6 @@ export function TutorialOverlay({
       )}
     </div>
   );
+
+  return createPortal(overlay, document.body);
 }
