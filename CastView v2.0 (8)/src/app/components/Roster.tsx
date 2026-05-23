@@ -18,7 +18,7 @@ type Model = {
   digitalSets: DigitalSet[];
 };
 
-const models: Model[] = [
+export const rosterModels: Model[] = [
   {
     id: 'sofia-andersen',
     name: 'Sofia Andersen',
@@ -102,8 +102,128 @@ const models: Model[] = [
     recentlySigned: false,
     division: 'women',
     digitalSets: [],
-  }
+  },
+  {
+    id: 'sumith-chittimalla-roster',
+    name: 'Sumith Chittimalla',
+    image: 'https://i.imgur.com/39KyFLK.jpg',
+    primaryContext: 'FRAGRANCE',
+    contexts: ['FR', 'ED', 'CA', 'ST'],
+    renderedContexts: ['FR', 'ED', 'CA', 'ST'],
+    topScore: 94,
+    lastRender: '3 days ago',
+    status: 'ACTIVE',
+    recentlySigned: true,
+    division: 'men',
+    digitalSets: [
+      {
+        id: 'ds-roster-1',
+        title: 'Initial Submission',
+        uploadedAt: 'January 2026',
+        front: 'https://i.imgur.com/jZHp7Ei.jpg',
+        profile: 'https://i.imgur.com/aBlfily.jpg',
+        threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
+        fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
+        additionalImages: [],
+        notes: 'First submission after signing.',
+        tags: ['initial', 'submission'],
+        evaluations: [
+          {
+            id: 'eval-roster-1',
+            completedAt: 'January 2026',
+            contexts: [
+              {
+                context: 'Fragrance',
+                alignmentScore: 78,
+                fitLabel: 'MODERATE ALIGNMENT',
+                reasoning:
+                  'Strong bone structure with developing editorial presence. Fragrance alignment is solid but has room to grow with updated digitals.',
+                strengths: [],
+                risks: [],
+                marketSignals: [],
+                suggestedNextSteps: [],
+              },
+              {
+                context: 'Editorial',
+                alignmentScore: 82,
+                fitLabel: 'STRONG ALIGNMENT',
+                reasoning:
+                  'Good editorial range visible in initial submission. Versatile framing potential.',
+                strengths: [],
+                risks: [],
+                marketSignals: [],
+                suggestedNextSteps: [],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'ds-roster-2',
+        title: 'May 2026 Update',
+        uploadedAt: 'May 2026',
+        front: 'https://i.imgur.com/jZHp7Ei.jpg',
+        profile: 'https://i.imgur.com/aBlfily.jpg',
+        threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
+        fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
+        additionalImages: [],
+        notes: 'Updated digitals post first season.',
+        tags: ['updated', 'post-season'],
+        evaluations: [
+          {
+            id: 'eval-roster-2',
+            completedAt: 'May 2026',
+            contexts: [
+              {
+                context: 'Fragrance',
+                alignmentScore: 94,
+                fitLabel: 'STRONG ALIGNMENT',
+                reasoning:
+                  'Significant improvement in fragrance alignment. Bone structure and contrast range now score at top percentile for luxury fragrance criteria.',
+                strengths: [],
+                risks: [],
+                marketSignals: [],
+                suggestedNextSteps: [],
+              },
+              {
+                context: 'Editorial',
+                alignmentScore: 91,
+                fitLabel: 'STRONG ALIGNMENT',
+                reasoning:
+                  'Editorial presence has strengthened considerably. High versatility across luxury and contemporary editorial contexts.',
+                strengths: [],
+                risks: [],
+                marketSignals: [],
+                suggestedNextSteps: [],
+              },
+              {
+                context: 'Campaign',
+                alignmentScore: 88,
+                fitLabel: 'STRONG ALIGNMENT',
+                reasoning:
+                  'Commercial appeal indicators strong. Well-suited for premium brand campaign work in current market.',
+                strengths: [],
+                risks: [],
+                marketSignals: [],
+                suggestedNextSteps: [],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 ];
+
+export function getRosterModelById(modelId: string) {
+  return rosterModels.find((model) => model.id === modelId);
+}
+
+function getRosterStatusColor(status: string) {
+  if (status === 'ACTIVE') return '#5d7d5d';
+  if (status === 'ON HOLD') return '#7d6d4d';
+  return '#5d3d3d';
+}
 
 interface DropdownProps {
   value: string;
@@ -211,7 +331,7 @@ export function Roster() {
 
   const handleExportCSV = () => {
     const headers = ['Name', 'Status', 'Top Alignment Score', 'Contexts Evaluated', 'Last Evaluated', 'Date Signed'];
-    const rows = models.map(m => [
+    const rows = rosterModels.map(m => [
       m.name,
       m.status,
       m.topScore.toString(),
@@ -231,7 +351,7 @@ export function Roster() {
     URL.revokeObjectURL(url);
   };
 
-  const filteredModels = models.filter(model => {
+  const filteredModels = rosterModels.filter(model => {
     const matchesSearch = search.trim() === ''
       || model.name.toLowerCase()
           .includes(search.trim().toLowerCase());
@@ -410,9 +530,9 @@ export function Roster() {
           {/* Match Results */}
           <div className="space-y-[1px]">
             {[
-              { name: 'Sofia Andersen', percentage: 96, image: models[0].image },
-              { name: 'Zara Klein', percentage: 91, image: models[5].image },
-              { name: 'Ava Laurent', percentage: 88, image: models[2].image }
+              { name: 'Sofia Andersen', percentage: 96, image: rosterModels[0].image },
+              { name: 'Zara Klein', percentage: 91, image: rosterModels[5].image },
+              { name: 'Ava Laurent', percentage: 88, image: rosterModels[2].image }
             ].map((match, index) => (
               <div 
                 key={index}
@@ -597,31 +717,32 @@ export function Roster() {
 
                 {/* Status */}
                 <div 
-                  className="text-[9px] uppercase tracking-[0.1em] mb-[8px]"
+                  className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
                   style={{ 
                     fontFamily: 'var(--font-label)',
-                    color: model.status === 'ACTIVE' ? '#5d7d5d' : '#7d6d4d'
+                    color: getRosterStatusColor(model.status)
                   }}
                 >
                   {model.status}
                 </div>
 
-                {/* Compare Renders Link - Only show for models with multiple sessions */}
-                {model.id === 'sofia-andersen' && (
-                  <div
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      navigate(`/roster/${model.id}`);
-                    }}
-                    className="text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
-                    style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
-                  >
-                    COMPARE EVALUATIONS
-                  </div>
-                )}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate('/profile');
+                  }}
+                  className="w-full mb-[8px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    backgroundColor: '#f0f0ec',
+                    color: '#080808',
+                    cursor: 'pointer',
+                  }}
+                >
+                  RUN EVALUATION
+                </button>
 
-                {/* Development Report Button */}
                 <button
                   onClick={(e) => {
                     e.preventDefault();
@@ -629,7 +750,7 @@ export function Roster() {
                     setSelectedModel(model);
                     setShowDevReportModal(true);
                   }}
-                  className="w-full mt-[12px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-all hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
+                  className="w-full mb-[8px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-all hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
                     height: '36px',
@@ -639,7 +760,42 @@ export function Roster() {
                     cursor: 'pointer'
                   }}
                 >
-                  ↗ SHARE DEVELOPMENT REPORT
+                  SHARE DEVELOPMENT REPORT
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (model.digitalSets.length < 2) return;
+                    navigate('/compare', {
+                      state: {
+                        prospectId: model.id,
+                        prospectName: model.name,
+                        profilePath: `/roster/${model.id}`,
+                        digitalSets: model.digitalSets.map((set) => ({
+                          id: set.id,
+                          title: set.title,
+                          date: set.uploadedAt,
+                          thumbnail: set.front || '',
+                        })),
+                        previousSetId: model.digitalSets[model.digitalSets.length - 1]?.id,
+                      },
+                    });
+                  }}
+                  disabled={model.digitalSets.length < 2}
+                  className="w-full border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-all hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
+                  style={{ 
+                    fontFamily: 'var(--font-mono)', 
+                    height: '36px',
+                    borderColor: '#2a2a2a',
+                    color: '#888880',
+                    backgroundColor: 'transparent',
+                    cursor: model.digitalSets.length >= 2 ? 'pointer' : 'not-allowed',
+                    opacity: model.digitalSets.length >= 2 ? 1 : 0.4,
+                  }}
+                >
+                  COMPARE DIGITALS
                 </button>
               </div>
             </Link>

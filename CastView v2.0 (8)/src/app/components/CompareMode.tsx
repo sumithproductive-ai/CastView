@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
+import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
+import type { DigitalSet } from '../types/talent';
 
 type DigitalSetOption = {
   id: string;
@@ -16,26 +19,60 @@ type MockResult = {
   nextStep: string;
 };
 
-const digitalSets: DigitalSetOption[] = [
-  {
-    id: 'ds-1',
-    title: 'Initial Submission',
-    date: 'January 2026',
-    thumbnail: 'https://i.imgur.com/jZHp7Ei.jpg',
-  },
-  {
-    id: 'ds-2',
-    title: 'Post-Cut Digitals',
-    date: 'March 2026',
-    thumbnail: 'https://i.imgur.com/jZHp7Ei.jpg',
-  },
-  {
-    id: 'ds-3',
-    title: 'May 2026 Update',
-    date: 'May 2026',
-    thumbnail: 'https://i.imgur.com/jZHp7Ei.jpg',
-  },
-];
+type CompareNavigationState = {
+  prospectId?: string;
+  prospectName?: string;
+  profilePath?: string;
+  previousSetId?: string;
+  digitalSets?: DigitalSetOption[];
+};
+
+const SOFIA_FALLBACK_DIGITAL_SET: DigitalSetOption = {
+  id: 'digitals-v1',
+  title: 'Initial Submission',
+  date: 'March 2026',
+  thumbnail:
+    'https://images.unsplash.com/photo-1761329842950-f3551938e4da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmFncmFuY2UlMjBlZGl0b3JpYWwlMjBtb2RlbCUyMHBob3RvfGVufDF8fHx8MTc3MzE2NTMzMnww&ixlib=rb-4.1.0&q=80&w=1080',
+};
+
+function digitalSetToOption(set: DigitalSet): DigitalSetOption {
+  return {
+    id: set.id,
+    title: set.title,
+    date: set.uploadedAt,
+    thumbnail: set.front || '',
+  };
+}
+
+function getFallbackDigitalSets(prospectId?: string | null): DigitalSetOption[] {
+  if (prospectId === 'sofia-andersen') {
+    return [SOFIA_FALLBACK_DIGITAL_SET];
+  }
+  return [digitalSetToOption(SUMITH_DIGITAL_SET_V1)];
+}
+
+function resolveCompareSelection(
+  sets: DigitalSetOption[],
+  previousSetIdFromNav?: string
+) {
+  if (sets.length === 0) {
+    return { previousSetId: '', currentSetId: '' };
+  }
+  if (sets.length === 1) {
+    return { previousSetId: sets[0].id, currentSetId: sets[0].id };
+  }
+
+  const newest = sets[0];
+  const oldest = sets[sets.length - 1];
+
+  if (previousSetIdFromNav && sets.some((set) => set.id === previousSetIdFromNav)) {
+    const currentSetId =
+      sets.find((set) => set.id !== previousSetIdFromNav)?.id ?? newest.id;
+    return { previousSetId: previousSetIdFromNav, currentSetId };
+  }
+
+  return { previousSetId: oldest.id, currentSetId: newest.id };
+}
 
 const contexts = [
   'Fragrance',
@@ -167,10 +204,12 @@ function DigitalSetSelector({
   panelLabel,
   selectedId,
   onSelect,
+  sets,
 }: {
   panelLabel: string;
   selectedId: string;
   onSelect: (id: string) => void;
+  sets: DigitalSetOption[];
 }) {
   return (
     <div className="flex-1 min-w-0">
@@ -181,7 +220,7 @@ function DigitalSetSelector({
         {panelLabel}
       </div>
       <div className="space-y-[8px]">
-        {digitalSets.map((set) => {
+        {sets.map((set) => {
           const isSelected = selectedId === set.id;
           return (
             <button
@@ -235,8 +274,30 @@ function DigitalSetSelector({
 }
 
 export function CompareMode() {
-  const [previousSetId, setPreviousSetId] = useState('ds-1');
-  const [currentSetId, setCurrentSetId] = useState('ds-3');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const navigationState = (location.state ?? null) as CompareNavigationState | null;
+
+  const prospectDigitalSets = useMemo(() => {
+    if (navigationState?.digitalSets?.length) {
+      return navigationState.digitalSets;
+    }
+    return getFallbackDigitalSets(navigationState?.prospectId);
+  }, [navigationState]);
+
+  const canCompare = prospectDigitalSets.length >= 2;
+  const prospectName = navigationState?.prospectName ?? 'Sumith Chittimalla';
+  const profilePath =
+    navigationState?.profilePath ??
+    `/prospects/${navigationState?.prospectId ?? 'sumith-chittimalla'}`;
+
+  const initialSelection = useMemo(
+    () => resolveCompareSelection(prospectDigitalSets, navigationState?.previousSetId),
+    [prospectDigitalSets, navigationState?.previousSetId]
+  );
+
+  const [previousSetId, setPreviousSetId] = useState(initialSelection.previousSetId);
+  const [currentSetId, setCurrentSetId] = useState(initialSelection.currentSetId);
   const [selectedContexts, setSelectedContexts] = useState<string[]>([
     'Fragrance',
     'Editorial',
@@ -244,10 +305,46 @@ export function CompareMode() {
   const [showResults, setShowResults] = useState(false);
   const [agentNotes, setAgentNotes] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    if (!canCompare) return;
+    const next = resolveCompareSelection(prospectDigitalSets, navigationState?.previousSetId);
+    setPreviousSetId(next.previousSetId);
+    setCurrentSetId(next.currentSetId);
+    setShowResults(false);
+  }, [location.key, prospectDigitalSets, navigationState?.previousSetId, canCompare]);
+
+  if (!canCompare) {
+    return (
+      <div className="p-[32px] min-h-screen flex flex-col items-center justify-center text-center">
+        <p
+          className="mb-[12px]"
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#666660' }}
+        >
+          No progression data yet.
+        </p>
+        <p
+          className="mb-[24px] max-w-[420px]"
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', lineHeight: 1.6 }}
+        >
+          This model has only one digital set on file. Upload a second set to compare progression.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate(profilePath)}
+          className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+          style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+        >
+          UPLOAD NEW DIGITAL SET
+        </button>
+      </div>
+    );
+  }
+
   const previousSet =
-    digitalSets.find((set) => set.id === previousSetId) ?? digitalSets[0];
+    prospectDigitalSets.find((set) => set.id === previousSetId) ?? prospectDigitalSets[0];
   const currentSet =
-    digitalSets.find((set) => set.id === currentSetId) ?? digitalSets[2];
+    prospectDigitalSets.find((set) => set.id === currentSetId) ??
+    prospectDigitalSets[prospectDigitalSets.length - 1];
 
   const previousScoreLabel = toScoreLabel(previousSet.date);
   const currentScoreLabel = toScoreLabel(currentSet.date);
@@ -292,7 +389,7 @@ export function CompareMode() {
                 color: '#6a6a64',
               }}
             >
-              Roster › Sofia Andersen › Compare
+              Prospects › {prospectName} › Compare
             </span>
           </div>
           <h1
@@ -314,7 +411,7 @@ export function CompareMode() {
               marginTop: '4px',
             }}
           >
-            Sofia Andersen · {previousSet.title} · {previousSet.date} →{' '}
+            {prospectName} · {previousSet.title} · {previousSet.date} →{' '}
             {currentSet.title} · {currentSet.date}
           </p>
         </div>
@@ -326,11 +423,13 @@ export function CompareMode() {
           panelLabel="PREVIOUS DIGITALS"
           selectedId={previousSetId}
           onSelect={setPreviousSetId}
+          sets={prospectDigitalSets}
         />
         <DigitalSetSelector
           panelLabel="CURRENT DIGITALS"
           selectedId={currentSetId}
           onSelect={setCurrentSetId}
+          sets={prospectDigitalSets}
         />
       </div>
 

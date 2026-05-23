@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import { SUMITH_DIGITAL_SET_V1, SUMITH_PROSPECT_NAME } from '../constants/sumithProspect';
@@ -119,12 +119,37 @@ function getFitLabelColor(fitLabel: string) {
 
 function digitalGridSlots(digitalSet: DigitalSet) {
   return [
-    { label: 'FRONT', src: digitalSet.front },
-    { label: 'PROFILE', src: digitalSet.profile },
-    { label: '3/4', src: digitalSet.threeQuarter },
-    { label: 'FULL BODY', src: digitalSet.fullBody },
+    { label: 'FRONT', url: digitalSet.front },
+    { label: 'PROFILE', url: digitalSet.profile },
+    { label: '3/4', url: digitalSet.threeQuarter },
+    { label: 'FULL BODY', url: digitalSet.fullBody },
   ];
 }
+
+const emptyUploadForm = {
+  title: '',
+  date: '',
+  front: '',
+  profile: '',
+  threeQuarter: '',
+  fullBody: '',
+  notes: '',
+  tags: '',
+};
+
+const formFieldLabelStyle = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: '9px',
+  color: '#888880',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+};
+
+const formInputStyle = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: '13px',
+  color: '#f0f0ec',
+};
 
 function formatTagsLine(digitalSet: DigitalSet) {
   const tags =
@@ -169,11 +194,71 @@ export function ProspectRenderHistory() {
   }>(null);
   const [openedSetId, setOpenedSetId] = useState<string | null>(null);
   const [notesBySet, setNotesBySet] = useState<Record<string, string>>({});
+  const [digitalSets, setDigitalSets] = useState<DigitalSet[]>(activeProspectData.digitalSets);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [uploadForm, setUploadForm] = useState(emptyUploadForm);
   const navigate = useNavigate();
 
-  const digitalSetCount = activeProspectData.digitalSets.length;
-  const evaluationsCompleted = countTotalEvaluations(activeProspectData.digitalSets);
+  useEffect(() => {
+    setDigitalSets(
+      prospectId === 'sofia-andersen'
+        ? [...prospectData.digitalSets]
+        : [...sumithProspectData.digitalSets]
+    );
+    setShowUploadForm(false);
+    setUploadForm(emptyUploadForm);
+    setOpenedSetId(null);
+  }, [prospectId]);
+
+  const digitalSetCount = digitalSets.length;
+  const evaluationsCompleted = countTotalEvaluations(digitalSets);
   const hasDigitalSets = digitalSetCount > 0;
+  const canCompare = digitalSets.length >= 2;
+  const resolvedProspectId = prospectId ?? 'sumith-chittimalla';
+
+  const handleCompare = (previousSetId: string) => {
+    navigate('/compare', {
+      state: {
+        prospectId: resolvedProspectId,
+        prospectName: activeProspectData.name,
+        profilePath: `/prospects/${resolvedProspectId}`,
+        previousSetId,
+        digitalSets: digitalSets.map((set) => ({
+          id: set.id,
+          title: set.title,
+          date: set.uploadedAt,
+          thumbnail: set.front || '',
+        })),
+      },
+    });
+  };
+
+  const handleSaveDigitalSet = () => {
+    const newSet: DigitalSet = {
+      id: `digitals-${Date.now()}`,
+      title: uploadForm.title.trim() || 'Untitled Set',
+      uploadedAt: uploadForm.date.trim() || '—',
+      front: uploadForm.front.trim() || null,
+      profile: uploadForm.profile.trim() || null,
+      threeQuarter: uploadForm.threeQuarter.trim() || null,
+      fullBody: uploadForm.fullBody.trim() || null,
+      additionalImages: [],
+      notes: uploadForm.notes.trim(),
+      tags: uploadForm.tags
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+      evaluations: [],
+    };
+    setDigitalSets((prev) => [newSet, ...prev]);
+    setUploadForm(emptyUploadForm);
+    setShowUploadForm(false);
+  };
+
+  const handleCancelUpload = () => {
+    setUploadForm(emptyUploadForm);
+    setShowUploadForm(false);
+  };
 
   const handleStatusChange = (newStatus: string, newColor: string) => {
     setPendingStatusChange({
@@ -287,7 +372,7 @@ export function ProspectRenderHistory() {
           </div>
 
           <div>
-            {activeProspectData.digitalSets.map((digitalSet) => {
+            {digitalSets.map((digitalSet) => {
               const digitalsOnFile = countDigitalsOnFile(digitalSet);
               const evaluationCount = digitalSet.evaluations.length;
               const isOpen = openedSetId === digitalSet.id;
@@ -345,9 +430,15 @@ export function ProspectRenderHistory() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => navigate('/compare')}
+                        disabled={!canCompare}
+                        onClick={() => handleCompare(digitalSet.id)}
                         className={ghostButtonClass}
-                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          color: '#f0f0ec',
+                          cursor: canCompare ? 'pointer' : 'not-allowed',
+                          opacity: canCompare ? 1 : 0.4,
+                        }}
                       >
                         COMPARE
                       </button>
@@ -364,32 +455,42 @@ export function ProspectRenderHistory() {
 
                   {isOpen && (
                     <div className="pb-[32px] pt-[24px]">
-                      <div className="grid grid-cols-2 gap-[2px] mb-[12px]">
-                        {digitalGridSlots(digitalSet).map((slot) => (
-                          <div key={slot.label}>
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '2px',
+                          width: '100%',
+                          maxWidth: '600px',
+                          marginBottom: '12px',
+                        }}
+                      >
+                        {digitalGridSlots(digitalSet).map((digital) => (
+                          <div key={digital.label} style={{ position: 'relative' }}>
+                            {digital.url && (
+                              <img
+                                src={digital.url}
+                                alt={digital.label}
+                                style={{
+                                  width: '100%',
+                                  aspectRatio: '3/4',
+                                  objectFit: 'cover',
+                                  objectPosition: 'center top',
+                                  display: 'block',
+                                }}
+                              />
+                            )}
                             <div
-                              className="w-full overflow-hidden"
-                              style={{ aspectRatio: '3/4' }}
-                            >
-                              {slot.src && (
-                                <img
-                                  src={slot.src}
-                                  alt={slot.label}
-                                  className="w-full h-full object-cover"
-                                />
-                              )}
-                            </div>
-                            <div
-                              className="mt-[6px]"
                               style={{
                                 fontFamily: 'var(--font-mono)',
                                 fontSize: '8px',
                                 color: '#666660',
                                 letterSpacing: '0.15em',
                                 textTransform: 'uppercase',
+                                marginTop: '4px',
                               }}
                             >
-                              {slot.label}
+                              {digital.label}
                             </div>
                           </div>
                         ))}
@@ -532,6 +633,140 @@ export function ProspectRenderHistory() {
               );
             })}
           </div>
+
+          {!canCompare && (
+            <p
+              className="mt-[8px] mb-[4px]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9px',
+                color: '#666660',
+                fontStyle: 'italic',
+              }}
+            >
+              Upload a second digital set to compare progression.
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setShowUploadForm(true)}
+            className="w-full mt-[16px] px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+          >
+            UPLOAD NEW DIGITAL SET
+          </button>
+
+          {showUploadForm && (
+            <div className="mt-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[20px]">
+              <div className="space-y-[16px]">
+                <div>
+                  <label className="block mb-[8px]" style={formFieldLabelStyle}>
+                    SET TITLE
+                  </label>
+                  <input
+                    type="text"
+                    value={uploadForm.title}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g. Post-Cut Digitals, July 2026 Update"
+                    className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                    style={formInputStyle}
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-[8px]" style={formFieldLabelStyle}>
+                    DATE
+                  </label>
+                  <input
+                    type="text"
+                    value={uploadForm.date}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, date: e.target.value }))}
+                    placeholder="e.g. June 2026"
+                    className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                    style={formInputStyle}
+                  />
+                </div>
+
+                {(
+                  [
+                    { key: 'front' as const, label: 'FRONT' },
+                    { key: 'profile' as const, label: 'PROFILE' },
+                    { key: 'threeQuarter' as const, label: '3/4' },
+                    { key: 'fullBody' as const, label: 'FULL BODY' },
+                  ] as const
+                ).map((field) => (
+                  <div key={field.key}>
+                    <label className="block mb-[8px]" style={formFieldLabelStyle}>
+                      {field.label}
+                    </label>
+                    <input
+                      type="text"
+                      value={uploadForm[field.key]}
+                      onChange={(e) =>
+                        setUploadForm((prev) => ({ ...prev, [field.key]: e.target.value }))
+                      }
+                      placeholder="Paste image URL"
+                      className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                      style={formInputStyle}
+                    />
+                  </div>
+                ))}
+
+                <div>
+                  <label className="block mb-[8px]" style={formFieldLabelStyle}>
+                    NOTES
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={uploadForm.notes}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Optional notes about this set"
+                    className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] resize-none"
+                    style={formInputStyle}
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-[8px]" style={formFieldLabelStyle}>
+                    TAGS
+                  </label>
+                  <input
+                    type="text"
+                    value={uploadForm.tags}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, tags: e.target.value }))}
+                    placeholder="e.g. post-shoot, updated, cut"
+                    className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                    style={formInputStyle}
+                  />
+                </div>
+
+                <div className="flex gap-[12px] pt-[4px]">
+                  <button
+                    type="button"
+                    onClick={handleSaveDigitalSet}
+                    className="flex-1 py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      backgroundColor: '#f0f0ec',
+                      color: '#080808',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    SAVE DIGITAL SET
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelUpload}
+                    className="flex-1 py-[12px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                    style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                  >
+                    CANCEL
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
