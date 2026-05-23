@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 
-const sumithProspectData = {
+const sumithProspectData = { 
   name: 'Sumith Chittimalla',
   status: 'IN REVIEW',
   statusColor: '#C8A96E',
@@ -23,7 +23,7 @@ const sumithProspectData = {
     }
   ]
 };
-
+  
 const prospectData = {
   name: 'Sofia Andersen',
   status: 'IN REVIEW',
@@ -66,9 +66,9 @@ const prospectData = {
 
 export function ProspectRenderHistory() {
   const { prospectId } = useParams();
-  const activeProspectData = prospectId === 'sumith-chittimalla'
-    ? sumithProspectData
-    : prospectData;
+  const activeProspectData = prospectId === 'sofia-andersen'
+    ? prospectData
+    : sumithProspectData;
 
   const [status, setStatus] = useState(activeProspectData.status);
   const [statusColor, setStatusColor] = useState(activeProspectData.statusColor);

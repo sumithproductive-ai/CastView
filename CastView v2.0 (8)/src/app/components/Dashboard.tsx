@@ -45,12 +45,12 @@ const rosterStats = [
 
 const recentProspects = [
   {
-    id: 'sofia-andersen',
-    name: 'Sofia Andersen',
-    status: 'Shortlisted',
-    statusColor: '#7d6d4d',
+    id: 'sumith-chittimalla',
+    name: 'Sumith Chittimalla',
+    status: 'In Review',
+    statusColor: '#C8A96E',
     timeAgo: '2 hours ago',
-    image: 'https://images.unsplash.com/photo-1726232409367-04682eb856a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwb3J0cmFpdCUyMHByb2Zlc3Npb25hbHxlbnwxfHx8fDE3NzMwODU2NjF8MA&ixlib=rb-4.1.0&q=80&w=200'
+    image: 'https://i.imgur.com/jZHp7Ei.jpg'
   },
   {
     id: 'marcus-chen',
@@ -88,11 +88,11 @@ const recentProspects = [
 
 const rosterActivity = [
   {
-    id: 'sofia-andersen',
-    name: 'Sofia Andersen',
+    id: 'sumith-chittimalla',
+    name: 'Sumith Chittimalla',
     activity: 'New evaluation — Fragrance',
     timeAgo: '1 hour ago',
-    image: 'https://images.unsplash.com/photo-1742540425779-4172d3ac460a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwb3J0cmFpdCUyMHByb2Zlc3Npb25hbCUyMHN0dWRpb3xlbnwxfHx8fDE3NzMxNjUyODN8MA&ixlib=rb-4.1.0&q=80&w=200'
+    image: 'https://i.imgur.com/jZHp7Ei.jpg'
   },
   {
     id: 'marcus-chen',

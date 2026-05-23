@@ -50,7 +50,7 @@ export function ClientPortal() {
           className="text-[56px] mb-[12px]" 
           style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
         >
-          Sofia Andersen
+          Sumith Chittimalla
         </h1>
 
         {/* Sender Info */}

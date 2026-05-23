@@ -168,6 +168,10 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: '/prospects/sofia-andersen',
+    element: <Navigate to="/prospects/sumith-chittimalla" replace />,
+  },
+  {
     path: '/prospects/:prospectId',
     element: (
       <Layout>

@@ -28,7 +28,7 @@ export function Share() {
   };
   
   const handleCopy = () => {
-    const link = 'castview.co/share/sf-and-2026-03';
+    const link = 'castview.co/share/sumith-chittimalla-2026-05';
     if (navigator.clipboard && 
         navigator.clipboard.writeText) {
       navigator.clipboard.writeText(link)
@@ -45,7 +45,7 @@ export function Share() {
     } else {
       // Fallback: select the input text
       const input = document.querySelector(
-        'input[value="castview.co/share/sf-and-2026-03"]'
+        'input[value="castview.co/share/sumith-chittimalla-2026-05"]'
       ) as HTMLInputElement;
       if (input) {
         input.select();
@@ -62,7 +62,7 @@ export function Share() {
         className="text-[48px] mb-[48px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
-        Share — Sofia Andersen
+        Share — Sumith Chittimalla
       </h1>
       
       <div className="grid grid-cols-3 gap-[48px]">
@@ -169,7 +169,7 @@ export function Share() {
                 <div className="flex gap-[8px]">
                   <input
                     type="text"
-                    value="castview.co/share/sf-and-2026-03"
+                    value="castview.co/share/sumith-chittimalla-2026-05"
                     readOnly
                     className="flex-1 px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
                     style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}

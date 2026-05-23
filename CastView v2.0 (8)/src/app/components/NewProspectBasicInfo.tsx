@@ -10,7 +10,7 @@ export function NewProspectBasicInfo() {
   const navigate = useNavigate();
   const { isTutorialOpen } = useTutorial();
   const [searchParams] = useSearchParams();
-  const [name, setName] = useState('');
+  const [name, setName] = useState('Sumith Chittimalla');
   const [markets, setMarkets] = useState<Market[]>([]);
   const [source, setSource] = useState<Source | null>(null);
   const [measurements, setMeasurements] = useState({
@@ -53,7 +53,7 @@ export function NewProspectBasicInfo() {
 
   const handleContinue = () => {
     if (isTutorialOpen) {
-      navigate('/prospects/new/digitals');
+      navigate('/prospects/new/digitals?name=Sumith%20Chittimalla');
       return;
     }
     const params = new URLSearchParams({

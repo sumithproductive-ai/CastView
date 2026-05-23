@@ -2,21 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ChevronRight, Lock } from 'lucide-react';
 
-const digitals = [
-  { label: 'Front', image: 'https://images.unsplash.com/photo-1726232409367-04682eb856a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwb3J0cmFpdCUyMHByb2Zlc3Npb25hbHxlbnwxfHx8fDE3NzMwODU2NjF8MA&ixlib=rb-4.1.0&q=80&w=400' },
-  { label: 'Profile', image: 'https://images.unsplash.com/photo-1672675389084-5415d558dfd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBzaWRlJTIwcHJvZmlsZXxlbnwxfHx8fDE3NzMwODU2NjF8MA&ixlib=rb-4.1.0&q=80&w=400' },
-  { label: '3/4', image: 'https://images.unsplash.com/photo-1674713406394-8f994f26432c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHBvcnRyYWl0JTIwYW5nbGUlMjB2aWV3fGVufDF8fHx8MTc3MzA4NTY2Nnww&ixlib=rb-4.1.0&q=80&w=400' },
-  { label: 'Full Body', image: 'https://images.unsplash.com/photo-1593126858836-e3e95653d270?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBmdWxsJTIwYm9keSUyMHN0dWRpb3xlbnwxfHx8fDE3NzMwODU2NjJ8MA&ixlib=rb-4.1.0&q=80&w=400' }
-];
+import { sumithDigitalsList } from '../constants/sumithProspect';
+
+const digitals = sumithDigitalsList;
 
 const measurements = [
-  { key: 'Height', value: '177cm' },
-  { key: 'Bust', value: '82cm' },
-  { key: 'Waist', value: '61cm' },
-  { key: 'Hips', value: '89cm' },
-  { key: 'Shoe', value: '39' },
-  { key: 'Hair', value: 'Brown' },
-  { key: 'Eyes', value: 'Green' }
+  { key: 'Height', value: "6'1\"" },
+  { key: 'Chest', value: '38"' },
+  { key: 'Waist', value: '30"' },
+  { key: 'Hips', value: '33"' },
+  { key: 'Shoe', value: '11' },
+  { key: 'Hair', value: 'Black' },
+  { key: 'Eyes', value: 'Brown' }
 ];
 
 const contexts = [
@@ -133,7 +130,7 @@ export function Profile() {
           </h1>
           
           <div className="flex gap-[8px] mb-[32px]">
-            {['New York', 'London', 'Paris'].map((market) => (
+            {['NYC', 'London'].map((market) => (
               <span 
                 key={market}
                 className="px-[12px] py-[6px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
@@ -270,7 +267,7 @@ export function Profile() {
                 border: '1px solid #7d6d4d'
               }}
             >
-              Shortlisted
+              In Review
             </div>
             <button
               className="text-[13px] hover:opacity-70 transition-opacity"

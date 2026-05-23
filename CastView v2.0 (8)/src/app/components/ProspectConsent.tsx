@@ -23,7 +23,7 @@ export function ProspectConsent() {
     if (isChecked && !isConfirming) {
       setIsConfirming(true);
       setTimeout(() => {
-        navigate('/prospects/new/digitals');
+        navigate(`/prospects/new/digitals${window.location.search}`);
       }, 800);
     }
   };

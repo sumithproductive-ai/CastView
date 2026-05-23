@@ -1,26 +1,46 @@
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
+import { isSumithProspect, sumithDigitals, SUMITH_PROSPECT_NAME } from '../constants/sumithProspect';
 
 export function NewProspectReview() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const prospectName = searchParams.get('name')?.trim() || SUMITH_PROSPECT_NAME;
 
-  // Mock data - in real app this would come from state/context
-  const prospectData = {
-    name: 'Sofia Andersen',
-    markets: ['NEW YORK', 'LONDON'],
+  const prospectData = isSumithProspect(null, prospectName) ? {
+    name: SUMITH_PROSPECT_NAME,
+    markets: ['NYC', 'LONDON'],
     digitals: [
-      { label: 'FRONT', url: 'https://images.unsplash.com/photo-1669643783392-09d0a26c79e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwcm9mZXNzaW9uYWwlMjBoZWFkc2hvdCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE3MzUyMHww&ixlib=rb-4.1.0&q=80&w=1080' },
-      { label: 'PROFILE', url: 'https://images.unsplash.com/photo-1763987275895-72f645d0acbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHByb2ZpbGUlMjBzaWRlJTIwdmlldyUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE3MzUyMnww&ixlib=rb-4.1.0&q=80&w=1080' },
-      { label: '3/4', url: 'https://images.unsplash.com/photo-1669643783392-09d0a26c79e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwcm9mZXNzaW9uYWwlMjBoZWFkc2hvdCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE3MzUyMHww&ixlib=rb-4.1.0&q=80&w=1080' },
-      { label: 'FULL BODY', url: 'https://images.unsplash.com/photo-1763987275895-72f645d0acbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHByb2ZpbGUlMjBzaWRlJTIwdmlldyUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE3MzUyMnww&ixlib=rb-4.1.0&q=80&w=1080' }
+      { label: 'FRONT', url: sumithDigitals.front },
+      { label: 'PROFILE', url: sumithDigitals.profile },
+      { label: '3/4', url: sumithDigitals.three_quarter },
+      { label: 'FULL BODY', url: sumithDigitals.full_body }
     ],
     measurements: {
-      Height: '177cm',
-      Bust: '82cm',
-      Waist: '61cm',
-      Hips: '89cm'
+      Height: "6'1\"",
+      Chest: '38"',
+      Waist: '30"',
+      Hips: '33"'
     },
-    notes: 'Strong editorial potential, excellent bone structure for high fashion.'
+    notes: 'Strong fragrance and editorial potential. Direct submission.',
+    allDigitalsUploaded: true
+  } : {
+    name: prospectName,
+    markets: ['NEW YORK', 'LONDON'],
+    digitals: [
+      { label: 'FRONT', url: null },
+      { label: 'PROFILE', url: null },
+      { label: '3/4', url: null },
+      { label: 'FULL BODY', url: null }
+    ],
+    measurements: {
+      Height: '',
+      Bust: '',
+      Waist: '',
+      Hips: ''
+    },
+    notes: '',
+    allDigitalsUploaded: false
   };
 
   const handleSaveDraft = () => {
@@ -144,82 +164,43 @@ export function NewProspectReview() {
         {/* Upload Notice */}
         <div 
           className="text-[12px] mb-[16px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#c4a05d' }}
+          style={{ fontFamily: 'var(--font-mono)', color: prospectData.allDigitalsUploaded ? '#5d7d5d' : '#c4a05d' }}
         >
-          2 of 4 digitals uploaded — you can add the remaining shots from the prospect profile later.
+          {prospectData.allDigitalsUploaded
+            ? '4 of 4 digitals uploaded — ready to run evaluation.'
+            : 'Upload digitals to continue — you can add remaining shots from the prospect profile later.'}
         </div>
 
-        {/* Digital Thumbnails - Showing Partial Upload */}
+        {/* Digital Thumbnails */}
         <div className="grid grid-cols-4 gap-[12px] mb-[24px]">
-          {/* FRONT - Uploaded */}
-          <div className="flex flex-col gap-[8px]">
-            <div className="aspect-square bg-[#1a1a1a] rounded-[4px] overflow-hidden">
-              <img 
-                src={prospectData.digitals[0].url} 
-                alt="FRONT"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div 
-              className="text-[8px] uppercase tracking-[0.05em] text-center"
-              style={{ fontFamily: 'var(--font-label)', color: '#6a6a64' }}
-            >
-              FRONT
-            </div>
-          </div>
-
-          {/* PROFILE - Uploaded */}
-          <div className="flex flex-col gap-[8px]">
-            <div className="aspect-square bg-[#1a1a1a] rounded-[4px] overflow-hidden">
-              <img 
-                src={prospectData.digitals[1].url} 
-                alt="PROFILE"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div 
-              className="text-[8px] uppercase tracking-[0.05em] text-center"
-              style={{ fontFamily: 'var(--font-label)', color: '#6a6a64' }}
-            >
-              PROFILE
-            </div>
-          </div>
-
-          {/* 3/4 - Not Uploaded */}
-          <div className="flex flex-col gap-[8px]">
-            <div className="aspect-square bg-[#0d0d0d] border border-dashed rounded-[4px] flex items-center justify-center" style={{ borderColor: '#2a2a2a' }}>
+          {prospectData.digitals.map((digital) => (
+            <div key={digital.label} className="flex flex-col gap-[8px]">
+              {digital.url ? (
+                <div className="aspect-square bg-[#1a1a1a] rounded-[4px] overflow-hidden">
+                  <img 
+                    src={digital.url} 
+                    alt={digital.label}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="aspect-square bg-[#0d0d0d] border border-dashed rounded-[4px] flex items-center justify-center" style={{ borderColor: '#2a2a2a' }}>
+                  <div 
+                    className="text-[7px] uppercase tracking-[0.05em] text-center px-[4px]"
+                    style={{ fontFamily: 'var(--font-label)', color: '#6a6a64', lineHeight: 1.3 }}
+                  >
+                    {digital.label}<br />NOT UPLOADED
+                  </div>
+                </div>
+              )}
               <div 
-                className="text-[7px] uppercase tracking-[0.05em] text-center px-[4px]"
-                style={{ fontFamily: 'var(--font-label)', color: '#6a6a64', lineHeight: 1.3 }}
+                className="text-[8px] uppercase tracking-[0.05em] text-center"
+                style={{ fontFamily: 'var(--font-label)', color: '#6a6a64' }}
               >
-                3/4<br />NOT UPLOADED
+                {digital.label}
               </div>
             </div>
-            <div 
-              className="text-[8px] uppercase tracking-[0.05em] text-center"
-              style={{ fontFamily: 'var(--font-label)', color: '#6a6a64' }}
-            >
-              3/4
-            </div>
-          </div>
-
-          {/* FULL BODY - Not Uploaded */}
-          <div className="flex flex-col gap-[8px]">
-            <div className="aspect-square bg-[#0d0d0d] border border-dashed rounded-[4px] flex items-center justify-center" style={{ borderColor: '#2a2a2a' }}>
-              <div 
-                className="text-[7px] uppercase tracking-[0.05em] text-center px-[4px]"
-                style={{ fontFamily: 'var(--font-label)', color: '#6a6a64', lineHeight: 1.3 }}
-              >
-                FULL BODY<br />NOT UPLOADED
-              </div>
-            </div>
-            <div 
-              className="text-[8px] uppercase tracking-[0.05em] text-center"
-              style={{ fontFamily: 'var(--font-label)', color: '#6a6a64' }}
-            >
-              FULL BODY
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Divider */}
@@ -278,7 +259,7 @@ export function NewProspectReview() {
             SAVE & RUN RENDERS →
           </button>
           <button
-            onClick={() => navigate('/prospects/new/digitals')}
+            onClick={() => navigate(`/prospects/new/digitals${window.location.search}`)}
             className="w-full text-center text-[12px] transition-opacity hover:opacity-70"
             style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
           >
