@@ -538,13 +538,16 @@ export function ProspectRenderHistory({
           >
             No digital sets uploaded yet.
           </p>
-          <button
-            type="button"
-            className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
-          >
-            UPLOAD FIRST DIGITAL SET
-          </button>
+          {!showUploadForm && (
+            <button
+              type="button"
+              onClick={() => setShowUploadForm(true)}
+              className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+            >
+              UPLOAD FIRST DIGITAL SET
+            </button>
+          )}
         </div>
       ) : (
         <div>
@@ -839,8 +842,10 @@ export function ProspectRenderHistory({
           >
             UPLOAD NEW DIGITAL SET
           </button>
+        </div>
+      )}
 
-          {showUploadForm && (
+      {showUploadForm && (
             <div className="mt-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[20px]">
               <div className="space-y-[16px]">
                 <div>
@@ -1056,7 +1061,54 @@ export function ProspectRenderHistory({
                 </div>
               </div>
             </div>
-          )}
+      )}
+
+      {showDeleteModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+          onClick={() => setShowDeleteModal(false)}
+        >
+          <div
+            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] max-w-[420px] w-full mx-[20px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              className="text-[18px] mb-[12px]"
+              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+            >
+              Delete prospect?
+            </h2>
+            <p
+              className="mb-[24px]"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#888880', lineHeight: 1.6 }}
+            >
+              This will permanently remove {activeProfile.name} and all their digital sets and
+              evaluations. This cannot be undone.
+            </p>
+            <div className="flex gap-[12px]">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+              >
+                CANCEL
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="flex-1 px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  backgroundColor: '#c87a7a',
+                  color: '#080808',
+                  cursor: 'pointer',
+                }}
+              >
+                DELETE
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
