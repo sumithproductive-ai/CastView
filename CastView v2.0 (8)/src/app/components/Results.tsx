@@ -1,6 +1,7 @@
 import React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
+import { jsPDF } from 'jspdf';
 import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 
 const mostRecentDigitalSet = SUMITH_DIGITAL_SET_V1;
@@ -116,26 +117,306 @@ export function Results() {
   const [overrideText, setOverrideText] = useState('');
   const [methodologyOpen, setMethodologyOpen] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [agentNotes, setAgentNotes] = useState('');
+
+  const getFitLabel = (score: number) => {
+    if (score >= 88) return 'STRONG ALIGNMENT';
+    if (score >= 72) return 'MODERATE ALIGNMENT';
+    return 'LOW ALIGNMENT';
+  };
+
+  const getContextEvalData = (context: string, score: number) => {
+    const found = evaluationData.contextEvaluations.find(
+      (evaluation) => evaluation.context === context
+    );
+    if (found) {
+      return {
+        reasoning: found.reasoning,
+        strengths: found.strengths,
+        risks: found.risks,
+        suggestedNextSteps: found.suggestedNextSteps,
+        fitLabel: getFitLabel(score),
+      };
+    }
+    return {
+      reasoning:
+        'Uploaded digitals show strong alignment with current market criteria for this context.',
+      strengths: [
+        'Strong alignment with context criteria',
+        'Digitals score above benchmark',
+      ],
+      risks: ['Limited progression data on file'],
+      suggestedNextSteps: [
+        'Schedule test shoot',
+        'Upload updated digitals for progression tracking',
+      ],
+      fitLabel: getFitLabel(score),
+    };
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const pageWidth = 210;
+    const margin = 20;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    const fillDarkBackground = () => {
+      doc.setFillColor(8, 8, 8);
+      doc.rect(0, 0, 210, 297, 'F');
+    };
+
+    fillDarkBackground();
+
+    const addText = (
+      text: string,
+      x: number,
+      fontSize: number,
+      color: [number, number, number],
+      style: 'normal' | 'bold' = 'normal'
+    ) => {
+      doc.setFontSize(fontSize);
+      doc.setTextColor(...color);
+      doc.setFont('helvetica', style);
+      doc.text(text, x, y);
+    };
+
+    const checkPageBreak = (neededSpace: number) => {
+      if (y + neededSpace > 277) {
+        doc.addPage();
+        y = 20;
+        fillDarkBackground();
+      }
+    };
+
+    // HEADER
+    addText('CASTVIEW', margin, 9, [200, 169, 110]);
+    y += 6;
+    addText('Context Alignment Report', margin, 22, [240, 240, 236], 'bold');
+    y += 10;
+    addText('castview.io', margin, 8, [136, 136, 128]);
+    y += 10;
+
+    doc.setDrawColor(42, 42, 42);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+
+    // PROSPECT INFO
+    addText('PROSPECT', margin, 8, [136, 136, 128]);
+    y += 5;
+    addText(prospectName, margin, 18, [240, 240, 236], 'bold');
+    y += 6;
+    addText(
+      `Report generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+      margin,
+      8,
+      [136, 136, 128]
+    );
+    y += 10;
+
+    // OVERALL SUMMARY
+    doc.setFillColor(26, 26, 26);
+    doc.roundedRect(margin, y, contentWidth, 18, 2, 2, 'F');
+    y += 6;
+    addText('OVERALL SUMMARY', margin + 6, 7, [200, 169, 110]);
+    y += 5;
+    const summaryLines = doc.splitTextToSize(
+      evaluationData.overallSummary,
+      contentWidth - 12
+    );
+    doc.setFontSize(9);
+    doc.setTextColor(192, 192, 186);
+    doc.setFont('helvetica', 'normal');
+    doc.text(summaryLines, margin + 6, y);
+    y += summaryLines.length * 5 + 10;
+
+    // PER-CONTEXT SECTIONS
+    contextResults.forEach((result) => {
+      const data = getContextEvalData(result.context, result.score);
+
+      checkPageBreak(80);
+
+      doc.setFillColor(26, 26, 26);
+      doc.roundedRect(margin, y, contentWidth, 10, 2, 2, 'F');
+      addText(result.context.toUpperCase(), margin + 6, 8, [200, 169, 110], 'bold');
+
+      doc.setFontSize(8);
+      doc.setTextColor(240, 240, 236);
+      doc.setFont('helvetica', 'bold');
+      doc.text(
+        `${result.score}%  ${data.fitLabel}`,
+        pageWidth - margin - 6,
+        y + 3,
+        { align: 'right' }
+      );
+      y += 14;
+
+      doc.setFillColor(42, 42, 42);
+      doc.roundedRect(margin, y, contentWidth, 3, 1, 1, 'F');
+      doc.setFillColor(200, 169, 110);
+      doc.roundedRect(
+        margin,
+        y,
+        contentWidth * (result.score / 100),
+        3,
+        1,
+        1,
+        'F'
+      );
+      y += 8;
+
+      addText('REASONING', margin, 7, [136, 136, 128], 'bold');
+      y += 4;
+      const reasoningLines = doc.splitTextToSize(data.reasoning, contentWidth);
+      doc.setFontSize(8);
+      doc.setTextColor(192, 192, 186);
+      doc.setFont('helvetica', 'normal');
+      doc.text(reasoningLines, margin, y);
+      y += reasoningLines.length * 4.5 + 5;
+
+      checkPageBreak(30);
+      addText('STRENGTHS', margin, 7, [74, 122, 74], 'bold');
+      y += 4;
+      data.strengths.forEach((s) => {
+        const lines = doc.splitTextToSize(`→  ${s}`, contentWidth - 4);
+        doc.setFontSize(8);
+        doc.setTextColor(160, 160, 154);
+        doc.setFont('helvetica', 'normal');
+        doc.text(lines, margin + 2, y);
+        y += lines.length * 4.5;
+      });
+      y += 3;
+
+      if (data.risks.length > 0) {
+        checkPageBreak(20);
+        addText('RISKS', margin, 7, [200, 122, 122], 'bold');
+        y += 4;
+        data.risks.forEach((r) => {
+          const lines = doc.splitTextToSize(`→  ${r}`, contentWidth - 4);
+          doc.setFontSize(8);
+          doc.setTextColor(160, 160, 154);
+          doc.setFont('helvetica', 'normal');
+          doc.text(lines, margin + 2, y);
+          y += lines.length * 4.5;
+        });
+        y += 3;
+      }
+
+      checkPageBreak(20);
+      addText('SUGGESTED NEXT STEPS', margin, 7, [136, 136, 128], 'bold');
+      y += 4;
+      data.suggestedNextSteps.forEach((step) => {
+        const lines = doc.splitTextToSize(`→  ${step}`, contentWidth - 4);
+        doc.setFontSize(8);
+        doc.setTextColor(160, 160, 154);
+        doc.setFont('helvetica', 'normal');
+        doc.text(lines, margin + 2, y);
+        y += lines.length * 4.5;
+      });
+
+      y += 8;
+      doc.setDrawColor(42, 42, 42);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 8;
+    });
+
+    // AGENT NOTES
+    checkPageBreak(30);
+    addText('AGENT NOTES', margin, 8, [200, 169, 110], 'bold');
+    y += 5;
+    doc.setFillColor(20, 20, 20);
+    doc.roundedRect(margin, y, contentWidth, 20, 2, 2, 'F');
+    y += 6;
+    const notesText = agentNotes.trim() || 'No agent notes added.';
+    const notesLines = doc.splitTextToSize(notesText, contentWidth - 12);
+    doc.setFontSize(8.5);
+    doc.setTextColor(192, 192, 186);
+    doc.setFont('helvetica', 'normal');
+    doc.text(notesLines, margin + 6, y);
+    y += notesLines.length * 5 + 14;
+
+    // DISCLAIMER
+    checkPageBreak(30);
+    doc.setDrawColor(42, 42, 42);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 6;
+    addText('DISCLAIMER', margin, 7, [136, 136, 128], 'bold');
+    y += 4;
+    const disclaimer =
+      'This report is generated by AI analysis of uploaded digitals and is intended as a decision-support tool only. Context alignment scores do not constitute professional casting advice and should be used alongside agent judgment. CastView does not guarantee casting outcomes. All evaluations reflect the digitals available at time of analysis.';
+    const disclaimerLines = doc.splitTextToSize(disclaimer, contentWidth);
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 100, 96);
+    doc.setFont('helvetica', 'normal');
+    doc.text(disclaimerLines, margin, y);
+    y += disclaimerLines.length * 4 + 8;
+
+    // FOOTER
+    addText(
+      'Prepared by CastView  ·  castview.io  ·  hello@castview.io',
+      margin,
+      7,
+      [100, 100, 96]
+    );
+
+    doc.save(
+      `CastView-${prospectName.replace(/\s+/g, '-')}-Evaluation.pdf`
+    );
+  };
   
   return (
     <div className="p-[48px]">
-      <button
-        type="button"
-        onClick={() => navigate(profileType === 'model' ? '/roster' : '/prospects')}
-        className="hover:opacity-70 transition-opacity cursor-pointer mb-[24px]"
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '11px',
-          color: '#888880',
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          backgroundColor: 'transparent',
-          border: 'none',
-          padding: 0,
-        }}
-      >
-        {profileType === 'model' ? '← BACK TO ROSTER' : '← BACK TO PROSPECTS'}
-      </button>
+      <div className="flex justify-between items-center mb-[24px]">
+        <button
+          type="button"
+          onClick={() => navigate(profileType === 'model' ? '/roster' : '/prospects')}
+          className="hover:opacity-70 transition-opacity cursor-pointer"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            color: '#888880',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            backgroundColor: 'transparent',
+            border: 'none',
+            padding: 0,
+          }}
+        >
+          {profileType === 'model' ? '← BACK TO ROSTER' : '← BACK TO PROSPECTS'}
+        </button>
+
+        <div className="flex gap-[12px]">
+          <button
+            type="button"
+            onClick={generatePDF}
+            className="border border-[#2a2a2a] bg-transparent rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] hover:text-[#f0f0ec] transition-colors"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              color: '#888880',
+              cursor: 'pointer',
+            }}
+          >
+            EXPORT PDF
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/share')}
+            className="bg-[#f0f0ec] text-[#080808] rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              cursor: 'pointer',
+            }}
+          >
+            SHARE
+          </button>
+        </div>
+      </div>
 
       <h1 
         className="text-[48px] mb-[48px]" 
@@ -425,6 +706,27 @@ export function Results() {
               className="w-full h-[100px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[16px] resize-none"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
               placeholder="Add notes for the team..."
+            />
+          </div>
+
+          <div>
+            <div
+              className="mb-[8px] uppercase tracking-[0.1em]"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#888880' }}
+            >
+              AGENT NOTES
+            </div>
+            <textarea
+              value={agentNotes}
+              onChange={(e) => setAgentNotes(e.target.value)}
+              placeholder="Add notes for this evaluation..."
+              rows={3}
+              className="w-full px-[12px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] resize-none mt-[16px]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: '#f0f0ec',
+              }}
             />
           </div>
           
