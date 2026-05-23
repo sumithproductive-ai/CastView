@@ -232,11 +232,11 @@ export function ProspectsIndex() {
   
   const statusOptions = [
     { value: 'all', label: 'All Statuses' },
-    { value: 'draft', label: 'Draft' },
-    { value: 'new', label: 'New' },
-    { value: 'in-review', label: 'In Review' },
-    { value: 'shortlisted', label: 'Shortlisted' },
-    { value: 'passed', label: 'Passed' }
+    { value: 'draft', label: 'DRAFT' },
+    { value: 'new', label: 'NEW' },
+    { value: 'in-review', label: 'IN REVIEW' },
+    { value: 'shortlisted', label: 'SHORTLISTED' },
+    { value: 'passed', label: 'PASSED' },
   ];
 
   const contextOptions = [
@@ -254,6 +254,20 @@ export function ProspectsIndex() {
   ];
 
   const draftCount = prospects.filter(p => p.status === 'DRAFT').length;
+
+  const handleProspectStatus = (
+    prospectId: string,
+    newStatus: string,
+    newStatusColor: string
+  ) => {
+    setProspects((prev) =>
+      prev.map((prospect) =>
+        prospect.id === prospectId
+          ? { ...prospect, status: newStatus, statusColor: newStatusColor }
+          : prospect
+      )
+    );
+  };
 
   const handleToggleSelect = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -720,7 +734,7 @@ export function ProspectsIndex() {
 
                 {/* Status */}
                 <div 
-                  className="text-[9px] uppercase tracking-[0.1em]"
+                  className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
                   style={{ 
                     fontFamily: 'var(--font-label)',
                     color: prospect.statusColor
@@ -728,6 +742,51 @@ export function ProspectsIndex() {
                 >
                   {prospect.status}
                 </div>
+
+                {prospect.status !== 'DRAFT' && (
+                  <div onClick={(e) => e.preventDefault()}>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/profile');
+                      }}
+                      className="w-full mb-[8px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        backgroundColor: '#f0f0ec',
+                        color: '#080808',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      RUN EVALUATION
+                    </button>
+                    <div className="flex gap-[8px]">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProspectStatus(prospect.id, 'SHORTLISTED', '#7d6d4d');
+                        }}
+                        className="flex-1 px-[10px] py-[6px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                      >
+                        SHORTLIST
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProspectStatus(prospect.id, 'PASSED', '#5d3d3d');
+                        }}
+                        className="flex-1 px-[10px] py-[6px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                      >
+                        PASS
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </Link>
           </div>
