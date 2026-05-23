@@ -50,7 +50,7 @@ const recentProspects = [
     status: 'In Review',
     statusColor: '#C8A96E',
     timeAgo: '2 hours ago',
-    image: 'https://i.imgur.com/jZHp7Ei.jpg'
+    image: 'https://i.imgur.com/39KyFLK.jpg'
   },
   {
     id: 'marcus-chen',
@@ -92,7 +92,7 @@ const rosterActivity = [
     name: 'Sumith Chittimalla',
     activity: 'New evaluation — Fragrance',
     timeAgo: '1 hour ago',
-    image: 'https://i.imgur.com/jZHp7Ei.jpg'
+    image: 'https://i.imgur.com/39KyFLK.jpg'
   },
   {
     id: 'marcus-chen',
@@ -464,6 +464,11 @@ export function Dashboard() {
                     src={prospect.image} 
                     alt={prospect.name}
                     className="w-full h-full object-cover"
+                    style={
+                      prospect.id === 'sumith-chittimalla'
+                        ? { objectFit: 'cover', objectPosition: 'center top' }
+                        : undefined
+                    }
                   />
                 </div>
 
@@ -530,6 +535,11 @@ export function Dashboard() {
                     src={item.image} 
                     alt={item.name}
                     className="w-full h-full object-cover"
+                    style={
+                      item.id === 'sumith-chittimalla'
+                        ? { objectFit: 'cover', objectPosition: 'center top' }
+                        : undefined
+                    }
                   />
                 </div>
 

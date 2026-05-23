@@ -40,7 +40,7 @@ const initialProspects: Prospect[] = [
     renders: 1,
     submissionDate: '2 days ago',
     source: 'DIRECT' as Source,
-    image: 'https://i.imgur.com/jZHp7Ei.jpg',
+    image: 'https://i.imgur.com/39KyFLK.jpg',
     contexts: ['FR', 'ED', 'CA'],
     renderedContexts: ['FR'],
     division: 'men',
@@ -608,6 +608,11 @@ export function ProspectsIndex() {
                     src={prospect.image} 
                     alt={prospect.name}
                     className="w-full h-full object-cover"
+                    style={
+                      prospect.id === 'sumith-chittimalla'
+                        ? { objectFit: 'cover', objectPosition: 'center top' }
+                        : undefined
+                    }
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
