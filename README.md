@@ -11,13 +11,12 @@ npm run dev
 
 ## Deploy on Vercel
 
-The app is a Vite + React SPA at the repository root. Vercel should auto-detect Vite; if not, use:
+The app lives in **`CastView v2.0 (8)`**. In Vercel → Project → Settings → General, set:
 
-- **Root Directory:** `.` (repository root)
+- **Root Directory:** `CastView v2.0 (8)`
 - **Build Command:** `npm run build`
 - **Output Directory:** `dist`
-- **Install Command:** `npm install`
 
-`vercel.json` includes SPA rewrites so client-side routes (e.g. `/profile`) serve `index.html`.
+`CastView v2.0 (8)/vercel.json` includes SPA rewrites so client-side routes serve `index.html`.
 
-After changing the repo layout, clear **Root Directory** in Vercel project settings if it was set to `CastView v2.0 (8)`.
+To use the repository root instead, move the app files up and set Root Directory to `.` (empty).
