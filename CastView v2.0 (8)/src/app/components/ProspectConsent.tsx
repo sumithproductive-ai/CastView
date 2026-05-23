@@ -237,7 +237,7 @@ export function ProspectConsent() {
                     CastView processes personal data (photographic digitals) on behalf of the Agency as a data processor under GDPR Article 28.
                   </p>
                   <p className="mb-[12px]">
-                    Data stored: photographs uploaded as prospect digitals and AI-generated evaluation renders.
+                    Data stored: photographs uploaded as prospect digitals and AI-generated evaluations.
                   </p>
                   <p className="mb-[12px]">
                     Storage location: EU-West (Ireland). No transfer outside EEA without explicit consent.
@@ -262,7 +262,7 @@ export function ProspectConsent() {
                     Data collection: We collect photographic digitals and biographical information provided by modeling agencies for the purpose of AI-powered evaluation.
                   </p>
                   <p className="mb-[12px]">
-                    Data use: Personal data is used exclusively for internal agency evaluation purposes. AI-generated renders are not shared externally without explicit agency action.
+                    Data use: Personal data is used exclusively for internal agency evaluation purposes. AI-generated evaluations are not shared externally without explicit agency action.
                   </p>
                   <p className="mb-[12px]">
                     Data security: All data is encrypted in transit and at rest. Access is restricted to authorized agency personnel only.

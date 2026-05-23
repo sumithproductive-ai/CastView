@@ -7,7 +7,7 @@ const steps = [
   { name: 'Fragrance', duration: 3000 },
   { name: 'Editorial', duration: 3000 },
   { name: 'Campaign', duration: 2500 },
-  { name: 'Scoring', duration: 2000 }
+  { name: 'Alignment', duration: 2000 }
 ];
 
 export function Rendering() {

@@ -107,7 +107,7 @@ const modelData = {
           isPrimary: false
         }
       ],
-      notes: 'Original signing renders — first session',
+      notes: 'Original signing evaluations — first session',
       expanded: false
     }
   ]
@@ -340,7 +340,7 @@ export function ModelHistory() {
                   cursor: 'pointer'
                 }}
               >
-                COMPARE 2 {selectedContext?.toUpperCase()} RENDERS
+                COMPARE 2 {selectedContext?.toUpperCase()} EVALUATIONS
               </button>
             ) : (
               <button
@@ -443,7 +443,7 @@ export function ModelHistory() {
                                   pointerEvents: isDimmed ? 'none' : 'auto'
                                 }}
                                 onClick={() => toggleRenderSelection(index, render.id, render.context)}
-                                title={isDimmed ? `Select a ${selectedContext} render to compare` : ''}
+                                title={isDimmed ? `Select a ${selectedContext} evaluation to compare` : ''}
                               >
                                 {/* Checkbox */}
                                 {isSelected && (
@@ -460,7 +460,7 @@ export function ModelHistory() {
                                   download={`${modelData.name.replace(' ', '-')}-${render.context}.jpg`}
                                   onClick={(e) => e.stopPropagation()}
                                   className="absolute top-[8px] right-[8px] w-[28px] h-[28px] bg-[#080808] bg-opacity-80 border border-[#2a2a2a] rounded-[4px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                  title="Download render"
+                                  title="Download evaluation"
                                 >
                                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                                     <path d="M6 1v7M3 5l3 3 3-3M1 10h10" stroke="#f0f0ec" strokeWidth="1.5" strokeLinecap="round"/>
@@ -575,7 +575,7 @@ export function ModelHistory() {
               className="mb-[24px]"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a', lineHeight: 1.5 }}
             >
-              Uploading new digitals will not delete existing renders. Previous sessions will be labeled with the digitals version used.
+              Uploading new digitals will not delete existing evaluations. Previous sessions will be labeled with the digitals version used.
             </p>
 
             {/* Upload Zones Grid */}
@@ -616,7 +616,7 @@ export function ModelHistory() {
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
               >
-                Re-run existing render contexts with new digitals automatically
+                Re-run existing evaluation contexts with new digitals automatically
               </span>
             </div>
 

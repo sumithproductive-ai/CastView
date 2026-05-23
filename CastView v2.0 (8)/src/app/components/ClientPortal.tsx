@@ -91,7 +91,7 @@ export function ClientPortal() {
         </div>
         <div className="flex justify-end">
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}>
-            Includes all evaluations and scores in this package
+            Includes all evaluations and alignment scores in this package
           </p>
         </div>
       </div>

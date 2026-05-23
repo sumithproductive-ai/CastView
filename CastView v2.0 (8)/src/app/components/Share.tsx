@@ -72,7 +72,7 @@ export function Share() {
             className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
           >
-            Include Renders
+            Include Evaluations
           </div>
           
           <div className="space-y-[16px]">

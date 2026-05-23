@@ -9,7 +9,7 @@ const allNotifications = [
     type: 'RENDERS',
     unread: true,
     icon: ImageIcon,
-    title: 'Sofia Andersen · Fragrance render complete',
+    title: 'Sofia Andersen · Fragrance evaluation complete',
     time: '2 minutes ago',
     badge: { text: '94%', color: 'green' }
   },
@@ -18,9 +18,9 @@ const allNotifications = [
     type: 'RENDERS',
     unread: true,
     icon: ImageIcon,
-    title: 'Marcus Chen · Render complete — 3 contexts',
+    title: 'Marcus Chen · Evaluation complete — 3 contexts',
     time: '18 minutes ago',
-    badge: { text: '91% top score', color: 'green' }
+    badge: { text: '91% top alignment score', color: 'green' }
   },
   {
     id: 3,
@@ -54,7 +54,7 @@ const allNotifications = [
     type: 'RENDERS',
     unread: false,
     icon: ImageIcon,
-    title: 'Ava Laurent · Editorial render complete',
+    title: 'Ava Laurent · Editorial evaluation complete',
     time: '3 days ago',
     badge: { text: '89%', color: 'green' }
   },
@@ -90,7 +90,7 @@ const allNotifications = [
     type: 'RENDERS',
     unread: false,
     icon: ImageIcon,
-    title: 'Zara Klein · Campaign render complete',
+    title: 'Zara Klein · Campaign evaluation complete',
     time: '1 week ago',
     badge: { text: '92%', color: 'green' }
   }
@@ -101,6 +101,14 @@ export function Notifications() {
   const [notifications, setNotifications] = useState(allNotifications);
 
   const filters: FilterType[] = ['ALL', 'RENDERS', 'SIGNINGS', 'SHARES', 'STATUS UPDATES'];
+
+  const filterLabels: Record<FilterType, string> = {
+    ALL: 'ALL',
+    RENDERS: 'EVALUATIONS',
+    SIGNINGS: 'SIGNINGS',
+    SHARES: 'SHARES',
+    'STATUS UPDATES': 'STATUS UPDATES',
+  };
 
   const handleMarkAllRead = () => {
     setNotifications(notifications.map(n => ({ ...n, unread: false })));
@@ -154,7 +162,7 @@ export function Notifications() {
               className="text-[13px]"
               style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
             >
-              Stay updated on renders, signings, and shares.
+              Stay updated on evaluations, signings, and shares.
             </p>
           </div>
           <button
@@ -182,7 +190,7 @@ export function Notifications() {
                   color: isActive ? '#080808' : '#a0a09a'
                 }}
               >
-                {filter}
+                {filterLabels[filter]}
               </button>
             );
           })}

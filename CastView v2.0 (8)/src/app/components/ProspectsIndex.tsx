@@ -2,10 +2,36 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Search, ChevronDown, Plus, X } from 'lucide-react';
+import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
+import type { DigitalSet } from '../types/talent';
 
 type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL' | 'DIRECT';
 
-const initialProspects = [
+type Prospect = {
+  id: string;
+  name: string;
+  status: string;
+  statusColor: string;
+  renders: number;
+  submissionDate: string;
+  source?: Source;
+  image: string | null;
+  contexts: string[];
+  renderedContexts: string[];
+  division?: string;
+  primaryContext?: string;
+  markets?: string[];
+  height?: string;
+  measurements?: {
+    chest: string;
+    waist: string;
+    hips: string;
+    shoe: string;
+  };
+  digitalSets: DigitalSet[];
+};
+
+const initialProspects: Prospect[] = [
   {
     id: 'sumith-chittimalla',
     name: 'Sumith Chittimalla',
@@ -26,7 +52,8 @@ const initialProspects = [
       waist: '30',
       hips: '33',
       shoe: '11'
-    }
+    },
+    digitalSets: [SUMITH_DIGITAL_SET_V1],
   },
   {
     id: 'camille-rousseau',
@@ -38,7 +65,8 @@ const initialProspects = [
     image: null,
     contexts: ['FR', 'ED', 'RW', 'CA'],
     renderedContexts: [],
-    source: 'INSTAGRAM' as Source
+    source: 'INSTAGRAM' as Source,
+    digitalSets: [],
   },
   {
     id: 'sofia-andersen',
@@ -50,7 +78,8 @@ const initialProspects = [
     image: 'https://images.unsplash.com/photo-1726232409367-04682eb856a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwb3J0cmFpdCUyMHByb2Zlc3Npb25hbHxlbnwxfHx8fDE3NzMwODU2NjF8MA&ixlib=rb-4.1.0&q=80&w=1080',
     contexts: ['FR', 'ED', 'RW', 'CA'],
     renderedContexts: ['FR', 'ED', 'RW', 'CA'],
-    source: 'SCOUT' as Source
+    source: 'SCOUT' as Source,
+    digitalSets: [],
   },
   {
     id: 'marcus-chen',
@@ -62,7 +91,8 @@ const initialProspects = [
     image: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxlJTIwbW9kZWwlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzMwMDgzMzR8MA&ixlib=rb-4.1.0&q=80&w=1080',
     contexts: ['FR', 'ED', 'RW', 'CA'],
     renderedContexts: ['FR', 'CA'],
-    source: 'REFERRAL' as Source
+    source: 'REFERRAL' as Source,
+    digitalSets: [],
   },
   {
     id: 'ava-laurent',
@@ -74,7 +104,8 @@ const initialProspects = [
     image: 'https://images.unsplash.com/photo-1627161683077-e34782c24d81?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmZW1hbGUlMjBtb2RlbCUyMGhlYWRzaG90fGVufDF8fHx8MTc3MzA4NTY2M3ww&ixlib=rb-4.1.0&q=80&w=1080',
     contexts: ['FR', 'ED', 'RW', 'CA'],
     renderedContexts: ['FR', 'ED', 'RW'],
-    source: 'EMAIL' as Source
+    source: 'EMAIL' as Source,
+    digitalSets: [],
   },
   {
     id: 'luca-moretti',
@@ -86,7 +117,8 @@ const initialProspects = [
     image: null,
     contexts: ['FR', 'ED', 'RW', 'CA'],
     renderedContexts: [],
-    source: 'OPEN CALL' as Source
+    source: 'OPEN CALL' as Source,
+    digitalSets: [],
   },
   {
     id: 'isabella-novak',
@@ -98,7 +130,8 @@ const initialProspects = [
     image: 'https://images.unsplash.com/photo-1674713406394-8f994f26432c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHBvcnRyYWl0JTIwYW5nbGUlMjB2aWV3fGVufDF8fHx8MTc3MzA4NTY2Nnww&ixlib=rb-4.1.0&q=80&w=1080',
     contexts: ['FR', 'ED', 'RW', 'CA'],
     renderedContexts: ['FR'],
-    source: 'INSTAGRAM' as Source
+    source: 'INSTAGRAM' as Source,
+    digitalSets: [],
   },
   {
     id: 'zara-klein',
@@ -110,7 +143,8 @@ const initialProspects = [
     image: 'https://images.unsplash.com/photo-1650094762225-3561578643c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwcnVud2F5JTIwbW9kZWwlMjBjbG9zZXVwfGVufDF8fHx8MTc3MzE2NTI4NXww&ixlib=rb-4.1.0&q=80&w=1080',
     contexts: ['FR', 'ED', 'RW', 'CA'],
     renderedContexts: ['FR', 'ED', 'CA'],
-    source: 'SCOUT' as Source
+    source: 'SCOUT' as Source,
+    digitalSets: [],
   }
 ];
 
@@ -215,7 +249,7 @@ export function ProspectsIndex() {
 
   const sortOptions = [
     { value: 'submission-date', label: 'Sort: Submission Date' },
-    { value: 'top-score', label: 'Sort: Top Score' },
+    { value: 'top-score', label: 'Sort: Top Alignment Score' },
     { value: 'name', label: 'Sort: Name' }
   ];
 
@@ -337,7 +371,7 @@ export function ProspectsIndex() {
     });
 
   const handleExportCSV = () => {
-    const headers = ['Name', 'Status', 'Source', 'Renders', 'Submitted', 'Contexts'];
+    const headers = ['Name', 'Status', 'Source', 'Evaluations', 'Submitted', 'Contexts'];
     const rows = filteredProspects.map(p => [
       p.name,
       p.status,
@@ -361,7 +395,7 @@ export function ProspectsIndex() {
   const handleQuickAdd = () => {
     if (!quickName.trim()) return;
     
-    const newProspect = {
+    const newProspect: Prospect = {
       id: quickName.toLowerCase().replace(/\s+/g, '-'),
       name: quickName,
       status: 'DRAFT',
@@ -371,7 +405,8 @@ export function ProspectsIndex() {
       image: null,
       contexts: ['FR', 'ED', 'RW', 'CA'],
       renderedContexts: [],
-      source: 'EMAIL' as Source
+      source: 'EMAIL' as Source,
+      digitalSets: [],
     };
     
     setProspects(prev => [newProspect, ...prev]);
@@ -584,7 +619,7 @@ export function ProspectsIndex() {
                         letterSpacing: '0.05em'
                       }}
                     >
-                      NO RENDERS YET
+                      NO EVALUATIONS YET
                     </div>
                   </div>
                 )}
@@ -665,7 +700,7 @@ export function ProspectsIndex() {
                     <div 
                       style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}
                     >
-                      {prospect.renders} render{prospect.renders !== 1 ? 's' : ''}
+                      {prospect.renders} evaluation{prospect.renders !== 1 ? 's' : ''}
                     </div>
                     <div 
                       style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a' }}

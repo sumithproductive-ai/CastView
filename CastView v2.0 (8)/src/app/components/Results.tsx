@@ -1,32 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { sumithDigitals } from '../constants/sumithProspect';
+import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 
-const renders = [
-  { 
-    id: 1, 
-    context: 'Fragrance', 
-    score: 94,
-    image: sumithDigitals.front
-  },
-  { 
-    id: 2, 
-    context: 'Editorial', 
-    score: 96,
-    image: sumithDigitals.profile
-  },
-  { 
-    id: 3, 
-    context: 'Campaign', 
-    score: 88,
-    image: sumithDigitals.three_quarter
-  },
-  { 
-    id: 4, 
-    context: 'Beauty', 
-    score: 91,
-    image: sumithDigitals.full_body
-  }
+const mostRecentDigitalSet = SUMITH_DIGITAL_SET_V1;
+const frontDigital = mostRecentDigitalSet.front!;
+
+const contextResults = [
+  { id: 1, context: 'Fragrance', score: 94 },
+  { id: 2, context: 'Editorial', score: 96 },
+  { id: 3, context: 'Campaign', score: 88 },
+  { id: 4, context: 'Beauty', score: 91 },
 ];
 
 const scores = [
@@ -36,9 +19,68 @@ const scores = [
   { label: 'Market Fit', value: 94 }
 ];
 
+const evaluationData = {
+  overallSummary:
+    'Strong contextual alignment across luxury and editorial contexts based on uploaded digitals.',
+  contextEvaluations: [
+    {
+      context: 'Fragrance',
+      alignmentScore: 94,
+      strengths: [
+        'Strong angular bone structure aligns with fragrance campaign framing criteria',
+        'Skin tone and undertone range scores well against editorial lighting benchmarks',
+        'Proportions support tight crop compositions typical of this context',
+      ],
+      risks: ['Limited progression data — one digital set on file'],
+      reasoning:
+        'The uploaded digitals show strong alignment with current European luxury fragrance casting criteria. Facial geometry and proportions match the framing requirements of this context.',
+      marketSignals: [
+        'European luxury fragrance market currently trending toward this profile type',
+        'High demand for this look in NYC and London markets',
+      ],
+      suggestedNextSteps: [
+        'Schedule fragrance test shoot',
+        'Approach luxury fragrance clients in NYC market first',
+        'Upload updated digitals after next shoot for progression tracking',
+      ],
+    },
+  ],
+  progressionComparison: {
+    summary: 'First evaluation — no previous digitals to compare.',
+    improvedContexts: [],
+    weakenedContexts: [],
+    reasoning:
+      'Upload a second set of digitals to enable progression analysis.',
+  },
+};
+
+const alignmentBulletStyle = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: '12px',
+  lineHeight: 1.6,
+  color: '#a0a09a',
+} as const;
+
+function AlignmentBulletList({ items }: { items: string[] }) {
+  return (
+    <div style={alignmentBulletStyle}>
+      {items.map((item, index) => (
+        <div key={index}>
+          <span style={{ color: '#C8A96E' }}>→ </span>
+          {item}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function Results() {
   const navigate = useNavigate();
-  const [selectedRender, setSelectedRender] = useState(renders[0]);
+  const [selectedResult, setSelectedResult] = useState(contextResults[0]);
+  const activeContextEvaluation =
+    evaluationData.contextEvaluations.find(
+      (evaluation) => evaluation.context === selectedResult.context
+    ) ?? evaluationData.contextEvaluations[0];
   const [showOverride, setShowOverride] = useState(false);
   const [overrideText, setOverrideText] = useState('');
   const [methodologyOpen, setMethodologyOpen] = useState(false);
@@ -50,19 +92,19 @@ export function Results() {
         className="text-[48px] mb-[48px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
-        Sumith Chittimalla — Evaluation Results
+        Sumith Chittimalla — Context Alignment Report
       </h1>
       
       <div className="grid grid-cols-[1fr_320px] gap-[48px]">
         {/* Main Grid */}
         <div>
           <div className="grid grid-cols-2 gap-[24px]">
-            {renders.map((render) => {
-              const isSelected = selectedRender.id === render.id;
+            {contextResults.map((result) => {
+              const isSelected = selectedResult.id === result.id;
               return (
                 <button
-                  key={render.id}
-                  onClick={() => setSelectedRender(render)}
+                  key={result.id}
+                  onClick={() => setSelectedResult(result)}
                   className="text-left transition-all"
                   style={{ cursor: 'pointer' }}
                 >
@@ -72,38 +114,43 @@ export function Results() {
                       border: isSelected ? '2px solid #f0f0ec' : '2px solid #2a2a2a'
                     }}
                   >
-                    <img src={render.image} alt={render.context} className="w-full h-full object-cover" />
+                    <img src={frontDigital} alt={result.context} className="w-full h-full object-cover" />
                   </div>
+                  <p
+                    className="mb-[8px]"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '9px',
+                      color: '#888880',
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    Evaluation based on uploaded digitals
+                  </p>
                   <div 
                     className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
                     style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
                   >
-                    {render.context}
-                  </div>
-                  <div 
-                    className="text-[11px] mb-[8px]"
-                    style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
-                  >
-                    Visualization based on prospect attributes — for evaluation purposes only.
+                    {result.context}
                   </div>
                   <div 
                     className="text-[40px]" 
                     style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
                   >
-                    {render.score}%
+                    {result.score}%
                   </div>
                   {(() => {
-                    const score = render.score;
+                    const score = result.score;
                     let label = '';
                     let color = '';
                     if (score >= 88) { 
-                      label = 'STRONG FIT'; 
+                      label = 'STRONG ALIGNMENT'; 
                       color = '#4a7a4a'; 
                     } else if (score >= 72) { 
-                      label = 'MODERATE FIT'; 
+                      label = 'MODERATE ALIGNMENT'; 
                       color = '#7a6a3a'; 
                     } else { 
-                      label = 'BELOW THRESHOLD'; 
+                      label = 'LOW ALIGNMENT'; 
                       color = '#7a3a3a'; 
                     }
                     return (
@@ -132,13 +179,13 @@ export function Results() {
               className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
               style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
             >
-              Fit Assessment
+              Context Alignment
             </div>
             <div 
               className="text-[11px] mb-[32px]"
               style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
             >
-              Scored against historical shoot context criteria.
+              Analysed against market context indicators and uploaded digitals.
             </div>
             
             <div className="space-y-[24px] mb-[32px]">
@@ -175,13 +222,13 @@ export function Results() {
                   className="text-[11px] uppercase tracking-[0.1em]"
                   style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
                 >
-                  Why This Score
+                  Why This Alignment
                 </div>
                 <button
                   onClick={() => setMethodologyOpen(true)}
                   style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', textDecoration: 'underline', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
-                  HOW IS THIS SCORED?
+                  HOW IS THIS EVALUATED?
                 </button>
               </div>
               
@@ -193,10 +240,47 @@ export function Results() {
                   className="mb-[16px]"
                   style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', lineHeight: 1.6, color: '#a0a09a' }}
                 >
-                  <div>— Strong angular bone structure aligns with fragrance campaign framing criteria.</div>
-                  <div>— Skin tone and undertone range scores well against editorial lighting benchmarks.</div>
-                  <div>— Proportions support tight crop compositions typical of this context.</div>
-                  <div>— Market positioning aligns with current European luxury fragrance casting trends.</div>
+                  {activeContextEvaluation.reasoning}
+                </div>
+
+                <div className="mb-[16px]">
+                  <div 
+                    className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
+                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                  >
+                    STRENGTHS
+                  </div>
+                  <AlignmentBulletList items={activeContextEvaluation.strengths} />
+                </div>
+
+                <div className="mb-[16px]">
+                  <div 
+                    className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
+                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                  >
+                    RISKS
+                  </div>
+                  <AlignmentBulletList items={activeContextEvaluation.risks} />
+                </div>
+
+                <div className="mb-[16px]">
+                  <div 
+                    className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
+                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                  >
+                    MARKET SIGNALS
+                  </div>
+                  <AlignmentBulletList items={activeContextEvaluation.marketSignals} />
+                </div>
+
+                <div className="mb-[16px]">
+                  <div 
+                    className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
+                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                  >
+                    SUGGESTED NEXT STEPS
+                  </div>
+                  <AlignmentBulletList items={activeContextEvaluation.suggestedNextSteps} />
                 </div>
                 
                 <div className="h-[1px] bg-[#2a2a2a] mb-[16px]" />
@@ -206,7 +290,7 @@ export function Results() {
                     className="text-[10px] uppercase tracking-[0.1em]"
                     style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
                   >
-                    Agree With This Score?
+                    Does This Align With Your Judgment?
                   </div>
                   <div className="flex gap-[8px]">
                     <button
@@ -225,7 +309,7 @@ export function Results() {
                         cursor: agreed ? 'default' : 'pointer'
                       }}
                     >
-                      {agreed ? '✓ Agreed' : 'Agree'}
+                      {agreed ? '✓ Confirmed' : 'Confirm Alignment'}
                     </button>
                     <button
                       onClick={() => { 
@@ -253,7 +337,7 @@ export function Results() {
                   marginTop: '8px',
                   fontStyle: 'italic'
                 }}>
-                  Your feedback improves the scoring model for your agency.
+                  Your input trains the evaluation model for your agency's standards.
                 </p>
                 
                 {showOverride && (
@@ -356,7 +440,7 @@ export function Results() {
               className="text-[28px] mb-[24px]"
               style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
             >
-              How CastView scores a prospect
+              How CastView evaluates a prospect
             </h2>
 
             {/* Body */}
@@ -365,7 +449,7 @@ export function Results() {
               style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2', lineHeight: 1.8 }}
             >
               <p className="mb-[16px]">
-                Every evaluation score is built from four dimensions, each weighted equally:
+                Every alignment score is built from four dimensions, each weighted equally:
               </p>
 
               <p className="mb-[12px]">

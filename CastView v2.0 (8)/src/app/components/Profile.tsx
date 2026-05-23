@@ -42,15 +42,15 @@ export function Profile() {
   };
   
   const contextDescriptions: Record<string, string> = {
-    'Fragrance':  'Luxury fragrance campaigns — close-up, dramatic lighting, strong facial geometry',
-    'Editorial':  'Fashion magazine editorial — expressive, high-concept, versatile styling',
-    'Runway':     'Catwalk and show presentation — proportions, movement, silhouette',
-    'Campaign':   'Brand advertising campaigns — commercial appeal, consistent and readable',
-    'Beauty':     'Skincare and cosmetics — skin clarity, facial symmetry, close-up detail',
-    'Sportswear': 'Athletic and activewear — physicality, energy, movement range',
-    'Couture':    'High fashion and haute couture — architecture, proportion, refinement',
-    'Swimwear':   'Swimwear and resort — body confidence, natural ease, outdoor light',
-    'Street':     'Street style and contemporary fashion — personality, edge, urban context',
+    'Fragrance':  'Evaluate alignment with luxury fragrance campaign criteria',
+    'Editorial':  'Evaluate alignment with fashion editorial and magazine contexts',
+    'Runway':     'Evaluate alignment with catwalk and show presentation criteria',
+    'Campaign':   'Evaluate alignment with commercial brand advertising criteria',
+    'Beauty':     'Evaluate alignment with skincare and cosmetics campaign criteria',
+    'Sportswear': 'Evaluate alignment with athletic and activewear criteria',
+    'Couture':    'Evaluate alignment with haute couture and high fashion criteria',
+    'Swimwear':   'Evaluate alignment with swimwear and resort campaign criteria',
+    'Street':     'Evaluate alignment with contemporary street style criteria',
   };
   
   return (
@@ -160,7 +160,7 @@ export function Profile() {
               className="block mb-[16px] text-[11px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
             >
-              Select Evaluation Context
+              Select Alignment Contexts
             </label>
             <div className="grid grid-cols-3 gap-[12px]" data-tutorial="context-grid">
               {contexts.map((context) => {
@@ -200,6 +200,12 @@ export function Profile() {
                 );
               })}
             </div>
+            <p 
+              className="mt-[12px]"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', lineHeight: 1.6 }}
+            >
+              CastView analyses uploaded digitals against market context indicators. Results are alignment guidance — not objective judgments.
+            </p>
           </div>
           
           <div className="mb-[48px]">
@@ -253,7 +259,7 @@ export function Profile() {
               cursor: 'pointer'
             }}
           >
-            Run Evaluation
+            Run Alignment Analysis
           </button>
 
           {/* Status Row */}

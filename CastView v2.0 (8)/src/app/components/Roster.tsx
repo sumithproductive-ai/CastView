@@ -1,8 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Search, ChevronDown, Sparkles, X } from 'lucide-react';
+import type { DigitalSet } from '../types/talent';
 
-const models = [
+type Model = {
+  id: string;
+  name: string;
+  image: string;
+  primaryContext: string;
+  contexts: string[];
+  renderedContexts: string[];
+  topScore: number;
+  lastRender: string;
+  status: string;
+  recentlySigned: boolean;
+  division: string;
+  digitalSets: DigitalSet[];
+};
+
+const models: Model[] = [
   {
     id: 'sofia-andersen',
     name: 'Sofia Andersen',
@@ -14,7 +30,8 @@ const models = [
     lastRender: '3 days ago',
     status: 'ACTIVE',
     recentlySigned: true,
-    division: 'women'
+    division: 'women',
+    digitalSets: [],
   },
   {
     id: 'marcus-chen',
@@ -27,7 +44,8 @@ const models = [
     lastRender: '1 week ago',
     status: 'ACTIVE',
     recentlySigned: false,
-    division: 'men'
+    division: 'men',
+    digitalSets: [],
   },
   {
     id: 'ava-laurent',
@@ -40,7 +58,8 @@ const models = [
     lastRender: '2 weeks ago',
     status: 'ACTIVE',
     recentlySigned: false,
-    division: 'women'
+    division: 'women',
+    digitalSets: [],
   },
   {
     id: 'luca-moretti',
@@ -53,7 +72,8 @@ const models = [
     lastRender: '1 month ago',
     status: 'ON HOLD',
     recentlySigned: false,
-    division: 'men'
+    division: 'men',
+    digitalSets: [],
   },
   {
     id: 'isabella-novak',
@@ -66,7 +86,8 @@ const models = [
     lastRender: '5 days ago',
     status: 'ACTIVE',
     recentlySigned: true,
-    division: 'women'
+    division: 'women',
+    digitalSets: [],
   },
   {
     id: 'zara-klein',
@@ -79,7 +100,8 @@ const models = [
     lastRender: '3 weeks ago',
     status: 'ACTIVE',
     recentlySigned: false,
-    division: 'women'
+    division: 'women',
+    digitalSets: [],
   }
 ];
 
@@ -182,13 +204,13 @@ export function Roster() {
   ];
 
   const sortOptions = [
-    { value: 'last-rendered', label: 'Sort: Last Rendered' },
-    { value: 'top-score', label: 'Sort: Top Score' },
+    { value: 'last-rendered', label: 'Sort: Last Evaluated' },
+    { value: 'top-score', label: 'Sort: Top Alignment Score' },
     { value: 'name', label: 'Sort: Name' }
   ];
 
   const handleExportCSV = () => {
-    const headers = ['Name', 'Status', 'Top Score', 'Contexts Evaluated', 'Last Evaluated', 'Date Signed'];
+    const headers = ['Name', 'Status', 'Top Alignment Score', 'Contexts Evaluated', 'Last Evaluated', 'Date Signed'];
     const rows = models.map(m => [
       m.name,
       m.status,
@@ -309,7 +331,7 @@ export function Roster() {
               value={sortBy}
               onChange={(value) => setSortBy(value)}
               options={sortOptions}
-              currentLabel={sortOptions.find(opt => opt.value === sortBy)?.label || 'Sort: Last Rendered'}
+              currentLabel={sortOptions.find(opt => opt.value === sortBy)?.label || 'Sort: Last Evaluated'}
             />
 
             {/* Brief Match Button */}
@@ -595,7 +617,7 @@ export function Roster() {
                     className="text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
                     style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
                   >
-                    COMPARE RENDERS
+                    COMPARE EVALUATIONS
                   </div>
                 )}
 

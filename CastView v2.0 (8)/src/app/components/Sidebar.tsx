@@ -1,15 +1,24 @@
 import { useNavigate, useLocation, Link } from 'react-router';
-import { LayoutDashboard, Users, Image, Share2, Settings, Bell } from 'lucide-react';
+import { LayoutDashboard, Users, Image, Share2, Settings, Bell, FlaskConical, type LucideIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { NotificationsPanel } from './NotificationsPanel';
 
-const navItems = [
+type NavItem = { name: string; icon: LucideIcon; path: string; badge?: string };
+
+const coreNavItems: NavItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
   { name: 'Prospects', icon: Users, path: '/prospects' },
   { name: 'Roster', icon: Image, path: '/roster' },
   { name: 'Shared', icon: Share2, path: '/share' },
-  { name: 'Settings', icon: Settings, path: '/settings' }
+  { name: 'Settings', icon: Settings, path: '/settings' },
 ];
+
+const renderLabNavItem: NavItem = {
+  name: 'Render Lab',
+  icon: FlaskConical,
+  path: '/render-lab',
+  badge: 'BETA',
+};
 
 export function Sidebar() {
   const location = useLocation();
@@ -38,6 +47,9 @@ export function Sidebar() {
     }
     if (itemName === 'Settings') {
       return path === '/settings';
+    }
+    if (itemName === 'Render Lab') {
+      return path === '/render-lab';
     }
     return false;
   };
@@ -75,31 +87,41 @@ export function Sidebar() {
         </div>
         
         <nav className="flex-1 space-y-[4px]">
-          {navItems.map((item) => {
+          {[...coreNavItems, renderLabNavItem].map((item, index) => {
             const Icon = item.icon;
             const active = isActive(item.name);
-            
-            // During onboarding, render as disabled div instead of Link
-            if (isOnboarding) {
-              return (
-                <div
-                  key={item.name}
-                  className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px]"
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '13px',
-                    color: '#6a6a64',
-                    cursor: 'pointer',
-                    opacity: 0.5
-                  }}
-                >
-                  <Icon size={16} />
-                  <span>{item.name}</span>
-                </div>
-              );
-            }
-            
-            return (
+            const showDivider = index === coreNavItems.length;
+
+            const navEntry = isOnboarding ? (
+              <div
+                key={item.name}
+                className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px]"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '13px',
+                  color: '#6a6a64',
+                  cursor: 'pointer',
+                  opacity: 0.5,
+                }}
+              >
+                <Icon size={16} />
+                <span className="flex-1">{item.name}</span>
+                {item.badge && (
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '8px',
+                      color: '#888880',
+                      border: '1px solid #333330',
+                      padding: '2px 5px',
+                      borderRadius: '2px',
+                    }}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+            ) : (
               <Link
                 key={item.name}
                 to={item.path}
@@ -108,12 +130,41 @@ export function Sidebar() {
                   fontFamily: 'var(--font-mono)',
                   fontSize: '13px',
                   color: active ? '#f0f0ec' : '#a0a09a',
-                  backgroundColor: active ? '#1a1a1a' : 'transparent'
+                  backgroundColor: active ? '#1a1a1a' : 'transparent',
                 }}
               >
                 <Icon size={16} />
-                <span>{item.name}</span>
+                <span className="flex-1">{item.name}</span>
+                {item.badge && (
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '8px',
+                      color: '#888880',
+                      border: '1px solid #333330',
+                      padding: '2px 5px',
+                      borderRadius: '2px',
+                    }}
+                  >
+                    {item.badge}
+                  </span>
+                )}
               </Link>
+            );
+
+            return (
+              <div key={item.name}>
+                {showDivider && (
+                  <div
+                    style={{
+                      height: '1px',
+                      backgroundColor: '#1a1a1a',
+                      margin: '8px 16px',
+                    }}
+                  />
+                )}
+                {navEntry}
+              </div>
             );
           })}
         </nav>
@@ -180,7 +231,7 @@ export function Sidebar() {
       
       {/* Mobile Bottom Tab Bar */}
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[#111111] border-t border-[#2a2a2a] flex items-center justify-around h-[64px] z-50">
-        {navItems.map((item) => {
+        {[...coreNavItems, renderLabNavItem].map((item) => {
           const Icon = item.icon;
           const active = isActive(item.name);
           

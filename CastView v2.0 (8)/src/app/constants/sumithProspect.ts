@@ -1,11 +1,55 @@
+import type { DigitalSet } from '../types/talent';
+
 export const SUMITH_PROSPECT_ID = 'sumith-chittimalla';
 export const SUMITH_PROSPECT_NAME = 'Sumith Chittimalla';
 
-export const sumithDigitals = {
+export const SUMITH_DIGITAL_SET_V1: DigitalSet = {
+  id: 'digitals-v1',
+  uploadedAt: 'May 2026',
+  title: 'Initial Submission',
   front: 'https://i.imgur.com/jZHp7Ei.jpg',
   profile: 'https://i.imgur.com/aBlfily.jpg',
-  three_quarter: 'https://i.imgur.com/AlYexxj.jpg',
-  full_body: 'https://i.imgur.com/sH8hoNb.jpg',
+  threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
+  fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
+  additionalImages: [],
+  notes: '',
+  tags: ['initial', 'submission'],
+  evaluations: [
+    {
+      id: 'eval-1',
+      completedAt: 'May 20, 2026',
+      contexts: [
+        {
+          context: 'Fragrance',
+          alignmentScore: 94,
+          fitLabel: 'STRONG ALIGNMENT',
+          reasoning:
+            'Strong angular bone structure aligns with fragrance campaign framing criteria. Skin tone and undertone range scores well against editorial lighting benchmarks.',
+          strengths: [
+            'Strong bone structure aligns with fragrance context',
+            'Skin tone scores well against editorial lighting',
+            'Proportions support tight crop compositions',
+          ],
+          risks: ['Limited progression data — one digital set on file'],
+          marketSignals: [
+            'European luxury fragrance market trending toward this profile',
+            'High demand in NYC and London markets',
+          ],
+          suggestedNextSteps: [
+            'Schedule fragrance test shoot',
+            'Upload updated digitals after next shoot',
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+export const sumithDigitals = {
+  front: SUMITH_DIGITAL_SET_V1.front!,
+  profile: SUMITH_DIGITAL_SET_V1.profile!,
+  three_quarter: SUMITH_DIGITAL_SET_V1.threeQuarter!,
+  full_body: SUMITH_DIGITAL_SET_V1.fullBody!,
 };
 
 export const sumithDigitalsList = [

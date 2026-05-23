@@ -11,6 +11,7 @@ import { ModelHistory } from './components/ModelHistory';
 import { ProspectsIndex } from './components/ProspectsIndex';
 import { ProspectRenderHistory } from './components/ProspectRenderHistory';
 import { Settings } from './components/Settings';
+import { RenderLab } from './components/RenderLab';
 import { NewProspectBasicInfo } from './components/NewProspectBasicInfo';
 import { NewProspectDigitals } from './components/NewProspectDigitals';
 import { NewProspectReview } from './components/NewProspectReview';
@@ -184,6 +185,14 @@ export const router = createBrowserRouter([
     element: (
       <Layout>
         <Settings />
+      </Layout>
+    ),
+  },
+  {
+    path: '/render-lab',
+    element: (
+      <Layout>
+        <RenderLab />
       </Layout>
     ),
   },
