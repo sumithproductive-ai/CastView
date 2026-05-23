@@ -2,7 +2,24 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import { SUMITH_DIGITAL_SET_V1, SUMITH_PROSPECT_NAME } from '../constants/sumithProspect';
+import { getRosterModelById } from './Roster';
 import type { DigitalSet, Evaluation } from '../types/talent';
+
+type ProfileType = 'prospect' | 'model';
+
+type ProfileData = {
+  name: string;
+  status: string;
+  statusColor: string;
+  signedDate?: string;
+  digitalSets: DigitalSet[];
+};
+
+function getRosterStatusColor(status: string) {
+  if (status === 'ACTIVE') return '#5d7d5d';
+  if (status === 'ON HOLD') return '#7d6d4d';
+  return '#5d3d3d';
+}
 
 const sumithProspectData = {
   name: SUMITH_PROSPECT_NAME,
@@ -179,13 +196,54 @@ function getContextEvaluationRows(evaluation: Evaluation): ContextEvaluationRow[
   }));
 }
 
-export function ProspectRenderHistory() {
-  const { prospectId } = useParams();
-  const activeProspectData =
-    prospectId === 'sofia-andersen' ? prospectData : sumithProspectData;
+type ProspectRenderHistoryProps = {
+  profileType?: ProfileType;
+};
 
-  const [status, setStatus] = useState(activeProspectData.status);
-  const [statusColor, setStatusColor] = useState(activeProspectData.statusColor);
+function resolveProfileData(
+  profileType: ProfileType,
+  prospectId?: string,
+  modelId?: string
+): ProfileData {
+  if (profileType === 'model') {
+    const model = getRosterModelById(modelId ?? '');
+    if (model) {
+      return {
+        name: model.name,
+        status: model.status,
+        statusColor: getRosterStatusColor(model.status),
+        digitalSets: model.digitalSets,
+      };
+    }
+    return {
+      name: 'Unknown Model',
+      status: 'ACTIVE',
+      statusColor: getRosterStatusColor('ACTIVE'),
+      digitalSets: [],
+    };
+  }
+
+  const prospect =
+    prospectId === 'sofia-andersen' ? prospectData : sumithProspectData;
+  return {
+    name: prospect.name,
+    status: prospect.status,
+    statusColor: prospect.statusColor,
+    signedDate: prospect.signedDate,
+    digitalSets: prospect.digitalSets,
+  };
+}
+
+export function ProspectRenderHistory({
+  profileType = 'prospect',
+}: ProspectRenderHistoryProps) {
+  const { prospectId, modelId } = useParams();
+  const isProspect = profileType === 'prospect';
+  const isModel = profileType === 'model';
+  const activeProfile = resolveProfileData(profileType, prospectId, modelId);
+
+  const [status, setStatus] = useState(activeProfile.status);
+  const [statusColor, setStatusColor] = useState(activeProfile.statusColor);
   const [pendingStatusChange, setPendingStatusChange] = useState<null | {
     previousStatus: string;
     previousColor: string;
@@ -194,34 +252,38 @@ export function ProspectRenderHistory() {
   }>(null);
   const [openedSetId, setOpenedSetId] = useState<string | null>(null);
   const [notesBySet, setNotesBySet] = useState<Record<string, string>>({});
-  const [digitalSets, setDigitalSets] = useState<DigitalSet[]>(activeProspectData.digitalSets);
+  const [digitalSets, setDigitalSets] = useState<DigitalSet[]>(activeProfile.digitalSets);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [uploadForm, setUploadForm] = useState(emptyUploadForm);
   const navigate = useNavigate();
 
   useEffect(() => {
-    setDigitalSets(
-      prospectId === 'sofia-andersen'
-        ? [...prospectData.digitalSets]
-        : [...sumithProspectData.digitalSets]
-    );
+    const profile = resolveProfileData(profileType, prospectId, modelId);
+    setDigitalSets([...profile.digitalSets]);
+    setStatus(profile.status);
+    setStatusColor(profile.statusColor);
     setShowUploadForm(false);
     setUploadForm(emptyUploadForm);
     setOpenedSetId(null);
-  }, [prospectId]);
+  }, [profileType, prospectId, modelId]);
 
   const digitalSetCount = digitalSets.length;
   const evaluationsCompleted = countTotalEvaluations(digitalSets);
   const hasDigitalSets = digitalSetCount > 0;
   const canCompare = digitalSets.length >= 2;
-  const resolvedProspectId = prospectId ?? 'sumith-chittimalla';
+  const resolvedEntityId = isModel
+    ? modelId ?? 'sumith-chittimalla-roster'
+    : prospectId ?? 'sumith-chittimalla';
+  const profilePath = isModel
+    ? `/roster/${resolvedEntityId}`
+    : `/prospects/${resolvedEntityId}`;
 
   const handleCompare = (previousSetId: string) => {
     navigate('/compare', {
       state: {
-        prospectId: resolvedProspectId,
-        prospectName: activeProspectData.name,
-        profilePath: `/prospects/${resolvedProspectId}`,
+        prospectId: resolvedEntityId,
+        prospectName: activeProfile.name,
+        profilePath,
         previousSetId,
         digitalSets: digitalSets.map((set) => ({
           id: set.id,
@@ -231,6 +293,11 @@ export function ProspectRenderHistory() {
         })),
       },
     });
+  };
+
+  const handleCompareDigitals = () => {
+    if (!canCompare) return;
+    handleCompare(digitalSets[digitalSets.length - 1]?.id ?? digitalSets[0].id);
   };
 
   const handleSaveDigitalSet = () => {
@@ -287,35 +354,51 @@ export function ProspectRenderHistory() {
     <div className="p-[20px] md:p-[48px]">
       <div className="flex items-center gap-[8px] mb-[48px]">
         <Link
-          to="/prospects"
+          to={isModel ? '/roster' : '/prospects'}
           className="text-[13px] hover:opacity-70 transition-opacity"
           style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
         >
-          Prospects
+          {isModel ? 'Roster' : 'Prospects'}
         </Link>
         <ChevronRight size={14} style={{ color: '#6a6a64' }} />
         <span
           className="text-[13px]"
           style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
         >
-          {activeProspectData.name}
+          {activeProfile.name}
         </span>
       </div>
+
+      <p
+        className="mb-[8px]"
+        style={sectionLabelStyle}
+      >
+        {isModel ? 'ROSTER MODEL' : 'PROSPECT PROFILE'}
+      </p>
 
       <h1
         className="text-[48px] mb-[12px]"
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
-        {activeProspectData.name} — Evaluation History
+        {activeProfile.name} — {isModel ? 'Development History' : 'Evaluation History'}
       </h1>
+
+      <p
+        className="mb-[12px]"
+        style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
+      >
+        {isModel
+          ? 'Development history'
+          : 'Evaluation history for this prospect'}
+      </p>
 
       <p
         className="mb-[48px]"
         style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
       >
         {digitalSetCount} digital set{digitalSetCount !== 1 ? 's' : ''} · {evaluationsCompleted}{' '}
-        evaluation{evaluationsCompleted !== 1 ? 's' : ''} completed · Signed{' '}
-        {activeProspectData.signedDate}
+        evaluation{evaluationsCompleted !== 1 ? 's' : ''} completed
+        {isProspect && activeProfile.signedDate ? ` · Signed ${activeProfile.signedDate}` : ''}
       </p>
 
       <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[48px]">
@@ -331,22 +414,81 @@ export function ProspectRenderHistory() {
         >
           {status}
         </div>
-        <div className="flex gap-[12px]">
-          <button
-            onClick={() => handleStatusChange('SHORTLISTED', '#7d6d4d')}
-            className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-          >
-            SHORTLIST
-          </button>
-          <button
-            onClick={() => handleStatusChange('PASSED', '#5d3d3d')}
-            className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-          >
-            PASS
-          </button>
-        </div>
+        {isProspect ? (
+          <div className="flex flex-col gap-[12px]">
+            <button
+              type="button"
+              onClick={() => navigate('/profile')}
+              className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                backgroundColor: '#f0f0ec',
+                color: '#080808',
+                cursor: 'pointer',
+              }}
+            >
+              RUN EVALUATION
+            </button>
+            <div className="flex gap-[12px]">
+              <button
+                type="button"
+                onClick={() => handleStatusChange('SHORTLISTED', '#7d6d4d')}
+                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+              >
+                SHORTLIST
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStatusChange('PASSED', '#5d3d3d')}
+                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+              >
+                PASS
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-[12px]">
+            <button
+              type="button"
+              onClick={() => navigate('/profile')}
+              className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                backgroundColor: '#f0f0ec',
+                color: '#080808',
+                cursor: 'pointer',
+              }}
+            >
+              RUN EVALUATION
+            </button>
+            <div className="flex gap-[12px]">
+              <button
+                type="button"
+                onClick={() => navigate('/share')}
+                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+              >
+                SHARE DEVELOPMENT REPORT
+              </button>
+              <button
+                type="button"
+                disabled={!canCompare}
+                onClick={handleCompareDigitals}
+                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  color: '#f0f0ec',
+                  cursor: canCompare ? 'pointer' : 'not-allowed',
+                  opacity: canCompare ? 1 : 0.4,
+                }}
+              >
+                COMPARE DIGITALS
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {!hasDigitalSets ? (
@@ -440,7 +582,7 @@ export function ProspectRenderHistory() {
                           opacity: canCompare ? 1 : 0.4,
                         }}
                       >
-                        COMPARE
+                        {isModel ? 'COMPARE DIGITALS' : 'COMPARE'}
                       </button>
                       <button
                         type="button"

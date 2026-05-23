@@ -7,7 +7,6 @@ import { Rendering } from './components/Rendering';
 import { Results } from './components/Results';
 import { Share } from './components/Share';
 import { Roster } from './components/Roster';
-import { ModelHistory } from './components/ModelHistory';
 import { ProspectsIndex } from './components/ProspectsIndex';
 import { ProspectRenderHistory } from './components/ProspectRenderHistory';
 import { Settings } from './components/Settings';
@@ -100,7 +99,7 @@ export const router = createBrowserRouter([
     path: '/roster/:modelId',
     element: (
       <Layout>
-        <ModelHistory />
+        <ProspectRenderHistory profileType="model" />
       </Layout>
     ),
   },
@@ -176,7 +175,7 @@ export const router = createBrowserRouter([
     path: '/prospects/:prospectId',
     element: (
       <Layout>
-        <ProspectRenderHistory />
+        <ProspectRenderHistory profileType="prospect" />
       </Layout>
     ),
   },
