@@ -1,7 +1,7 @@
-import sumithFront from '../../../assets/sumith-front.jpg';
-import sumithProfile from '../../../assets/sumith-profile.jpg';
-import sumithThreeQuarter from '../../../assets/sumith-three-quarter.jpg';
-import sumithFullBody from '../../../assets/sumith-full-body.jpg';
+import sumithFront from '@/assets/sumith-front.jpg';
+import sumithProfile from '@/assets/sumith-profile.jpg';
+import sumithThreeQuarter from '@/assets/sumith-three-quarter.jpg';
+import sumithFullBody from '@/assets/sumith-full-body.jpg';
 import type { DigitalSet } from '../types/talent';
 
 export const SUMITH_PROSPECT_ID = 'sumith-chittimalla';
