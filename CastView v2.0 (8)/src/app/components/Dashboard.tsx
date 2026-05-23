@@ -50,7 +50,7 @@ const recentProspects = [
     status: 'In Review',
     statusColor: '#C8A96E',
     timeAgo: '2 hours ago',
-    image: 'https://i.imgur.com/39KyFLK.jpg'
+    image: 'https://i.imgur.com/F70z8kX.jpg'
   },
   {
     id: 'marcus-chen',
@@ -92,7 +92,7 @@ const rosterActivity = [
     name: 'Sumith Chittimalla',
     activity: 'New evaluation — Fragrance',
     timeAgo: '1 hour ago',
-    image: 'https://i.imgur.com/39KyFLK.jpg'
+    image: 'https://i.imgur.com/F70z8kX.jpg'
   },
   {
     id: 'marcus-chen',

@@ -40,7 +40,7 @@ const initialProspects: Prospect[] = [
     evaluations: 1,
     submissionDate: '2 days ago',
     source: 'DIRECT' as Source,
-    image: 'https://i.imgur.com/39KyFLK.jpg',
+    image: 'https://i.imgur.com/F70z8kX.jpg',
     contexts: ['FR', 'ED', 'CA'],
     renderedContexts: ['FR'],
     division: 'men',
