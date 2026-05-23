@@ -9,9 +9,9 @@ type Model = {
   image: string;
   primaryContext: string;
   contexts: string[];
-  renderedContexts: string[];
+  evaluatedContexts: string[];
   topScore: number;
-  lastRender: string;
+  lastEvaluation: string;
   status: string;
   recentlySigned: boolean;
   division: string;
@@ -25,9 +25,9 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1742540425779-4172d3ac460a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwb3J0cmFpdCUyMHByb2Zlc3Npb25hbCUyMHN0dWRpb3xlbnwxfHx8fDE3NzMxNjUyODN8MA&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'EDITORIAL',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'ED', 'RW', 'CA'],
+    evaluatedContexts: ['FR', 'ED', 'RW', 'CA'],
     topScore: 96,
-    lastRender: '3 days ago',
+    lastEvaluation: '3 days ago',
     status: 'ACTIVE',
     recentlySigned: true,
     division: 'women',
@@ -39,9 +39,9 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1768742466928-7eb18e2fcb6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxlJTIwZmFzaGlvbiUyMG1vZGVsJTIwaGVhZHNob3R8ZW58MXx8fHwxNzczMTY1MjgzfDA&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'CAMPAIGN',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'CA'],
+    evaluatedContexts: ['FR', 'CA'],
     topScore: 91,
-    lastRender: '1 week ago',
+    lastEvaluation: '1 week ago',
     status: 'ACTIVE',
     recentlySigned: false,
     division: 'men',
@@ -53,9 +53,9 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1646805925007-510be75f20f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmZW1hbGUlMjBtb2RlbCUyMGVkaXRvcmlhbCUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE2NTI4NHww&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'FRAGRANCE',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'ED', 'RW'],
+    evaluatedContexts: ['FR', 'ED', 'RW'],
     topScore: 89,
-    lastRender: '2 weeks ago',
+    lastEvaluation: '2 weeks ago',
     status: 'ACTIVE',
     recentlySigned: false,
     division: 'women',
@@ -67,9 +67,9 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1758613653843-87c253aea8cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwcm9mZXNzaW9uYWwlMjBwaG90b3xlbnwxfHx8fDE3NzMxNjUyODR8MA&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'RUNWAY',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['RW'],
+    evaluatedContexts: ['RW'],
     topScore: 85,
-    lastRender: '1 month ago',
+    lastEvaluation: '1 month ago',
     status: 'ON HOLD',
     recentlySigned: false,
     division: 'men',
@@ -81,9 +81,9 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1616002430110-ab30442021fe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHBvcnRmb2xpbyUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MzE2NTI4NHww&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'EDITORIAL',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'ED', 'RW', 'CA'],
+    evaluatedContexts: ['FR', 'ED', 'RW', 'CA'],
     topScore: 93,
-    lastRender: '5 days ago',
+    lastEvaluation: '5 days ago',
     status: 'ACTIVE',
     recentlySigned: true,
     division: 'women',
@@ -95,9 +95,9 @@ export const rosterModels: Model[] = [
     image: 'https://images.unsplash.com/photo-1650094762225-3561578643c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwcnVud2F5JTIwbW9kZWwlMjBjbG9zZXVwfGVufDF8fHx8MTc3MzE2NTI4NXww&ixlib=rb-4.1.0&q=80&w=1080',
     primaryContext: 'FRAGRANCE',
     contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'CA'],
+    evaluatedContexts: ['FR', 'CA'],
     topScore: 88,
-    lastRender: '3 weeks ago',
+    lastEvaluation: '3 weeks ago',
     status: 'ACTIVE',
     recentlySigned: false,
     division: 'women',
@@ -109,9 +109,9 @@ export const rosterModels: Model[] = [
     image: 'https://i.imgur.com/39KyFLK.jpg',
     primaryContext: 'FRAGRANCE',
     contexts: ['FR', 'ED', 'CA', 'ST'],
-    renderedContexts: ['FR', 'ED', 'CA', 'ST'],
+    evaluatedContexts: ['FR', 'ED', 'CA', 'ST'],
     topScore: 94,
-    lastRender: '3 days ago',
+    lastEvaluation: '3 days ago',
     status: 'ACTIVE',
     recentlySigned: true,
     division: 'men',
@@ -288,7 +288,7 @@ export function Roster() {
   const [search, setSearch] = useState('');
   const [contextFilter, setContextFilter] = useState('all');
   const [divisionFilter, setDivisionFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('last-rendered');
+  const [sortBy, setSortBy] = useState('last-evaluated');
   const [briefMatchActive, setBriefMatchActive] = useState(false);
   const [briefQuery, setBriefQuery] = useState('');
   const [showMatchResults, setShowMatchResults] = useState(false);
@@ -324,7 +324,7 @@ export function Roster() {
   ];
 
   const sortOptions = [
-    { value: 'last-rendered', label: 'Sort: Last Evaluated' },
+    { value: 'last-evaluated', label: 'Sort: Last Evaluated' },
     { value: 'top-score', label: 'Sort: Top Alignment Score' },
     { value: 'name', label: 'Sort: Name' }
   ];
@@ -335,8 +335,8 @@ export function Roster() {
       m.name,
       m.status,
       m.topScore.toString(),
-      m.renderedContexts.join(' | '),
-      m.lastRender,
+      m.evaluatedContexts.join(' | '),
+      m.lastEvaluation,
       m.recentlySigned ? 'Recently Signed' : ''
     ]);
     const csv = [headers, ...rows]
@@ -373,13 +373,13 @@ export function Roster() {
     if (sortBy === 'top-score') {
       return (b.topScore || 0) - (a.topScore || 0);
     }
-    if (sortBy === 'last-rendered') {
+    if (sortBy === 'last-evaluated') {
       const order = [
         '3 days ago', '5 days ago', '1 week ago',
         '2 weeks ago', '3 weeks ago', '1 month ago'
       ];
-      return order.indexOf(a.lastRender) - 
-             order.indexOf(b.lastRender);
+      return order.indexOf(a.lastEvaluation) - 
+             order.indexOf(b.lastEvaluation);
     }
     return 0;
   });
@@ -680,7 +680,7 @@ export function Roster() {
                 {/* Context Chips */}
                 <div className="flex gap-[8px] mb-[16px]">
                   {model.contexts.map((context) => {
-                    const isRendered = model.renderedContexts.includes(context);
+                    const isRendered = model.evaluatedContexts.includes(context);
                     return (
                       <div
                         key={context}
@@ -708,7 +708,7 @@ export function Roster() {
                   <div 
                     style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a' }}
                   >
-                    {model.lastRender}
+                    Last evaluated · {model.lastEvaluation}
                   </div>
                 </div>
 

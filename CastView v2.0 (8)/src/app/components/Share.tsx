@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 
-const renders = [
+const evaluations = [
   { id: 1, context: 'Fragrance', score: 94, checked: true },
   { id: 2, context: 'Editorial', score: 96, checked: true },
   { id: 3, context: 'Campaign', score: 88, checked: true },
@@ -16,13 +16,13 @@ const deliveryMethods = [
 
 export function Share() {
   const [selectedMethod, setSelectedMethod] = useState('Share Link');
-  const [checkedRenders, setCheckedRenders] = useState<number[]>(renders.map(r => r.id));
+  const [checkedEvaluations, setCheckedEvaluations] = useState<number[]>(evaluations.map(e => e.id));
   const [copied, setCopied] = useState(false);
   const [expiry, setExpiry] = useState('7-days');
   const [passwordEnabled, setPasswordEnabled] = useState(false);
   
-  const toggleRender = (id: number) => {
-    setCheckedRenders(prev => 
+  const toggleEvaluation = (id: number) => {
+    setCheckedEvaluations(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
@@ -66,27 +66,27 @@ export function Share() {
       </h1>
       
       <div className="grid grid-cols-3 gap-[48px]">
-        {/* Left: Render Selection */}
+        {/* Left: Evaluation Selection */}
         <div>
           <div 
             className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
           >
-            Include Evaluations
+            EVALUATION SELECTION
           </div>
           
           <div className="space-y-[16px]">
-            {renders.map((render) => {
-              const isChecked = checkedRenders.includes(render.id);
+            {evaluations.map((evaluation) => {
+              const isChecked = checkedEvaluations.includes(evaluation.id);
               return (
                 <label
-                  key={render.id}
+                  key={evaluation.id}
                   className="flex items-center gap-[16px] p-[16px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] cursor-pointer hover:bg-[#1a1a1a] transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => toggleRender(render.id)}
+                    onChange={() => toggleEvaluation(evaluation.id)}
                     className="w-[16px] h-[16px] accent-[#f0f0ec]"
                     style={{ cursor: 'pointer' }}
                   />
@@ -94,13 +94,13 @@ export function Share() {
                     <div 
                       style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
                     >
-                      {render.context}
+                      {evaluation.context}
                     </div>
                   </div>
                   <div 
                     style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}
                   >
-                    {render.score}%
+                    {evaluation.score}%
                   </div>
                 </label>
               );

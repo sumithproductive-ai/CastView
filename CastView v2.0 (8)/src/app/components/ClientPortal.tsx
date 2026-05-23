@@ -5,32 +5,32 @@ export function ClientPortal() {
   const [response, setResponse] = useState<'interested' | 'pass' | null>(null);
   const [note, setNote] = useState('');
 
-  const renderCards = [
+  const evaluationCards = [
     {
       id: 1,
       context: 'FRAGRANCE',
-      score: 94,
+      alignmentScore: 94,
       image: 'https://images.unsplash.com/photo-1761329842950-f3551938e4da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmFncmFuY2UlMjBlZGl0b3JpYWwlMjBtb2RlbCUyMHBob3RvfGVufDF8fHx8MTc3MzE2NTMzMnww&ixlib=rb-4.1.0&q=80&w=1080',
       isFeatured: true
     },
     {
       id: 2,
       context: 'EDITORIAL',
-      score: 96,
+      alignmentScore: 96,
       image: 'https://images.unsplash.com/photo-1708170236080-6cb6d2d5497c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlZGl0b3JpYWwlMjBmYXNoaW9uJTIwdmVydGljYWwlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzMxNjUzMzF8MA&ixlib=rb-4.1.0&q=80&w=1080',
       isFeatured: false
     },
     {
       id: 3,
       context: 'CAMPAIGN',
-      score: 88,
+      alignmentScore: 88,
       image: 'https://images.unsplash.com/photo-1697677103505-dd4b2dbf1b1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYW1wYWlnbiUyMGZhc2hpb24lMjBzaG9vdHxlbnwxfHx8fDE3NzMxNjUzMzJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
       isFeatured: false
     },
     {
       id: 4,
       context: 'BEAUTY',
-      score: 91,
+      alignmentScore: 91,
       image: 'https://images.unsplash.com/photo-1759873911657-8140566c29a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWF1dHklMjBlZGl0b3JpYWwlMjBwb3J0cmFpdCUyMHNxdWFyZXxlbnwxfHx8fDE3NzMxNjUzMzN8MA&ixlib=rb-4.1.0&q=80&w=1080',
       isFeatured: false
     }
@@ -96,9 +96,9 @@ export function ClientPortal() {
         </div>
       </div>
 
-      {/* 2x2 Render Grid */}
+      {/* 2x2 Evaluation Grid */}
       <div className="grid grid-cols-2 gap-[24px] mb-[48px]">
-        {renderCards.map((card) => (
+        {evaluationCards.map((card) => (
           <div 
             key={card.id}
             className="rounded-[4px] overflow-hidden"
@@ -107,7 +107,7 @@ export function ClientPortal() {
               border: card.isFeatured ? '1px solid #f0f0ec' : '1px solid #2a2a2a'
             }}
           >
-            {/* Render Image */}
+            {/* Evaluation Image */}
             <div className="aspect-[4/5] bg-[#1a1a1a]">
               <img 
                 src={card.image} 
@@ -126,19 +126,19 @@ export function ClientPortal() {
                 {card.context}
               </div>
 
-              {/* Score */}
+              {/* Alignment Score */}
               <div 
                 className="text-[32px] mb-[12px]"
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                {card.score}%
+                {card.alignmentScore}%
               </div>
 
               {/* Progress Bar */}
               <div className="h-[4px] bg-[#2a2a2a] rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-[#f0f0ec] rounded-full"
-                  style={{ width: `${card.score}%` }}
+                  style={{ width: `${card.alignmentScore}%` }}
                 />
               </div>
             </div>

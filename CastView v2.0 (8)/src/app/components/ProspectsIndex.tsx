@@ -12,7 +12,7 @@ type Prospect = {
   name: string;
   status: string;
   statusColor: string;
-  renders: number;
+  evaluations: number;
   submissionDate: string;
   source?: Source;
   image: string | null;
@@ -37,7 +37,7 @@ const initialProspects: Prospect[] = [
     name: 'Sumith Chittimalla',
     status: 'IN REVIEW',
     statusColor: '#C8A96E',
-    renders: 1,
+    evaluations: 1,
     submissionDate: '2 days ago',
     source: 'DIRECT' as Source,
     image: 'https://i.imgur.com/39KyFLK.jpg',
@@ -60,7 +60,7 @@ const initialProspects: Prospect[] = [
     name: 'Camille Rousseau',
     status: 'DRAFT',
     statusColor: '#666666',
-    renders: 0,
+    evaluations: 0,
     submissionDate: 'Today',
     image: null,
     contexts: ['FR', 'ED', 'RW', 'CA'],
@@ -73,7 +73,7 @@ const initialProspects: Prospect[] = [
     name: 'Sofia Andersen',
     status: 'SHORTLISTED',
     statusColor: '#7d6d4d',
-    renders: 4,
+    evaluations: 4,
     submissionDate: '2 days ago',
     image: 'https://images.unsplash.com/photo-1726232409367-04682eb856a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwb3J0cmFpdCUyMHByb2Zlc3Npb25hbHxlbnwxfHx8fDE3NzMwODU2NjF8MA&ixlib=rb-4.1.0&q=80&w=1080',
     contexts: ['FR', 'ED', 'RW', 'CA'],
@@ -86,7 +86,7 @@ const initialProspects: Prospect[] = [
     name: 'Marcus Chen',
     status: 'IN REVIEW',
     statusColor: '#4d3d5d',
-    renders: 2,
+    evaluations: 2,
     submissionDate: '3 days ago',
     image: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxlJTIwbW9kZWwlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzMwMDgzMzR8MA&ixlib=rb-4.1.0&q=80&w=1080',
     contexts: ['FR', 'ED', 'RW', 'CA'],
@@ -99,7 +99,7 @@ const initialProspects: Prospect[] = [
     name: 'Ava Laurent',
     status: 'IN REVIEW',
     statusColor: '#4d3d5d',
-    renders: 3,
+    evaluations: 3,
     submissionDate: '4 days ago',
     image: 'https://images.unsplash.com/photo-1627161683077-e34782c24d81?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmZW1hbGUlMjBtb2RlbCUyMGhlYWRzaG90fGVufDF8fHx8MTc3MzA4NTY2M3ww&ixlib=rb-4.1.0&q=80&w=1080',
     contexts: ['FR', 'ED', 'RW', 'CA'],
@@ -112,7 +112,7 @@ const initialProspects: Prospect[] = [
     name: 'Luca Moretti',
     status: 'NEW',
     statusColor: '#3d4d5d',
-    renders: 0,
+    evaluations: 0,
     submissionDate: '5 days ago',
     image: null,
     contexts: ['FR', 'ED', 'RW', 'CA'],
@@ -125,7 +125,7 @@ const initialProspects: Prospect[] = [
     name: 'Isabella Novak',
     status: 'PASSED',
     statusColor: '#5d3d3d',
-    renders: 1,
+    evaluations: 1,
     submissionDate: '6 days ago',
     image: 'https://images.unsplash.com/photo-1674713406394-8f994f26432c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHBvcnRyYWl0JTIwYW5nbGUlMjB2aWV3fGVufDF8fHx8MTc3MzA4NTY2Nnww&ixlib=rb-4.1.0&q=80&w=1080',
     contexts: ['FR', 'ED', 'RW', 'CA'],
@@ -138,7 +138,7 @@ const initialProspects: Prospect[] = [
     name: 'Zara Klein',
     status: 'SHORTLISTED',
     statusColor: '#7d6d4d',
-    renders: 5,
+    evaluations: 5,
     submissionDate: '1 week ago',
     image: 'https://images.unsplash.com/photo-1650094762225-3561578643c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwcnVud2F5JTIwbW9kZWwlMjBjbG9zZXVwfGVufDF8fHx8MTc3MzE2NTI4NXww&ixlib=rb-4.1.0&q=80&w=1080',
     contexts: ['FR', 'ED', 'RW', 'CA'],
@@ -378,7 +378,7 @@ export function ProspectsIndex() {
         return a.name.localeCompare(b.name);
       }
       if (sortBy === 'top-score') {
-        return (b.renders || 0) - (a.renders || 0);
+        return (b.evaluations || 0) - (a.evaluations || 0);
       }
       // Default: submission-date — keep original order
       return 0;
@@ -390,7 +390,7 @@ export function ProspectsIndex() {
       p.name,
       p.status,
       p.source || '',
-      p.renders.toString(),
+      p.evaluations.toString(),
       p.submissionDate,
       p.renderedContexts.join(' | ')
     ]);
@@ -414,7 +414,7 @@ export function ProspectsIndex() {
       name: quickName,
       status: 'DRAFT',
       statusColor: '#666666',
-      renders: 0,
+      evaluations: 0,
       submissionDate: 'Today',
       image: null,
       contexts: ['FR', 'ED', 'RW', 'CA'],
@@ -719,7 +719,7 @@ export function ProspectsIndex() {
                     <div 
                       style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}
                     >
-                      {prospect.renders} evaluation{prospect.renders !== 1 ? 's' : ''}
+                      {prospect.evaluations} evaluation{prospect.evaluations !== 1 ? 's' : ''}
                     </div>
                     <div 
                       style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a' }}

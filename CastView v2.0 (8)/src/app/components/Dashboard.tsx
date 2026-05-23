@@ -249,7 +249,7 @@ export function Dashboard() {
                     zIndex: 10
                   }}
                 >
-                  2 avoided test shoots · $2,350 avg
+                  2 evaluations completed · $2,350 avg test shoot cost avoided
                 </div>
               )}
             </div>
