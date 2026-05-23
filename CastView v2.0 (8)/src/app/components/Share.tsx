@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 
 const evaluations = [
   { id: 1, context: 'Fragrance', score: 94, checked: true },
@@ -21,6 +22,7 @@ export function Share() {
   const [copied, setCopied] = useState(false);
   const [expiry, setExpiry] = useState('7-days');
   const [passwordEnabled, setPasswordEnabled] = useState(false);
+  const [agentNotes, setAgentNotes] = useState('');
   
   const toggleEvaluation = (id: number) => {
     setCheckedEvaluations(prev => 
@@ -55,6 +57,301 @@ export function Share() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const pageWidth = 210;
+    const margin = 20;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    const addText = (
+      text: string,
+      x: number,
+      fontSize: number,
+      color: [number, number, number],
+      style: 'normal' | 'bold' = 'normal'
+    ) => {
+      doc.setFontSize(fontSize);
+      doc.setTextColor(...color);
+      doc.setFont('helvetica', style);
+      doc.text(text, x, y);
+    };
+
+    const checkPageBreak = (neededSpace: number) => {
+      if (y + neededSpace > 277) {
+        doc.addPage();
+        y = 20;
+      }
+    };
+
+    // ── HEADER ──
+    doc.setFillColor(8, 8, 8);
+    doc.rect(0, 0, 210, 297, 'F');
+
+    addText('CASTVIEW', margin, 9, [200, 169, 110]);
+    y += 6;
+    addText('Context Alignment Report', margin, 22, [240, 240, 236], 'bold');
+    y += 10;
+    addText('castview.io · hello@castview.io', margin, 8, [136, 136, 128]);
+    y += 10;
+
+    // ── DIVIDER ──
+    doc.setDrawColor(42, 42, 42);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+
+    // ── PROSPECT INFO ──
+    addText('PROSPECT', margin, 8, [136, 136, 128]);
+    y += 5;
+    addText('Sumith Chittimalla', margin, 18, [240, 240, 236], 'bold');
+    y += 6;
+    addText('Division: Men  ·  Primary Context: Fragrance  ·  Markets: NYC, London', margin, 8, [160, 160, 154]);
+    y += 5;
+    addText(`Report generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, margin, 8, [136, 136, 128]);
+    y += 10;
+
+    // ── OVERALL SUMMARY ──
+    doc.setFillColor(26, 26, 26);
+    doc.roundedRect(margin, y, contentWidth, 18, 2, 2, 'F');
+    y += 6;
+    addText('OVERALL SUMMARY', margin + 6, 7, [200, 169, 110]);
+    y += 5;
+    const summaryLines = doc.splitTextToSize(
+      'Strong contextual alignment across luxury and editorial contexts based on uploaded digitals. Facial geometry, proportions, and market fit indicators score above benchmark across all evaluated contexts.',
+      contentWidth - 12
+    );
+    doc.setFontSize(9);
+    doc.setTextColor(192, 192, 186);
+    doc.setFont('helvetica', 'normal');
+    doc.text(summaryLines, margin + 6, y);
+    y += summaryLines.length * 5 + 10;
+
+    // ── CONTEXT EVALUATIONS ──
+    const selectedEvals = evaluations.filter(e =>
+      checkedEvaluations.includes(e.id)
+    );
+
+    const evalData: Record<string, {
+      reasoning: string;
+      strengths: string[];
+      risks: string[];
+      marketSignals: string[];
+      suggestedNextSteps: string[];
+      fitLabel: string;
+    }> = {
+      'Fragrance': {
+        fitLabel: 'STRONG ALIGNMENT',
+        reasoning: 'The uploaded digitals show strong alignment with current European luxury fragrance casting criteria. Facial geometry and proportions match the framing requirements of this context.',
+        strengths: [
+          'Strong angular bone structure aligns with fragrance campaign framing criteria',
+          'Skin tone and undertone range scores well against editorial lighting benchmarks',
+          'Proportions support tight crop compositions typical of this context'
+        ],
+        risks: ['Limited progression data — one digital set on file'],
+        marketSignals: [
+          'European luxury fragrance market trending toward this profile type',
+          'High demand for this look in NYC and London markets'
+        ],
+        suggestedNextSteps: [
+          'Schedule fragrance test shoot',
+          'Approach luxury fragrance clients in NYC market first',
+          'Upload updated digitals after next shoot for progression tracking'
+        ]
+      },
+      'Editorial': {
+        fitLabel: 'STRONG ALIGNMENT',
+        reasoning: 'Editorial versatility indicators are high. Strong framing and posture in digitals support editorial and magazine contexts across European and US markets.',
+        strengths: [
+          'Strong editorial presence in digitals',
+          'Versatile look range supports multiple editorial styles',
+          'Bone structure reads well in both close-crop and full-frame compositions'
+        ],
+        risks: ['No editorial test shoot on file yet'],
+        marketSignals: [
+          'NYC editorial market active and receptive to this profile',
+          'Strong alignment with current European editorial casting trends'
+        ],
+        suggestedNextSteps: [
+          'Approach editorial clients in NYC and London',
+          'Schedule editorial test shoot to build portfolio'
+        ]
+      },
+      'Campaign': {
+        fitLabel: 'STRONG ALIGNMENT',
+        reasoning: 'Commercial appeal remains strong across campaign context benchmarks. Proportions and approachability scores are above average for brand advertising contexts.',
+        strengths: [
+          'High commercial appeal across broad consumer demographics',
+          'Strong brand-fit indicators for lifestyle and luxury campaign contexts'
+        ],
+        risks: ['Campaign versatility requires test shoot confirmation'],
+        marketSignals: ['Strong demand for this profile in US campaign market'],
+        suggestedNextSteps: [
+          'Target lifestyle brand campaigns first',
+          'Build campaign-specific portfolio section'
+        ]
+      },
+      'Beauty': {
+        fitLabel: 'STRONG ALIGNMENT',
+        reasoning: 'Skin tone consistency and facial symmetry indicators score well against beauty campaign benchmarks.',
+        strengths: [
+          'Skin tone scores well for beauty and skincare contexts',
+          'Facial symmetry above benchmark for beauty casting criteria'
+        ],
+        risks: ['Beauty portfolio not yet established'],
+        marketSignals: ['Beauty context demand growing in NYC market'],
+        suggestedNextSteps: [
+          'Schedule beauty-specific test shoot',
+          'Approach skincare and grooming brand clients'
+        ]
+      }
+    };
+
+    selectedEvals.forEach((evaluation) => {
+      const data = evalData[evaluation.context] ?? {
+        fitLabel: 'STRONG ALIGNMENT',
+        reasoning: 'Strong alignment with context criteria based on uploaded digitals.',
+        strengths: ['Alignment criteria met'],
+        risks: ['Limited data'],
+        marketSignals: ['Market demand present'],
+        suggestedNextSteps: ['Schedule test shoot']
+      };
+
+      checkPageBreak(80);
+
+      // Context header bar
+      doc.setFillColor(26, 26, 26);
+      doc.roundedRect(margin, y, contentWidth, 10, 2, 2, 'F');
+      addText(evaluation.context.toUpperCase(), margin + 6, 8, [200, 169, 110], 'bold');
+
+      // Score on right
+      doc.setFontSize(8);
+      doc.setTextColor(240, 240, 236);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${evaluation.score}%  ${data.fitLabel}`, pageWidth - margin - 6, y + 3, { align: 'right' });
+      y += 14;
+
+      // Score bar
+      doc.setFillColor(42, 42, 42);
+      doc.roundedRect(margin, y, contentWidth, 3, 1, 1, 'F');
+      doc.setFillColor(200, 169, 110);
+      doc.roundedRect(margin, y, contentWidth * (evaluation.score / 100), 3, 1, 1, 'F');
+      y += 8;
+
+      // Reasoning
+      addText('REASONING', margin, 7, [136, 136, 128], 'bold');
+      y += 4;
+      const reasoningLines = doc.splitTextToSize(data.reasoning, contentWidth);
+      doc.setFontSize(8);
+      doc.setTextColor(192, 192, 186);
+      doc.setFont('helvetica', 'normal');
+      doc.text(reasoningLines, margin, y);
+      y += reasoningLines.length * 4.5 + 5;
+
+      // Strengths
+      checkPageBreak(30);
+      addText('STRENGTHS', margin, 7, [74, 122, 74], 'bold');
+      y += 4;
+      data.strengths.forEach(s => {
+        const lines = doc.splitTextToSize(`→  ${s}`, contentWidth - 4);
+        doc.setFontSize(8);
+        doc.setTextColor(160, 160, 154);
+        doc.setFont('helvetica', 'normal');
+        doc.text(lines, margin + 2, y);
+        y += lines.length * 4.5;
+      });
+      y += 3;
+
+      // Risks
+      if (data.risks.length > 0) {
+        checkPageBreak(20);
+        addText('RISKS', margin, 7, [200, 122, 122], 'bold');
+        y += 4;
+        data.risks.forEach(r => {
+          const lines = doc.splitTextToSize(`→  ${r}`, contentWidth - 4);
+          doc.setFontSize(8);
+          doc.setTextColor(160, 160, 154);
+          doc.setFont('helvetica', 'normal');
+          doc.text(lines, margin + 2, y);
+          y += lines.length * 4.5;
+        });
+        y += 3;
+      }
+
+      // Market Signals
+      checkPageBreak(20);
+      addText('MARKET SIGNALS', margin, 7, [136, 136, 128], 'bold');
+      y += 4;
+      data.marketSignals.forEach(m => {
+        const lines = doc.splitTextToSize(`→  ${m}`, contentWidth - 4);
+        doc.setFontSize(8);
+        doc.setTextColor(160, 160, 154);
+        doc.setFont('helvetica', 'normal');
+        doc.text(lines, margin + 2, y);
+        y += lines.length * 4.5;
+      });
+      y += 3;
+
+      // Next Steps
+      checkPageBreak(20);
+      addText('SUGGESTED NEXT STEPS', margin, 7, [136, 136, 128], 'bold');
+      y += 4;
+      data.suggestedNextSteps.forEach(step => {
+        const lines = doc.splitTextToSize(`→  ${step}`, contentWidth - 4);
+        doc.setFontSize(8);
+        doc.setTextColor(160, 160, 154);
+        doc.setFont('helvetica', 'normal');
+        doc.text(lines, margin + 2, y);
+        y += lines.length * 4.5;
+      });
+
+      y += 8;
+      doc.setDrawColor(42, 42, 42);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 8;
+    });
+
+    // ── AGENT NOTES ──
+    checkPageBreak(30);
+    addText('AGENT NOTES', margin, 8, [200, 169, 110], 'bold');
+    y += 5;
+    doc.setFillColor(20, 20, 20);
+    doc.roundedRect(margin, y, contentWidth, 20, 2, 2, 'F');
+    y += 6;
+    const notesText = agentNotes.trim() || 'No agent notes added for this evaluation.';
+    const notesLines = doc.splitTextToSize(notesText, contentWidth - 12);
+    doc.setFontSize(8.5);
+    doc.setTextColor(192, 192, 186);
+    doc.setFont('helvetica', 'normal');
+    doc.text(notesLines, margin + 6, y);
+    y += notesLines.length * 5 + 14;
+
+    // ── DISCLAIMER ──
+    checkPageBreak(30);
+    doc.setDrawColor(42, 42, 42);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 6;
+    addText('DISCLAIMER', margin, 7, [136, 136, 128], 'bold');
+    y += 4;
+    const disclaimer = 'This report is generated by AI analysis of uploaded digitals and is intended as a decision-support tool only. Context alignment scores do not constitute professional casting advice and should be used alongside agent judgment. CastView does not guarantee casting outcomes. All evaluations reflect the digitals available at time of analysis.';
+    const disclaimerLines = doc.splitTextToSize(disclaimer, contentWidth);
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 100, 96);
+    doc.setFont('helvetica', 'normal');
+    doc.text(disclaimerLines, margin, y);
+    y += disclaimerLines.length * 4 + 8;
+
+    // ── FOOTER ──
+    addText('Prepared by CastView  ·  castview.io  ·  hello@castview.io', margin, 7, [100, 100, 96]);
+
+    doc.save('CastView-Sumith-Chittimalla-Evaluation.pdf');
   };
   
   return (
@@ -276,12 +573,46 @@ export function Share() {
           )}
           
           {selectedMethod === 'Export PDF' && (
-            <div className="text-center py-[48px]">
-              <div 
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}
+            <div>
+              <div
+                className="mb-[12px] uppercase tracking-[0.1em]"
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#888880' }}
               >
-                PDF export configuration
+                AGENT NOTES FOR REPORT
               </div>
+
+              <textarea
+                value={agentNotes}
+                onChange={(e) => setAgentNotes(e.target.value)}
+                placeholder="Add notes to include in the PDF report..."
+                rows={5}
+                className="w-full px-[16px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] mb-[16px] resize-none"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '12px',
+                  color: '#f0f0ec'
+                }}
+              />
+
+              <div
+                className="mb-[16px]"
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
+              >
+                {checkedEvaluations.length} evaluation{checkedEvaluations.length !== 1 ? 's' : ''} will be included in the PDF report
+              </div>
+
+              <button
+                onClick={generatePDF}
+                className="w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+                style={{
+                  fontFamily: 'var(--font-label)',
+                  backgroundColor: '#f0f0ec',
+                  color: '#080808',
+                  cursor: 'pointer'
+                }}
+              >
+                DOWNLOAD PDF REPORT
+              </button>
             </div>
           )}
           
