@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ChevronRight, Upload, X } from 'lucide-react';
 import { SUMITH_DIGITAL_SET_V1, SUMITH_PROSPECT_NAME } from '../constants/sumithProspect';
+import { useProspects, type Prospect } from '../context/ProspectsContext';
 import { getRosterModelById } from './Roster';
 import type { DigitalSet, Evaluation } from '../types/talent';
 import { TutorialOverlay, uploadTutorialSteps } from './TutorialOverlay';
@@ -222,8 +223,9 @@ type ProspectRenderHistoryProps = {
 function resolveProfileData(
   profileType: ProfileType,
   prospectId?: string,
-  modelId?: string
-): ProfileData {
+  modelId?: string,
+  contextProspect?: Prospect,
+): ProfileData | null {
   if (profileType === 'model') {
     const model = getRosterModelById(modelId ?? '');
     if (model) {
@@ -242,24 +244,61 @@ function resolveProfileData(
     };
   }
 
-  const prospect =
-    prospectId === 'sofia-andersen' ? prospectData : sumithProspectData;
-  return {
-    name: prospect.name,
-    status: prospect.status,
-    statusColor: prospect.statusColor,
-    signedDate: prospect.signedDate,
-    digitalSets: prospect.digitalSets,
-  };
+  if (prospectId === 'sumith-chittimalla') {
+    return {
+      name: sumithProspectData.name,
+      status: sumithProspectData.status,
+      statusColor: sumithProspectData.statusColor,
+      signedDate: sumithProspectData.signedDate,
+      digitalSets: sumithProspectData.digitalSets,
+    };
+  }
+
+  if (contextProspect) {
+    return {
+      name: contextProspect.name,
+      status: contextProspect.status,
+      statusColor: contextProspect.statusColor,
+      digitalSets: contextProspect.digitalSets,
+    };
+  }
+
+  return null;
 }
 
 export function ProspectRenderHistory({
   profileType = 'prospect',
 }: ProspectRenderHistoryProps) {
   const { prospectId, modelId } = useParams();
+  const { getProspectById } = useProspects();
   const isProspect = profileType === 'prospect';
   const isModel = profileType === 'model';
-  const activeProfile = resolveProfileData(profileType, prospectId, modelId);
+  const isSumithProspectPage = isProspect && prospectId === 'sumith-chittimalla';
+  const contextProspect =
+    isProspect && !isSumithProspectPage
+      ? getProspectById(prospectId ?? '')
+      : undefined;
+  const resolvedProfile = resolveProfileData(
+    profileType,
+    prospectId,
+    modelId,
+    contextProspect,
+  );
+
+  if (isProspect && !isSumithProspectPage && !resolvedProfile) {
+    return (
+      <motion.div className="p-[20px] md:p-[48px]">
+        <div
+          className="text-center py-[64px] text-[13px]"
+          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+        >
+          Prospect not found.
+        </div>
+      </motion.div>
+    );
+  }
+
+  const activeProfile = resolvedProfile!;
 
   const [status, setStatus] = useState(activeProfile.status);
   const [statusColor, setStatusColor] = useState(activeProfile.statusColor);

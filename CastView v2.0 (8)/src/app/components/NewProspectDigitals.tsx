@@ -62,6 +62,15 @@ export function NewProspectDigitals() {
   const uploadedCount = uploadZones.filter(zone => zone.uploaded).length;
   const allUploaded = uploadedCount === 4;
 
+  const handleContinue = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('front', uploadedImages.front || '');
+    params.set('profile', uploadedImages.profile || '');
+    params.set('threeQuarter', uploadedImages.three_quarter || '');
+    params.set('fullBody', uploadedImages.full_body || '');
+    navigate(`/prospects/new/review?${params.toString()}`);
+  };
+
   return (
     <div className="p-[48px]">
       {/* Page Title */}
@@ -278,7 +287,7 @@ export function NewProspectDigitals() {
         </button>
         <div className="flex-1 flex flex-col items-end">
           <button
-            onClick={() => navigate(`/prospects/new/review${window.location.search}`)}
+            onClick={handleContinue}
             className="px-[20px] py-[12px] bg-[#f0f0ec] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 cursor-pointer"
             style={{ 
               fontFamily: 'var(--font-mono)', 

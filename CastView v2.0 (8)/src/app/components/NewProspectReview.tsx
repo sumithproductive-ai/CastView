@@ -1,13 +1,28 @@
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { isSumithProspect, sumithDigitals, SUMITH_PROSPECT_NAME } from '../constants/sumithProspect';
+import { useProspects, type Prospect } from '../context/ProspectsContext';
 
 export function NewProspectReview() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { addProspect } = useProspects();
   const prospectName = searchParams.get('name')?.trim() || SUMITH_PROSPECT_NAME;
+  const isSumithDemo = isSumithProspect(null, prospectName);
 
-  const prospectData = isSumithProspect(null, prospectName) ? {
+  const front = searchParams.get('front') || '';
+  const profile = searchParams.get('profile') || '';
+  const threeQuarter = searchParams.get('threeQuarter') || '';
+  const fullBody = searchParams.get('fullBody') || '';
+  const marketsFromParams = searchParams.get('markets')?.split(',').filter(Boolean) ?? [];
+  const height = searchParams.get('height') || '';
+  const bust = searchParams.get('bust') || '';
+  const waist = searchParams.get('waist') || '';
+  const hips = searchParams.get('hips') || '';
+  const shoe = searchParams.get('shoe') || '';
+  const notesFromParams = searchParams.get('notes') || '';
+
+  const prospectData = isSumithDemo ? {
     name: SUMITH_PROSPECT_NAME,
     markets: ['NYC', 'LONDON'],
     digitals: [
@@ -26,29 +41,87 @@ export function NewProspectReview() {
     allDigitalsUploaded: true
   } : {
     name: prospectName,
-    markets: ['NEW YORK', 'LONDON'],
+    markets: marketsFromParams.length > 0 ? marketsFromParams : ['NEW YORK', 'LONDON'],
     digitals: [
-      { label: 'FRONT', url: null },
-      { label: 'PROFILE', url: null },
-      { label: '3/4', url: null },
-      { label: 'FULL BODY', url: null }
+      { label: 'FRONT', url: front || null },
+      { label: 'PROFILE', url: profile || null },
+      { label: '3/4', url: threeQuarter || null },
+      { label: 'FULL BODY', url: fullBody || null }
     ],
     measurements: {
-      Height: '',
-      Bust: '',
-      Waist: '',
-      Hips: ''
+      Height: height,
+      Bust: bust,
+      Waist: waist,
+      Hips: hips
     },
-    notes: '',
-    allDigitalsUploaded: false
+    notes: notesFromParams,
+    allDigitalsUploaded: Boolean(front && profile && threeQuarter && fullBody)
+  };
+
+  const buildNewProspect = (status: 'DRAFT' | 'IN REVIEW'): Prospect => {
+    const name = searchParams.get('name')?.trim() || prospectName;
+    const markets = searchParams.get('markets')?.split(',').filter(Boolean) ?? [];
+    const source = searchParams.get('source') || undefined;
+    const notes = searchParams.get('notes') || '';
+    const now = Date.now();
+    const uploadedAt = new Date().toLocaleString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    });
+
+    return {
+      id: `${name.trim().toLowerCase().replace(/\s+/g, '-')}-${now}`,
+      name,
+      status,
+      statusColor: status === 'DRAFT' ? '#666666' : '#C8A96E',
+      evaluations: 0,
+      submissionDate: 'Just now',
+      source: source || undefined,
+      image: front || null,
+      contexts: [],
+      renderedContexts: [],
+      division: undefined,
+      primaryContext: undefined,
+      markets: markets.length > 0 ? markets : undefined,
+      height: height || undefined,
+      measurements: {
+        chest: bust,
+        waist,
+        hips,
+        shoe,
+      },
+      digitalSets: front
+        ? [
+            {
+              id: `ds-${now}`,
+              uploadedAt,
+              title: 'Initial Submission',
+              front: front || null,
+              profile: profile || null,
+              threeQuarter: threeQuarter || null,
+              fullBody: fullBody || null,
+              additionalImages: [],
+              notes,
+              tags: ['initial', 'submission'],
+              evaluations: [],
+            },
+          ]
+        : [],
+    };
   };
 
   const handleSaveDraft = () => {
+    if (!isSumithDemo) {
+      addProspect(buildNewProspect('DRAFT'));
+    }
     navigate('/prospects');
   };
 
   const handleSaveAndRender = () => {
-    navigate('/profile');
+    if (!isSumithDemo) {
+      addProspect(buildNewProspect('IN REVIEW'));
+    }
+    navigate('/rendering');
   };
 
   return (
