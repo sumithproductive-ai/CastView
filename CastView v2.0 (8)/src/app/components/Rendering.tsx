@@ -1,18 +1,42 @@
 import React from 'react';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
-
-const steps = [
-  { name: 'Analysing Digitals', duration: 2000 },
-  { name: 'Fragrance', duration: 3000 },
-  { name: 'Editorial', duration: 3000 },
-  { name: 'Campaign', duration: 2500 },
-  { name: 'Alignment', duration: 2000 }
-];
 
 export function Rendering() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const prospectName = searchParams.get('name')
+    ? decodeURIComponent(searchParams.get('name')!)
+    : 'Prospect';
+  const contextsParam = searchParams.get('contexts') || '';
+  const selectedContexts = contextsParam
+    .split(',')
+    .filter(Boolean);
+
+  const steps = useMemo(
+    () =>
+      selectedContexts.length > 0
+        ? [
+            { name: 'Analysing Digitals', duration: 2000 },
+            ...selectedContexts.map((ctx) => ({
+              name: ctx,
+              duration: 2500,
+            })),
+            { name: 'Alignment', duration: 2000 },
+          ]
+        : [
+            { name: 'Analysing Digitals', duration: 2000 },
+            { name: 'Fragrance', duration: 2500 },
+            { name: 'Alignment', duration: 2000 },
+          ],
+    [contextsParam],
+  );
+
+  const resultsPath = `/results?name=${encodeURIComponent(prospectName)}&contexts=${contextsParam}`;
+  const notificationContext = selectedContexts[0] || 'Fragrance';
+  const notificationBody = `${prospectName} · ${notificationContext} 94% · View results`;
+
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [queueProgress, setQueueProgress] = useState(0);
@@ -20,7 +44,7 @@ export function Rendering() {
   
   useEffect(() => {
     if (currentStep >= steps.length) {
-      setTimeout(() => navigate('/results'), 500);
+      setTimeout(() => navigate(resultsPath), 500);
       return;
     }
     
@@ -39,7 +63,7 @@ export function Rendering() {
     }, interval);
     
     return () => clearInterval(timer);
-  }, [currentStep, navigate]);
+  }, [currentStep, navigate, resultsPath, steps]);
 
   // Queue progress bar animation (240 seconds = 4 minutes)
   useEffect(() => {
@@ -60,14 +84,14 @@ export function Rendering() {
       if ('Notification' in window) {
         if (Notification.permission === 'granted') {
           new Notification('CastView — Evaluation complete', {
-            body: 'Sumith Chittimalla · Fragrance 94% · View results',
+            body: notificationBody,
             icon: '/favicon.ico'
           });
         } else if (Notification.permission !== 'denied') {
           Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
               new Notification('CastView — Evaluation complete', {
-                body: 'Sumith Chittimalla · Fragrance 94% · View results',
+                body: notificationBody,
                 icon: '/favicon.ico'
               });
             }
@@ -78,7 +102,7 @@ export function Rendering() {
       setEvaluationComplete(true);
     }, 8000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [notificationBody]);
 
   // Auto-dismiss toast after 6 seconds
   useEffect(() => {
@@ -101,7 +125,7 @@ export function Rendering() {
           className="text-[48px] text-center mb-[80px]" 
           style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
         >
-          Sumith Chittimalla
+          {prospectName}
         </h1>
         
         <div className="space-y-[32px] mb-[80px]">
@@ -260,10 +284,10 @@ export function Rendering() {
               className="text-[13px]"
               style={{ fontFamily: 'var(--font-mono)' }}
             >
-              ✓ Evaluation complete — Sumith Chittimalla
+              ✓ Evaluation complete — {prospectName}
             </div>
             <button
-              onClick={() => navigate('/results')}
+              onClick={() => navigate(resultsPath)}
               className="text-[11px] uppercase hover:underline"
               style={{ fontFamily: 'var(--font-mono)', color: '#080808' }}
             >

@@ -240,6 +240,14 @@ export function ProspectRenderHistory({
   const evaluationsCompleted = countTotalEvaluations(digitalSets);
   const hasDigitalSets = digitalSetCount > 0;
   const canCompare = digitalSets.length >= 2;
+  const selectedDigitalSetForEvaluation =
+    (openedSetId
+      ? digitalSets.find((set) => set.id === openedSetId)
+      : digitalSets[0]) ?? null;
+  const canRunEvaluationOnSelected =
+    selectedDigitalSetForEvaluation !== null &&
+    countDigitalsOnFile(selectedDigitalSetForEvaluation) > 0;
+  const runEvaluationDisabledTitle = 'Upload digitals before running evaluation';
   const resolvedEntityId = isModel
     ? modelId ?? 'sumith-chittimalla-roster'
     : prospectId ?? 'sumith-chittimalla';
@@ -450,13 +458,18 @@ export function ProspectRenderHistory({
           <div className="flex flex-col gap-[12px]">
             <button
               type="button"
-              onClick={() => navigate('/profile')}
+              disabled={!canRunEvaluationOnSelected}
+              title={!canRunEvaluationOnSelected ? runEvaluationDisabledTitle : undefined}
+              onClick={() => {
+                if (canRunEvaluationOnSelected) navigate('/profile');
+              }}
               className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
               style={{
                 fontFamily: 'var(--font-mono)',
                 backgroundColor: '#f0f0ec',
                 color: '#080808',
-                cursor: 'pointer',
+                cursor: canRunEvaluationOnSelected ? 'pointer' : 'not-allowed',
+                opacity: canRunEvaluationOnSelected ? 1 : 0.4,
               }}
             >
               RUN EVALUATION
@@ -492,13 +505,18 @@ export function ProspectRenderHistory({
           <div className="flex flex-col gap-[12px]">
             <button
               type="button"
-              onClick={() => navigate('/profile')}
+              disabled={!canRunEvaluationOnSelected}
+              title={!canRunEvaluationOnSelected ? runEvaluationDisabledTitle : undefined}
+              onClick={() => {
+                if (canRunEvaluationOnSelected) navigate('/profile');
+              }}
               className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
               style={{
                 fontFamily: 'var(--font-mono)',
                 backgroundColor: '#f0f0ec',
                 color: '#080808',
-                cursor: 'pointer',
+                cursor: canRunEvaluationOnSelected ? 'pointer' : 'not-allowed',
+                opacity: canRunEvaluationOnSelected ? 1 : 0.4,
               }}
             >
               RUN EVALUATION
@@ -629,9 +647,18 @@ export function ProspectRenderHistory({
                       </button>
                       <button
                         type="button"
-                        onClick={() => navigate('/profile')}
+                        disabled={digitalsOnFile === 0}
+                        title={digitalsOnFile === 0 ? runEvaluationDisabledTitle : undefined}
+                        onClick={() => {
+                          if (digitalsOnFile > 0) navigate('/profile');
+                        }}
                         className={ghostButtonClass}
-                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          color: '#f0f0ec',
+                          cursor: digitalsOnFile > 0 ? 'pointer' : 'not-allowed',
+                          opacity: digitalsOnFile > 0 ? 1 : 0.4,
+                        }}
                       >
                         RUN EVALUATION
                       </button>

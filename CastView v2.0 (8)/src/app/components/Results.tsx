@@ -1,12 +1,14 @@
 import React from 'react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 
 const mostRecentDigitalSet = SUMITH_DIGITAL_SET_V1;
 const frontDigital = mostRecentDigitalSet.front!;
 
-const contextResults = [
+const MOCK_SCORES = [94, 96, 88, 91, 85, 89, 92, 87, 90, 93];
+
+const FALLBACK_CONTEXT_RESULTS = [
   { id: 1, context: 'Fragrance', score: 94 },
   { id: 2, context: 'Editorial', score: 96 },
   { id: 3, context: 'Campaign', score: 88 },
@@ -77,7 +79,35 @@ function AlignmentBulletList({ items }: { items: string[] }) {
 
 export function Results() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const prospectName = searchParams.get('name')
+    ? decodeURIComponent(searchParams.get('name')!)
+    : 'Prospect';
+  const contextsParam = searchParams.get('contexts') || '';
+  const selectedContexts = contextsParam
+    .split(',')
+    .filter(Boolean);
+  const profileType = searchParams.get('profileType') || 'prospect';
+  const prospectId = searchParams.get('prospectId') || '';
+
+  const contextResults = useMemo(
+    () =>
+      selectedContexts.length > 0
+        ? selectedContexts.map((ctx, i) => ({
+            id: i + 1,
+            context: ctx,
+            score: MOCK_SCORES[i % 10],
+          }))
+        : FALLBACK_CONTEXT_RESULTS,
+    [contextsParam],
+  );
+
   const [selectedResult, setSelectedResult] = useState(contextResults[0]);
+
+  useEffect(() => {
+    setSelectedResult(contextResults[0]);
+  }, [contextResults]);
+
   const activeContextEvaluation =
     evaluationData.contextEvaluations.find(
       (evaluation) => evaluation.context === selectedResult.context
@@ -89,11 +119,29 @@ export function Results() {
   
   return (
     <div className="p-[48px]">
+      <button
+        type="button"
+        onClick={() => navigate(profileType === 'model' ? '/roster' : '/prospects')}
+        className="hover:opacity-70 transition-opacity cursor-pointer mb-[24px]"
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: '#888880',
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          backgroundColor: 'transparent',
+          border: 'none',
+          padding: 0,
+        }}
+      >
+        {profileType === 'model' ? '← BACK TO ROSTER' : '← BACK TO PROSPECTS'}
+      </button>
+
       <h1 
         className="text-[48px] mb-[48px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
-        Sumith Chittimalla — Context Alignment Report
+        {prospectName} — Context Alignment Report
       </h1>
       
       <div className="grid grid-cols-[1fr_320px] gap-[48px]">
@@ -391,17 +439,6 @@ export function Results() {
               }}
             >
               Shortlist
-            </button>
-            <button
-              onClick={() => navigate('/share')}
-              className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
-              style={{ 
-                fontFamily: 'var(--font-label)',
-                backgroundColor: '#f0f0ec',
-                color: '#080808'
-              }}
-            >
-              Share Package
             </button>
             <button
               className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"

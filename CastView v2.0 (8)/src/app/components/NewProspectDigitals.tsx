@@ -14,6 +14,8 @@ export function NewProspectDigitals() {
   const prospectName = searchParams.get('name');
   const isSumithDemo = isSumithProspect(prospectId, prospectName);
 
+  const [showDigitalsError, setShowDigitalsError] = useState(false);
+
   const [uploadedImages, setUploadedImages] = useState<Record<DigitalImageKey, string | null>>(() =>
     isSumithDemo
       ? {
@@ -51,6 +53,7 @@ export function NewProspectDigitals() {
       ...prev,
       [key]: objectUrl,
     }));
+    setShowDigitalsError(false);
   };
 
   const uploadZones: { key: DigitalImageKey; label: string; uploaded: string | null }[] = [
@@ -64,11 +67,24 @@ export function NewProspectDigitals() {
   const allUploaded = uploadedCount === 4;
 
   const handleContinue = () => {
+    const front = uploadedImages.front;
+    const profile = uploadedImages.profile;
+    const threeQuarter = uploadedImages.three_quarter;
+    const fullBody = uploadedImages.full_body;
+    const hasAtLeastOneDigital = front || profile || threeQuarter || fullBody;
+
+    if (!hasAtLeastOneDigital) {
+      setShowDigitalsError(true);
+      return;
+    }
+
+    setShowDigitalsError(false);
+
     const params = new URLSearchParams(window.location.search);
-    params.set('front', uploadedImages.front || '');
-    params.set('profile', uploadedImages.profile || '');
-    params.set('threeQuarter', uploadedImages.three_quarter || '');
-    params.set('fullBody', uploadedImages.full_body || '');
+    params.set('front', front || '');
+    params.set('profile', profile || '');
+    params.set('threeQuarter', threeQuarter || '');
+    params.set('fullBody', fullBody || '');
     navigate(`/prospects/new/review?${params.toString()}`);
   };
 
@@ -287,6 +303,19 @@ export function NewProspectDigitals() {
           BACK
         </button>
         <div className="flex-1 flex flex-col items-end">
+          {showDigitalsError && (
+            <p
+              className="w-full text-right"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: '#c87a7a',
+                marginTop: '12px',
+              }}
+            >
+              Upload at least one digital to continue.
+            </p>
+          )}
           <button
             onClick={handleContinue}
             className="px-[20px] py-[12px] bg-[#f0f0ec] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 cursor-pointer"
