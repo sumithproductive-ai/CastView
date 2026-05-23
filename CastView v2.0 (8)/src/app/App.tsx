@@ -3,6 +3,7 @@ import { RouterProvider } from "react-router";
 import { router } from "./routes";
 import { SplashScreen } from "./components/SplashScreen";
 import { TutorialProvider } from './context/TutorialContext';
+import { ProspectsProvider } from './context/ProspectsContext';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -15,8 +16,10 @@ export default function App() {
   if (isLoading) return <SplashScreen onComplete={() => setIsLoading(false)} />;
 
   return (
-    <TutorialProvider>
-      <RouterProvider router={router} />
-    </TutorialProvider>
+    <ProspectsProvider>
+      <TutorialProvider>
+        <RouterProvider router={router} />
+      </TutorialProvider>
+    </ProspectsProvider>
   );
 }

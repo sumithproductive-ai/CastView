@@ -1,152 +1,9 @@
-// updated
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Search, ChevronDown, Plus, X } from 'lucide-react';
-import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
-import type { DigitalSet } from '../types/talent';
+import { useProspects, type Prospect } from '../context/ProspectsContext';
 
 type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL' | 'DIRECT';
-
-type Prospect = {
-  id: string;
-  name: string;
-  status: string;
-  statusColor: string;
-  evaluations: number;
-  submissionDate: string;
-  source?: Source;
-  image: string | null;
-  contexts: string[];
-  renderedContexts: string[];
-  division?: string;
-  primaryContext?: string;
-  markets?: string[];
-  height?: string;
-  measurements?: {
-    chest: string;
-    waist: string;
-    hips: string;
-    shoe: string;
-  };
-  digitalSets: DigitalSet[];
-};
-
-const initialProspects: Prospect[] = [
-  {
-    id: 'sumith-chittimalla',
-    name: 'Sumith Chittimalla',
-    status: 'IN REVIEW',
-    statusColor: '#C8A96E',
-    evaluations: 1,
-    submissionDate: '2 days ago',
-    source: 'DIRECT' as Source,
-    image: 'https://i.imgur.com/F70z8kX.jpg',
-    contexts: ['FR', 'ED', 'CA'],
-    renderedContexts: ['FR'],
-    division: 'men',
-    primaryContext: 'FRAGRANCE',
-    markets: ['NYC', 'London'],
-    height: "6'1\"",
-    measurements: {
-      chest: '38',
-      waist: '30',
-      hips: '33',
-      shoe: '11'
-    },
-    digitalSets: [SUMITH_DIGITAL_SET_V1],
-  },
-  {
-    id: 'camille-rousseau',
-    name: 'Camille Rousseau',
-    status: 'DRAFT',
-    statusColor: '#666666',
-    evaluations: 0,
-    submissionDate: 'Today',
-    image: null,
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: [],
-    source: 'INSTAGRAM' as Source,
-    digitalSets: [],
-  },
-  {
-    id: 'sofia-andersen',
-    name: 'Sofia Andersen',
-    status: 'SHORTLISTED',
-    statusColor: '#7d6d4d',
-    evaluations: 4,
-    submissionDate: '2 days ago',
-    image: 'https://images.unsplash.com/photo-1726232409367-04682eb856a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBwb3J0cmFpdCUyMHByb2Zlc3Npb25hbHxlbnwxfHx8fDE3NzMwODU2NjF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'ED', 'RW', 'CA'],
-    source: 'SCOUT' as Source,
-    digitalSets: [],
-  },
-  {
-    id: 'marcus-chen',
-    name: 'Marcus Chen',
-    status: 'IN REVIEW',
-    statusColor: '#4d3d5d',
-    evaluations: 2,
-    submissionDate: '3 days ago',
-    image: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxlJTIwbW9kZWwlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzMwMDgzMzR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'CA'],
-    source: 'REFERRAL' as Source,
-    digitalSets: [],
-  },
-  {
-    id: 'ava-laurent',
-    name: 'Ava Laurent',
-    status: 'IN REVIEW',
-    statusColor: '#4d3d5d',
-    evaluations: 3,
-    submissionDate: '4 days ago',
-    image: 'https://images.unsplash.com/photo-1627161683077-e34782c24d81?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmZW1hbGUlMjBtb2RlbCUyMGhlYWRzaG90fGVufDF8fHx8MTc3MzA4NTY2M3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'ED', 'RW'],
-    source: 'EMAIL' as Source,
-    digitalSets: [],
-  },
-  {
-    id: 'luca-moretti',
-    name: 'Luca Moretti',
-    status: 'NEW',
-    statusColor: '#3d4d5d',
-    evaluations: 0,
-    submissionDate: '5 days ago',
-    image: null,
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: [],
-    source: 'OPEN CALL' as Source,
-    digitalSets: [],
-  },
-  {
-    id: 'isabella-novak',
-    name: 'Isabella Novak',
-    status: 'PASSED',
-    statusColor: '#5d3d3d',
-    evaluations: 1,
-    submissionDate: '6 days ago',
-    image: 'https://images.unsplash.com/photo-1674713406394-8f994f26432c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHBvcnRyYWl0JTIwYW5nbGUlMjB2aWV3fGVufDF8fHx8MTc3MzA4NTY2Nnww&ixlib=rb-4.1.0&q=80&w=1080',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR'],
-    source: 'INSTAGRAM' as Source,
-    digitalSets: [],
-  },
-  {
-    id: 'zara-klein',
-    name: 'Zara Klein',
-    status: 'SHORTLISTED',
-    statusColor: '#7d6d4d',
-    evaluations: 5,
-    submissionDate: '1 week ago',
-    image: 'https://images.unsplash.com/photo-1650094762225-3561578643c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwcnVud2F5JTIwbW9kZWwlMjBjbG9zZXVwfGVufDF8fHx8MTc3MzE2NTI4NXww&ixlib=rb-4.1.0&q=80&w=1080',
-    contexts: ['FR', 'ED', 'RW', 'CA'],
-    renderedContexts: ['FR', 'ED', 'CA'],
-    source: 'SCOUT' as Source,
-    digitalSets: [],
-  }
-];
 
 interface DropdownProps {
   value: string;
@@ -213,9 +70,9 @@ export function ProspectsIndex() {
   const [contextFilter, setContextFilter] = useState('all');
   const [sortBy, setSortBy] = useState('submission-date');
   const navigate = useNavigate();
+  const { prospects, addProspect, updateProspect } = useProspects();
   
   // Multi-select state
-  const [prospects, setProspects] = useState(initialProspects);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
   const [sourceFilters, setSourceFilters] = useState<Set<Source>>(new Set());
@@ -260,13 +117,10 @@ export function ProspectsIndex() {
     newStatus: string,
     newStatusColor: string
   ) => {
-    setProspects((prev) =>
-      prev.map((prospect) =>
-        prospect.id === prospectId
-          ? { ...prospect, status: newStatus, statusColor: newStatusColor }
-          : prospect
-      )
-    );
+    updateProspect(prospectId, {
+      status: newStatus,
+      statusColor: newStatusColor,
+    });
   };
 
   const handleToggleSelect = (id: string, e: React.MouseEvent) => {
@@ -296,11 +150,9 @@ export function ProspectsIndex() {
       .filter(p => selected.has(p.id))
       .map(p => ({ id: p.id, status: p.status, statusColor: p.statusColor }));
     
-    setProspects(prev => prev.map(p => 
-      selected.has(p.id) 
-        ? { ...p, status: newStatus, statusColor: newStatusColor } 
-        : p
-    ));
+    selected.forEach((id) => {
+      updateProspect(id, { status: newStatus, statusColor: newStatusColor });
+    });
     
     setPendingBulkAction({ 
       ids: Array.from(selected), 
@@ -315,12 +167,12 @@ export function ProspectsIndex() {
 
   const handleUndoBulkAction = () => {
     if (!pendingBulkAction) return;
-    setProspects(prev => prev.map(p => {
-      const prev_state = pendingBulkAction.previousStates.find(s => s.id === p.id);
-      return prev_state 
-        ? { ...p, status: prev_state.status, statusColor: prev_state.statusColor } 
-        : p;
-    }));
+    pendingBulkAction.previousStates.forEach((prev_state) => {
+      updateProspect(prev_state.id, {
+        status: prev_state.status,
+        statusColor: prev_state.statusColor,
+      });
+    });
     setPendingBulkAction(null);
   };
 
@@ -423,7 +275,7 @@ export function ProspectsIndex() {
       digitalSets: [],
     };
     
-    setProspects(prev => [newProspect, ...prev]);
+    addProspect(newProspect);
     setQuickName('');
     setQuickAddOpen(false);
   };

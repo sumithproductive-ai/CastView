@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useProspects } from '../context/ProspectsContext';
 
 type ClientResponseStatus = 'SENT' | 'VIEWED' | 'RESPONDED';
 
@@ -13,77 +14,28 @@ interface ClientResponse {
   responseTime?: string;
 }
 
-const clientResponses: ClientResponse[] = [
-  {
-    id: 'camille-rousseau',
-    prospectName: 'Camille Rousseau',
-    contexts: 'Fragrance, Editorial',
-    sentTime: 'Sent 3 days ago',
-    status: 'VIEWED',
-    openedTime: '3 hours ago'
-  },
-  {
-    id: 'lucas-petit',
-    prospectName: 'Lucas Petit',
-    contexts: 'Campaign',
-    sentTime: 'Sent 1 day ago',
-    status: 'SENT'
-  }
-];
+const clientResponses: ClientResponse[] = [];
 
-const prospectStats = [
-  { label: 'TOTAL PROSPECTS', value: '24' },
-  { label: 'SHORTLISTED', value: '6' },
-  { label: 'AWAITING REVIEW', value: '8' }
-];
+function submissionDateRank(submissionDate: string): number {
+  const value = submissionDate.toLowerCase().trim();
+  if (value === 'today') return 0;
+
+  const hoursMatch = value.match(/(\d+)\s*hours?\s*ago/);
+  if (hoursMatch) return Number(hoursMatch[1]) / 24;
+
+  const daysMatch = value.match(/(\d+)\s*days?\s*ago/);
+  if (daysMatch) return Number(daysMatch[1]);
+
+  const weeksMatch = value.match(/(\d+)\s*weeks?\s*ago/);
+  if (weeksMatch) return Number(weeksMatch[1]) * 7;
+
+  return Number.MAX_SAFE_INTEGER;
+}
 
 const rosterStats = [
   { label: 'ACTIVE MODELS', value: '18' },
   { label: 'EVALUATIONS THIS MONTH', value: '34' },
   { label: 'ON HOLD', value: '3' }
-];
-
-const recentProspects = [
-  {
-    id: 'sumith-chittimalla',
-    name: 'Sumith Chittimalla',
-    status: 'In Review',
-    statusColor: '#C8A96E',
-    timeAgo: '2 hours ago',
-    image: 'https://i.imgur.com/F70z8kX.jpg'
-  },
-  {
-    id: 'marcus-chen',
-    name: 'Marcus Chen',
-    status: 'In Review',
-    statusColor: '#4d3d5d',
-    timeAgo: '5 hours ago',
-    image: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxlJTIwbW9kZWwlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NzMwMDgzMzR8MA&ixlib=rb-4.1.0&q=80&w=200'
-  },
-  {
-    id: 'ava-laurent',
-    name: 'Ava Laurent',
-    status: 'In Review',
-    statusColor: '#4d3d5d',
-    timeAgo: '1 day ago',
-    image: 'https://images.unsplash.com/photo-1627161683077-e34782c24d81?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmZW1hbGUlMjBtb2RlbCUyMGhlYWRzaG90fGVufDF8fHx8MTc3MzA4NTY2M3ww&ixlib=rb-4.1.0&q=80&w=200'
-  },
-  {
-    id: 'luca-moretti',
-    name: 'Luca Moretti',
-    status: 'New',
-    statusColor: '#3d4d5d',
-    timeAgo: '1 day ago',
-    image: 'https://images.unsplash.com/photo-1672675389084-5415d558dfd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBzaWRlJTIwcHJvZmlsZXxlbnwxfHx8fDE3NzMwODU2NjF8MA&ixlib=rb-4.1.0&q=80&w=200'
-  },
-  {
-    id: 'isabella-novak',
-    name: 'Isabella Novak',
-    status: 'Shortlisted',
-    statusColor: '#7d6d4d',
-    timeAgo: '2 days ago',
-    image: 'https://images.unsplash.com/photo-1674713406394-8f994f26432c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2RlbCUyMHBvcnRyYWl0JTIwYW5nbGUlMjB2aWV3fGVufDF8fHx8MTc3MzA4NTY2Nnww&ixlib=rb-4.1.0&q=80&w=200'
-  }
 ];
 
 const rosterActivity = [
@@ -126,6 +78,24 @@ const rosterActivity = [
 
 export function Dashboard() {
   const [showSavingsTooltip, setShowSavingsTooltip] = useState(false);
+  const { prospects } = useProspects();
+
+  const totalProspects = prospects.length;
+  const shortlistedCount = prospects.filter((p) => p.status === 'SHORTLISTED').length;
+  const awaitingReviewCount = prospects.filter((p) => p.status === 'IN REVIEW').length;
+
+  const recentProspects = useMemo(
+    () =>
+      [...prospects]
+        .filter((prospect) => prospect.image)
+        .sort(
+          (a, b) =>
+            submissionDateRank(a.submissionDate) -
+            submissionDateRank(b.submissionDate),
+        )
+        .slice(0, 3),
+    [prospects],
+  );
   
   return (
     <div className="p-[20px] md:p-[48px]">
@@ -168,7 +138,7 @@ export function Dashboard() {
                 className="text-[36px]" 
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                24
+                {totalProspects}
               </div>
               <div 
                 className="text-[10px] uppercase tracking-[0.12em]" 
@@ -187,7 +157,7 @@ export function Dashboard() {
                 className="text-[36px]" 
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                6
+                {shortlistedCount}
               </div>
               <div 
                 className="text-[10px] uppercase tracking-[0.12em]" 
@@ -206,7 +176,7 @@ export function Dashboard() {
                 className="text-[36px]" 
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                8
+                {awaitingReviewCount}
               </div>
               <div 
                 className="text-[10px] uppercase tracking-[0.12em]" 
@@ -348,7 +318,7 @@ export function Dashboard() {
             className="text-center py-[32px] text-[12px]"
             style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
           >
-            No packages awaiting response.
+            No packages sent yet.
           </div>
         ) : (
           <div 
@@ -493,7 +463,7 @@ export function Dashboard() {
                 <div 
                   style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6a6a64' }}
                 >
-                  {prospect.timeAgo}
+                  {prospect.submissionDate}
                 </div>
               </Link>
             ))}
