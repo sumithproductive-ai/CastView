@@ -64,7 +64,7 @@ export function Profile() {
         </span>
         <ChevronRight size={14} style={{ color: '#a0a09a' }} />
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}>
-          Sofia Andersen
+          Sumith Chittimalla
         </span>
       </div>
       
@@ -129,7 +129,7 @@ export function Profile() {
             className="text-[56px] mb-[24px]" 
             style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
           >
-            Sofia Andersen
+            Sumith Chittimalla
           </h1>
           
           <div className="flex gap-[8px] mb-[32px]">

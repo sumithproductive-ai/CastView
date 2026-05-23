@@ -59,14 +59,14 @@ export function Rendering() {
       if ('Notification' in window) {
         if (Notification.permission === 'granted') {
           new Notification('CastView — Evaluation complete', {
-            body: 'Sofia Andersen · Fragrance 94% · View results',
+            body: 'Sumith Chittimalla · Fragrance 94% · View results',
             icon: '/favicon.ico'
           });
         } else if (Notification.permission !== 'denied') {
           Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
               new Notification('CastView — Evaluation complete', {
-                body: 'Sofia Andersen · Fragrance 94% · View results',
+                body: 'Sumith Chittimalla · Fragrance 94% · View results',
                 icon: '/favicon.ico'
               });
             }
@@ -100,7 +100,7 @@ export function Rendering() {
           className="text-[48px] text-center mb-[80px]" 
           style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
         >
-          Sofia Andersen
+          Sumith Chittimalla
         </h1>
         
         <div className="space-y-[32px] mb-[80px]">
@@ -259,7 +259,7 @@ export function Rendering() {
               className="text-[13px]"
               style={{ fontFamily: 'var(--font-mono)' }}
             >
-              ✓ Evaluation complete — Sofia Andersen
+              ✓ Evaluation complete — Sumith Chittimalla
             </div>
             <button
               onClick={() => navigate('/results')}

@@ -3,7 +3,7 @@ import { Upload, X, Check, Lock } from 'lucide-react';
 
 const sumithDigitals = {
   front: 'https://i.imgur.com/jZHp7Ei.jpg',
-  profile: 'https://i.imgur.com/aBlfi1y.jpg',
+  profile: 'https://i.imgur.com/aBlfily.jpg',
   three_quarter: 'https://i.imgur.com/AlYexxj.jpg',
   full_body: 'https://i.imgur.com/sH8hoNb.jpg'
 };

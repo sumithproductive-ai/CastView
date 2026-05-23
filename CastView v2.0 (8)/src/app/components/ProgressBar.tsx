@@ -55,7 +55,7 @@ export function ProgressBar() {
           color: '#f0f0ec',
           letterSpacing: '0.05em'
         }}>
-          Sofia Andersen — {currentLabel}
+          Sumith Chittimalla — {currentLabel}
         </span>
 
         {/* Step indicators */}

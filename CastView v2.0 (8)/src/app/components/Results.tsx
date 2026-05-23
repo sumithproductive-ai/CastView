@@ -49,7 +49,7 @@ export function Results() {
         className="text-[48px] mb-[48px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
-        Sofia Andersen — Evaluation Results
+        Sumith Chittimalla — Evaluation Results
       </h1>
       
       <div className="grid grid-cols-[1fr_320px] gap-[48px]">
