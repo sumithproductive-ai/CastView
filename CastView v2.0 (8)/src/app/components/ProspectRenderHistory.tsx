@@ -284,21 +284,14 @@ export function ProspectRenderHistory({
     modelId,
     contextProspect,
   );
-
-  if (isProspect && !isSumithProspectPage && !resolvedProfile) {
-    return (
-      <motion.div className="p-[20px] md:p-[48px]">
-        <div
-          className="text-center py-[64px] text-[13px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
-        >
-          Prospect not found.
-        </div>
-      </motion.div>
-    );
-  }
-
-  const activeProfile = resolvedProfile!;
+  const showProspectNotFound =
+    isProspect && !isSumithProspectPage && !resolvedProfile;
+  const activeProfile: ProfileData = resolvedProfile ?? {
+    name: '',
+    status: '',
+    statusColor: '#888880',
+    digitalSets: [],
+  };
 
   const [status, setStatus] = useState(activeProfile.status);
   const [statusColor, setStatusColor] = useState(activeProfile.statusColor);
@@ -328,7 +321,13 @@ export function ProspectRenderHistory({
   };
 
   useEffect(() => {
-    const profile = resolveProfileData(profileType, prospectId, modelId);
+    const profile = resolveProfileData(
+      profileType,
+      prospectId,
+      modelId,
+      contextProspect,
+    );
+    if (!profile) return;
     setDigitalSets([...profile.digitalSets]);
     setStatus(profile.status);
     setStatusColor(profile.statusColor);
@@ -339,7 +338,7 @@ export function ProspectRenderHistory({
     });
     setUploadFileNames({});
     setOpenedSetId(null);
-  }, [profileType, prospectId, modelId]);
+  }, [profileType, prospectId, modelId, contextProspect]);
 
   const digitalSetCount = digitalSets.length;
   const evaluationsCompleted = countTotalEvaluations(digitalSets);
@@ -441,6 +440,15 @@ export function ProspectRenderHistory({
 
   return (
     <div className="p-[20px] md:p-[48px]">
+      {showProspectNotFound ? (
+        <div
+          className="text-center py-[64px] text-[13px]"
+          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+        >
+          Prospect not found.
+        </div>
+      ) : (
+        <>
       <div className="flex items-center justify-between mb-[48px]">
         <div className="flex items-center gap-[8px]">
           <Link
@@ -1161,6 +1169,8 @@ export function ProspectRenderHistory({
           onClose={() => setShowTutorial(false)}
           steps={uploadTutorialSteps}
         />
+      )}
+        </>
       )}
     </div>
   );
