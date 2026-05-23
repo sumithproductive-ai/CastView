@@ -1,3 +1,7 @@
+import sumithFront from '../../../assets/sumith-front.jpg';
+import sumithProfile from '../../../assets/sumith-profile.jpg';
+import sumithThreeQuarter from '../../../assets/sumith-three-quarter.jpg';
+import sumithFullBody from '../../../assets/sumith-full-body.jpg';
 import type { DigitalSet } from '../types/talent';
 
 export const SUMITH_PROSPECT_ID = 'sumith-chittimalla';
@@ -7,10 +11,10 @@ export const SUMITH_DIGITAL_SET_V1: DigitalSet = {
   id: 'digitals-v1',
   uploadedAt: 'May 2026',
   title: 'Initial Submission',
-  front: 'https://i.imgur.com/jZHp7Ei.jpg',
-  profile: 'https://i.imgur.com/aBlfily.jpg',
-  threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
-  fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
+  front: sumithFront,
+  profile: sumithProfile,
+  threeQuarter: sumithThreeQuarter,
+  fullBody: sumithFullBody,
   additionalImages: [],
   notes: '',
   tags: ['initial', 'submission'],

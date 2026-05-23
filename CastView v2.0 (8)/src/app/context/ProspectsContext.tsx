@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
+import sumithThumbnail from '../../../assets/sumith-thumbnail.jpg';
 import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 import type { DigitalSet } from '../types/talent';
 
@@ -35,7 +36,7 @@ export type Prospect = {
   digitalSets: DigitalSet[];
 };
 
-const STORAGE_VERSION = 'v2';
+const STORAGE_VERSION = 'v3';
 const STORAGE_VERSION_KEY = 'castview_prospects_version';
 const STORAGE_KEY = 'castview_prospects';
 
@@ -48,7 +49,7 @@ const SEED_PROSPECTS: Prospect[] = [
     evaluations: 1,
     submissionDate: '2 days ago',
     source: 'DIRECT',
-    image: 'https://i.imgur.com/F70z8kX.jpg',
+    image: sumithThumbnail,
     contexts: ['FR', 'ED', 'CA'],
     renderedContexts: ['FR'],
     division: 'men',

@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
+import sumithThumbnail from '../../../assets/sumith-thumbnail.jpg';
 import type { DigitalSet } from '../types/talent';
 
 export type RosterModel = {
@@ -25,7 +26,7 @@ export type RosterModel = {
   digitalSets: DigitalSet[];
 };
 
-const STORAGE_VERSION = 'v1';
+const STORAGE_VERSION = 'v2';
 const STORAGE_VERSION_KEY = 'castview_roster_version';
 const STORAGE_KEY = 'castview_roster';
 
@@ -33,7 +34,7 @@ const SEED_MODELS: RosterModel[] = [
   {
     id: 'sumith-chittimalla-roster',
     name: 'Sumith Chittimalla',
-    image: 'https://i.imgur.com/F70z8kX.jpg',
+    image: sumithThumbnail,
     primaryContext: 'FRAGRANCE',
     contexts: ['FR', 'ED', 'CA'],
     renderedContexts: ['FR', 'ED'],
