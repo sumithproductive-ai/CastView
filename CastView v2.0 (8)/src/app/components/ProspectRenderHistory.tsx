@@ -348,9 +348,14 @@ export function ProspectRenderHistory({
   };
 
   const handleConfirmDelete = () => {
-    if (!prospectId) return;
-    removeProspect(prospectId);
-    navigate('/prospects');
+    console.log('Deleting prospect:', prospectId);
+    if (isProspect && prospectId) {
+      removeProspect(prospectId);
+      navigate('/prospects');
+    } else if (isModel && modelId) {
+      navigate('/roster');
+    }
+    setShowDeleteModal(false);
   };
 
   return (
@@ -545,6 +550,14 @@ export function ProspectRenderHistory({
                 COMPARE DIGITALS
               </button>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="w-full px-[16px] py-[10px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
+              style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a', cursor: 'pointer' }}
+            >
+              DELETE MODEL
+            </button>
           </div>
         )}
       </div>

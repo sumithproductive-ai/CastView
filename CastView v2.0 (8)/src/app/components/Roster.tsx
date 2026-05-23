@@ -676,8 +676,8 @@ export function Roster() {
                       setSelectedModel(null);
                       setShowDevReportModal(false);
                     }
+                    setDeleteTargetId(null);
                   }
-                  setDeleteTargetId(null);
                 }}
                 className="flex-1 px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
                 style={{ fontFamily: 'var(--font-mono)', backgroundColor: '#c87a7a', color: '#080808' }}
