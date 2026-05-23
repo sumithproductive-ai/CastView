@@ -5,6 +5,7 @@ import { router } from "./routes";
 import { SplashScreen } from "./components/SplashScreen";
 import { TutorialProvider } from './context/TutorialContext';
 import { ProspectsProvider } from './context/ProspectsContext';
+import { RosterProvider } from './context/RosterContext';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,9 +19,11 @@ export default function App() {
 
   return (
     <ProspectsProvider>
-      <TutorialProvider>
-        <RouterProvider router={router} />
-      </TutorialProvider>
+      <RosterProvider>
+        <TutorialProvider>
+          <RouterProvider router={router} />
+        </TutorialProvider>
+      </RosterProvider>
     </ProspectsProvider>
   );
 }

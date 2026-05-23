@@ -2,23 +2,27 @@ import React from 'react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Search, ChevronDown, Sparkles, X } from 'lucide-react';
+import { useRoster, type RosterModel } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
 
-const models = [
-  {
-    id: 'sumith-chittimalla-roster',
-    name: 'Sumith Chittimalla',
-    image: 'https://i.imgur.com/F70z8kX.jpg',
-    primaryContext: 'FRAGRANCE',
-    contexts: ['FR', 'ED', 'CA'],
-    renderedContexts: ['FR', 'ED'],
-    topScore: 94,
-    lastRender: '3 days ago',
-    status: 'ACTIVE',
-    recentlySigned: true,
-    division: 'men',
-  },
-];
+const ROSTER_STORAGE_KEY = 'castview_roster';
+const ROSTER_VERSION_KEY = 'castview_roster_version';
+const ROSTER_STORAGE_VERSION = 'v1';
+
+function readRosterModelsFromStorage(): RosterModel[] {
+  try {
+    const storedVersion = localStorage.getItem(ROSTER_VERSION_KEY);
+    if (storedVersion !== ROSTER_STORAGE_VERSION) return [];
+
+    const raw = localStorage.getItem(ROSTER_STORAGE_KEY);
+    if (!raw) return [];
+
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as RosterModel[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 const sumithRosterDigitalSets: DigitalSet[] = [
   {
@@ -50,23 +54,21 @@ const sumithRosterDigitalSets: DigitalSet[] = [
 ];
 
 export function getRosterModelById(modelId: string) {
-  if (modelId === 'sumith-chittimalla-roster') {
-    return {
-      id: modelId,
-      name: 'Sumith Chittimalla',
-      status: 'ACTIVE',
-      digitalSets: sumithRosterDigitalSets,
-    };
-  }
-
-  const model = models.find((entry) => entry.id === modelId);
+  const model = readRosterModelsFromStorage().find((entry) => entry.id === modelId);
   if (!model) return undefined;
+
+  const digitalSets =
+    model.digitalSets.length > 0
+      ? model.digitalSets
+      : modelId === 'sumith-chittimalla-roster'
+        ? sumithRosterDigitalSets
+        : [];
 
   return {
     id: model.id,
     name: model.name,
     status: model.status,
-    digitalSets: [] as DigitalSet[],
+    digitalSets,
   };
 }
 
@@ -130,6 +132,7 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
 }
 
 export function Roster() {
+  const { models, removeModel } = useRoster();
   const [search, setSearch] = useState('');
   const [contextFilter, setContextFilter] = useState('all');
   const [divisionFilter, setDivisionFilter] = useState('all');
@@ -138,8 +141,10 @@ export function Roster() {
   const [briefQuery, setBriefQuery] = useState('');
   const [showMatchResults, setShowMatchResults] = useState(false);
   const [showDevReportModal, setShowDevReportModal] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<typeof models[0] | null>(null);
+  const [selectedModel, setSelectedModel] = useState<RosterModel | null>(null);
   const [showCopiedConfirmation, setShowCopiedConfirmation] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const modelToDelete = models.find((m) => m.id === deleteTargetId) ?? null;
   const navigate = useNavigate();
 
   const contextCodeMap: Record<string, string> = {
@@ -181,7 +186,7 @@ export function Roster() {
       m.status,
       m.topScore.toString(),
       m.renderedContexts.join(' | '),
-      m.lastRender,
+      m.lastEvaluation,
       m.recentlySigned ? 'Recently Signed' : ''
     ]);
     const csv = [headers, ...rows]
@@ -223,8 +228,8 @@ export function Roster() {
         '3 days ago', '5 days ago', '1 week ago',
         '2 weeks ago', '3 weeks ago', '1 month ago'
       ];
-      return order.indexOf(a.lastRender) - 
-             order.indexOf(b.lastRender);
+      return order.indexOf(a.lastEvaluation) - 
+             order.indexOf(b.lastEvaluation);
     }
     return 0;
   });
@@ -374,11 +379,17 @@ export function Roster() {
 
           {/* Match Results */}
           <div className="space-y-[1px]">
-            {[
-              { name: 'Sumith Chittimalla', percentage: 94, image: models[0].image },
-            ].map((match, index) => (
+            {[...models]
+              .sort((a, b) => b.topScore - a.topScore)
+              .map((model) => ({
+                name: model.name,
+                percentage: model.topScore,
+                image: model.image,
+                id: model.id,
+              }))
+              .map((match, index) => (
               <div 
-                key={index}
+                key={match.id}
                 className="flex items-center gap-[12px] py-[12px]"
                 style={{ 
                   borderTop: index > 0 ? '1px solid #1a1a1a' : 'none'
@@ -416,7 +427,7 @@ export function Roster() {
                 <div 
                   className="text-[12px] cursor-pointer hover:opacity-70 transition-opacity"
                   style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
-                  onClick={() => navigate('/roster/sumith-chittimalla-roster/history')}
+                  onClick={() => navigate(`/roster/${match.id}/history`)}
                 >
                   VIEW →
                 </div>
@@ -553,7 +564,7 @@ export function Roster() {
                   <div 
                     style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a' }}
                   >
-                    {model.lastRender}
+                    {model.lastEvaluation}
                   </div>
                 </div>
 
@@ -606,9 +617,75 @@ export function Roster() {
                 >
                   ↗ SHARE DEVELOPMENT REPORT
                 </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDeleteTargetId(model.id);
+                  }}
+                  className="w-full mt-[8px] border border-[#c87a7a] text-[#c87a7a] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] px-[10px] py-[6px] hover:bg-[#c87a7a] hover:text-[#080808] transition-colors cursor-pointer"
+                  style={{ fontFamily: 'var(--font-mono)' }}
+                >
+                  DELETE MODEL
+                </button>
               </div>
             </Link>
           ))}
+        </div>
+      )}
+
+      {/* Confirm Delete Modal */}
+      {deleteTargetId !== null && (
+        <div
+          className="fixed inset-0 bg-[rgba(8,8,8,0.85)] flex items-center justify-center z-50"
+          onClick={() => setDeleteTargetId(null)}
+        >
+          <div
+            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[32px] max-w-[400px] w-full mx-[24px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              className="text-[28px] mb-[16px]"
+              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+            >
+              Remove from roster?
+            </h2>
+            <p
+              className="mb-[24px]"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a', lineHeight: 1.8 }}
+            >
+              This will permanently remove {modelToDelete?.name} from your roster. Their digital sets and evaluation history will be deleted. This cannot be undone.
+            </p>
+            <div className="flex gap-[12px]">
+              <button
+                type="button"
+                onClick={() => setDeleteTargetId(null)}
+                className="flex-1 px-[16px] py-[10px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec]"
+                style={{ fontFamily: 'var(--font-mono)', color: '#888880', backgroundColor: 'transparent' }}
+              >
+                CANCEL
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (deleteTargetId) {
+                    removeModel(deleteTargetId);
+                    if (selectedModel?.id === deleteTargetId) {
+                      setSelectedModel(null);
+                      setShowDevReportModal(false);
+                    }
+                  }
+                  setDeleteTargetId(null);
+                }}
+                className="flex-1 px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+                style={{ fontFamily: 'var(--font-mono)', backgroundColor: '#c87a7a', color: '#080808' }}
+              >
+                REMOVE MODEL
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
