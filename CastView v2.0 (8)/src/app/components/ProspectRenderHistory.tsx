@@ -234,6 +234,7 @@ export function ProspectRenderHistory({
   };
 
   useEffect(() => {
+    if (showUploadForm) return;
     const profile = resolveProfileData(
       profileType,
       modelId,
@@ -252,7 +253,15 @@ export function ProspectRenderHistory({
     });
     setUploadFileNames({});
     setOpenedSetId(null);
-  }, [profileType, prospectId, modelId, contextProspect, models, searchParams]);
+  }, [
+    profileType,
+    prospectId,
+    modelId,
+    contextProspect,
+    models,
+    searchParams,
+    showUploadForm,
+  ]);
 
   const profileDigitalSets = activeProfile.digitalSets;
   const digitalSetCount = profileDigitalSets.length;
@@ -347,7 +356,7 @@ export function ProspectRenderHistory({
     }
 
     resetUploadFormState();
-    setShowUploadForm(false);
+    setTimeout(() => setShowUploadForm(false), 200);
   };
 
   const handleCancelUpload = () => {

@@ -3,19 +3,8 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { ChevronRight, Lock } from 'lucide-react';
 
-import { sumithDigitalsList } from '../constants/sumithProspect';
-
-const digitals = sumithDigitalsList;
-
-const measurements = [
-  { key: 'Height', value: "6'1\"" },
-  { key: 'Chest', value: '38"' },
-  { key: 'Waist', value: '30"' },
-  { key: 'Hips', value: '33"' },
-  { key: 'Shoe', value: '11' },
-  { key: 'Hair', value: 'Black' },
-  { key: 'Eyes', value: 'Brown' }
-];
+import { useProspects } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
 
 const contexts = [
   'Fragrance', 'Editorial', 'Runway', 
@@ -31,6 +20,40 @@ export function Profile() {
     : 'Sumith Chittimalla';
   const prospectId = searchParams.get('prospectId') || '';
   const profileType = searchParams.get('profileType') || 'prospect';
+  const { getProspectById } = useProspects();
+  const { models } = useRoster();
+
+  const prospect = getProspectById(prospectId);
+  const rosterModel = !prospect
+    ? models.find((m) => m.id === prospectId)
+    : null;
+  const entity = prospect ?? rosterModel;
+
+  const digitals = entity?.digitalSets?.[0]
+    ? [
+        { label: 'FRONT', image: entity.digitalSets[0].front },
+        { label: 'PROFILE', image: entity.digitalSets[0].profile },
+        { label: '3/4', image: entity.digitalSets[0].threeQuarter },
+        { label: 'FULL BODY', image: entity.digitalSets[0].fullBody },
+      ].filter((d) => d.image)
+    : [];
+
+  const measurementData = [
+    { key: 'Height', value: prospect?.height ?? '—' },
+    {
+      key: 'Chest',
+      value: prospect?.measurements?.chest
+        ? `${prospect.measurements.chest}"`
+        : '—',
+    },
+    {
+      key: 'Waist',
+      value: prospect?.measurements?.waist
+        ? `${prospect.measurements.waist}"`
+        : '—',
+    },
+  ].filter((m) => m.value !== '—');
+
   const [selectedContexts, setSelectedContexts] = useState<string[]>(['Fragrance', 'Editorial']);
   
   const toggleContext = (context: string) => {
@@ -68,28 +91,41 @@ export function Profile() {
         </span>
         <ChevronRight size={14} style={{ color: '#a0a09a' }} />
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}>
-          Sumith Chittimalla
+          {prospectName}
         </span>
       </div>
       
       <div className="grid grid-cols-2 gap-[48px]">
         {/* Left Column */}
         <div>
-          <div className="grid grid-cols-2 gap-[16px] mb-[16px]">
-            {digitals.map((digital) => (
-              <div key={digital.label}>
-                <div className="aspect-square bg-[#111111] border border-[#2a2a2a] rounded-[4px] mb-[12px] overflow-hidden">
-                  <img src={digital.image} alt={digital.label} className="w-full h-full object-cover" />
+          {digitals.length > 0 ? (
+            <div className="grid grid-cols-2 gap-[16px] mb-[16px]">
+              {digitals.map((digital) => (
+                <div key={digital.label}>
+                  <div className="aspect-square bg-[#111111] border border-[#2a2a2a] rounded-[4px] mb-[12px] overflow-hidden">
+                    <img src={digital.image} alt={digital.label} className="w-full h-full object-cover" />
+                  </div>
+                  <div 
+                    className="text-[11px] uppercase tracking-[0.1em]"
+                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                  >
+                    {digital.label}
+                  </div>
                 </div>
-                <div 
-                  className="text-[11px] uppercase tracking-[0.1em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-                >
-                  {digital.label}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div
+              className="mb-[16px]"
+              style={{
+                color: '#666660',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+              }}
+            >
+              No digitals uploaded yet.
+            </div>
+          )}
           
           {/* Privacy Notice */}
           <div className="flex items-center gap-[8px] pt-[12px] mb-[24px]">
@@ -105,26 +141,28 @@ export function Profile() {
             </div>
           </div>
           
-          <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
-            <div 
-              className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-            >
-              Measurements
+          {measurementData.length > 0 && (
+            <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
+              <div 
+                className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
+                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+              >
+                Measurements
+              </div>
+              <div className="space-y-[12px]">
+                {measurementData.map((m) => (
+                  <div key={m.key} className="flex justify-between">
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}>
+                      {m.key}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}>
+                      {m.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="space-y-[12px]">
-              {measurements.map((m) => (
-                <div key={m.key} className="flex justify-between">
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}>
-                    {m.key}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}>
-                    {m.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
         
         {/* Right Column */}
@@ -133,19 +171,21 @@ export function Profile() {
             className="text-[56px] mb-[24px]" 
             style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
           >
-            Sumith Chittimalla
+            {prospectName}
           </h1>
           
           <div className="flex gap-[8px] mb-[32px]">
-            {['NYC', 'London'].map((market) => (
-              <span 
-                key={market}
-                className="px-[12px] py-[6px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-              >
-                {market}
-              </span>
-            ))}
+            {entity?.contexts?.length
+              ? entity.contexts.map((market) => (
+                  <span 
+                    key={market}
+                    className="px-[12px] py-[6px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
+                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                  >
+                    {market}
+                  </span>
+                ))
+              : null}
           </div>
           
           <div className="mb-[32px]">

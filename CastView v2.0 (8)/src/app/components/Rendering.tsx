@@ -60,9 +60,10 @@ export function Rendering() {
     ? decodeURIComponent(searchParams.get('name')!)
     : 'Prospect';
   const contextsParam = searchParams.get('contexts') || '';
-  const selectedContexts = contextsParam
-    .split(',')
-    .filter(Boolean);
+  const selectedContexts = useMemo(
+    () => contextsParam.split(',').filter(Boolean),
+    [contextsParam],
+  );
 
   const steps = useMemo(
     () =>
