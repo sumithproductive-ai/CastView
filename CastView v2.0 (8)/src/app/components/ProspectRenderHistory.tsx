@@ -40,10 +40,6 @@ function countDigitalsOnFile(digitalSet: DigitalSet) {
   ).length;
 }
 
-function countTotalEvaluations(digitalSets: DigitalSet[]) {
-  return digitalSets.reduce((total, set) => total + set.evaluations.length, 0);
-}
-
 function getFitLabelColor(fitLabel: string) {
   if (fitLabel.includes('STRONG')) return '#4a7a4a';
   if (fitLabel.includes('MODERATE')) return '#888880';
@@ -235,14 +231,20 @@ export function ProspectRenderHistory({
     setOpenedSetId(null);
   }, [profileType, prospectId, modelId, contextProspect]);
 
-  const digitalSetCount = digitalSets.length;
-  const evaluationsCompleted = countTotalEvaluations(digitalSets);
+  const profileDigitalSets = activeProfile.digitalSets;
+  const digitalSetCount = profileDigitalSets.length;
+  const totalEvaluations =
+    activeProfile?.digitalSets?.reduce(
+      (sum, ds) => sum + (ds.evaluations?.length || 0),
+      0,
+    ) ?? 0;
   const hasDigitalSets = digitalSetCount > 0;
-  const canCompare = digitalSets.length >= 2;
+  const digitalSetsForDisplay = isProspect ? profileDigitalSets : digitalSets;
+  const canCompare = digitalSetsForDisplay.length >= 2;
   const selectedDigitalSetForEvaluation =
     (openedSetId
-      ? digitalSets.find((set) => set.id === openedSetId)
-      : digitalSets[0]) ?? null;
+      ? digitalSetsForDisplay.find((set) => set.id === openedSetId)
+      : digitalSetsForDisplay[0]) ?? null;
   const canRunEvaluationOnSelected =
     selectedDigitalSetForEvaluation !== null &&
     countDigitalsOnFile(selectedDigitalSetForEvaluation) > 0;
@@ -429,8 +431,8 @@ export function ProspectRenderHistory({
         className="mb-[48px]"
         style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
       >
-        {digitalSetCount} digital set{digitalSetCount !== 1 ? 's' : ''} · {evaluationsCompleted}{' '}
-        evaluation{evaluationsCompleted !== 1 ? 's' : ''} completed
+        {digitalSetCount} digital set{digitalSetCount !== 1 ? 's' : ''} · {totalEvaluations}{' '}
+        evaluation{totalEvaluations !== 1 ? 's' : ''} completed
         {isProspect && activeProfile.signedDate ? ` · Signed ${activeProfile.signedDate}` : ''}
       </p>
 
@@ -600,14 +602,13 @@ export function ProspectRenderHistory({
           </div>
 
           <div data-tutorial="digital-sets-timeline">
-            {digitalSets.map((digitalSet) => {
-              const digitalsOnFile = countDigitalsOnFile(digitalSet);
-              const evaluationCount = digitalSet.evaluations.length;
-              const isOpen = openedSetId === digitalSet.id;
-              const contextRows = digitalSet.evaluations.flatMap(getContextEvaluationRows);
+            {digitalSetsForDisplay.map((ds) => {
+              const digitalsOnFile = countDigitalsOnFile(ds);
+              const isOpen = openedSetId === ds.id;
+              const contextRows = (ds.evaluations ?? []).flatMap(getContextEvaluationRows);
 
               return (
-                <div key={digitalSet.id}>
+                <div key={ds.id}>
                   <div
                     className="flex items-center gap-[24px] py-[16px]"
                     style={{ borderBottom: '1px solid #1a1a1a' }}
@@ -621,7 +622,7 @@ export function ProspectRenderHistory({
                           fontWeight: 700,
                         }}
                       >
-                        {digitalSet.title}
+                        {ds.title}
                       </div>
                       <div
                         style={{
@@ -631,7 +632,7 @@ export function ProspectRenderHistory({
                           marginTop: '4px',
                         }}
                       >
-                        {digitalSet.uploadedAt}
+                        {ds.uploadedAt}
                       </div>
                     </div>
 
@@ -643,14 +644,14 @@ export function ProspectRenderHistory({
                         color: '#888880',
                       }}
                     >
-                      {digitalsOnFile} digital{digitalsOnFile !== 1 ? 's' : ''} · {evaluationCount}{' '}
-                      evaluation{evaluationCount !== 1 ? 's' : ''}
+                      {digitalsOnFile} digital{digitalsOnFile !== 1 ? 's' : ''} ·{' '}
+                      {`${ds.evaluations?.length || 0} evaluation${ds.evaluations?.length !== 1 ? 's' : ''}`}
                     </div>
 
                     <div className="flex items-center gap-[8px] flex-shrink-0">
                       <button
                         type="button"
-                        onClick={() => toggleOpenSet(digitalSet.id)}
+                        onClick={() => toggleOpenSet(ds.id)}
                         className={ghostButtonClass}
                         style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
                       >
@@ -659,7 +660,7 @@ export function ProspectRenderHistory({
                       <button
                         type="button"
                         disabled={!canCompare}
-                        onClick={() => handleCompare(digitalSet.id)}
+                        onClick={() => handleCompare(ds.id)}
                         className={ghostButtonClass}
                         style={{
                           fontFamily: 'var(--font-mono)',
@@ -707,7 +708,7 @@ export function ProspectRenderHistory({
                           marginBottom: '12px',
                         }}
                       >
-                        {digitalGridSlots(digitalSet).map((digital) => (
+                        {digitalGridSlots(ds).map((digital) => (
                           <div key={digital.label} style={{ position: 'relative' }}>
                             {digital.url && (
                               <img
@@ -746,7 +747,7 @@ export function ProspectRenderHistory({
                           color: '#888880',
                         }}
                       >
-                        {formatTagsLine(digitalSet)}
+                        {formatTagsLine(ds)}
                       </p>
 
                       {contextRows.length > 0 && (
@@ -846,11 +847,11 @@ export function ProspectRenderHistory({
                           NOTES
                         </div>
                         <textarea
-                          value={notesBySet[digitalSet.id] ?? digitalSet.notes}
+                          value={notesBySet[ds.id] ?? ds.notes}
                           onChange={(e) =>
                             setNotesBySet((prev) => ({
                               ...prev,
-                              [digitalSet.id]: e.target.value,
+                              [ds.id]: e.target.value,
                             }))
                           }
                           placeholder="Agent notes..."
