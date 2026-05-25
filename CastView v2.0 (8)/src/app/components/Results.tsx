@@ -272,13 +272,6 @@ function getContextData(context: string): ContextMockEntry {
   return CONTEXT_MOCK_DATA[context] ?? GENERIC_CONTEXT_FALLBACK;
 }
 
-const scores = [
-  { label: 'Composition', value: 91 },
-  { label: 'Style Match', value: 96 },
-  { label: 'Versatility', value: 88 },
-  { label: 'Market Fit', value: 94 }
-];
-
 const evaluationData = {
   overallSummary:
     'Strong contextual alignment across luxury and editorial contexts based on uploaded digitals.',
@@ -290,26 +283,6 @@ const evaluationData = {
       'Upload a second set of digitals to enable progression analysis.',
   },
 };
-
-const alignmentBulletStyle = {
-  fontFamily: 'var(--font-mono)',
-  fontSize: '12px',
-  lineHeight: 1.6,
-  color: '#a0a09a',
-} as const;
-
-function AlignmentBulletList({ items }: { items: string[] }) {
-  return (
-    <div style={alignmentBulletStyle}>
-      {items.map((item, index) => (
-        <div key={index}>
-          <span style={{ color: '#C8A96E' }}>→ </span>
-          {item}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function ContextArrowList({ items }: { items: string[] }) {
   return (
@@ -375,16 +348,8 @@ export function Results() {
   const [openContext, setOpenContext] = useState<string | null>(null);
   const [showOverride, setShowOverride] = useState(false);
   const [overrideText, setOverrideText] = useState('');
-  const [methodologyOpen, setMethodologyOpen] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [agentNotes, setAgentNotes] = useState('');
-
-  const activeContextName =
-    openContext ??
-    selectedContexts[0] ??
-    contextResults[0]?.context ??
-    'Fragrance';
-  const activeContextEvaluation = getContextData(activeContextName);
 
   const getContextEvalData = (context: string) => getContextData(context);
 
@@ -847,196 +812,89 @@ export function Results() {
         
         {/* Right Panel */}
         <div>
-          <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[24px]">
-            <div 
-              className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-            >
-              Context Alignment
-            </div>
-            <div 
-              className="text-[11px] mb-[32px]"
-              style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
-            >
-              Analysed against market context indicators and uploaded digitals.
-            </div>
-            
-            <div className="space-y-[24px] mb-[32px]">
-              {scores.map((score) => (
-                <div key={score.label}>
-                  <div className="flex justify-between mb-[8px]">
-                    <span 
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}
-                    >
-                      {score.label}
-                    </span>
-                    <span 
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
-                    >
-                      {score.value}%
-                    </span>
-                  </div>
-                  <div className="h-[4px] bg-[#2a2a2a] rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-[#f0f0ec] rounded-full"
-                      style={{ width: `${score.value}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Score Explanation Panel */}
-            <div data-tutorial="score-panel">
+          <div
+            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[24px]"
+            data-tutorial="score-panel"
+          >
+            <div className="flex items-center justify-between">
               <div 
-                className="flex items-center justify-between mb-[12px]"
+                className="text-[10px] uppercase tracking-[0.1em]"
+                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
               >
-                <div 
-                  className="text-[11px] uppercase tracking-[0.1em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-                >
-                  Why This Alignment
-                </div>
+                Does This Align With Your Judgment?
+              </div>
+              <div className="flex gap-[8px]">
                 <button
-                  onClick={() => setMethodologyOpen(true)}
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', textDecoration: 'underline', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                  onClick={() => { 
+                    setShowOverride(false); 
+                    setAgreed(true); 
+                  }}
+                  className="px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
+                  style={{ 
+                    fontFamily: 'var(--font-mono)',
+                    borderColor: agreed ? '#4a7a4a' : '#2a2a2a',
+                    color: agreed ? '#4a7a4a' : '#a0a09a',
+                    backgroundColor: agreed 
+                      ? 'rgba(74,122,74,0.1)' 
+                      : (showOverride ? 'transparent' : '#1a1a1a'),
+                    cursor: agreed ? 'default' : 'pointer'
+                  }}
                 >
-                  HOW IS THIS EVALUATED?
+                  {agreed ? '✓ Confirmed' : 'Confirm Alignment'}
+                </button>
+                <button
+                  onClick={() => { 
+                    setShowOverride(true); 
+                    setAgreed(false); 
+                  }}
+                  className="px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
+                  style={{ 
+                    fontFamily: 'var(--font-mono)',
+                    borderColor: '#2a2a2a',
+                    color: '#a0a09a',
+                    backgroundColor: showOverride ? '#1a1a1a' : 'transparent',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Override
                 </button>
               </div>
-              
-              <div 
-                className="border rounded-[4px] p-[16px]"
-                style={{ backgroundColor: '#0d0d0d', borderColor: '#2a2a2a' }}
-              >
-                <div 
-                  className="mb-[16px]"
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', lineHeight: 1.6, color: '#a0a09a' }}
-                >
-                  {activeContextEvaluation.reasoning}
-                </div>
-
-                <div className="mb-[16px]">
-                  <div 
-                    className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
-                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-                  >
-                    STRENGTHS
-                  </div>
-                  <AlignmentBulletList items={activeContextEvaluation.strengths} />
-                </div>
-
-                <div className="mb-[16px]">
-                  <div 
-                    className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
-                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-                  >
-                    RISKS
-                  </div>
-                  <AlignmentBulletList items={activeContextEvaluation.risks} />
-                </div>
-
-                <div className="mb-[16px]">
-                  <div 
-                    className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
-                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-                  >
-                    MARKET SIGNALS
-                  </div>
-                  <AlignmentBulletList items={activeContextEvaluation.marketSignals} />
-                </div>
-
-                <div className="mb-[16px]">
-                  <div 
-                    className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
-                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-                  >
-                    SUGGESTED NEXT STEPS
-                  </div>
-                  <AlignmentBulletList items={activeContextEvaluation.suggestedNextSteps} />
-                </div>
-                
-                <div className="h-[1px] bg-[#2a2a2a] mb-[16px]" />
-                
-                <div className="flex items-center justify-between">
-                  <div 
-                    className="text-[10px] uppercase tracking-[0.1em]"
-                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-                  >
-                    Does This Align With Your Judgment?
-                  </div>
-                  <div className="flex gap-[8px]">
-                    <button
-                      onClick={() => { 
-                        setShowOverride(false); 
-                        setAgreed(true); 
-                      }}
-                      className="px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
-                      style={{ 
-                        fontFamily: 'var(--font-mono)',
-                        borderColor: agreed ? '#4a7a4a' : '#2a2a2a',
-                        color: agreed ? '#4a7a4a' : '#a0a09a',
-                        backgroundColor: agreed 
-                          ? 'rgba(74,122,74,0.1)' 
-                          : (showOverride ? 'transparent' : '#1a1a1a'),
-                        cursor: agreed ? 'default' : 'pointer'
-                      }}
-                    >
-                      {agreed ? '✓ Confirmed' : 'Confirm Alignment'}
-                    </button>
-                    <button
-                      onClick={() => { 
-                        setShowOverride(true); 
-                        setAgreed(false); 
-                      }}
-                      className="px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
-                      style={{ 
-                        fontFamily: 'var(--font-mono)',
-                        borderColor: '#2a2a2a',
-                        color: '#a0a09a',
-                        backgroundColor: showOverride ? '#1a1a1a' : 'transparent',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Override
-                    </button>
-                  </div>
-                </div>
-                
-                <p style={{ 
-                  fontFamily: 'var(--font-mono)', 
-                  fontSize: '11px', 
-                  color: '#888880',
-                  marginTop: '8px',
-                  fontStyle: 'italic'
-                }}>
-                  Your input trains the evaluation model for your agency's standards.
-                </p>
-                
-                {showOverride && (
-                  <div className="mt-[16px]">
-                    <textarea
-                      value={overrideText}
-                      onChange={(e) => setOverrideText(e.target.value)}
-                      placeholder="Add your assessment..."
-                      className="w-full h-[80px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] p-[12px] resize-none mb-[8px]"
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#f0f0ec' }}
-                    />
-                    <button
-                      className="px-[16px] py-[6px] rounded-[4px] text-[10px] uppercase transition-opacity hover:opacity-80"
-                      style={{ 
-                        fontFamily: 'var(--font-label)',
-                        backgroundColor: '#f0f0ec',
-                        color: '#080808'
-                      }}
-                    >
-                      Save
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
+            
+            <p style={{ 
+              fontFamily: 'var(--font-mono)', 
+              fontSize: '11px', 
+              color: '#888880',
+              marginTop: '8px',
+              fontStyle: 'italic'
+            }}>
+              Your input trains the evaluation model for your agency's standards.
+            </p>
+            
+            {showOverride && (
+              <div className="mt-[16px]">
+                <textarea
+                  value={overrideText}
+                  onChange={(e) => setOverrideText(e.target.value)}
+                  placeholder="Add your assessment..."
+                  className="w-full h-[80px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] p-[12px] resize-none mb-[8px]"
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#f0f0ec' }}
+                />
+                <button
+                  className="px-[16px] py-[6px] rounded-[4px] text-[10px] uppercase transition-opacity hover:opacity-80"
+                  style={{ 
+                    fontFamily: 'var(--font-label)',
+                    backgroundColor: '#f0f0ec',
+                    color: '#080808'
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+            )}
           </div>
+
+          <div className="h-[1px] bg-[#2a2a2a] mb-[24px]" />
           
           <div className="mb-[24px]">
             <label 
@@ -1072,105 +930,8 @@ export function Results() {
               }}
             />
           </div>
-          
-          <div className="space-y-[12px]">
-            <button
-              className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors border"
-              style={{ 
-                fontFamily: 'var(--font-label)',
-                backgroundColor: 'transparent',
-                borderColor: '#2a2a2a',
-                color: '#f0f0ec'
-              }}
-            >
-              Shortlist
-            </button>
-            <button
-              className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
-              style={{ 
-                fontFamily: 'var(--font-label)',
-                backgroundColor: 'transparent',
-                color: '#a0a09a'
-              }}
-            >
-              Pass
-            </button>
-          </div>
         </div>
       </div>
-
-      {/* Methodology Modal */}
-      {methodologyOpen && (
-        <div 
-          className="fixed inset-0 bg-[rgba(8,8,8,0.92)] flex items-center justify-center z-50"
-          onClick={() => setMethodologyOpen(false)}
-        >
-          <div 
-            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[32px] max-w-[560px] w-full max-h-[80vh] overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setMethodologyOpen(false)}
-              className="absolute top-[16px] right-[16px] text-[20px] hover:opacity-70 transition-opacity"
-              style={{ color: '#888880', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
-            >
-              ×
-            </button>
-
-            {/* Headline */}
-            <h2 
-              className="text-[28px] mb-[24px]"
-              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
-            >
-              How CastView evaluates a prospect
-            </h2>
-
-            {/* Body */}
-            <div 
-              className="text-[12px] mb-[24px]"
-              style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2', lineHeight: 1.8 }}
-            >
-              <p className="mb-[16px]">
-                Every alignment score is built from four dimensions, each weighted equally:
-              </p>
-
-              <p className="mb-[12px]">
-                <strong style={{ color: '#f0f0ec' }}>COMPOSITION (25%)</strong><br />
-                How well the prospect's physical attributes — bone structure, proportions, coloring — translate into the selected shoot context. Lighting, framing, and spatial composition are all considered.
-              </p>
-
-              <p className="mb-[12px]">
-                <strong style={{ color: '#f0f0ec' }}>STYLE MATCH (25%)</strong><br />
-                The degree to which the prospect's look aligns with established visual language for this context. Fragrance campaigns, for example, favour strong facial geometry and high contrast.
-              </p>
-
-              <p className="mb-[12px]">
-                <strong style={{ color: '#f0f0ec' }}>VERSATILITY (25%)</strong><br />
-                Whether the prospect's attributes can flex across variations within this context — close-up versus wide frame, soft versus dramatic lighting.
-              </p>
-
-              <p className="mb-[12px]">
-                <strong style={{ color: '#f0f0ec' }}>MARKET FIT (25%)</strong><br />
-                How the prospect compares to models that have been successfully cast in this context by agencies in your market.
-              </p>
-
-              <p className="mb-[12px]" style={{ marginTop: '16px' }}>
-                <strong style={{ color: '#f0f0ec' }}>Your feedback improves accuracy over time.</strong><br />
-                Every time you confirm or override an alignment score, that signal is used to refine the evaluation model specifically for your agency's casting standards. Your overrides are private to your agency — they are never shared with other agencies or used to train a shared model.
-              </p>
-            </div>
-
-            {/* Footer */}
-            <div 
-              className="text-[11px] italic"
-              style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
-            >
-              Model last updated: March 2026 · v2.1 · Trained on agency feedback
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
