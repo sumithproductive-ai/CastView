@@ -21,6 +21,7 @@ export function ProgressBar() {
     .some(path => location.pathname === path);
 
   if (!isEvaluationFlow) return null;
+  if (location.pathname === '/results') return null;
 
   const currentLabel = stepLabel[location.pathname] 
     || 'Evaluation in progress';
