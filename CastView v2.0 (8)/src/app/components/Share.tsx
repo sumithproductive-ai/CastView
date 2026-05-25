@@ -32,7 +32,7 @@ export function Share() {
   }).toLowerCase().replace(' ', '-');
   const shareLink = `castview.io/share/${slug}-${month}`;
 
-  const [selectedMethod, setSelectedMethod] = useState('Share Link');
+  const [selectedMethod, setSelectedMethod] = useState('Export PDF');
   const [checkedEvaluations, setCheckedEvaluations] = useState<number[]>(evaluations.map(e => e.id));
   const [copied, setCopied] = useState(false);
   const [expiry, setExpiry] = useState('7-days');
@@ -367,6 +367,22 @@ export function Share() {
 
     doc.save('CastView-Sumith-Chittimalla-Evaluation.pdf');
   };
+
+  const checkedEvaluationContexts = evaluations
+    .filter((e) => checkedEvaluations.includes(e.id))
+    .map((e) => e.context);
+
+  const handleSendEmail = () => {
+    const subject = encodeURIComponent(
+      `CastView Evaluation — ${prospectName}`
+    );
+    const body = encodeURIComponent(
+      `Hi,\n\nPlease find the context alignment evaluation for ${prospectName} via the link below.\n\n${shareLink}\n\nEvaluated contexts: ${checkedEvaluationContexts.join(', ')}\n\nBest regards`
+    );
+    window.open(
+      `mailto:?subject=${subject}&body=${body}`
+    );
+  };
   
   return (
     <div className="p-[48px]">
@@ -374,7 +390,7 @@ export function Share() {
         className="text-[48px] mb-[48px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
-        Share — {prospectName}
+        Share Evaluation
       </h1>
       
       <div className="grid grid-cols-3 gap-[48px]">
@@ -432,16 +448,40 @@ export function Share() {
           <div className="space-y-[16px]">
             {deliveryMethods.map((method) => {
               const isSelected = selectedMethod === method.name;
+              const isExportPdf = method.name === 'Export PDF';
               return (
                 <button
                   key={method.name}
-                  onClick={() => setSelectedMethod(method.name)}
-                  className="w-full p-[20px] rounded-[4px] text-left transition-all cursor-pointer"
+                  onClick={() => {
+                    setSelectedMethod(method.name);
+                    if (method.name === 'Send Email') {
+                      handleSendEmail();
+                    }
+                  }}
+                  className={`w-full p-[20px] rounded-[4px] text-left transition-all cursor-pointer ${
+                    isExportPdf ? 'border border-[#f0f0ec]' : ''
+                  }`}
                   style={{ 
                     backgroundColor: isSelected ? '#1a1a1a' : '#111111',
-                    border: isSelected ? '2px solid #f0f0ec' : '2px solid #2a2a2a'
+                    border: isExportPdf
+                      ? undefined
+                      : isSelected
+                        ? '2px solid #f0f0ec'
+                        : '2px solid #2a2a2a'
                   }}
                 >
+                  {isExportPdf && (
+                    <div
+                      className="mb-[8px] uppercase"
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '9px',
+                        color: '#C8A96E',
+                      }}
+                    >
+                      RECOMMENDED
+                    </div>
+                  )}
                   <div 
                     className="text-[13px] mb-[4px]"
                     style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}

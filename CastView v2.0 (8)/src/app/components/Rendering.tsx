@@ -1,11 +1,61 @@
 import React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
+import { getContextData } from '../constants/contextMockData';
+import { useProspects } from '../context/ProspectsContext';
+import type { DigitalSet } from '../types/talent';
+
+const EVALUATION_STORAGE_KEY = 'castview_evaluation_results';
+
+type ContextEvaluationResult = {
+  context: string;
+  alignmentScore: number;
+  fitLabel: string;
+  reasoning: string;
+  strengths: string[];
+  risks: string[];
+  marketSignals: string[];
+  suggestedNextSteps: string[];
+};
+
+type EvaluationApiData = {
+  contextEvaluations: ContextEvaluationResult[];
+};
+
+function collectDigitalImages(digitalSet: DigitalSet | undefined): string[] {
+  if (!digitalSet) return [];
+  return [
+    digitalSet.front,
+    digitalSet.profile,
+    digitalSet.threeQuarter,
+    digitalSet.fullBody,
+    ...digitalSet.additionalImages,
+  ].filter((url): url is string => Boolean(url));
+}
+
+function buildMockEvaluationData(contexts: string[]): EvaluationApiData {
+  return {
+    contextEvaluations: contexts.map((context) => {
+      const mock = getContextData(context);
+      return {
+        context,
+        alignmentScore: mock.score,
+        fitLabel: mock.fitLabel,
+        reasoning: mock.reasoning,
+        strengths: mock.strengths,
+        risks: mock.risks,
+        marketSignals: mock.marketSignals,
+        suggestedNextSteps: mock.suggestedNextSteps,
+      };
+    }),
+  };
+}
 
 export function Rendering() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { getProspectById, updateProspect } = useProspects();
   const prospectName = searchParams.get('name')
     ? decodeURIComponent(searchParams.get('name')!)
     : 'Prospect';
@@ -43,10 +93,109 @@ export function Rendering() {
   const [progress, setProgress] = useState(0);
   const [queueProgress, setQueueProgress] = useState(0);
   const [evaluationComplete, setEvaluationComplete] = useState(false);
-  
+  const [evaluationReady, setEvaluationReady] = useState(false);
+
+  const runEvaluation = useCallback(async () => {
+    const contextsToRun =
+      selectedContexts.length > 0 ? selectedContexts : ['Fragrance'];
+    const prospect = getProspectById(prospectId);
+    const digitalSet = prospect?.digitalSets?.[0];
+    const images = collectDigitalImages(digitalSet);
+
+    let data: EvaluationApiData;
+    if (images.length === 0) {
+      data = buildMockEvaluationData(contextsToRun);
+    } else {
+      try {
+        const apiUrl =
+          import.meta.env.VITE_EVALUATION_API_URL ?? '/api/evaluate';
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            images,
+            contexts: contextsToRun,
+            prospectId,
+            prospectName,
+          }),
+        });
+        if (!response.ok) throw new Error('Evaluation request failed');
+        data = await response.json();
+      } catch {
+        data = buildMockEvaluationData(contextsToRun);
+      }
+    }
+
+    sessionStorage.setItem(
+      EVALUATION_STORAGE_KEY,
+      JSON.stringify({
+        ...data,
+        prospectId,
+        prospectName,
+        contexts: contextsToRun,
+      }),
+    );
+
+    const prospectToUpdate = getProspectById(prospectId);
+    if (prospectToUpdate && prospectToUpdate.digitalSets.length > 0) {
+      const updatedSets = [...prospectToUpdate.digitalSets];
+      const latestSetIndex = 0;
+      const newEvaluation = {
+        id: `eval-${Date.now()}`,
+        completedAt: new Date().toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+        contexts: data.contextEvaluations.map((ce) => ({
+          context: ce.context,
+          alignmentScore: ce.alignmentScore,
+          fitLabel: ce.fitLabel,
+          reasoning: ce.reasoning,
+          strengths: ce.strengths,
+          risks: ce.risks,
+          marketSignals: ce.marketSignals,
+          suggestedNextSteps: ce.suggestedNextSteps,
+        })),
+      };
+      updatedSets[latestSetIndex] = {
+        ...updatedSets[latestSetIndex],
+        evaluations: [
+          newEvaluation,
+          ...updatedSets[latestSetIndex].evaluations,
+        ],
+      };
+      updateProspect(prospectId, {
+        digitalSets: updatedSets,
+      });
+    }
+  }, [
+    getProspectById,
+    updateProspect,
+    prospectId,
+    prospectName,
+    selectedContexts,
+  ]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await runEvaluation();
+      if (!cancelled) setEvaluationReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [runEvaluation]);
+
+  useEffect(() => {
+    if (currentStep < steps.length || !evaluationReady) return;
+    const timer = setTimeout(() => navigate(resultsPath), 500);
+    return () => clearTimeout(timer);
+  }, [currentStep, steps.length, evaluationReady, navigate, resultsPath]);
+
   useEffect(() => {
     if (currentStep >= steps.length) {
-      setTimeout(() => navigate(resultsPath), 500);
       return;
     }
     
