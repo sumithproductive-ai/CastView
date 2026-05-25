@@ -1,9 +1,9 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ChevronRight, Upload, X } from 'lucide-react';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
-import { useRoster } from '../context/RosterContext';
+import { useRoster, type RosterModel } from '../context/RosterContext';
 import { getRosterModelById } from './Roster';
 import type { DigitalSet, Evaluation } from '../types/talent';
 import { TutorialOverlay, uploadTutorialSteps } from './TutorialOverlay';
@@ -136,19 +136,27 @@ function resolveProfileData(
   profileType: ProfileType,
   modelId?: string,
   contextProspect?: Prospect,
+  models: RosterModel[] = [],
+  searchParams?: URLSearchParams | null,
 ): ProfileData | null {
   if (profileType === 'model') {
     const model = getRosterModelById(modelId ?? '');
-    if (model) {
+    const contextModel = !model
+      ? models.find((m) => m.id === (modelId ?? ''))
+      : null;
+    const resolvedModel = model ?? contextModel;
+    if (resolvedModel) {
       return {
-        name: model.name,
-        status: model.status,
-        statusColor: getRosterStatusColor(model.status),
-        digitalSets: model.digitalSets,
+        name: resolvedModel.name,
+        status: resolvedModel.status,
+        statusColor: getRosterStatusColor(resolvedModel.status),
+        digitalSets: resolvedModel.digitalSets,
       };
     }
     return {
-      name: 'Unknown Model',
+      name: searchParams?.get('name')
+        ? decodeURIComponent(searchParams.get('name')!)
+        : 'Unknown Model',
       status: 'ACTIVE',
       statusColor: getRosterStatusColor('ACTIVE'),
       digitalSets: [],
@@ -171,8 +179,9 @@ export function ProspectRenderHistory({
   profileType = 'prospect',
 }: ProspectRenderHistoryProps) {
   const { prospectId, modelId } = useParams();
+  const [searchParams] = useSearchParams();
   const { getProspectById, updateProspect } = useProspects();
-  const { updateModel } = useRoster();
+  const { updateModel, models } = useRoster();
   const isProspect = profileType === 'prospect';
   const isModel = profileType === 'model';
   const contextProspect = isProspect
@@ -182,6 +191,8 @@ export function ProspectRenderHistory({
     profileType,
     modelId,
     contextProspect,
+    models,
+    searchParams,
   );
   const showProspectNotFound = isProspect && !resolvedProfile;
   const activeProfile: ProfileData = resolvedProfile ?? {
@@ -223,7 +234,13 @@ export function ProspectRenderHistory({
   };
 
   useEffect(() => {
-    const profile = resolveProfileData(profileType, modelId, contextProspect);
+    const profile = resolveProfileData(
+      profileType,
+      modelId,
+      contextProspect,
+      models,
+      searchParams,
+    );
     if (!profile) return;
     setDigitalSets([...profile.digitalSets]);
     setStatus(profile.status);
@@ -235,7 +252,7 @@ export function ProspectRenderHistory({
     });
     setUploadFileNames({});
     setOpenedSetId(null);
-  }, [profileType, prospectId, modelId, contextProspect]);
+  }, [profileType, prospectId, modelId, contextProspect, models, searchParams]);
 
   const profileDigitalSets = activeProfile.digitalSets;
   const digitalSetCount = profileDigitalSets.length;

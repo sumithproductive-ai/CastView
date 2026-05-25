@@ -182,13 +182,16 @@ function isValidRosterModel(value: unknown): value is RosterModel {
 function loadModelsFromStorage(): RosterModel[] {
   try {
     const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
+
     if (storedVersion !== STORAGE_VERSION) {
-      localStorage.removeItem(STORAGE_KEY);
+      if (!raw) {
+        localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
+        return SEED_MODELS;
+      }
       localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
-      return SEED_MODELS;
     }
 
-    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return SEED_MODELS;
 
     const parsed: unknown = JSON.parse(raw);

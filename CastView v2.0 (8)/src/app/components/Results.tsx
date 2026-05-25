@@ -388,7 +388,11 @@ export function Results() {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/share')}
+            onClick={() =>
+              navigate(
+                `/share?name=${encodeURIComponent(prospectName)}&contexts=${contextsParam}&profileType=${profileType}&prospectId=${prospectId}`,
+              )
+            }
             className="bg-[#f0f0ec] text-[#080808] rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
             style={{
               fontFamily: 'var(--font-mono)',

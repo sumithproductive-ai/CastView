@@ -78,7 +78,6 @@ const rosterActivity: RosterActivityItem[] = [
 ];
 
 export function Dashboard() {
-  const [showSavingsTooltip, setShowSavingsTooltip] = useState(false);
   const { prospects } = useProspects();
   const { models } = useRoster();
 
@@ -107,15 +106,6 @@ export function Dashboard() {
       p.digitalSets.reduce((s, ds) => s + ds.evaluations.length, 0),
     0
   );
-  const savedThisMonth = totalEvaluations * 250;
-
-  const formattedSaved =
-    savedThisMonth >= 1000
-      ? `$${(savedThisMonth / 1000).toFixed(1)}k`
-      : savedThisMonth > 0
-        ? `$${savedThisMonth}`
-        : '$0';
-
   const recentProspects = useMemo(
     () =>
       [...prospects]
@@ -218,53 +208,30 @@ export function Dashboard() {
               </div>
             </div>
 
-            {/* Card 4: Saved This Month with tooltip */}
+            {/* Card 4: Evaluations run */}
             <div 
-              className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between relative cursor-help"
+              className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between relative"
               style={{ height: '96px' }}
-              onMouseEnter={() => setShowSavingsTooltip(true)}
-              onMouseLeave={() => setShowSavingsTooltip(false)}
             >
               <div 
                 className="text-[36px]" 
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                style={{ 
+                  fontFamily: 'var(--font-display)', 
+                  fontWeight: 300, 
+                  color: '#f0f0ec' 
+                }}
               >
-                {formattedSaved}
+                {totalEvaluations}
               </div>
-              <div>
-                <div 
-                  className="text-[10px] uppercase tracking-[0.12em]" 
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-                >
-                  SAVED THIS MONTH
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '8px',
-                    color: '#444440',
-                  }}
-                >
-                  est. test shoot costs avoided
-                </div>
+              <div 
+                className="text-[10px] uppercase tracking-[0.12em]" 
+                style={{ 
+                  fontFamily: 'var(--font-label)', 
+                  color: '#888880' 
+                }}
+              >
+                EVALUATIONS RUN
               </div>
-
-              {/* Tooltip */}
-              {showSavingsTooltip && (
-                <div 
-                  className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-[8px] px-[8px] py-[8px] rounded-[4px] whitespace-nowrap"
-                  style={{ 
-                    fontFamily: 'var(--font-mono)', 
-                    fontSize: '11px', 
-                    color: '#c8c8c2',
-                    backgroundColor: '#1a1a1a',
-                    border: '1px solid #2a2a2a',
-                    zIndex: 10
-                  }}
-                >
-                  Based on avg. agency test shoot cost of $800–2,500 per miscast shoot
-                </div>
-              )}
             </div>
           </div>
 

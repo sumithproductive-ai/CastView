@@ -81,13 +81,16 @@ function isValidProspect(value: unknown): value is Prospect {
 function loadProspectsFromStorage(): Prospect[] {
   try {
     const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
+
     if (storedVersion !== STORAGE_VERSION) {
-      localStorage.removeItem(STORAGE_KEY);
+      if (!raw) {
+        localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
+        return SEED_PROSPECTS;
+      }
       localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
-      return SEED_PROSPECTS;
     }
 
-    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return SEED_PROSPECTS;
 
     const parsed: unknown = JSON.parse(raw);
