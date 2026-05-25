@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import { useMemo, useState } from 'react';
 import { useProspects } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
 
 type ClientResponseStatus = 'SENT' | 'VIEWED' | 'RESPONDED';
 
@@ -79,6 +80,22 @@ const rosterActivity: RosterActivityItem[] = [
 export function Dashboard() {
   const [showSavingsTooltip, setShowSavingsTooltip] = useState(false);
   const { prospects } = useProspects();
+  const { models } = useRoster();
+
+  const activeModelsCount = models.filter(
+    (m) => m.status === 'ACTIVE'
+  ).length;
+
+  const totalRosterEvaluations = models.reduce(
+    (sum, m) =>
+      sum +
+      m.digitalSets.reduce((s, ds) => s + ds.evaluations.length, 0),
+    0
+  );
+
+  const onHoldCount = models.filter(
+    (m) => m.status === 'ON HOLD'
+  ).length;
 
   const totalProspects = prospects.length;
   const shortlistedCount = prospects.filter((p) => p.status === 'SHORTLISTED').length;
@@ -246,7 +263,7 @@ export function Dashboard() {
                 className="text-[36px]" 
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                0
+                {activeModelsCount}
               </div>
               <div 
                 className="text-[10px] uppercase tracking-[0.12em]" 
@@ -265,7 +282,7 @@ export function Dashboard() {
                 className="text-[36px]" 
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                0
+                {totalRosterEvaluations}
               </div>
               <div 
                 className="text-[10px] uppercase tracking-[0.12em]" 
@@ -284,7 +301,7 @@ export function Dashboard() {
                 className="text-[36px]" 
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                0
+                {onHoldCount}
               </div>
               <div 
                 className="text-[10px] uppercase tracking-[0.12em]" 
