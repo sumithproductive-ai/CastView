@@ -30,7 +30,7 @@ export type RosterModel = {
   digitalSets: DigitalSet[];
 };
 
-const STORAGE_VERSION = 'v4';
+const STORAGE_VERSION = 'v5';
 const STORAGE_VERSION_KEY = 'castview_roster_version';
 const STORAGE_KEY = 'castview_roster';
 
@@ -80,10 +80,10 @@ const SEED_MODELS: RosterModel[] = [
         id: 'john-ds-2',
         uploadedAt: 'May 2026',
         title: 'Updated Digitals',
-        front: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?w=800',
-        profile: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?w=800',
-        threeQuarter: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?w=800',
-        fullBody: 'https://images.unsplash.com/photo-1618008797651-3eb256213400?w=800',
+        front: 'https://i.imgur.com/jZHp7Ei.jpg',
+        profile: 'https://i.imgur.com/aBlfily.jpg',
+        threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
+        fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
         additionalImages: [],
         notes: 'Second submission — updated after first season.',
         tags: ['updated'],
@@ -120,10 +120,10 @@ const SEED_MODELS: RosterModel[] = [
         id: 'john-ds-1',
         uploadedAt: 'January 2026',
         title: 'Initial Submission',
-        front: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800',
-        profile: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800',
-        threeQuarter: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800',
-        fullBody: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800',
+        front: 'https://i.imgur.com/jZHp7Ei.jpg',
+        profile: 'https://i.imgur.com/aBlfily.jpg',
+        threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
+        fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
         additionalImages: [],
         notes: 'First submission after signing.',
         tags: ['initial'],

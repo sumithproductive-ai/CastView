@@ -7,12 +7,11 @@ import type { DigitalSet } from '../types/talent';
 
 const ROSTER_STORAGE_KEY = 'castview_roster';
 const ROSTER_VERSION_KEY = 'castview_roster_version';
-const ROSTER_STORAGE_VERSION = 'v3';
+const ROSTER_STORAGE_VERSION = 'v4';
 
 function readRosterModelsFromStorage(): RosterModel[] {
   try {
-    const storedVersion = localStorage.getItem(ROSTER_VERSION_KEY);
-    if (storedVersion !== ROSTER_STORAGE_VERSION) return [];
+    // Version check removed — RosterContext handles versioning
 
     const raw = localStorage.getItem(ROSTER_STORAGE_KEY);
     if (!raw) return [];
