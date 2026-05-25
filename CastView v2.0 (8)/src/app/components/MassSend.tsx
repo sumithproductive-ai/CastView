@@ -7,7 +7,8 @@ type MassSendEntry = {
   name: string;
   type: 'PROSPECT' | 'ROSTER';
   image: string | null;
-  contexts: string[];
+  evalDate: string;
+  contexts: string;
   link: string;
 };
 
@@ -40,31 +41,57 @@ export function MassSend() {
   const { models } = useRoster();
   const [copiedRowId, setCopiedRowId] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
+  const [selectedEvalIndex, setSelectedEvalIndex] =
+    useState<Record<string, number>>({});
 
   const allEntries = useMemo<MassSendEntry[]>(
     () => [
       ...prospects
-        .filter((p) => p.evaluations > 0)
-        .map((p) => ({
-          id: p.id,
-          name: p.name,
-          type: 'PROSPECT' as const,
-          image: p.image,
-          contexts: p.contexts || [],
-          link: buildShareLink(p.name),
-        })),
+        .filter((p) =>
+          p.digitalSets.some((ds) => ds.evaluations.length > 0),
+        )
+        .map((p) => {
+          const latestEval = p.digitalSets
+            .flatMap((ds) => ds.evaluations)
+            .sort(
+              (a, b) =>
+                new Date(b.completedAt).getTime() -
+                new Date(a.completedAt).getTime(),
+            )[0];
+          return {
+            id: p.id,
+            name: p.name,
+            type: 'PROSPECT' as const,
+            image: p.image,
+            evalDate: latestEval?.completedAt ?? 'No evaluation',
+            contexts:
+              latestEval?.contexts.map((c) => c.context).join(' · ') ?? '',
+            link: buildShareLink(p.name),
+          };
+        }),
       ...models
         .filter((m) =>
           m.digitalSets.some((ds) => ds.evaluations.length > 0),
         )
-        .map((m) => ({
-          id: m.id,
-          name: m.name,
-          type: 'ROSTER' as const,
-          image: m.image,
-          contexts: m.contexts || [],
-          link: buildShareLink(m.name),
-        })),
+        .map((m) => {
+          const latestEval = m.digitalSets
+            .flatMap((ds) => ds.evaluations)
+            .sort(
+              (a, b) =>
+                new Date(b.completedAt).getTime() -
+                new Date(a.completedAt).getTime(),
+            )[0];
+          return {
+            id: m.id,
+            name: m.name,
+            type: 'ROSTER' as const,
+            image: m.image,
+            evalDate: latestEval?.completedAt ?? 'No evaluation',
+            contexts:
+              latestEval?.contexts.map((c) => c.context).join(' · ') ?? '',
+            link: buildShareLink(m.name),
+          };
+        }),
     ],
     [prospects, models],
   );
@@ -161,6 +188,17 @@ export function MassSend() {
                   }}
                 >
                   {entry.name}
+                </div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '10px',
+                    color: '#666660',
+                    marginTop: '2px',
+                  }}
+                >
+                  {entry.evalDate}
+                  {entry.contexts && ` · ${entry.contexts}`}
                 </div>
                 <span
                   className="inline-block mt-[4px] font-mono text-[9px] uppercase tracking-[0.1em] px-[6px] py-[2px] border border-[#2a2a2a] text-[#888880]"

@@ -103,8 +103,8 @@ export function Dashboard() {
   const totalEvaluations = prospects.reduce(
     (sum, p) =>
       sum +
-      p.digitalSets.reduce((s, ds) => s + ds.evaluations.length, 0),
-    0
+      (typeof p.evaluations === 'number' ? p.evaluations : 0),
+    0,
   );
   const recentProspects = useMemo(
     () =>

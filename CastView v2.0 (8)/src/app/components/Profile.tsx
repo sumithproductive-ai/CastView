@@ -23,8 +23,6 @@ const contexts = [
   'Swimwear', 'Couture', 'Street'
 ];
 
-const qualities = ['Standard', 'High', 'Ultra'];
-
 export function Profile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -34,7 +32,6 @@ export function Profile() {
   const prospectId = searchParams.get('prospectId') || '';
   const profileType = searchParams.get('profileType') || 'prospect';
   const [selectedContexts, setSelectedContexts] = useState<string[]>(['Fragrance', 'Editorial']);
-  const [selectedQuality, setSelectedQuality] = useState('High');
   
   const toggleContext = (context: string) => {
     setSelectedContexts(prev => 
@@ -216,47 +213,6 @@ export function Profile() {
             >
               CastView analyses uploaded digitals against market context indicators. Results are alignment guidance — not objective judgments.
             </p>
-          </div>
-          
-          <div className="mb-[48px]">
-            <label 
-              className="block mb-[16px] text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-            >
-              Evaluation Quality
-            </label>
-            <div className="flex gap-[12px]">
-              {qualities.map((quality) => {
-                const isSelected = selectedQuality === quality;
-                const timeEstimates: { [key: string]: string } = {
-                  'Standard': '~2 min',
-                  'High': '~5 min',
-                  'Ultra': '~12 min'
-                };
-                return (
-                  <div key={quality} className="flex-1 text-center">
-                    <button
-                      onClick={() => setSelectedQuality(quality)}
-                      className="w-full px-[16px] py-[10px] border rounded-[4px] transition-all text-[11px] uppercase tracking-[0.1em]"
-                      style={{ 
-                        fontFamily: 'var(--font-label)',
-                        backgroundColor: isSelected ? '#1a1a1a' : 'transparent',
-                        borderColor: isSelected ? '#c8c8c2' : '#2a2a2a',
-                        color: isSelected ? '#f0f0ec' : '#a0a09a'
-                      }}
-                    >
-                      {quality}
-                    </button>
-                    <div 
-                      className="mt-[8px] text-[11px]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
-                    >
-                      {timeEstimates[quality]}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
           
           <button

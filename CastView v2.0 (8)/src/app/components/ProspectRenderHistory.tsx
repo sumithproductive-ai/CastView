@@ -270,7 +270,7 @@ export function ProspectRenderHistory({
       : digitalSetsForDisplay[0]) ?? null;
   const canRunEvaluationOnSelected =
     selectedDigitalSetForEvaluation !== null &&
-    countDigitalsOnFile(selectedDigitalSetForEvaluation) > 0;
+    (countDigitalsOnFile(selectedDigitalSetForEvaluation) > 0 || isProspect);
   const runEvaluationDisabledTitle = 'Upload digitals before running evaluation';
   const resolvedEntityId = isModel
     ? modelId ?? 'sumith-chittimalla-roster'
@@ -334,10 +334,22 @@ export function ProspectRenderHistory({
     const updatedSets = [newSet, ...digitalSets];
     setDigitalSets(updatedSets);
 
-    if (isProspect && prospectId && contextProspect) {
-      updateProspect(prospectId, {
-        digitalSets: [newSet, ...contextProspect.digitalSets],
-      });
+    if (isProspect && prospectId) {
+      const currentProspect =
+        contextProspect ?? getProspectById(prospectId);
+      if (currentProspect) {
+        updateProspect(prospectId, {
+          digitalSets: [newSet, ...currentProspect.digitalSets],
+        });
+      } else {
+        updateProspect(prospectId, {
+          digitalSets: updatedSets,
+        });
+      }
+    }
+
+    if (isModel && modelId) {
+      updateModel(modelId, { digitalSets: updatedSets });
     }
 
     resetUploadFormState();
