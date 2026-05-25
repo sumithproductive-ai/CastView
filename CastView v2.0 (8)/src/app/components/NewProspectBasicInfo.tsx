@@ -4,7 +4,17 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { useTutorial } from '../context/TutorialContext';
 
-type Market = 'NEW YORK' | 'LONDON' | 'PARIS';
+type Market =
+  | 'NEW YORK'
+  | 'LONDON'
+  | 'PARIS'
+  | 'MILAN'
+  | 'LOS ANGELES'
+  | 'TOKYO'
+  | 'SYDNEY'
+  | 'DUBAI'
+  | 'BERLIN'
+  | 'OTHER';
 type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL';
 
 export function NewProspectBasicInfo() {
@@ -43,14 +53,6 @@ export function NewProspectBasicInfo() {
     const no = searchParams.get('notes');
     if (no) setNotes(no);
   }, []);
-
-  const toggleMarket = (market: Market) => {
-    setMarkets(prev => 
-      prev.includes(market) 
-        ? prev.filter(m => m !== market)
-        : [...prev, market]
-    );
-  };
 
   const handleContinue = () => {
     if (isTutorialOpen) {
@@ -184,22 +186,60 @@ export function NewProspectBasicInfo() {
             >
               PRIMARY MARKET
             </label>
-            <div className="flex gap-[8px]">
-              {(['NEW YORK', 'LONDON', 'PARIS'] as Market[]).map((market) => (
-                <button
-                  key={market}
-                  onClick={() => toggleMarket(market)}
-                  className="px-[16px] py-[8px] rounded-full text-[9px] uppercase tracking-[0.1em] transition-colors border cursor-pointer"
+            <select
+              multiple
+              value={markets}
+              onChange={(e) => {
+                const selected = Array.from(
+                  e.target.selectedOptions,
+                  (opt) => opt.value as Market,
+                );
+                setMarkets(selected);
+              }}
+              className="w-full px-[16px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '13px',
+                color: '#f0f0ec',
+                height: '140px',
+              }}
+            >
+              {(
+                [
+                  'NEW YORK',
+                  'LONDON',
+                  'PARIS',
+                  'MILAN',
+                  'LOS ANGELES',
+                  'TOKYO',
+                  'SYDNEY',
+                  'DUBAI',
+                  'BERLIN',
+                  'OTHER',
+                ] as Market[]
+              ).map((m) => (
+                <option
+                  key={m}
+                  value={m}
                   style={{
-                    fontFamily: 'var(--font-label)',
-                    backgroundColor: markets.includes(market) ? '#f0f0ec' : 'transparent',
-                    borderColor: markets.includes(market) ? '#f0f0ec' : '#2a2a2a',
-                    color: markets.includes(market) ? '#080808' : '#a0a09a'
+                    backgroundColor: '#111111',
+                    color: '#f0f0ec',
+                    padding: '8px',
                   }}
                 >
-                  {market}
-                </button>
+                  {m}
+                </option>
               ))}
+            </select>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: '#666660',
+                marginTop: '8px',
+              }}
+            >
+              Hold Ctrl / Cmd to select multiple markets
             </div>
           </div>
 

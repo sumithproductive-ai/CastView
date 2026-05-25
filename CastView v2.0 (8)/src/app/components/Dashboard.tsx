@@ -107,7 +107,7 @@ export function Dashboard() {
       p.digitalSets.reduce((s, ds) => s + ds.evaluations.length, 0),
     0
   );
-  const savedThisMonth = totalEvaluations * 800;
+  const savedThisMonth = totalEvaluations * 250;
 
   const formattedSaved =
     savedThisMonth >= 1000
@@ -262,7 +262,7 @@ export function Dashboard() {
                     zIndex: 10
                   }}
                 >
-                  2 evaluations completed · $2,350 avg test shoot cost avoided
+                  Based on avg. agency test shoot cost of $800–2,500 per miscast shoot
                 </div>
               )}
             </div>

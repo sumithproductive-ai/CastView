@@ -112,20 +112,24 @@ export function NewProspectReview() {
   };
 
   const handleSaveDraft = () => {
-    if (!isSumithDemo) {
-      addProspect(buildNewProspect('DRAFT'));
-    }
+    const prospectId = searchParams.get('prospectId');
+    console.log(
+      'isSumithDemo:',
+      isSumithDemo,
+      'prospectId:',
+      prospectId,
+      'name:',
+      prospectName,
+    );
+    addProspect(buildNewProspect('DRAFT'));
     navigate('/prospects');
   };
 
   const handleSaveAndRender = () => {
-    const savedProspect = buildNewProspect('IN REVIEW');
-    if (!isSumithDemo) {
-      addProspect(savedProspect);
-    }
-    const defaultContexts = 'Fragrance,Editorial';
+    const newProspect = buildNewProspect('IN REVIEW');
+    addProspect(newProspect);
     navigate(
-      `/profile?name=${encodeURIComponent(savedProspect.name)}&prospectId=${savedProspect.id}&profileType=prospect`
+      `/profile?name=${encodeURIComponent(newProspect.name)}&prospectId=${newProspect.id}&profileType=prospect`,
     );
   };
 

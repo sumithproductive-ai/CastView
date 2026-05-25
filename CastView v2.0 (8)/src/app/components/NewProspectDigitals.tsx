@@ -232,7 +232,20 @@ export function NewProspectDigitals() {
                 
                 {/* Remove Button - Top Right */}
                 <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isSumithDemo) return;
+                    setUploadedImages((prev) => ({
+                      ...prev,
+                      [zone.key]: null,
+                    }));
+                    if (fileInputRefs[zone.key].current) {
+                      fileInputRefs[zone.key].current!.value = '';
+                    }
+                  }}
                   className="absolute top-[8px] right-[8px] w-[28px] h-[28px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-full flex items-center justify-center hover:bg-[#222222] transition-colors"
+                  style={{ cursor: 'pointer' }}
                 >
                   <X size={14} style={{ color: '#f0f0ec' }} />
                 </button>
