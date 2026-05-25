@@ -15,7 +15,25 @@ interface ClientResponse {
   responseTime?: string;
 }
 
-const clientResponses: ClientResponse[] = [];
+const clientResponses: ClientResponse[] = [
+  {
+    id: '1',
+    prospectName: 'Sumith Chittimalla',
+    contexts: 'Fragrance · Editorial',
+    sentTime: '2 days ago',
+    status: 'VIEWED',
+    openedTime: '1 day ago',
+  },
+  {
+    id: '2',
+    prospectName: 'Sumith Chittimalla',
+    contexts: 'Campaign · Beauty',
+    sentTime: '5 days ago',
+    status: 'RESPONDED',
+    openedTime: '4 days ago',
+    responseTime: '3 days ago',
+  },
+];
 
 function submissionDateRank(submissionDate: string): number {
   const value = submissionDate.toLowerCase().trim();
@@ -41,7 +59,22 @@ type RosterActivityItem = {
   image: string;
 };
 
-const rosterActivity: RosterActivityItem[] = [];
+const rosterActivity: RosterActivityItem[] = [
+  {
+    id: 'sumith-chittimalla-roster',
+    name: 'Sumith Chittimalla',
+    activity: 'New evaluation completed — Fragrance 94%',
+    timeAgo: '3 days ago',
+    image: 'https://i.imgur.com/F70z8kX.jpg',
+  },
+  {
+    id: 'john-doe-roster',
+    name: 'John Doe',
+    activity: 'Digital set comparison run — Fragrance improved',
+    timeAgo: '1 week ago',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80',
+  },
+];
 
 export function Dashboard() {
   const [showSavingsTooltip, setShowSavingsTooltip] = useState(false);
@@ -272,11 +305,12 @@ export function Dashboard() {
           style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
         >
           AWAITING CLIENT RESPONSE ({clientResponses.length})
-          {/* Notification dot - hardcoded visible for prototype */}
-          <span 
-            className="w-[6px] h-[6px] rounded-full inline-block ml-[8px] mb-[1px]"
-            style={{ backgroundColor: '#f0f0ec' }}
-          />
+          {clientResponses.length > 0 && (
+            <span
+              className="w-[6px] h-[6px] rounded-full inline-block ml-[8px] mb-[1px]"
+              style={{ backgroundColor: '#f0f0ec' }}
+            />
+          )}
         </div>
 
         {/* Response list or empty state */}

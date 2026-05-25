@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
-import { LayoutDashboard, Users, Image, Share2, Settings, Bell, FlaskConical, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users, Image, Share2, Settings, Bell, type LucideIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { NotificationsPanel } from './NotificationsPanel';
 
@@ -13,12 +13,6 @@ const coreNavItems: NavItem[] = [
   { name: 'Shared', icon: Share2, path: '/share' },
   { name: 'Settings', icon: Settings, path: '/settings' },
 ];
-
-const renderLabNavItem: NavItem = {
-  name: 'Render Lab',
-  icon: FlaskConical,
-  path: '/render-lab',
-};
 
 export function Sidebar() {
   const location = useLocation();
@@ -47,9 +41,6 @@ export function Sidebar() {
     }
     if (itemName === 'Settings') {
       return path === '/settings';
-    }
-    if (itemName === 'Render Lab') {
-      return path === '/render-lab';
     }
     return false;
   };
@@ -87,40 +78,14 @@ export function Sidebar() {
         </div>
         
         <nav className="flex-1 space-y-[4px]">
-          {[...coreNavItems, renderLabNavItem].map((item, index) => {
+          {coreNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.name);
-            const showDivider = index === coreNavItems.length;
-            const renderLabBadge = item.name === 'Render Lab' ? (
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '8px',
-                  color: '#888880',
-                  border: '1px solid #2a2a2a',
-                  padding: '1px 5px',
-                  borderRadius: '2px',
-                  marginLeft: '8px',
-                  letterSpacing: '0.1em',
-                }}
-              >
-                BETA
-              </span>
-            ) : null;
             
             // During onboarding, render as disabled div instead of Link
             if (isOnboarding) {
               return (
                 <div key={item.name}>
-                  {showDivider && (
-                    <div
-                      style={{
-                        height: '1px',
-                        backgroundColor: '#1a1a1a',
-                        margin: '8px 16px',
-                      }}
-                    />
-                  )}
                   <div
                     className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px]"
                     style={{
@@ -133,7 +98,6 @@ export function Sidebar() {
                   >
                     <Icon size={16} />
                     <span>{item.name}</span>
-                    {renderLabBadge}
                   </div>
                 </div>
               );
@@ -141,15 +105,6 @@ export function Sidebar() {
             
             return (
               <div key={item.name}>
-                {showDivider && (
-                  <div
-                    style={{
-                      height: '1px',
-                      backgroundColor: '#1a1a1a',
-                      margin: '8px 16px',
-                    }}
-                  />
-                )}
                 <Link
                   to={item.path}
                   className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px] transition-colors hover:bg-[#1a1a1a]"
@@ -162,7 +117,6 @@ export function Sidebar() {
                 >
                   <Icon size={16} />
                   <span>{item.name}</span>
-                  {renderLabBadge}
                 </Link>
               </div>
             );
@@ -231,40 +185,13 @@ export function Sidebar() {
       
       {/* Mobile Bottom Tab Bar */}
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[#111111] border-t border-[#2a2a2a] flex items-center justify-around h-[64px] z-50">
-        {[...coreNavItems, renderLabNavItem].map((item, index) => {
+        {coreNavItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.name);
-          const showDivider = index === coreNavItems.length;
-          const renderLabBadge = item.name === 'Render Lab' ? (
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '8px',
-                color: '#888880',
-                border: '1px solid #2a2a2a',
-                padding: '1px 5px',
-                borderRadius: '2px',
-                marginLeft: '8px',
-                letterSpacing: '0.1em',
-              }}
-            >
-              BETA
-            </span>
-          ) : null;
           
           if (isOnboarding) {
             return (
               <div key={item.name} className="flex items-center flex-1">
-                {showDivider && (
-                  <div
-                    style={{
-                      width: '1px',
-                      backgroundColor: '#1a1a1a',
-                      margin: '8px 16px',
-                      alignSelf: 'stretch',
-                    }}
-                  />
-                )}
                 <div
                   className="flex flex-col items-center justify-center gap-[4px] flex-1"
                   style={{
@@ -284,7 +211,6 @@ export function Sidebar() {
                     }}
                   >
                     {item.name}
-                    {renderLabBadge}
                   </span>
                 </div>
               </div>
@@ -293,16 +219,6 @@ export function Sidebar() {
           
           return (
             <div key={item.name} className="flex items-center flex-1">
-              {showDivider && (
-                <div
-                  style={{
-                    width: '1px',
-                    backgroundColor: '#1a1a1a',
-                    margin: '8px 16px',
-                    alignSelf: 'stretch',
-                  }}
-                />
-              )}
               <Link
                 to={item.path}
                 className="flex flex-col items-center justify-center gap-[4px] flex-1"
@@ -319,7 +235,6 @@ export function Sidebar() {
                   }}
                 >
                   {item.name}
-                  {renderLabBadge}
                 </span>
               </Link>
             </div>

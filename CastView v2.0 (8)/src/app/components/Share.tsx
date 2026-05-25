@@ -1,5 +1,6 @@
 import React from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { Copy, Check } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 
@@ -17,12 +18,27 @@ const deliveryMethods = [
 ];
 
 export function Share() {
+  const [searchParams] = useSearchParams();
+  const prospectName = searchParams.get('name')
+    ? decodeURIComponent(searchParams.get('name')!)
+    : 'Prospect';
+  const slug = prospectName
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+  const month = new Date().toLocaleString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  }).toLowerCase().replace(' ', '-');
+  const shareLink = `castview.io/share/${slug}-${month}`;
+
   const [selectedMethod, setSelectedMethod] = useState('Share Link');
   const [checkedEvaluations, setCheckedEvaluations] = useState<number[]>(evaluations.map(e => e.id));
   const [copied, setCopied] = useState(false);
   const [expiry, setExpiry] = useState('7-days');
   const [passwordEnabled, setPasswordEnabled] = useState(false);
   const [agentNotes, setAgentNotes] = useState('');
+  const shareLinkInputRef = useRef<HTMLInputElement>(null);
   
   const toggleEvaluation = (id: number) => {
     setCheckedEvaluations(prev => 
@@ -31,7 +47,7 @@ export function Share() {
   };
   
   const handleCopy = () => {
-    const link = 'castview.co/share/sumith-chittimalla-2026-05';
+    const link = shareLink;
     if (navigator.clipboard && 
         navigator.clipboard.writeText) {
       navigator.clipboard.writeText(link)
@@ -47,9 +63,7 @@ export function Share() {
         });
     } else {
       // Fallback: select the input text
-      const input = document.querySelector(
-        'input[value="castview.co/share/sumith-chittimalla-2026-05"]'
-      ) as HTMLInputElement;
+      const input = shareLinkInputRef.current;
       if (input) {
         input.select();
         document.execCommand('copy');
@@ -360,7 +374,7 @@ export function Share() {
         className="text-[48px] mb-[48px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
-        Share — Sumith Chittimalla
+        Share — {prospectName}
       </h1>
       
       <div className="grid grid-cols-3 gap-[48px]">
@@ -466,8 +480,9 @@ export function Share() {
                 </label>
                 <div className="flex gap-[8px]">
                   <input
+                    ref={shareLinkInputRef}
                     type="text"
-                    value="castview.co/share/sumith-chittimalla-2026-05"
+                    value={shareLink}
                     readOnly
                     className="flex-1 px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
                     style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}

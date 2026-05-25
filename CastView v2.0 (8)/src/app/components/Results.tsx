@@ -926,20 +926,6 @@ export function Results() {
           </div>
 
           <div className="h-[1px] bg-[#2a2a2a] mb-[24px]" />
-          
-          <div className="mb-[24px]">
-            <label 
-              className="block mb-[12px] text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-            >
-              Team Notes
-            </label>
-            <textarea 
-              className="w-full h-[100px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[16px] resize-none"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
-              placeholder="Add notes for the team..."
-            />
-          </div>
 
           <div>
             <div

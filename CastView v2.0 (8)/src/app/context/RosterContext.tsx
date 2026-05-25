@@ -30,7 +30,7 @@ export type RosterModel = {
   digitalSets: DigitalSet[];
 };
 
-const STORAGE_VERSION = 'v3';
+const STORAGE_VERSION = 'v4';
 const STORAGE_VERSION_KEY = 'castview_roster_version';
 const STORAGE_KEY = 'castview_roster';
 
@@ -66,7 +66,7 @@ const SEED_MODELS: RosterModel[] = [
   {
     id: 'john-doe-roster',
     name: 'John Doe',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80',
     primaryContext: 'EDITORIAL',
     contexts: ['FR', 'ED', 'RW'],
     renderedContexts: ['FR', 'ED'],
