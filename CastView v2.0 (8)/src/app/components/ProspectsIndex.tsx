@@ -72,7 +72,10 @@ export function ProspectsIndex() {
   const [sortBy, setSortBy] = useState('submission-date');
   const navigate = useNavigate();
   const { prospects, addProspect, updateProspect, removeProspect } = useProspects();
-  
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const prospectToDelete =
+    prospects.find((p) => p.id === deleteTargetId) ?? null;
+
   // Multi-select state
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
@@ -639,7 +642,7 @@ export function ProspectsIndex() {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        removeProspect(prospect.id);
+                        setDeleteTargetId(prospect.id);
                       }}
                       className="w-full mt-[8px] px-[10px] py-[6px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] transition-colors"
                       style={{
@@ -838,6 +841,71 @@ export function ProspectsIndex() {
                 style={{ fontFamily: 'var(--font-mono)', color: '#080808' }}
               >
                 ADD TO DRAFTS →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTargetId && prospectToDelete && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ backgroundColor: 'rgba(8,8,8,0.85)' }}
+          onClick={() => setDeleteTargetId(null)}
+        >
+          <div
+            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[32px] max-w-[400px] w-full mx-[24px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              className="mb-[12px]"
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '28px',
+                fontWeight: 300,
+                color: '#f0f0ec',
+              }}
+            >
+              Delete prospect?
+            </h3>
+            <p
+              className="mb-[24px]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color: '#a0a09a',
+                lineHeight: 1.8,
+              }}
+            >
+              This will permanently remove {prospectToDelete.name} and all their
+              digital sets and evaluations. This cannot be undone.
+            </p>
+            <div className="flex gap-[12px]">
+              <button
+                type="button"
+                onClick={() => setDeleteTargetId(null)}
+                className="flex-1 py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] transition-colors"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  color: '#a0a09a',
+                }}
+              >
+                CANCEL
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  removeProspect(deleteTargetId);
+                  setDeleteTargetId(null);
+                }}
+                className="flex-1 py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  backgroundColor: '#c87a7a',
+                  color: '#080808',
+                }}
+              >
+                DELETE
               </button>
             </div>
           </div>
