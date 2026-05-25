@@ -174,7 +174,7 @@ export function ProspectRenderHistory({
   profileType = 'prospect',
 }: ProspectRenderHistoryProps) {
   const { prospectId, modelId } = useParams();
-  const { getProspectById, updateProspect, removeProspect } = useProspects();
+  const { getProspectById, updateProspect } = useProspects();
   const isProspect = profileType === 'prospect';
   const isModel = profileType === 'model';
   const contextProspect = isProspect
@@ -205,7 +205,6 @@ export function ProspectRenderHistory({
   const [notesBySet, setNotesBySet] = useState<Record<string, string>>({});
   const [digitalSets, setDigitalSets] = useState<DigitalSet[]>(activeProfile.digitalSets);
   const [showUploadForm, setShowUploadForm] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [uploadForm, setUploadForm] = useState(emptyUploadForm);
   const [uploadFileNames, setUploadFileNames] = useState<
@@ -347,17 +346,6 @@ export function ProspectRenderHistory({
     setOpenedSetId((current) => (current === setId ? null : setId));
   };
 
-  const handleConfirmDelete = () => {
-    console.log('Deleting prospect:', prospectId);
-    if (isProspect && prospectId) {
-      removeProspect(prospectId);
-      navigate('/prospects');
-    } else if (isModel && modelId) {
-      navigate('/roster');
-    }
-    setShowDeleteModal(false);
-  };
-
   return (
     <div className="p-[20px] md:p-[48px]">
       {showProspectNotFound ? (
@@ -497,14 +485,6 @@ export function ProspectRenderHistory({
             >
               COMPARE DIGITALS
             </button>
-            <button
-              type="button"
-              onClick={() => setShowDeleteModal(true)}
-              className="w-full px-[16px] py-[10px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
-              style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a', cursor: 'pointer' }}
-            >
-              DELETE PROSPECT
-            </button>
             <div className="w-full h-[1px] bg-[#2a2a2a] my-[4px]" />
             <div
               className="text-[9px] uppercase tracking-[0.1em]"
@@ -584,7 +564,7 @@ export function ProspectRenderHistory({
             </div>
             <button
               type="button"
-              onClick={() => setShowDeleteModal(true)}
+              onClick={() => navigate('/roster')}
               className="w-full px-[16px] py-[10px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
               style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a', cursor: 'pointer' }}
             >
@@ -1138,55 +1118,6 @@ export function ProspectRenderHistory({
                 </div>
               </div>
             </div>
-      )}
-
-      {showDeleteModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
-          onClick={() => setShowDeleteModal(false)}
-        >
-          <div
-            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] max-w-[420px] w-full mx-[20px]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2
-              className="text-[18px] mb-[12px]"
-              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
-            >
-              Delete prospect?
-            </h2>
-            <p
-              className="mb-[24px]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#888880', lineHeight: 1.6 }}
-            >
-              This will permanently remove {activeProfile.name} and all their digital sets and
-              evaluations. This cannot be undone.
-            </p>
-            <div className="flex gap-[12px]">
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
-              >
-                CANCEL
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                className="flex-1 px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  backgroundColor: '#c87a7a',
-                  color: '#080808',
-                  cursor: 'pointer',
-                }}
-              >
-                DELETE
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       {pendingStatusChange && (
