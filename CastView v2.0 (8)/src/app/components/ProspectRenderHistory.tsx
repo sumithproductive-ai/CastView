@@ -15,6 +15,7 @@ type ProfileData = {
   status: string;
   statusColor: string;
   signedDate?: string;
+  evaluations?: number;
   digitalSets: DigitalSet[];
 };
 
@@ -168,6 +169,7 @@ function resolveProfileData(
       name: contextProspect.name,
       status: contextProspect.status,
       statusColor: contextProspect.statusColor,
+      evaluations: contextProspect.evaluations,
       digitalSets: contextProspect.digitalSets,
     };
   }
@@ -246,7 +248,6 @@ export function ProspectRenderHistory({
     setDigitalSets([...profile.digitalSets]);
     setStatus(profile.status);
     setStatusColor(profile.statusColor);
-    setShowUploadForm(false);
     setUploadForm((prev) => {
       revokeUploadFormBlobUrls(prev);
       return emptyUploadForm;
@@ -260,16 +261,17 @@ export function ProspectRenderHistory({
     contextProspect,
     models,
     searchParams,
-    showUploadForm,
   ]);
 
   const profileDigitalSets = activeProfile.digitalSets;
   const digitalSetCount = profileDigitalSets.length;
   const totalEvaluations =
-    activeProfile?.digitalSets?.reduce(
-      (sum, ds) => sum + (ds.evaluations?.length || 0),
-      0,
-    ) ?? 0;
+    typeof activeProfile?.evaluations === 'number'
+      ? activeProfile.evaluations
+      : activeProfile?.digitalSets?.reduce(
+          (sum, ds) => sum + (ds.evaluations?.length || 0),
+          0,
+        ) ?? 0;
   const hasDigitalSets = digitalSetCount > 0;
   const digitalSetsForDisplay = isProspect ? profileDigitalSets : digitalSets;
   const canCompare = digitalSetsForDisplay.length >= 2;
