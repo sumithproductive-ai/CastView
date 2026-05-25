@@ -335,21 +335,15 @@ export function ProspectRenderHistory({
     setDigitalSets(updatedSets);
 
     if (isProspect && prospectId) {
-      const currentProspect =
-        contextProspect ?? getProspectById(prospectId);
-      if (currentProspect) {
-        updateProspect(prospectId, {
-          digitalSets: [newSet, ...currentProspect.digitalSets],
-        });
-      } else {
-        updateProspect(prospectId, {
-          digitalSets: updatedSets,
-        });
-      }
-    }
-
-    if (isModel && modelId) {
-      updateModel(modelId, { digitalSets: updatedSets });
+      const currentProspect = getProspectById(prospectId);
+      const baseSets = currentProspect?.digitalSets ?? digitalSets;
+      updateProspect(prospectId, {
+        digitalSets: [newSet, ...baseSets],
+      });
+    } else if (isModel && modelId) {
+      updateModel(modelId, {
+        digitalSets: updatedSets,
+      });
     }
 
     resetUploadFormState();

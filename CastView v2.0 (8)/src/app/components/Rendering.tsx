@@ -80,7 +80,7 @@ export function Rendering() {
             { name: 'Fragrance', duration: 2500 },
             { name: 'Alignment', duration: 2000 },
           ],
-    [contextsParam],
+    [selectedContexts],
   );
 
   const prospectId = searchParams.get('prospectId') || '';
@@ -197,8 +197,11 @@ export function Rendering() {
   }, [runEvaluation]);
 
   useEffect(() => {
-    if (currentStep < steps.length || !evaluationReady) return;
-    const timer = setTimeout(() => navigate(resultsPath), 500);
+    if (currentStep < steps.length) return;
+    if (!evaluationReady) return;
+    const timer = setTimeout(() => {
+      navigate(resultsPath);
+    }, 800);
     return () => clearTimeout(timer);
   }, [currentStep, steps.length, evaluationReady, navigate, resultsPath]);
 
