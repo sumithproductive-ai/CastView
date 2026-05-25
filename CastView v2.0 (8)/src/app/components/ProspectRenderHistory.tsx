@@ -503,6 +503,20 @@ export function ProspectRenderHistory({
             </div>
             <button
               type="button"
+              onClick={() =>
+                navigate(`/compare?prospectId=${resolvedEntityId}`)
+              }
+              className="w-full px-[16px] py-[10px] border border-[#2a2a2a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] transition-colors"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                color: '#a0a09a',
+                cursor: 'pointer',
+              }}
+            >
+              COMPARE DIGITALS
+            </button>
+            <button
+              type="button"
               onClick={() => setShowDeleteModal(true)}
               className="w-full px-[16px] py-[10px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
               style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a', cursor: 'pointer' }}
