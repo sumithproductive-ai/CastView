@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { Search, ChevronDown, Sparkles, X } from 'lucide-react';
 import { useRoster, type RosterModel } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
@@ -490,10 +490,10 @@ export function Roster() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-[20px]">
           {filteredModels.map((model) => (
-            <Link
+            <div
               key={model.id}
-              to={`/roster/${model.id}/history`}
-              className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden hover:border-[#3a3a3a] transition-colors"
+              onClick={() => navigate(`/roster/${model.id}/history`)}
+              className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden hover:border-[#3a3a3a] transition-colors cursor-pointer"
             >
               {/* Image with Badge */}
               <div className="relative bg-[#1a1a1a] h-[160px] md:h-[220px]">
@@ -591,20 +591,20 @@ export function Roster() {
                   {model.status}
                 </div>
 
-                {/* Compare Renders Link - Only show for models with multiple sessions */}
-                {model.id === 'sumith-chittimalla-roster' && (
-                  <div
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      navigate('/compare?prospectId=sumith-chittimalla-roster');
-                    }}
-                    className="text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
-                    style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
-                  >
-                    COMPARE DIGITALS
-                  </div>
-                )}
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/compare?prospectId=${model.id}`);
+                  }}
+                  className="text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    color: '#6a6a64',
+                  }}
+                >
+                  COMPARE DIGITALS
+                </div>
 
                 {/* Development Report Button */}
                 <button
@@ -640,7 +640,7 @@ export function Roster() {
                   DELETE MODEL
                 </button>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

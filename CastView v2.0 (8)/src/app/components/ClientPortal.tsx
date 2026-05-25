@@ -1,8 +1,16 @@
 import React from 'react';
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 
 export function ClientPortal() {
+  const [searchParams] = useSearchParams();
+  const prospectName = searchParams.get('name')
+    ? decodeURIComponent(searchParams.get('name')!)
+    : 'Sumith Chittimalla';
+  const contextsParam = searchParams.get('contexts') || '';
+  const selectedContexts = contextsParam.split(',').filter(Boolean);
+
   const [response, setResponse] = useState<'interested' | 'pass' | null>(null);
   const [note, setNote] = useState('');
 
@@ -37,6 +45,30 @@ export function ClientPortal() {
     }
   ];
 
+  const CONTEXT_SCORES: Record<string, number> = {
+    Fragrance: 94,
+    Editorial: 91,
+    Runway: 88,
+    Campaign: 88,
+    Beauty: 87,
+    Sportswear: 85,
+    Couture: 82,
+    Swimwear: 86,
+    Streetwear: 89,
+  };
+
+  const dynamicCards =
+    selectedContexts.length > 0
+      ? selectedContexts.map((ctx, i) => ({
+          id: i + 1,
+          context: ctx.toUpperCase(),
+          alignmentScore: CONTEXT_SCORES[ctx] ?? 85,
+          image:
+            evaluationCards[i % evaluationCards.length]?.image ?? '',
+          isFeatured: i === 0,
+        }))
+      : evaluationCards;
+
   const markets = ['NEW YORK', 'LONDON', 'PARIS'];
 
   return (
@@ -51,7 +83,7 @@ export function ClientPortal() {
           className="text-[56px] mb-[12px]" 
           style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
         >
-          Sumith Chittimalla
+          {prospectName}
         </h1>
 
         {/* Sender Info */}
@@ -59,7 +91,11 @@ export function ClientPortal() {
           className="text-[12px] mb-[16px]"
           style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
         >
-          Sent by Admin · [Your Agency Name] · March 14, 2026
+          {`Sent by Admin · [Your Agency Name] · ${new Date().toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+          })}`}
         </p>
 
         {/* Market Tags */}
@@ -99,7 +135,7 @@ export function ClientPortal() {
 
       {/* 2x2 Evaluation Grid */}
       <div className="grid grid-cols-2 gap-[24px] mb-[48px]">
-        {evaluationCards.map((card) => (
+        {dynamicCards.map((card) => (
           <div 
             key={card.id}
             className="rounded-[4px] overflow-hidden"

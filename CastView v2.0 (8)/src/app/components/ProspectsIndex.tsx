@@ -601,7 +601,9 @@ export function ProspectsIndex() {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate('/profile');
+                        navigate(
+                          `/profile?name=${encodeURIComponent(prospect.name)}&prospectId=${prospect.id}&profileType=prospect`
+                        );
                       }}
                       className="w-full mb-[8px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
                       style={{

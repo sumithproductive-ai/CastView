@@ -3,13 +3,7 @@ import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Copy, Check } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-
-const evaluations = [
-  { id: 1, context: 'Fragrance', score: 94, checked: true },
-  { id: 2, context: 'Editorial', score: 96, checked: true },
-  { id: 3, context: 'Campaign', score: 88, checked: true },
-  { id: 4, context: 'Beauty', score: 91, checked: true }
-];
+import { useProspects } from '../context/ProspectsContext';
 
 const deliveryMethods = [
   { name: 'Share Link', description: 'Generate a secure link' },
@@ -33,8 +27,40 @@ export function Share() {
   }).toLowerCase().replace(' ', '-');
   const shareLink = `castview.io/share/${slug}-${month}`;
 
+  const contextsParam = searchParams.get('contexts') || '';
+  const selectedContexts = contextsParam
+    .split(',')
+    .filter(Boolean);
+
+  const CONTEXT_SCORES: Record<string, number> = {
+    Fragrance: 94,
+    Editorial: 91,
+    Runway: 88,
+    Campaign: 88,
+    Beauty: 87,
+    Sportswear: 85,
+    Couture: 82,
+    Swimwear: 86,
+    Streetwear: 89,
+  };
+
+  const dynamicEvaluations =
+    selectedContexts.length > 0
+      ? selectedContexts.map((ctx, i) => ({
+          id: i + 1,
+          context: ctx,
+          score: CONTEXT_SCORES[ctx] ?? 85,
+          checked: true,
+        }))
+      : [
+          { id: 1, context: 'Fragrance', score: 94, checked: true },
+          { id: 2, context: 'Editorial', score: 91, checked: true },
+        ];
+
   const [selectedMethod, setSelectedMethod] = useState('Export PDF');
-  const [checkedEvaluations, setCheckedEvaluations] = useState<number[]>(evaluations.map(e => e.id));
+  const [checkedEvaluations, setCheckedEvaluations] = useState<number[]>(
+    dynamicEvaluations.map((e) => e.id),
+  );
   const [copied, setCopied] = useState(false);
   const [expiry, setExpiry] = useState('7-days');
   const [passwordEnabled, setPasswordEnabled] = useState(false);
@@ -150,8 +176,8 @@ export function Share() {
     y += summaryLines.length * 5 + 10;
 
     // ── CONTEXT EVALUATIONS ──
-    const selectedEvals = evaluations.filter(e =>
-      checkedEvaluations.includes(e.id)
+    const selectedEvals = dynamicEvaluations.filter((e) =>
+      checkedEvaluations.includes(e.id),
     );
 
     const evalData: Record<string, {
@@ -369,7 +395,7 @@ export function Share() {
     doc.save(`CastView-${prospectName.replace(/\s+/g, '-')}-Evaluation.pdf`);
   };
 
-  const checkedEvaluationContexts = evaluations
+  const checkedEvaluationContexts = dynamicEvaluations
     .filter((e) => checkedEvaluations.includes(e.id))
     .map((e) => e.context);
 
@@ -417,7 +443,7 @@ export function Share() {
           </div>
           
           <div className="space-y-[16px]">
-            {evaluations.map((evaluation) => {
+            {dynamicEvaluations.map((evaluation) => {
               const isChecked = checkedEvaluations.includes(evaluation.id);
               return (
                 <label

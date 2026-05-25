@@ -119,10 +119,14 @@ export function NewProspectReview() {
   };
 
   const handleSaveAndRender = () => {
+    const savedProspect = buildNewProspect('IN REVIEW');
     if (!isSumithDemo) {
-      addProspect(buildNewProspect('IN REVIEW'));
+      addProspect(savedProspect);
     }
-    navigate('/rendering');
+    const defaultContexts = 'Fragrance,Editorial';
+    navigate(
+      `/profile?name=${encodeURIComponent(savedProspect.name)}&prospectId=${savedProspect.id}&profileType=prospect`
+    );
   };
 
   return (

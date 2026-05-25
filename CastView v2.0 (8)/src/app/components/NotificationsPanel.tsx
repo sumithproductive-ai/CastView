@@ -1,6 +1,7 @@
 import React from 'react';
 import { useEffect } from 'react';
-import { X, Image as ImageIcon, UserCheck, Eye, Tag } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { X, Image as ImageIcon, UserCheck, Eye } from 'lucide-react';
 
 interface NotificationsPanelProps {
   isOpen: boolean;
@@ -9,6 +10,8 @@ interface NotificationsPanelProps {
 }
 
 export function NotificationsPanel({ isOpen, onClose, onMarkAllRead }: NotificationsPanelProps) {
+  const navigate = useNavigate();
+
   // Close panel when clicking outside
   useEffect(() => {
     if (!isOpen) return;
@@ -38,42 +41,38 @@ export function NotificationsPanel({ isOpen, onClose, onMarkAllRead }: Notificat
       id: 1,
       unread: true,
       icon: ImageIcon,
-      title: 'Sofia Andersen · Fragrance render complete',
+      title: 'Sumith Chittimalla — Evaluation complete',
       time: '2 minutes ago',
-      badge: { text: '94%', color: 'green' }
+      badge: { text: '94%', color: 'green' },
+      path: '/prospects/sumith-chittimalla/history',
     },
     {
       id: 2,
       unread: true,
       icon: ImageIcon,
-      title: 'Marcus Chen · Render complete — 3 contexts',
+      title: 'John Doe — Comparison complete',
       time: '18 minutes ago',
-      badge: { text: '91% top score', color: 'green' }
+      badge: { text: 'IMPROVED', color: 'green' },
+      path: '/roster/john-doe-roster/history',
     },
     {
       id: 3,
       unread: false,
       icon: UserCheck,
-      title: 'Zara Klein · Signed to roster',
+      title: 'New model added to roster',
       time: '2 hours ago',
-      badge: { text: 'SIGNED', color: 'amber' }
+      badge: { text: 'NEW', color: 'amber' },
+      path: '/roster',
     },
     {
       id: 4,
       unread: false,
       icon: Eye,
-      title: 'Package shared · Sofia Andersen · Viewed by client',
+      title: 'Client viewed Sumith Chittimalla evaluation',
       time: '1 day ago',
-      badge: { text: 'VIEWED', color: 'teal' }
+      badge: { text: 'VIEWED', color: 'amber' },
+      path: '/shared',
     },
-    {
-      id: 5,
-      unread: false,
-      icon: Tag,
-      title: 'Ava Laurent · Status updated to Shortlisted',
-      time: '2 days ago',
-      badge: { text: 'SHORTLISTED', color: 'amber' }
-    }
   ];
 
   const getBadgeStyles = (color: string) => {
@@ -151,6 +150,12 @@ export function NotificationsPanel({ isOpen, onClose, onMarkAllRead }: Notificat
           return (
             <div
               key={notification.id}
+              onClick={() => {
+                if (notification.path) {
+                  navigate(notification.path);
+                  onClose();
+                }
+              }}
               className="relative px-[16px] py-[16px] border-b hover:bg-[#1a1a1a] transition-colors cursor-pointer"
               style={{
                 backgroundColor: notification.unread ? '#161616' : '#111111',

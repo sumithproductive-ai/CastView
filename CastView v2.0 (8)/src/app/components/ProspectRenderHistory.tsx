@@ -437,6 +437,23 @@ export function ProspectRenderHistory({
         </button>
       </div>
 
+      <button
+        type="button"
+        onClick={() =>
+          navigate(profileType === 'model' ? '/roster' : '/prospects')
+        }
+        className="mb-[24px] text-[11px] uppercase tracking-[0.1em] bg-transparent border-none hover:opacity-70 transition-opacity"
+        style={{
+          fontFamily: 'var(--font-mono)',
+          color: '#888880',
+          cursor: 'pointer',
+        }}
+      >
+        {profileType === 'model'
+          ? '← BACK TO ROSTER'
+          : '← BACK TO PROSPECTS'}
+      </button>
+
       <p
         className="mb-[8px]"
         style={sectionLabelStyle}
