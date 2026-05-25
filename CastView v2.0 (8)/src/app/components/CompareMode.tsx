@@ -283,6 +283,9 @@ function DigitalSetSelector({
                   src={set.thumbnail}
                   alt=""
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
                 />
               </div>
               <div className="min-w-0 flex-1">
@@ -379,6 +382,9 @@ function DigitalsPreviewGrid({
                     objectFit: 'cover',
                     objectPosition: 'center 15%',
                   }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
                 />
               </div>
               <div
@@ -435,7 +441,7 @@ export function CompareMode() {
   const modelId = searchParams.get('modelId');
   const prospectIdFromQuery = searchParams.get('prospectId');
   const navigationState = (location.state ?? null) as CompareNavigationState | null;
-  const { getProspectById } = useProspects();
+  const { prospects, getProspectById } = useProspects();
 
   const resolvedProspectId =
     prospectIdFromQuery ?? navigationState?.prospectId ?? null;
@@ -458,7 +464,7 @@ export function CompareMode() {
     }
 
     return [];
-  }, [modelId, resolvedProspectId, getProspectById]);
+  }, [modelId, resolvedProspectId, prospects, getProspectById]);
 
   const prospectDigitalSets = useMemo(() => {
     const fromSource = sourceDigitalSets.map(digitalSetToOption);

@@ -1,15 +1,13 @@
 import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
-import { isSumithProspect, sumithDigitals, SUMITH_PROSPECT_NAME } from '../constants/sumithProspect';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
 
 export function NewProspectReview() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addProspect } = useProspects();
-  const prospectName = searchParams.get('name')?.trim() || SUMITH_PROSPECT_NAME;
-  const isSumithDemo = isSumithProspect(null, prospectName);
+  const prospectName = searchParams.get('name')?.trim() || 'Prospect';
 
   const front = searchParams.get('front') || '';
   const profile = searchParams.get('profile') || '';
@@ -23,40 +21,23 @@ export function NewProspectReview() {
   const shoe = searchParams.get('shoe') || '';
   const notesFromParams = searchParams.get('notes') || '';
 
-  const prospectData = isSumithDemo ? {
-    name: SUMITH_PROSPECT_NAME,
-    markets: ['NYC', 'LONDON'],
-    digitals: [
-      { label: 'FRONT', url: sumithDigitals.front },
-      { label: 'PROFILE', url: sumithDigitals.profile },
-      { label: '3/4', url: sumithDigitals.three_quarter },
-      { label: 'FULL BODY', url: sumithDigitals.full_body }
-    ],
-    measurements: {
-      Height: "6'1\"",
-      Chest: '38"',
-      Waist: '30"',
-      Hips: '33"'
-    },
-    notes: 'Strong fragrance and editorial potential. Direct submission.',
-    allDigitalsUploaded: true
-  } : {
+  const prospectData = {
     name: prospectName,
     markets: marketsFromParams.length > 0 ? marketsFromParams : ['NEW YORK', 'LONDON'],
     digitals: [
       { label: 'FRONT', url: front || null },
       { label: 'PROFILE', url: profile || null },
       { label: '3/4', url: threeQuarter || null },
-      { label: 'FULL BODY', url: fullBody || null }
+      { label: 'FULL BODY', url: fullBody || null },
     ],
     measurements: {
       Height: height,
       Bust: bust,
       Waist: waist,
-      Hips: hips
+      Hips: hips,
     },
     notes: notesFromParams,
-    allDigitalsUploaded: Boolean(front && profile && threeQuarter && fullBody)
+    allDigitalsUploaded: Boolean(front && profile && threeQuarter && fullBody),
   };
 
   const buildNewProspect = (status: 'DRAFT' | 'IN REVIEW'): Prospect => {
@@ -112,15 +93,6 @@ export function NewProspectReview() {
   };
 
   const handleSaveDraft = () => {
-    const prospectId = searchParams.get('prospectId');
-    console.log(
-      'isSumithDemo:',
-      isSumithDemo,
-      'prospectId:',
-      prospectId,
-      'name:',
-      prospectName,
-    );
     addProspect(buildNewProspect('DRAFT'));
     navigate('/prospects');
   };
@@ -128,9 +100,11 @@ export function NewProspectReview() {
   const handleSaveAndRender = () => {
     const newProspect = buildNewProspect('IN REVIEW');
     addProspect(newProspect);
-    navigate(
-      `/profile?name=${encodeURIComponent(newProspect.name)}&prospectId=${newProspect.id}&profileType=prospect`,
-    );
+    setTimeout(() => {
+      navigate(
+        `/profile?name=${encodeURIComponent(newProspect.name)}&prospectId=${newProspect.id}&profileType=prospect`,
+      );
+    }, 100);
   };
 
   return (

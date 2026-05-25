@@ -262,21 +262,10 @@ export function ProspectRenderHistory({
     ? `/roster/${resolvedEntityId}`
     : `/prospects/${resolvedEntityId}`;
 
-  const handleCompare = (previousSetId: string) => {
-    navigate('/compare', {
-      state: {
-        prospectId: resolvedEntityId,
-        prospectName: activeProfile.name,
-        profilePath,
-        previousSetId,
-        digitalSets: digitalSets.map((set) => ({
-          id: set.id,
-          title: set.title,
-          date: set.uploadedAt,
-          thumbnail: set.front || '',
-        })),
-      },
-    });
+  const handleCompare = (_previousSetId: string) => {
+    navigate(
+      `/compare?prospectId=${resolvedEntityId}&profileType=${isModel ? 'model' : 'prospect'}`,
+    );
   };
 
   const handleCompareDigitals = () => {
@@ -526,7 +515,9 @@ export function ProspectRenderHistory({
             <button
               type="button"
               onClick={() =>
-                navigate(`/compare?prospectId=${resolvedEntityId}`)
+                navigate(
+                  `/compare?prospectId=${resolvedEntityId}&profileType=${isModel ? 'model' : 'prospect'}`,
+                )
               }
               className="w-full px-[16px] py-[10px] border border-[#2a2a2a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] transition-colors"
               style={{

@@ -136,38 +136,46 @@ export function Rendering() {
       }),
     );
 
-    const prospectToUpdate = getProspectById(prospectId);
-    if (prospectToUpdate && prospectToUpdate.digitalSets.length > 0) {
-      const updatedSets = [...prospectToUpdate.digitalSets];
-      const latestSetIndex = 0;
-      const newEvaluation = {
-        id: `eval-${Date.now()}`,
-        completedAt: new Date().toLocaleDateString('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        }),
-        contexts: data.contextEvaluations.map((ce) => ({
-          context: ce.context,
-          alignmentScore: ce.alignmentScore,
-          fitLabel: ce.fitLabel,
-          reasoning: ce.reasoning,
-          strengths: ce.strengths,
-          risks: ce.risks,
-          marketSignals: ce.marketSignals,
-          suggestedNextSteps: ce.suggestedNextSteps,
-        })),
-      };
-      updatedSets[latestSetIndex] = {
-        ...updatedSets[latestSetIndex],
-        evaluations: [
-          newEvaluation,
-          ...updatedSets[latestSetIndex].evaluations,
-        ],
-      };
-      updateProspect(prospectId, {
-        digitalSets: updatedSets,
-      });
+    if (!prospectId) {
+      // no prospect to save to, just continue
+    } else {
+      try {
+        const prospectToUpdate = getProspectById(prospectId);
+        if (prospectToUpdate && prospectToUpdate.digitalSets.length > 0) {
+          const updatedSets = [...prospectToUpdate.digitalSets];
+          const latestSetIndex = 0;
+          const newEvaluation = {
+            id: `eval-${Date.now()}`,
+            completedAt: new Date().toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            }),
+            contexts: data.contextEvaluations.map((ce) => ({
+              context: ce.context,
+              alignmentScore: ce.alignmentScore,
+              fitLabel: ce.fitLabel,
+              reasoning: ce.reasoning,
+              strengths: ce.strengths,
+              risks: ce.risks,
+              marketSignals: ce.marketSignals,
+              suggestedNextSteps: ce.suggestedNextSteps,
+            })),
+          };
+          updatedSets[latestSetIndex] = {
+            ...updatedSets[latestSetIndex],
+            evaluations: [
+              newEvaluation,
+              ...updatedSets[latestSetIndex].evaluations,
+            ],
+          };
+          updateProspect(prospectId, {
+            digitalSets: updatedSets,
+          });
+        }
+      } catch (err) {
+        console.warn('Could not save evaluation to prospect:', err);
+      }
     }
   }, [
     getProspectById,
