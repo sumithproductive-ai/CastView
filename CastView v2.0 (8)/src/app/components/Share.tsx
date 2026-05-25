@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRef, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { Copy, Check } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 
@@ -18,6 +18,7 @@ const deliveryMethods = [
 ];
 
 export function Share() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prospectName = searchParams.get('name')
     ? decodeURIComponent(searchParams.get('name')!)
@@ -125,7 +126,7 @@ export function Share() {
     // ── PROSPECT INFO ──
     addText('PROSPECT', margin, 8, [136, 136, 128]);
     y += 5;
-    addText('Sumith Chittimalla', margin, 18, [240, 240, 236], 'bold');
+    addText(prospectName, margin, 18, [240, 240, 236], 'bold');
     y += 6;
     addText('Division: Men  ·  Primary Context: Fragrance  ·  Markets: NYC, London', margin, 8, [160, 160, 154]);
     y += 5;
@@ -365,7 +366,7 @@ export function Share() {
     // ── FOOTER ──
     addText('Prepared by CastView  ·  castview.io  ·  hello@castview.io', margin, 7, [100, 100, 96]);
 
-    doc.save('CastView-Sumith-Chittimalla-Evaluation.pdf');
+    doc.save(`CastView-${prospectName.replace(/\s+/g, '-')}-Evaluation.pdf`);
   };
 
   const checkedEvaluationContexts = evaluations
@@ -387,11 +388,23 @@ export function Share() {
   return (
     <div className="p-[48px]">
       <h1 
-        className="text-[48px] mb-[48px]" 
+        className="text-[48px] mb-[8px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
         Share Evaluation
       </h1>
+      <button
+        type="button"
+        onClick={() => navigate('/mass-send')}
+        className="mb-[40px] text-[11px] uppercase tracking-[0.1em] border border-[#2a2a2a] px-[16px] py-[8px] rounded-[4px] hover:border-[#f0f0ec] transition-colors"
+        style={{
+          fontFamily: 'var(--font-mono)',
+          color: '#888880',
+          cursor: 'pointer',
+        }}
+      >
+        MASS SEND ->
+      </button>
       
       <div className="grid grid-cols-3 gap-[48px]">
         {/* Left: Evaluation Selection */}

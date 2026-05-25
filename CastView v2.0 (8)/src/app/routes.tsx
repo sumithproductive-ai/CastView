@@ -7,6 +7,7 @@ import { Profile } from './components/Profile';
 import { Rendering } from './components/Rendering';
 import { Results } from './components/Results';
 import { Share } from './components/Share';
+import { MassSend } from './components/MassSend';
 import { Roster } from './components/Roster';
 import { ProspectsIndex } from './components/ProspectsIndex';
 import { ProspectRenderHistory } from './components/ProspectRenderHistory';
@@ -19,8 +20,6 @@ import { NewModelBasicInfo } from './components/NewModelBasicInfo';
 import { NewModelDigitals } from './components/NewModelDigitals';
 import { NewModelReview } from './components/NewModelReview';
 import { ProspectConsent } from './components/ProspectConsent';
-import { LucaMoretti } from './components/LucaMoretti';
-import { CamilleRousseauDraft } from './components/CamilleRousseauDraft';
 import { CompareMode } from './components/CompareMode';
 import { ClientLayout } from './components/ClientLayout';
 import { ClientPortal } from './components/ClientPortal';
@@ -88,6 +87,14 @@ export const router = createBrowserRouter([
     element: (
       <Layout>
         <Share />
+      </Layout>
+    ),
+  },
+  {
+    path: '/mass-send',
+    element: (
+      <Layout>
+        <MassSend />
       </Layout>
     ),
   },
@@ -176,22 +183,6 @@ export const router = createBrowserRouter([
     element: (
       <Layout>
         <NewProspectReview />
-      </Layout>
-    ),
-  },
-  {
-    path: '/prospects/luca-moretti',
-    element: (
-      <Layout>
-        <LucaMoretti />
-      </Layout>
-    ),
-  },
-  {
-    path: '/prospects/camille-rousseau/draft',
-    element: (
-      <Layout>
-        <CamilleRousseauDraft />
       </Layout>
     ),
   },

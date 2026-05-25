@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ChevronRight, Upload, X } from 'lucide-react';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
 import { getRosterModelById } from './Roster';
 import type { DigitalSet, Evaluation } from '../types/talent';
 import { TutorialOverlay, uploadTutorialSteps } from './TutorialOverlay';
@@ -171,6 +172,7 @@ export function ProspectRenderHistory({
 }: ProspectRenderHistoryProps) {
   const { prospectId, modelId } = useParams();
   const { getProspectById, updateProspect } = useProspects();
+  const { updateModel } = useRoster();
   const isProspect = profileType === 'prospect';
   const isModel = profileType === 'model';
   const contextProspect = isProspect
@@ -206,6 +208,10 @@ export function ProspectRenderHistory({
   const [uploadFileNames, setUploadFileNames] = useState<
     Partial<Record<UploadFormImageKey, string>>
   >({});
+  const [deleteEvalTarget, setDeleteEvalTarget] = useState<{
+    setId: string;
+    evalId: string;
+  } | null>(null);
   const navigate = useNavigate();
 
   const resetUploadFormState = () => {
@@ -276,6 +282,33 @@ export function ProspectRenderHistory({
   const handleCompareDigitals = () => {
     if (!canCompare) return;
     handleCompare(digitalSets[digitalSets.length - 1]?.id ?? digitalSets[0].id);
+  };
+
+  const handleConfirmDeleteEvaluation = () => {
+    if (!deleteEvalTarget) return;
+    const { setId, evalId } = deleteEvalTarget;
+    const sourceSets = isProspect
+      ? (contextProspect?.digitalSets ?? profileDigitalSets)
+      : digitalSets;
+    const updatedSets = sourceSets.map((set) =>
+      set.id === setId
+        ? {
+            ...set,
+            evaluations: (set.evaluations ?? []).filter(
+              (evaluation) => evaluation.id !== evalId,
+            ),
+          }
+        : set,
+    );
+
+    if (isProspect && prospectId && contextProspect) {
+      updateProspect(prospectId, { digitalSets: updatedSets });
+    } else if (isModel && modelId) {
+      updateModel(modelId, { digitalSets: updatedSets });
+      setDigitalSets(updatedSets);
+    }
+
+    setDeleteEvalTarget(null);
   };
 
   const handleSaveDigitalSet = () => {
@@ -827,6 +860,19 @@ export function ProspectRenderHistory({
                                     {row.fitLabel}
                                   </div>
                                 </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setDeleteEvalTarget({
+                                      setId: ds.id,
+                                      evalId: row.evaluationId,
+                                    })
+                                  }
+                                  className="flex-shrink-0 font-mono text-[9px] text-[#c87a7a] border border-[#c87a7a] bg-transparent px-[8px] py-[3px] rounded-[2px] hover:bg-[#c87a7a] hover:text-[#080808] transition-colors cursor-pointer uppercase tracking-[0.1em]"
+                                >
+                                  DELETE
+                                </button>
                               </div>
                             ))}
                           </div>
@@ -1119,6 +1165,67 @@ export function ProspectRenderHistory({
                 </div>
               </div>
             </div>
+      )}
+
+      {deleteEvalTarget && (
+        <div
+          className="fixed inset-0 bg-[rgba(8,8,8,0.85)] flex items-center justify-center z-50"
+          onClick={() => setDeleteEvalTarget(null)}
+        >
+          <div
+            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[32px] max-w-[380px] w-full mx-[24px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              className="mb-[12px]"
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '24px',
+                fontWeight: 300,
+                color: '#f0f0ec',
+              }}
+            >
+              Delete evaluation?
+            </h3>
+            <p
+              className="mb-[24px]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color: '#a0a09a',
+                lineHeight: 1.8,
+              }}
+            >
+              This will permanently remove this evaluation from the digital set.
+              This cannot be undone.
+            </p>
+            <div className="flex gap-[12px]">
+              <button
+                type="button"
+                onClick={() => setDeleteEvalTarget(null)}
+                className="flex-1 py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] transition-colors"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  color: '#a0a09a',
+                }}
+              >
+                CANCEL
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteEvaluation}
+                className="flex-1 py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  backgroundColor: '#c87a7a',
+                  color: '#080808',
+                }}
+              >
+                DELETE
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {pendingStatusChange && (
