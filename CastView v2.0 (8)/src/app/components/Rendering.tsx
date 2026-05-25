@@ -33,7 +33,9 @@ export function Rendering() {
     [contextsParam],
   );
 
-  const resultsPath = `/results?name=${encodeURIComponent(prospectName)}&contexts=${contextsParam}`;
+  const prospectId = searchParams.get('prospectId') || '';
+  const profileType = searchParams.get('profileType') || 'prospect';
+  const resultsPath = `/results?name=${encodeURIComponent(prospectName)}&contexts=${contextsParam}&prospectId=${prospectId}&profileType=${profileType}`;
   const notificationContext = selectedContexts[0] || 'Fragrance';
   const notificationBody = `${prospectName} · ${notificationContext} 94% · View results`;
 
