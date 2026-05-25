@@ -346,6 +346,8 @@ export function Results() {
   );
 
   const [openContext, setOpenContext] = useState<string | null>(null);
+  const [devPathwayContext, setDevPathwayContext] = useState<string | null>(null);
+  const [devPathwayNote, setDevPathwayNote] = useState('');
   const [showOverride, setShowOverride] = useState(false);
   const [overrideText, setOverrideText] = useState('');
   const [agreed, setAgreed] = useState(false);
@@ -696,9 +698,13 @@ export function Results() {
               <div key={result.id}>
                 <button
                   type="button"
-                  onClick={() =>
-                    setOpenContext(isOpen ? null : result.context)
-                  }
+                  onClick={() => {
+                    if (openContext !== result.context) {
+                      setDevPathwayNote('');
+                      setDevPathwayContext(null);
+                    }
+                    setOpenContext(isOpen ? null : result.context);
+                  }}
                   className="w-full text-left"
                   style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
@@ -833,6 +839,171 @@ export function Results() {
                         </div>
                         <ContextArrowList items={data.suggestedNextSteps} />
                       </div>
+                    </div>
+
+                    <div
+                      className="mt-[20px] pt-[16px]"
+                      style={{ borderTop: '1px solid #1a1a1a' }}
+                    >
+                      <div className="flex items-center justify-between mb-[12px]">
+                        <div
+                          className="text-[9px] uppercase tracking-[0.1em]"
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            color: '#C8A96E',
+                          }}
+                        >
+                          DEVELOPMENT PATHWAY
+                        </div>
+                        <div
+                          className="text-[9px] uppercase tracking-[0.08em] px-[8px] py-[3px] border border-[#2a2a2a] rounded-[2px]"
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            color: '#888880',
+                          }}
+                        >
+                          AI COACHING
+                        </div>
+                      </div>
+
+                      <p
+                        className="mb-[12px]"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '11px',
+                          color: '#666660',
+                          lineHeight: 1.7,
+                        }}
+                      >
+                        Add a note about this prospect's potential in this context
+                        and get AI-powered development recommendations.
+                      </p>
+
+                      <textarea
+                        value={devPathwayNote}
+                        onChange={(e) => setDevPathwayNote(e.target.value)}
+                        placeholder={`e.g. "Strong bone structure — I think he has potential for ${result.context} but needs work on posture and styling direction."`}
+                        rows={3}
+                        className="w-full px-[12px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] resize-none mb-[12px]"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '11px',
+                          color: '#f0f0ec',
+                          lineHeight: 1.6,
+                        }}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => setDevPathwayContext(result.context)}
+                        className="w-full py-[12px] border border-[#C8A96E] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#C8A96E] hover:text-[#080808]"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          color: '#C8A96E',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        GENERATE DEVELOPMENT PATHWAY
+                      </button>
+
+                      {devPathwayContext === result.context && (
+                        <div className="mt-[16px] p-[16px] bg-[#0d0d0d] border border-[#2a2a2a] rounded-[4px]">
+                          <div
+                            className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              color: '#888880',
+                            }}
+                          >
+                            DEVELOPMENT RECOMMENDATIONS
+                          </div>
+
+                          <div
+                            className="text-[11px] mb-[16px]"
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              color: '#a0a09a',
+                              lineHeight: 1.8,
+                            }}
+                          >
+                            Based on the uploaded digitals and your notes, here is a
+                            suggested development pathway for {result.context}{' '}
+                            alignment:
+                          </div>
+
+                          {[
+                            {
+                              label: 'IMMEDIATE FOCUS',
+                              items: [
+                                'Schedule a targeted test shoot with direction specific to this context',
+                                'Review posture and framing with a photographer familiar with this market',
+                                'Build a context-specific section of the portfolio before submission',
+                              ],
+                            },
+                            {
+                              label: 'PHYSICAL DEVELOPMENT',
+                              items: [
+                                'Grooming and styling consistency across digitals',
+                                'Posture coaching — particularly for profile and 3/4 angles',
+                                'Wardrobe refinement toward context-specific aesthetic',
+                              ],
+                            },
+                            {
+                              label: 'MARKET APPROACH',
+                              items: [
+                                'Do not submit to top-tier clients until test shoot confirms alignment',
+                                'Target mid-tier clients first to build context-specific credits',
+                                'Revisit evaluation after next digital set upload',
+                              ],
+                            },
+                          ].map((section) => (
+                            <div key={section.label} className="mb-[14px]">
+                              <div
+                                className="text-[8px] uppercase tracking-[0.1em] mb-[6px]"
+                                style={{
+                                  fontFamily: 'var(--font-mono)',
+                                  color: '#C8A96E',
+                                }}
+                              >
+                                {section.label}
+                              </div>
+                              {section.items.map((item, i) => (
+                                <div
+                                  key={i}
+                                  className="mb-[4px]"
+                                  style={{
+                                    fontFamily: 'var(--font-mono)',
+                                    fontSize: '11px',
+                                    color: '#888880',
+                                    lineHeight: 1.7,
+                                  }}
+                                >
+                                  →  {item}
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+
+                          <div
+                            className="mt-[16px] pt-[12px]"
+                            style={{ borderTop: '1px solid #1a1a1a' }}
+                          >
+                            <div
+                              className="text-[9px]"
+                              style={{
+                                fontFamily: 'var(--font-mono)',
+                                color: '#444440',
+                                lineHeight: 1.6,
+                              }}
+                            >
+                              ⚡ AI-powered recommendations coming in next update.
+                              Current recommendations are framework-based.
+                              Real-time Claude analysis will personalise this to the
+                              uploaded digitals.
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
