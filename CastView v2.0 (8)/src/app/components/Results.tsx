@@ -510,7 +510,7 @@ export function Results() {
       label('Strengths', leftX, leftY, [74, 122, 74]);
       leftY += 4;
       data.strengths.forEach((s) => {
-        leftY += body(`→  ${s}`, leftX, leftY, col);
+        leftY += body(`-  ${s}`, leftX, leftY, col);
         leftY += 1;
       });
       leftY += 4;
@@ -519,7 +519,7 @@ export function Results() {
         label('Risks', leftX, leftY, [200, 122, 122]);
         leftY += 4;
         data.risks.forEach((r) => {
-          leftY += body(`→  ${r}`, leftX, leftY, col);
+          leftY += body(`-  ${r}`, leftX, leftY, col);
           leftY += 1;
         });
       }
@@ -530,7 +530,7 @@ export function Results() {
       label('Market Signals', rightX, rightY);
       rightY += 4;
       data.marketSignals.forEach((m) => {
-        rightY += body(`→  ${m}`, rightX, rightY, col);
+        rightY += body(`-  ${m}`, rightX, rightY, col);
         rightY += 1;
       });
       rightY += 5;
@@ -538,7 +538,7 @@ export function Results() {
       label('Suggested Next Steps', rightX, rightY);
       rightY += 4;
       data.suggestedNextSteps.forEach((s) => {
-        rightY += body(`→  ${s}`, rightX, rightY, col);
+        rightY += body(`-  ${s}`, rightX, rightY, col);
         rightY += 1;
       });
 
