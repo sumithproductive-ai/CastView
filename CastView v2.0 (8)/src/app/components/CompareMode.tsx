@@ -1,6 +1,7 @@
 import React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import { ChevronDown } from 'lucide-react';
 import type { DigitalSet } from '../types/talent';
 import { useProspects } from '../context/ProspectsContext';
 import { TutorialOverlay, compareTutorialSteps } from './TutorialOverlay';
@@ -11,7 +12,30 @@ type DigitalSetOption = {
   title: string;
   date: string;
   thumbnail: string;
+  front: string | null;
+  profile: string | null;
+  threeQuarter: string | null;
+  fullBody: string | null;
 };
+
+const DIGITAL_PREVIEW_FIELDS = [
+  { key: 'front' as const, label: 'FRONT' },
+  { key: 'profile' as const, label: 'PROFILE' },
+  { key: 'threeQuarter' as const, label: '3/4' },
+  { key: 'fullBody' as const, label: 'FULL BODY' },
+];
+
+function getDigitalSetDisplayTitle(title: string | null | undefined): string {
+  const trimmed = title?.trim();
+  if (!trimmed || trimmed === 'Untitled Set') {
+    return 'Unnamed Set';
+  }
+  return trimmed;
+}
+
+function hasDigitalImageValue(value: string | null | undefined): value is string {
+  return typeof value === 'string' && value.trim() !== '';
+}
 
 type MockResult = {
   context: string;
@@ -36,6 +60,28 @@ function digitalSetToOption(set: DigitalSet): DigitalSetOption {
     title: set.title,
     date: set.uploadedAt,
     thumbnail: set.front || '',
+    front: set.front,
+    profile: set.profile,
+    threeQuarter: set.threeQuarter,
+    fullBody: set.fullBody,
+  };
+}
+
+function navDigitalSetToOption(navSet: {
+  id: string;
+  title: string;
+  date: string;
+  thumbnail: string;
+}): DigitalSetOption {
+  return {
+    id: navSet.id,
+    title: navSet.title,
+    date: navSet.date,
+    thumbnail: navSet.thumbnail,
+    front: navSet.thumbnail || null,
+    profile: null,
+    threeQuarter: null,
+    fullBody: null,
   };
 }
 
@@ -173,19 +219,26 @@ const sectionLabelStyle = {
   textTransform: 'uppercase' as const,
 };
 
-function toScoreLabel(date: string) {
-  const [month, year] = date.split(' ');
+function toScoreLabel(date: string | null | undefined) {
+  const trimmed = date?.trim();
+  if (!trimmed || trimmed === '—') {
+    return '—';
+  }
+  const [month, year] = trimmed.split(' ');
+  if (!month || !year) {
+    return trimmed;
+  }
   return `${month.slice(0, 3).toUpperCase()} ${year}`;
 }
 
-function getChangeDisplay(change: MockResult['change']) {
+function getCompareChangeTag(change: MockResult['change']) {
   if (change === 'improved') {
-    return { text: '↑ IMPROVED', color: '#4a7a4a' };
+    return { text: 'IMPROVED', color: '#4a7a4a' };
   }
   if (change === 'declined') {
-    return { text: '↓ DECLINED', color: '#c87a7a' };
+    return { text: 'DECLINED', color: '#c87a7a' };
   }
-  return { text: '↔ STABLE', color: '#888880' };
+  return { text: 'STABLE', color: '#888880' };
 }
 
 function DigitalSetSelector({
@@ -240,7 +293,7 @@ function DigitalSetSelector({
                     color: '#f0f0ec',
                   }}
                 >
-                  {set.title}
+                  {getDigitalSetDisplayTitle(set.title)}
                 </div>
                 <div
                   style={{
@@ -261,6 +314,120 @@ function DigitalSetSelector({
   );
 }
 
+function DigitalsPreviewGrid({
+  selectedId,
+  sets,
+}: {
+  selectedId: string;
+  sets: DigitalSetOption[];
+}) {
+  if (!selectedId) {
+    return (
+      <p
+        className="mt-[16px]"
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '12px',
+          color: '#888880',
+        }}
+      >
+        Select a digital set to preview
+      </p>
+    );
+  }
+
+  const selectedSet = sets.find((set) => set.id === selectedId);
+  if (!selectedSet) {
+    return (
+      <p
+        className="mt-[16px]"
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '12px',
+          color: '#888880',
+        }}
+      >
+        Select a digital set to preview
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-row flex-wrap gap-[8px] mt-[16px]">
+      {DIGITAL_PREVIEW_FIELDS.map(({ key, label }) => {
+        const value = selectedSet[key];
+        const slotStyle = { width: 'calc(50% - 4px)' };
+
+        if (hasDigitalImageValue(value)) {
+          return (
+            <div key={key} style={slotStyle}>
+              <div
+                style={{
+                  aspectRatio: '3/4',
+                  overflow: 'hidden',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '4px',
+                  background: '#111111',
+                }}
+              >
+                <img
+                  src={value}
+                  alt={label}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: 'center 15%',
+                  }}
+                />
+              </div>
+              <div
+                className="uppercase mt-[4px]"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '8px',
+                  color: '#888880',
+                }}
+              >
+                {label}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div key={key} style={slotStyle}>
+            <div
+              className="bg-[#0d0d0d] border border-dashed border-[#2a2a2a] flex items-center justify-center"
+              style={{ aspectRatio: '3/4', borderRadius: '4px' }}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  color: '#444440',
+                }}
+              >
+                —
+              </span>
+            </div>
+            <div
+              className="uppercase mt-[4px]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '8px',
+                color: '#888880',
+              }}
+            >
+              {label}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function CompareMode() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -273,34 +440,41 @@ export function CompareMode() {
   const resolvedProspectId =
     prospectIdFromQuery ?? navigationState?.prospectId ?? null;
 
-  const prospectDigitalSets = useMemo(() => {
-    if (navigationState?.digitalSets?.length) {
-      return navigationState.digitalSets;
-    }
-
+  const sourceDigitalSets = useMemo((): DigitalSet[] => {
     if (modelId) {
       const model = getRosterModelById(modelId);
-      if (model?.digitalSets.length) {
-        return model.digitalSets.map(digitalSetToOption);
-      }
-      return [];
+      return model?.digitalSets ?? [];
     }
 
     if (resolvedProspectId) {
       const prospect = getProspectById(resolvedProspectId);
       if (prospect?.digitalSets.length) {
-        return prospect.digitalSets.map(digitalSetToOption);
+        return prospect.digitalSets;
       }
       if (resolvedProspectId.endsWith('-roster')) {
         const rosterModel = getRosterModelById(resolvedProspectId);
-        if (rosterModel?.digitalSets.length) {
-          return rosterModel.digitalSets.map(digitalSetToOption);
-        }
+        return rosterModel?.digitalSets ?? [];
       }
     }
 
     return [];
-  }, [navigationState, modelId, resolvedProspectId, getProspectById]);
+  }, [modelId, resolvedProspectId, getProspectById]);
+
+  const prospectDigitalSets = useMemo(() => {
+    const fromSource = sourceDigitalSets.map(digitalSetToOption);
+
+    if (navigationState?.digitalSets?.length) {
+      if (fromSource.length) {
+        return navigationState.digitalSets.map((navSet) => {
+          const full = fromSource.find((set) => set.id === navSet.id);
+          return full ?? navDigitalSetToOption(navSet);
+        });
+      }
+      return navigationState.digitalSets.map(navDigitalSetToOption);
+    }
+
+    return fromSource;
+  }, [navigationState, sourceDigitalSets]);
 
   const rosterModelFromQuery =
     modelId && !prospectIdFromQuery
@@ -340,6 +514,7 @@ export function CompareMode() {
     'Editorial',
   ]);
   const [showResults, setShowResults] = useState(false);
+  const [openCompareContext, setOpenCompareContext] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [agentNotes, setAgentNotes] = useState<Record<string, string>>({});
 
@@ -389,7 +564,7 @@ export function CompareMode() {
           className="mb-[24px]"
           style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', lineHeight: 1.6 }}
         >
-          {onlySet.title} · {onlySet.date}
+          {getDigitalSetDisplayTitle(onlySet.title)} · {onlySet.date}
         </p>
         <button
           type="button"
@@ -474,8 +649,9 @@ export function CompareMode() {
               marginTop: '4px',
             }}
           >
-            {prospectName} · {previousSet.title} · {previousSet.date} →{' '}
-            {currentSet.title} · {currentSet.date}
+            {prospectName} · {getDigitalSetDisplayTitle(previousSet.title)} ·{' '}
+            {previousSet.date} → {getDigitalSetDisplayTitle(currentSet.title)} ·{' '}
+            {currentSet.date}
           </p>
         </div>
         <button
@@ -499,18 +675,30 @@ export function CompareMode() {
 
       {/* STEP 1 — Digital Set Selection */}
       <div className="flex gap-[16px] mb-[32px]" data-tutorial="compare-selectors">
-        <DigitalSetSelector
-          panelLabel="PREVIOUS DIGITALS"
-          selectedId={previousSetId}
-          onSelect={setPreviousSetId}
-          sets={prospectDigitalSets}
-        />
-        <DigitalSetSelector
-          panelLabel="CURRENT DIGITALS"
-          selectedId={currentSetId}
-          onSelect={setCurrentSetId}
-          sets={prospectDigitalSets}
-        />
+        <div className="flex-1 min-w-0">
+          <DigitalSetSelector
+            panelLabel="PREVIOUS DIGITALS"
+            selectedId={previousSetId}
+            onSelect={setPreviousSetId}
+            sets={prospectDigitalSets}
+          />
+          <DigitalsPreviewGrid
+            selectedId={previousSetId}
+            sets={prospectDigitalSets}
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <DigitalSetSelector
+            panelLabel="CURRENT DIGITALS"
+            selectedId={currentSetId}
+            onSelect={setCurrentSetId}
+            sets={prospectDigitalSets}
+          />
+          <DigitalsPreviewGrid
+            selectedId={currentSetId}
+            sets={prospectDigitalSets}
+          />
+        </div>
       </div>
 
       {/* STEP 2 — Context Selection */}
@@ -605,7 +793,8 @@ export function CompareMode() {
               color: '#888880',
             }}
           >
-            {previousSet.title} → {currentSet.title}
+            {getDigitalSetDisplayTitle(previousSet.title)} →{' '}
+            {getDigitalSetDisplayTitle(currentSet.title)}
           </p>
 
           {/* Summary bar */}
@@ -645,148 +834,203 @@ export function CompareMode() {
             ))}
           </div>
 
-          {/* Result cards */}
-          <div className="space-y-[12px]">
+          {/* Result accordions */}
+          <div>
             {visibleResults.map((result) => {
-              const changeDisplay = getChangeDisplay(result.change);
+              const changeTag = getCompareChangeTag(result.change);
+              const isOpen = openCompareContext === result.context;
               return (
-                <div
-                  key={result.context}
-                  className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[20px]"
-                >
-                  <div className="flex items-center justify-between mb-[16px]">
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '12px',
-                        color: '#f0f0ec',
-                        textTransform: 'uppercase',
-                        fontWeight: 700,
-                      }}
-                    >
-                      {result.context}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '11px',
-                        color: changeDisplay.color,
-                        letterSpacing: '0.08em',
-                      }}
-                    >
-                      {changeDisplay.text}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-[16px] mb-[16px]">
-                    <div className="flex-1">
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9px',
-                          color: '#888880',
-                          marginBottom: '4px',
-                        }}
-                      >
-                        {previousScoreLabel}
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: 'Georgia, serif',
-                          fontSize: '28px',
-                          color: '#f0f0ec',
-                        }}
-                      >
-                        {result.oldScore}
-                      </div>
-                    </div>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '14px',
-                        color: '#888880',
-                      }}
-                    >
-                      →
-                    </span>
-                    <div className="flex-1">
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9px',
-                          color: '#888880',
-                          marginBottom: '4px',
-                        }}
-                      >
-                        {currentScoreLabel}
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: 'Georgia, serif',
-                          fontSize: '28px',
-                          color: '#f0f0ec',
-                        }}
-                      >
-                        {result.newScore}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      height: '1px',
-                      backgroundColor: '#1a1a1a',
-                      marginBottom: '16px',
-                    }}
-                  />
-
-                  <p
-                    className="mb-[12px]"
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '11px',
-                      color: '#a0a09a',
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {result.reasoning}
-                  </p>
-
-                  <p
-                    className="mb-[16px]"
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '10px',
-                      color: '#888880',
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    <span style={{ color: '#C8A96E' }}>→ </span>
-                    {result.nextStep}
-                  </p>
-
-                  <textarea
-                    value={agentNotes[result.context] ?? ''}
-                    onChange={(e) =>
-                      setAgentNotes((prev) => ({
-                        ...prev,
-                        [result.context]: e.target.value,
-                      }))
+                <div key={result.context}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenCompareContext(isOpen ? null : result.context)
                     }
-                    placeholder="Add agent note for this context..."
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '11px',
-                      backgroundColor: '#0d0d0d',
-                      border: '1px solid #2a2a2a',
-                      color: '#f0f0ec',
-                      padding: '8px',
-                      width: '100%',
-                      resize: 'vertical',
-                      borderRadius: '4px',
-                      minHeight: '60px',
-                    }}
-                  />
+                    className="w-full text-left"
+                    style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                  >
+                    <div
+                      className={`w-full bg-[#111111] border border-[#2a2a2a] px-[24px] py-[16px] mb-[8px] flex justify-between items-center ${
+                        isOpen ? 'rounded-t-[4px] rounded-b-none border-b-0' : 'rounded-[4px]'
+                      }`}
+                    >
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-display)',
+                          fontSize: '18px',
+                          color: '#f0f0ec',
+                          fontWeight: 300,
+                        }}
+                      >
+                        {result.context}
+                      </span>
+                      <div className="flex items-center gap-[12px]">
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '13px',
+                            color: '#f0f0ec',
+                          }}
+                        >
+                          {result.oldScore} → {result.newScore}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '11px',
+                            color: changeTag.color,
+                            letterSpacing: '0.08em',
+                          }}
+                        >
+                          {changeTag.text}
+                        </span>
+                      </div>
+                      <ChevronDown
+                        size={14}
+                        style={{
+                          color: '#888880',
+                          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.2s ease',
+                        }}
+                      />
+                    </div>
+                  </button>
+
+                  {isOpen && (
+                    <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] px-[24px] py-[20px] mb-[8px]">
+                      <div className="flex items-center gap-[16px]">
+                        <div className="flex-1">
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '9px',
+                              color: '#888880',
+                              marginBottom: '4px',
+                            }}
+                          >
+                            {previousScoreLabel}
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-display)',
+                              fontSize: '48px',
+                              fontWeight: 300,
+                              color: '#f0f0ec',
+                            }}
+                          >
+                            {result.oldScore}
+                          </div>
+                        </div>
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '14px',
+                            color: '#888880',
+                          }}
+                        >
+                          →
+                        </span>
+                        <div className="flex-1 text-right">
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '9px',
+                              color: '#888880',
+                              marginBottom: '4px',
+                            }}
+                          >
+                            {currentScoreLabel}
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-display)',
+                              fontSize: '48px',
+                              fontWeight: 300,
+                              color: '#f0f0ec',
+                            }}
+                          >
+                            {result.newScore}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="h-[1px] bg-[#2a2a2a] my-[16px]" />
+
+                      <div
+                        className="uppercase mb-[8px]"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          color: '#888880',
+                          letterSpacing: '0.1em',
+                        }}
+                      >
+                        ANALYSIS
+                      </div>
+                      <p
+                        className="mb-[16px]"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '12px',
+                          color: '#c0c0ba',
+                          lineHeight: 1.8,
+                        }}
+                      >
+                        {result.reasoning}
+                      </p>
+
+                      <div
+                        className="uppercase mb-[8px]"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          color: '#888880',
+                          letterSpacing: '0.1em',
+                        }}
+                      >
+                        SUGGESTED NEXT STEP
+                      </div>
+                      <p
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '12px',
+                          color: '#a0a09a',
+                          lineHeight: 1.8,
+                        }}
+                      >
+                        → {result.nextStep}
+                      </p>
+
+                      <div
+                        className="uppercase mb-[8px] mt-[16px]"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          color: '#888880',
+                          letterSpacing: '0.1em',
+                        }}
+                      >
+                        AGENT NOTE
+                      </div>
+                      <textarea
+                        value={agentNotes[result.context] ?? ''}
+                        onChange={(e) =>
+                          setAgentNotes((prev) => ({
+                            ...prev,
+                            [result.context]: e.target.value,
+                          }))
+                        }
+                        placeholder="Add agent note for this context..."
+                        rows={2}
+                        className="w-full px-[12px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] resize-none"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '11px',
+                          color: '#f0f0ec',
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
