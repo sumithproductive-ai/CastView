@@ -15,6 +15,9 @@ export function NewProspectDigitals() {
   const isSumithDemo = isSumithProspect(prospectId, prospectName);
 
   const [showDigitalsError, setShowDigitalsError] = useState(false);
+  const [uploadFileNames, setUploadFileNames] = useState<
+    Partial<Record<DigitalImageKey, string>>
+  >({});
 
   const [uploadedImages, setUploadedImages] = useState<Record<DigitalImageKey, string | null>>(() =>
     isSumithDemo
@@ -52,6 +55,10 @@ export function NewProspectDigitals() {
     setUploadedImages((prev) => ({
       ...prev,
       [key]: objectUrl,
+    }));
+    setUploadFileNames((prev) => ({
+      ...prev,
+      [key]: file.name,
     }));
     setShowDigitalsError(false);
   };
@@ -222,45 +229,93 @@ export function NewProspectDigitals() {
               />
             )}
             {zone.uploaded ? (
-              <>
-                {/* Uploaded Image */}
-                <img 
-                  src={zone.uploaded} 
-                  alt={zone.label}
-                  className="w-full h-full object-cover rounded-[4px]"
-                />
-                
-                {/* Remove Button - Top Right */}
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '8px',
+                  position: 'relative',
+                }}
+              >
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: '#1a2a1a',
+                    border: '1px solid #4a7a4a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <span style={{ color: '#4a7a4a', fontSize: '14px' }}>✓</span>
+                </div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '9px',
+                    color: '#4a7a4a',
+                    textAlign: 'center',
+                    wordBreak: 'break-all',
+                    lineHeight: 1.4,
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {uploadFileNames[zone.key] ?? 'Uploaded'}
+                </div>
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (isSumithDemo) return;
+                    const url = uploadedImages[zone.key];
+                    if (url?.startsWith('blob:')) {
+                      URL.revokeObjectURL(url);
+                    }
                     setUploadedImages((prev) => ({
                       ...prev,
                       [zone.key]: null,
                     }));
+                    setUploadFileNames((prev) => {
+                      const next = { ...prev };
+                      delete next[zone.key];
+                      return next;
+                    });
                     if (fileInputRefs[zone.key].current) {
                       fileInputRefs[zone.key].current!.value = '';
                     }
                   }}
-                  className="absolute top-[8px] right-[8px] w-[28px] h-[28px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-full flex items-center justify-center hover:bg-[#222222] transition-colors"
-                  style={{ cursor: 'pointer' }}
-                >
-                  <X size={14} style={{ color: '#f0f0ec' }} />
-                </button>
-
-                {/* Uploaded Badge - Bottom Left */}
-                <div 
-                  className="absolute bottom-[8px] left-[8px] px-[8px] py-[4px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] text-[8px] uppercase tracking-[0.1em]"
-                  style={{ 
-                    fontFamily: 'var(--font-label)', 
-                    color: '#5d7d5d'
+                  style={{
+                    position: 'absolute',
+                    top: '4px',
+                    right: '4px',
+                    background: 'rgba(0,0,0,0.7)',
+                    border: '1px solid #333',
+                    borderRadius: '50%',
+                    width: '18px',
+                    height: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#f0f0ec',
+                    fontSize: '10px',
+                    lineHeight: 1,
                   }}
                 >
-                  UPLOADED
-                </div>
-              </>
+                  ×
+                </button>
+              </div>
             ) : (
               /* Empty Upload Zone */
               <div className="w-full h-full flex flex-col items-center justify-center">

@@ -17,7 +17,7 @@ export function Profile() {
   const [searchParams] = useSearchParams();
   const prospectName = searchParams.get('name')
     ? decodeURIComponent(searchParams.get('name')!)
-    : 'Sumith Chittimalla';
+    : 'Prospect';
   const prospectId = searchParams.get('prospectId') || '';
   const profileType = searchParams.get('profileType') || 'prospect';
   const { getProspectById } = useProspects();

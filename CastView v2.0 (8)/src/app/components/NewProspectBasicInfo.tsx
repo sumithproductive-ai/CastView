@@ -56,7 +56,12 @@ export function NewProspectBasicInfo() {
 
   const handleContinue = () => {
     if (isTutorialOpen) {
-      navigate('/prospects/new/digitals?name=Sumith%20Chittimalla');
+      const tutorialParams = new URLSearchParams({
+        name: name.trim() || 'Demo Prospect',
+        markets: markets.join(',') || 'NEW YORK',
+        source: source || 'SCOUT',
+      });
+      navigate(`/prospects/new/digitals?${tutorialParams.toString()}`);
       return;
     }
     const params = new URLSearchParams({

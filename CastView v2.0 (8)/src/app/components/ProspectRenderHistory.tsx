@@ -1064,19 +1064,52 @@ export function ProspectRenderHistory({
                         }}
                       />
                       {imageUrl ? (
-                        <div style={{ position: 'relative' }}>
-                          <img
-                            src={uploadForm[fieldKey]}
-                            alt={field.label}
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '80px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            padding: '8px',
+                            position: 'relative',
+                          }}
+                        >
+                          <div
                             style={{
-                              width: '100%',
-                              aspectRatio: '3/4',
-                              objectFit: 'cover',
-                              objectPosition: 'center 15%',
-                              display: 'block',
-                              borderRadius: '2px',
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              backgroundColor: '#1a2a1a',
+                              border: '1px solid #4a7a4a',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
                             }}
-                          />
+                          >
+                            <span style={{ color: '#4a7a4a', fontSize: '14px' }}>
+                              ✓
+                            </span>
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '9px',
+                              color: '#4a7a4a',
+                              textAlign: 'center',
+                              wordBreak: 'break-all',
+                              lineHeight: 1.4,
+                              maxWidth: '100%',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {uploadFileNames[fieldKey] ?? 'Uploaded'}
+                          </div>
                           <button
                             type="button"
                             onClick={() => {
@@ -1085,38 +1118,32 @@ export function ProspectRenderHistory({
                                 ...prev,
                                 [fieldKey]: '',
                               }));
+                              setUploadFileNames((prev) => {
+                                const next = { ...prev };
+                                delete next[fieldKey];
+                                return next;
+                              });
                             }}
                             style={{
                               position: 'absolute',
-                              top: '6px',
-                              right: '6px',
+                              top: '4px',
+                              right: '4px',
                               background: 'rgba(0,0,0,0.7)',
                               border: '1px solid #333',
                               borderRadius: '50%',
-                              width: '20px',
-                              height: '20px',
+                              width: '18px',
+                              height: '18px',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               cursor: 'pointer',
                               color: '#f0f0ec',
                               fontSize: '10px',
+                              lineHeight: 1,
                             }}
                           >
                             ×
                           </button>
-                          <div
-                            style={{
-                              fontFamily: 'var(--font-mono)',
-                              fontSize: '8px',
-                              color: '#888880',
-                              marginTop: '4px',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.1em',
-                            }}
-                          >
-                            {field.label} — UPLOADED
-                          </div>
                         </div>
                       ) : (
                         <div

@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { ChevronDown } from 'lucide-react';
 import type { DigitalSet } from '../types/talent';
 import { useProspects } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
 import { TutorialOverlay, compareTutorialSteps } from './TutorialOverlay';
 import { getRosterModelById } from './Roster';
 
@@ -442,6 +443,7 @@ export function CompareMode() {
   const prospectIdFromQuery = searchParams.get('prospectId');
   const navigationState = (location.state ?? null) as CompareNavigationState | null;
   const { prospects, getProspectById } = useProspects();
+  const { models } = useRoster();
 
   const resolvedProspectId =
     prospectIdFromQuery ?? navigationState?.prospectId ?? null;
@@ -457,14 +459,19 @@ export function CompareMode() {
       if (prospect?.digitalSets.length) {
         return prospect.digitalSets;
       }
-      if (resolvedProspectId.endsWith('-roster')) {
-        const rosterModel = getRosterModelById(resolvedProspectId);
+      if (
+        resolvedProspectId.endsWith('-roster') ||
+        searchParams.get('profileType') === 'model'
+      ) {
+        const rosterModel =
+          getRosterModelById(resolvedProspectId) ??
+          models.find((m) => m.id === resolvedProspectId);
         return rosterModel?.digitalSets ?? [];
       }
     }
 
     return [];
-  }, [modelId, resolvedProspectId, prospects, getProspectById]);
+  }, [modelId, resolvedProspectId, prospects, getProspectById, models, searchParams]);
 
   const prospectDigitalSets = useMemo(() => {
     const fromSource = sourceDigitalSets.map(digitalSetToOption);
@@ -485,8 +492,10 @@ export function CompareMode() {
   const rosterModelFromQuery =
     modelId && !prospectIdFromQuery
       ? getRosterModelById(modelId)
-      : resolvedProspectId?.endsWith('-roster')
-        ? getRosterModelById(resolvedProspectId)
+      : resolvedProspectId?.endsWith('-roster') ||
+          searchParams.get('profileType') === 'model'
+        ? (getRosterModelById(resolvedProspectId ?? '') ??
+            models.find((m) => m.id === resolvedProspectId))
         : null;
   const prospectFromContext = resolvedProspectId
     ? getProspectById(resolvedProspectId)
