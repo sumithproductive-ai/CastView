@@ -71,7 +71,7 @@ export function ProspectsIndex() {
   const [contextFilter, setContextFilter] = useState('all');
   const [sortBy, setSortBy] = useState('submission-date');
   const navigate = useNavigate();
-  const { prospects, addProspect, updateProspect } = useProspects();
+  const { prospects, addProspect, updateProspect, removeProspect } = useProspects();
   
   // Multi-select state
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -634,6 +634,22 @@ export function ProspectsIndex() {
                         PASS
                       </button>
                     </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeProspect(prospect.id);
+                      }}
+                      className="w-full mt-[8px] px-[10px] py-[6px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] transition-colors"
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        color: '#c87a7a',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      DELETE PROSPECT
+                    </button>
                   </div>
                 )}
               </div>
