@@ -403,7 +403,7 @@ export function Share() {
           cursor: 'pointer',
         }}
       >
-        MASS SEND ->
+        {'MASS SEND ->'}
       </button>
       
       <div className="grid grid-cols-3 gap-[48px]">
