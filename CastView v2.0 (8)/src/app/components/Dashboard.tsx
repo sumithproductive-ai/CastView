@@ -101,6 +101,21 @@ export function Dashboard() {
   const shortlistedCount = prospects.filter((p) => p.status === 'SHORTLISTED').length;
   const awaitingReviewCount = prospects.filter((p) => p.status === 'IN REVIEW').length;
 
+  const totalEvaluations = prospects.reduce(
+    (sum, p) =>
+      sum +
+      p.digitalSets.reduce((s, ds) => s + ds.evaluations.length, 0),
+    0
+  );
+  const savedThisMonth = totalEvaluations * 800;
+
+  const formattedSaved =
+    savedThisMonth >= 1000
+      ? `$${(savedThisMonth / 1000).toFixed(1)}k`
+      : savedThisMonth > 0
+        ? `$${savedThisMonth}`
+        : '$0';
+
   const recentProspects = useMemo(
     () =>
       [...prospects]
@@ -214,13 +229,24 @@ export function Dashboard() {
                 className="text-[36px]" 
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
               >
-                $4,700
+                {formattedSaved}
               </div>
-              <div 
-                className="text-[10px] uppercase tracking-[0.12em]" 
-                style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-              >
-                SAVED THIS MONTH
+              <div>
+                <div 
+                  className="text-[10px] uppercase tracking-[0.12em]" 
+                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                >
+                  SAVED THIS MONTH
+                </div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '8px',
+                    color: '#444440',
+                  }}
+                >
+                  est. test shoot costs avoided
+                </div>
               </div>
 
               {/* Tooltip */}
