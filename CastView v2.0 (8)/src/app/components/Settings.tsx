@@ -325,13 +325,13 @@ export function Settings() {
             RENDERING
           </div>
           <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] space-y-[16px]">
-            {/* Default Render Quality Row */}
+            {/* Default Evaluation Quality Row */}
             <div className="flex items-center justify-between">
               <label 
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
               >
-                Default Render Quality
+                Default Evaluation Quality
               </label>
               <div className="flex gap-[8px]">
                 <button

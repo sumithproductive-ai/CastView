@@ -10,7 +10,7 @@ const allNotifications = [
     type: 'RENDERS',
     unread: true,
     icon: ImageIcon,
-    title: 'Sofia Andersen · Fragrance render complete',
+    title: 'Sumith Chittimalla — Fragrance evaluation complete',
     time: '2 minutes ago',
     badge: { text: '94%', color: 'green' }
   },
@@ -19,7 +19,7 @@ const allNotifications = [
     type: 'RENDERS',
     unread: true,
     icon: ImageIcon,
-    title: 'Marcus Chen · Render complete — 3 contexts',
+    title: 'John Doe — Comparison complete — 3 contexts',
     time: '18 minutes ago',
     badge: { text: '91% top score', color: 'green' }
   },
@@ -55,7 +55,7 @@ const allNotifications = [
     type: 'RENDERS',
     unread: false,
     icon: ImageIcon,
-    title: 'Ava Laurent · Editorial render complete',
+    title: 'Sumith Chittimalla — Editorial evaluation complete',
     time: '3 days ago',
     badge: { text: '89%', color: 'green' }
   },
@@ -91,7 +91,7 @@ const allNotifications = [
     type: 'RENDERS',
     unread: false,
     icon: ImageIcon,
-    title: 'Zara Klein · Campaign render complete',
+    title: 'John Doe — Campaign evaluation complete',
     time: '1 week ago',
     badge: { text: '92%', color: 'green' }
   }
@@ -155,7 +155,7 @@ export function Notifications() {
               className="text-[13px]"
               style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
             >
-              Stay updated on renders, signings, and shares.
+              Stay updated on evaluations, signings, and shares.
             </p>
           </div>
           <button
