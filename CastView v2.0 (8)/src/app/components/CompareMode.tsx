@@ -1,7 +1,6 @@
 import React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
-import { ChevronDown } from 'lucide-react';
 import type { DigitalSet } from '../types/talent';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
@@ -219,28 +218,6 @@ const sectionLabelStyle = {
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
 };
-
-function toScoreLabel(date: string | null | undefined) {
-  const trimmed = date?.trim();
-  if (!trimmed || trimmed === '—') {
-    return '—';
-  }
-  const [month, year] = trimmed.split(' ');
-  if (!month || !year) {
-    return trimmed;
-  }
-  return `${month.slice(0, 3).toUpperCase()} ${year}`;
-}
-
-function getCompareChangeTag(change: MockResult['change']) {
-  if (change === 'improved') {
-    return { text: 'IMPROVED', color: '#4a7a4a' };
-  }
-  if (change === 'declined') {
-    return { text: 'DECLINED', color: '#c87a7a' };
-  }
-  return { text: 'STABLE', color: '#888880' };
-}
 
 function DigitalSetSelector({
   panelLabel,
@@ -528,10 +505,8 @@ export function CompareMode() {
     'Fragrance',
     'Editorial',
   ]);
-  const [showResults, setShowResults] = useState(false);
-  const [openCompareContext, setOpenCompareContext] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [agentNotes, setAgentNotes] = useState<Record<string, string>>({});
+  const profileType = searchParams.get('profileType') || 'prospect';
 
   useEffect(() => {
     if (!canCompare) return;
@@ -541,7 +516,6 @@ export function CompareMode() {
     );
     setPreviousSetId(next.previousSetId);
     setCurrentSetId(next.currentSetId);
-    setShowResults(false);
   }, [location.key, prospectDigitalSets, navigationState?.previousSetId, canCompare, modelId]);
 
   if (prospectDigitalSets.length === 0) {
@@ -599,9 +573,6 @@ export function CompareMode() {
     prospectDigitalSets.find((set) => set.id === currentSetId) ??
     prospectDigitalSets[prospectDigitalSets.length - 1];
 
-  const previousScoreLabel = toScoreLabel(previousSet.date);
-  const currentScoreLabel = toScoreLabel(currentSet.date);
-
   const toggleContext = (context: string) => {
     setSelectedContexts((prev) =>
       prev.includes(context)
@@ -618,17 +589,45 @@ export function CompareMode() {
     setSelectedContexts([]);
   };
 
-  const visibleResults = mockResults.filter((result) =>
-    selectedContexts.includes(result.context)
-  );
+  const handleRunComparison = () => {
+    const comparisonResults = mockResults
+      .filter((result) => selectedContexts.includes(result.context))
+      .map((result) => ({
+        context: result.context,
+        oldScore: result.oldScore,
+        newScore: result.newScore,
+        direction: result.change,
+        reasoning: result.reasoning,
+        nextStep: result.nextStep,
+      }));
 
-  const summaryCounts = visibleResults.reduce(
-    (acc, result) => {
-      acc[result.change] += 1;
-      return acc;
-    },
-    { improved: 0, stable: 0, declined: 0 }
-  );
+    sessionStorage.setItem(
+      'castview_comparison_results',
+      JSON.stringify({
+        results: comparisonResults,
+        previousSet: {
+          title: previousSet.title,
+          date: previousSet.date,
+        },
+        currentSet: {
+          title: currentSet.title,
+          date: currentSet.date,
+        },
+        improvedCount: comparisonResults.filter(
+          (r) => r.direction === 'improved',
+        ).length,
+        stableCount: comparisonResults.filter((r) => r.direction === 'stable')
+          .length,
+        declinedCount: comparisonResults.filter(
+          (r) => r.direction === 'declined',
+        ).length,
+      }),
+    );
+
+    navigate(
+      `/compare/results?name=${encodeURIComponent(prospectName)}&prospectId=${resolvedProspectId ?? ''}&profileType=${profileType}`,
+    );
+  };
 
   return (
     <div className="p-[32px] min-h-screen flex flex-col overflow-y-auto">
@@ -782,7 +781,7 @@ export function CompareMode() {
       {/* STEP 3 — Run Comparison */}
       <button
         type="button"
-        onClick={() => setShowResults(true)}
+        onClick={handleRunComparison}
         data-tutorial="compare-run"
         className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 mb-[32px]"
         style={{
@@ -794,264 +793,6 @@ export function CompareMode() {
       >
         RUN COMPARISON
       </button>
-
-      {showResults && (
-        <div data-tutorial="compare-results">
-          <div className="mb-[8px]" style={sectionLabelStyle}>
-            PROGRESSION ANALYSIS
-          </div>
-          <p
-            className="mb-[20px]"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '10px',
-              color: '#888880',
-            }}
-          >
-            {getDigitalSetDisplayTitle(previousSet.title)} →{' '}
-            {getDigitalSetDisplayTitle(currentSet.title)}
-          </p>
-
-          {/* Summary bar */}
-          <div
-            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[20px] mb-[16px] flex gap-[24px]"
-          >
-            {(
-              [
-                { key: 'improved' as const, label: 'IMPROVED', color: '#4a7a4a' },
-                { key: 'stable' as const, label: 'STABLE', color: '#888880' },
-                { key: 'declined' as const, label: 'DECLINED', color: '#c87a7a' },
-              ] as const
-            ).map((stat) => (
-              <div key={stat.key} className="flex-1 text-center">
-                <div
-                  style={{
-                    fontFamily: 'Georgia, serif',
-                    fontSize: '24px',
-                    color: stat.color,
-                  }}
-                >
-                  {summaryCounts[stat.key]}
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '9px',
-                    color: stat.color,
-                    marginTop: '4px',
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Result accordions */}
-          <div>
-            {visibleResults.map((result) => {
-              const changeTag = getCompareChangeTag(result.change);
-              const isOpen = openCompareContext === result.context;
-              return (
-                <div key={result.context}>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setOpenCompareContext(isOpen ? null : result.context)
-                    }
-                    className="w-full text-left"
-                    style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
-                  >
-                    <div
-                      className={`w-full bg-[#111111] border border-[#2a2a2a] px-[24px] py-[16px] mb-[8px] flex justify-between items-center ${
-                        isOpen ? 'rounded-t-[4px] rounded-b-none border-b-0' : 'rounded-[4px]'
-                      }`}
-                    >
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-display)',
-                          fontSize: '18px',
-                          color: '#f0f0ec',
-                          fontWeight: 300,
-                        }}
-                      >
-                        {result.context}
-                      </span>
-                      <div className="flex items-center gap-[12px]">
-                        <span
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '13px',
-                            color: '#f0f0ec',
-                          }}
-                        >
-                          {result.oldScore} → {result.newScore}
-                        </span>
-                        <span
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '11px',
-                            color: changeTag.color,
-                            letterSpacing: '0.08em',
-                          }}
-                        >
-                          {changeTag.text}
-                        </span>
-                      </div>
-                      <ChevronDown
-                        size={14}
-                        style={{
-                          color: '#888880',
-                          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s ease',
-                        }}
-                      />
-                    </div>
-                  </button>
-
-                  {isOpen && (
-                    <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] px-[24px] py-[20px] mb-[8px]">
-                      <div className="flex items-center gap-[16px]">
-                        <div className="flex-1">
-                          <div
-                            style={{
-                              fontFamily: 'var(--font-mono)',
-                              fontSize: '9px',
-                              color: '#888880',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            {previousScoreLabel}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: 'var(--font-display)',
-                              fontSize: '48px',
-                              fontWeight: 300,
-                              color: '#f0f0ec',
-                            }}
-                          >
-                            {result.oldScore}
-                          </div>
-                        </div>
-                        <span
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '14px',
-                            color: '#888880',
-                          }}
-                        >
-                          →
-                        </span>
-                        <div className="flex-1 text-right">
-                          <div
-                            style={{
-                              fontFamily: 'var(--font-mono)',
-                              fontSize: '9px',
-                              color: '#888880',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            {currentScoreLabel}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: 'var(--font-display)',
-                              fontSize: '48px',
-                              fontWeight: 300,
-                              color: '#f0f0ec',
-                            }}
-                          >
-                            {result.newScore}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="h-[1px] bg-[#2a2a2a] my-[16px]" />
-
-                      <div
-                        className="uppercase mb-[8px]"
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9px',
-                          color: '#888880',
-                          letterSpacing: '0.1em',
-                        }}
-                      >
-                        ANALYSIS
-                      </div>
-                      <p
-                        className="mb-[16px]"
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '12px',
-                          color: '#c0c0ba',
-                          lineHeight: 1.8,
-                        }}
-                      >
-                        {result.reasoning}
-                      </p>
-
-                      <div
-                        className="uppercase mb-[8px]"
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9px',
-                          color: '#888880',
-                          letterSpacing: '0.1em',
-                        }}
-                      >
-                        SUGGESTED NEXT STEP
-                      </div>
-                      <p
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '12px',
-                          color: '#a0a09a',
-                          lineHeight: 1.8,
-                        }}
-                      >
-                        → {result.nextStep}
-                      </p>
-
-                      <div
-                        className="uppercase mb-[8px] mt-[16px]"
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9px',
-                          color: '#888880',
-                          letterSpacing: '0.1em',
-                        }}
-                      >
-                        AGENT NOTE
-                      </div>
-                      <textarea
-                        value={agentNotes[result.context] ?? ''}
-                        onChange={(e) =>
-                          setAgentNotes((prev) => ({
-                            ...prev,
-                            [result.context]: e.target.value,
-                          }))
-                        }
-                        placeholder="Add agent note for this context..."
-                        rows={2}
-                        className="w-full px-[12px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] resize-none"
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '11px',
-                          color: '#f0f0ec',
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {showTutorial && (
         <TutorialOverlay

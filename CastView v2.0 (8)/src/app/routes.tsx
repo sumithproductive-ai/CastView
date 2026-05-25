@@ -21,6 +21,7 @@ import { NewModelDigitals } from './components/NewModelDigitals';
 import { NewModelReview } from './components/NewModelReview';
 import { ProspectConsent } from './components/ProspectConsent';
 import { CompareMode } from './components/CompareMode';
+import { CompareResults } from './components/CompareResults';
 import { ClientLayout } from './components/ClientLayout';
 import { ClientPortal } from './components/ClientPortal';
 import { OnboardingAgencySetup } from './components/OnboardingAgencySetup';
@@ -191,6 +192,14 @@ export const router = createBrowserRouter([
     element: (
       <Layout>
         <CompareMode />
+      </Layout>
+    ),
+  },
+  {
+    path: '/compare/results',
+    element: (
+      <Layout>
+        <CompareResults />
       </Layout>
     ),
   },
