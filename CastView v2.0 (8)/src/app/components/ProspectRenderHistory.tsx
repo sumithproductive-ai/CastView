@@ -483,24 +483,6 @@ export function ProspectRenderHistory({
             >
               RUN EVALUATION
             </button>
-            <div className="flex gap-[12px]">
-              <button
-                type="button"
-                onClick={() => handleStatusChange('SHORTLISTED', '#7d6d4d')}
-                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
-              >
-                SHORTLIST
-              </button>
-              <button
-                type="button"
-                onClick={() => handleStatusChange('PASSED', '#5d3d3d')}
-                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
-              >
-                PASS
-              </button>
-            </div>
             <button
               type="button"
               onClick={() =>
@@ -523,6 +505,34 @@ export function ProspectRenderHistory({
             >
               DELETE PROSPECT
             </button>
+            <div className="w-full h-[1px] bg-[#2a2a2a] my-[4px]" />
+            <div
+              className="text-[9px] uppercase tracking-[0.1em]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                color: '#666660',
+              }}
+            >
+              PIPELINE DECISION
+            </div>
+            <div className="flex gap-[12px]">
+              <button
+                type="button"
+                onClick={() => handleStatusChange('SHORTLISTED', '#7d6d4d')}
+                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+              >
+                SHORTLIST
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStatusChange('PASSED', '#5d3d3d')}
+                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+              >
+                PASS
+              </button>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-[12px]">

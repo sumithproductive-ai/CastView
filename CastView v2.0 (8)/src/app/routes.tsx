@@ -15,6 +15,9 @@ import { RenderLab } from './components/RenderLab';
 import { NewProspectBasicInfo } from './components/NewProspectBasicInfo';
 import { NewProspectDigitals } from './components/NewProspectDigitals';
 import { NewProspectReview } from './components/NewProspectReview';
+import { NewModelBasicInfo } from './components/NewModelBasicInfo';
+import { NewModelDigitals } from './components/NewModelDigitals';
+import { NewModelReview } from './components/NewModelReview';
 import { ProspectConsent } from './components/ProspectConsent';
 import { LucaMoretti } from './components/LucaMoretti';
 import { CamilleRousseauDraft } from './components/CamilleRousseauDraft';
@@ -93,6 +96,30 @@ export const router = createBrowserRouter([
     element: (
       <Layout>
         <Roster />
+      </Layout>
+    ),
+  },
+  {
+    path: '/roster/new',
+    element: (
+      <Layout>
+        <NewModelBasicInfo />
+      </Layout>
+    ),
+  },
+  {
+    path: '/roster/new/digitals',
+    element: (
+      <Layout>
+        <NewModelDigitals />
+      </Layout>
+    ),
+  },
+  {
+    path: '/roster/new/review',
+    element: (
+      <Layout>
+        <NewModelReview />
       </Layout>
     ),
   },

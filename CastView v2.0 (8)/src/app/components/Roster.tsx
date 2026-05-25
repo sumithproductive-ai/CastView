@@ -244,8 +244,17 @@ export function Roster() {
           Roster
         </h1>
         <button
+          type="button"
+          onClick={() => navigate('/roster/new')}
+          className="ml-auto mr-[12px] px-[20px] py-[12px] bg-[#f0f0ec] text-[#080808] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
+          style={{ fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
+        >
+          + ADD MODEL
+        </button>
+        <button
+          type="button"
           onClick={handleExportCSV}
-          className="ml-auto px-[16px] py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
+          className="px-[16px] py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
           style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
         >
           EXPORT CSV
