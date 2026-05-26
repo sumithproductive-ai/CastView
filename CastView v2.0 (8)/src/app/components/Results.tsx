@@ -120,17 +120,13 @@ export function Results() {
     const fullW = pageW - margin * 2;
     let y = margin;
 
-    const fillBg = () => {
-      doc.setFillColor(8, 8, 8);
-      doc.rect(0, 0, pageW, pageH, 'F');
-    };
-    fillBg();
-
     const checkBreak = (need: number) => {
       if (y + need > pageH - margin) {
         doc.addPage();
         y = margin;
-        fillBg();
+        doc.setFillColor(180, 145, 90);
+        doc.rect(0, 0, pageW, 3, 'F');
+        y = 10;
       }
     };
 
@@ -138,7 +134,7 @@ export function Results() {
       text: string,
       x: number,
       yPos: number,
-      color: [number, number, number] = [136, 136, 128]
+      color: [number, number, number] = [120, 120, 116]
     ) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7);
@@ -151,7 +147,7 @@ export function Results() {
       x: number,
       yPos: number,
       maxW: number,
-      color: [number, number, number] = [160, 160, 154]
+      color: [number, number, number] = [80, 80, 76]
     ): number => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
@@ -162,37 +158,35 @@ export function Results() {
     };
 
     // ── HEADER ──────────────────────────────
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(200, 169, 110);
-    doc.text('CASTVIEW', margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(136, 136, 128);
-    doc.text(
-      'castview.io  ·  hello@castview.io',
-      pageW - margin,
-      y,
-      { align: 'right' }
-    );
-    y += 6;
+    doc.setFillColor(180, 145, 90);
+    doc.rect(0, 0, pageW, 3, 'F');
+    y = 10;
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor(240, 240, 236);
-    doc.text('Context Alignment Report', margin, y);
+    doc.setFontSize(9);
+    doc.setTextColor(180, 145, 90);
+    doc.text('CASTVIEW', margin, y);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(140, 140, 136);
+    doc.text('castview.org  ·  hello@castview.org', pageW - margin, y, {
+      align: 'right',
+    });
     y += 8;
 
-    doc.setDrawColor(42, 42, 42);
+    doc.setDrawColor(200, 200, 196);
     doc.setLineWidth(0.3);
     doc.line(margin, y, pageW - margin, y);
-    y += 6;
+    y += 8;
 
     // ── PROSPECT ROW ────────────────────────
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(140, 140, 136);
+    doc.text('PROSPECT', margin, y);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.setTextColor(136, 136, 128);
-    doc.text('PROSPECT', margin, y);
     doc.text(
       `Generated: ${new Date().toLocaleDateString('en-US', {
         year: 'numeric',
@@ -206,12 +200,12 @@ export function Results() {
     y += 5;
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.setTextColor(240, 240, 236);
+    doc.setFontSize(22);
+    doc.setTextColor(20, 20, 20);
     doc.text(prospectName, margin, y);
     y += 10;
 
-    doc.setDrawColor(42, 42, 42);
+    doc.setDrawColor(200, 200, 196);
     doc.line(margin, y, pageW - margin, y);
     y += 8;
 
@@ -222,28 +216,27 @@ export function Results() {
 
       checkBreak(60);
 
-      // Context header bar
-      doc.setFillColor(20, 20, 20);
-      doc.roundedRect(margin, y, fullW, 9, 1, 1, 'F');
+      // Context header — light ivory bg
+      doc.setFillColor(248, 248, 244);
+      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'F');
+      doc.setDrawColor(220, 210, 190);
+      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'S');
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
-      doc.setTextColor(200, 169, 110);
+      doc.setTextColor(160, 120, 60);
       doc.text(result.context.toUpperCase(), margin + 5, y + 6);
 
-      doc.setTextColor(240, 240, 236);
-      doc.text(
-        `${result.score}%  ${data.fitLabel}`,
-        pageW - margin - 5,
-        y + 6,
-        { align: 'right' }
-      );
-      y += 11;
+      doc.setTextColor(20, 20, 20);
+      doc.text(`${result.score}%  ${data.fitLabel}`, pageW - margin - 5, y + 6, {
+        align: 'right',
+      });
+      y += 12;
 
       // Score bar
-      doc.setFillColor(30, 30, 30);
+      doc.setFillColor(220, 220, 218);
       doc.rect(margin, y, fullW, 2, 'F');
-      doc.setFillColor(200, 169, 110);
+      doc.setFillColor(180, 145, 90);
       doc.rect(margin, y, scoreBarW, 2, 'F');
       y += 6;
 
@@ -260,7 +253,7 @@ export function Results() {
       leftY += body(data.reasoning, leftX, leftY, col);
       leftY += 5;
 
-      label('Strengths', leftX, leftY, [74, 122, 74]);
+      label('Strengths', leftX, leftY, [40, 100, 40]);
       leftY += 4;
       data.strengths.forEach((s) => {
         leftY += body(`-  ${s}`, leftX, leftY, col);
@@ -269,7 +262,7 @@ export function Results() {
       leftY += 4;
 
       if (data.risks.length > 0) {
-        label('Risks', leftX, leftY, [200, 122, 122]);
+        label('Risks', leftX, leftY, [160, 60, 60]);
         leftY += 4;
         data.risks.forEach((r) => {
           leftY += body(`-  ${r}`, leftX, leftY, col);
@@ -298,7 +291,7 @@ export function Results() {
       // Move y past whichever column is taller
       y = Math.max(leftY, rightY) + 6;
 
-      doc.setDrawColor(30, 30, 30);
+      doc.setDrawColor(200, 200, 196);
       doc.line(margin, y, pageW - margin, y);
       y += 6;
     });
@@ -309,22 +302,22 @@ export function Results() {
     const notesLines = doc.splitTextToSize(notesText, fullW - 12);
     const notesBoxH = notesLines.length * 4.5 + 14;
 
-    doc.setFillColor(16, 16, 16);
+    doc.setFillColor(248, 248, 244);
     doc.roundedRect(margin, y, fullW, notesBoxH, 2, 2, 'F');
-    doc.setDrawColor(42, 42, 42);
+    doc.setDrawColor(220, 210, 190);
     doc.roundedRect(margin, y, fullW, notesBoxH, 2, 2, 'S');
     y += 6;
-    label('Agent Notes', margin + 6, y, [200, 169, 110]);
+    label('Agent Notes', margin + 6, y, [160, 120, 60]);
     y += 5;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
-    doc.setTextColor(192, 192, 186);
+    doc.setTextColor(80, 80, 76);
     doc.text(notesLines, margin + 6, y);
     y += notesLines.length * 4.5 + 8;
 
     // ── DISCLAIMER ───────────────────────────
     checkBreak(24);
-    doc.setDrawColor(42, 42, 42);
+    doc.setDrawColor(200, 200, 196);
     doc.line(margin, y, pageW - margin, y);
     y += 5;
 
@@ -333,20 +326,23 @@ export function Results() {
     const dlLines = doc.splitTextToSize(disclaimer, fullW);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.setTextColor(90, 90, 86);
+    doc.setTextColor(140, 140, 136);
     doc.text(dlLines, margin, y);
     y += dlLines.length * 3.8 + 5;
 
     // ── FOOTER ───────────────────────────────
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.setTextColor(90, 90, 86);
+    doc.setTextColor(160, 120, 60);
     doc.text(
-      'Prepared by CastView  ·  castview.io  ·  hello@castview.io',
+      'Prepared by CastView  ·  castview.org',
       pageW / 2,
       y,
       { align: 'center' }
     );
+
+    doc.setFillColor(180, 145, 90);
+    doc.rect(0, pageH - 2, pageW, 2, 'F');
 
     doc.save(
       `CastView-${prospectName.replace(/\s+/g, '-')}-Evaluation.pdf`

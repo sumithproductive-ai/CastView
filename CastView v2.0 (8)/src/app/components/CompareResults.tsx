@@ -99,17 +99,13 @@ export function CompareResults() {
     const fullW = pageW - margin * 2;
     let y = margin;
 
-    const fillBg = () => {
-      doc.setFillColor(8, 8, 8);
-      doc.rect(0, 0, pageW, pageH, 'F');
-    };
-    fillBg();
-
     const checkBreak = (need: number) => {
       if (y + need > pageH - margin) {
         doc.addPage();
         y = margin;
-        fillBg();
+        doc.setFillColor(180, 145, 90);
+        doc.rect(0, 0, pageW, 3, 'F');
+        y = 10;
       }
     };
 
@@ -117,7 +113,7 @@ export function CompareResults() {
       text: string,
       x: number,
       yPos: number,
-      color: [number, number, number] = [136, 136, 128],
+      color: [number, number, number] = [120, 120, 116],
     ) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7);
@@ -130,7 +126,7 @@ export function CompareResults() {
       x: number,
       yPos: number,
       maxW: number,
-      color: [number, number, number] = [160, 160, 154],
+      color: [number, number, number] = [80, 80, 76],
     ): number => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
@@ -140,33 +136,37 @@ export function CompareResults() {
       return lines.length * 4.2;
     };
 
+    // ── HEADER ──────────────────────────────
+    doc.setFillColor(180, 145, 90);
+    doc.rect(0, 0, pageW, 3, 'F');
+    y = 10;
+
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(200, 169, 110);
+    doc.setFontSize(9);
+    doc.setTextColor(180, 145, 90);
     doc.text('CASTVIEW', margin, y);
+
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.setTextColor(136, 136, 128);
-    doc.text('castview.io  ·  hello@castview.io', pageW - margin, y, {
+    doc.setTextColor(140, 140, 136);
+    doc.text('castview.org  ·  hello@castview.org', pageW - margin, y, {
       align: 'right',
     });
-    y += 6;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor(240, 240, 236);
-    doc.text('Progression Report', margin, y);
     y += 8;
 
-    doc.setDrawColor(42, 42, 42);
+    doc.setDrawColor(200, 200, 196);
     doc.setLineWidth(0.3);
     doc.line(margin, y, pageW - margin, y);
-    y += 6;
+    y += 8;
+
+    // ── PROSPECT INFO ────────────────────────
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(140, 140, 136);
+    doc.text('PROSPECT', margin, y);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.setTextColor(136, 136, 128);
-    doc.text('PROSPECT', margin, y);
     doc.text(
       `Generated: ${new Date().toLocaleDateString('en-US', {
         year: 'numeric',
@@ -180,56 +180,58 @@ export function CompareResults() {
     y += 5;
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.setTextColor(240, 240, 236);
+    doc.setFontSize(22);
+    doc.setTextColor(20, 20, 20);
     doc.text(prospectName, margin, y);
-    y += 5;
+    y += 10;
+
+    doc.setDrawColor(200, 200, 196);
+    doc.line(margin, y, pageW - margin, y);
+    y += 8;
+
+    // ── REPORT TITLE ─────────────────────────
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(20, 20, 20);
+    doc.text('Progression Report', margin, y);
+    y += 6;
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(160, 160, 154);
+    doc.setTextColor(80, 80, 76);
     doc.text(
       `${getDigitalSetDisplayTitle(comparisonData.previousSet.title)} (${comparisonData.previousSet.date}) → ${getDigitalSetDisplayTitle(comparisonData.currentSet.title)} (${comparisonData.currentSet.date})`,
       margin,
       y,
       { maxWidth: fullW },
     );
-    y += 8;
-
-    doc.setDrawColor(42, 42, 42);
-    doc.line(margin, y, pageW - margin, y);
-    y += 8;
+    y += 10;
 
     comparisonData.results.forEach((result) => {
-      const changeTag = getCompareChangeTag(result.direction);
       checkBreak(45);
 
-      doc.setFillColor(20, 20, 20);
-      doc.roundedRect(margin, y, fullW, 9, 1, 1, 'F');
+      doc.setFillColor(248, 248, 244);
+      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'F');
+      doc.setDrawColor(220, 210, 190);
+      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'S');
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
-      doc.setTextColor(200, 169, 110);
+      doc.setTextColor(160, 120, 60);
       doc.text(result.context.toUpperCase(), margin + 5, y + 6);
 
-      doc.setTextColor(240, 240, 236);
-      doc.text(
-        `${result.oldScore} → ${result.newScore}  ${changeTag.text}`,
-        pageW - margin - 5,
-        y + 6,
-        { align: 'right' },
-      );
-      y += 12;
-
-      label('Score change', margin, y);
-      y += 4;
-      y +=
-        body(
-          `${result.oldScore} (${previousScoreLabel}) → ${result.newScore} (${currentScoreLabel})`,
-          margin,
-          y,
-          fullW,
-        ) + 4;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(20, 20, 20);
+      const arrowX = pageW - margin - 42;
+      doc.text(`${result.oldScore} (${previousScoreLabel})`, arrowX - 2, y + 6, {
+        align: 'right',
+      });
+      doc.text('→', arrowX, y + 6, { align: 'center' });
+      doc.text(`${result.newScore} (${currentScoreLabel})`, arrowX + 2, y + 6, {
+        align: 'left',
+      });
+      y += 14;
 
       label('Analysis', margin, y);
       y += 4;
@@ -241,18 +243,18 @@ export function CompareResults() {
 
       const note = agentNotes[result.context]?.trim();
       if (note) {
-        label('Agent note', margin, y, [200, 169, 110]);
+        label('Agent note', margin, y, [160, 120, 60]);
         y += 4;
         y += body(note, margin, y, fullW) + 4;
       }
 
-      doc.setDrawColor(30, 30, 30);
+      doc.setDrawColor(200, 200, 196);
       doc.line(margin, y, pageW - margin, y);
       y += 6;
     });
 
     checkBreak(24);
-    doc.setDrawColor(42, 42, 42);
+    doc.setDrawColor(200, 200, 196);
     doc.line(margin, y, pageW - margin, y);
     y += 5;
 
@@ -261,19 +263,22 @@ export function CompareResults() {
     const dlLines = doc.splitTextToSize(disclaimer, fullW);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.setTextColor(90, 90, 86);
+    doc.setTextColor(140, 140, 136);
     doc.text(dlLines, margin, y);
     y += dlLines.length * 3.8 + 5;
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.setTextColor(90, 90, 86);
+    doc.setTextColor(160, 120, 60);
     doc.text(
-      'Prepared by CastView  ·  castview.io  ·  hello@castview.io',
+      'Prepared by CastView  ·  castview.org',
       pageW / 2,
       y,
       { align: 'center' },
     );
+
+    doc.setFillColor(180, 145, 90);
+    doc.rect(0, pageH - 2, pageW, 2, 'F');
 
     doc.save(`CastView-${prospectName.replace(/\s+/g, '-')}-Progression.pdf`);
   };
