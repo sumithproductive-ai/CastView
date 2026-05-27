@@ -1,15 +1,15 @@
 import React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { getContextData } from '../constants/contextMockData';
 import { useProspects } from '../context/ProspectsContext';
 import {
   compressImageUrlForEvaluation,
+  fetchEvaluateContext,
   getEvaluationPayloadByteSize,
   logCompressedImageSizesInDev,
   MAX_EVALUATION_PAYLOAD_BYTES,
-  withEvaluationTimeout,
 } from '../utils/compressEvaluationImage';
 import {
   createEvaluationId,
@@ -149,6 +149,13 @@ export function Rendering() {
   const [evaluationComplete, setEvaluationComplete] = useState(false);
   const [evaluationReady, setEvaluationReady] = useState(false);
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
+  const [flowFinished, setFlowFinished] = useState(false);
+  const [completedEvaluationId, setCompletedEvaluationId] = useState<string | null>(
+    null,
+  );
+
+  const finalizeCalledRef = useRef(false);
+  const pendingTimersRef = useRef<number[]>([]);
 
   const queueProgress =
     selectedContexts.length > 0
@@ -158,19 +165,28 @@ export function Rendering() {
   const runEvaluation = useCallback(async () => {
     const contextsToEvaluate = selectedContexts;
     const evaluationId = createEvaluationId();
+    const totalSelectedContexts = contextsToEvaluate.length;
 
-    if (contextsToEvaluate.length === 0) {
+    finalizeCalledRef.current = false;
+    pendingTimersRef.current.forEach((id) => window.clearTimeout(id));
+    pendingTimersRef.current = [];
+
+    if (totalSelectedContexts === 0) {
       setEvaluationError('Select at least one context to evaluate.');
+      setFlowFinished(true);
+      setEvaluationReady(true);
       return;
     }
 
     logEvaluation('flow_start', {
       evaluationId,
       contexts: contextsToEvaluate,
+      totalSelectedContexts,
     });
 
     const combinedEvaluations: ContextEvaluationResult[] = [];
     const unavailableContexts: string[] = [];
+    let processedContexts = 0;
 
     const persistPartialReport = () => {
       const report = buildReport(
@@ -187,69 +203,151 @@ export function Rendering() {
         evaluationId,
         successfulContexts: combinedEvaluations.length,
         unavailableContexts: unavailableContexts.length,
+        processedContexts,
+        totalSelectedContexts,
       });
     };
 
-    const finalizeSuccess = () => {
+    const clearPendingTimers = () => {
+      pendingTimersRef.current.forEach((id) => window.clearTimeout(id));
+      pendingTimersRef.current = [];
+    };
+
+    const finalizeEvaluation = () => {
+      if (finalizeCalledRef.current) return;
+      finalizeCalledRef.current = true;
+
+      const successfulContexts = combinedEvaluations.length;
       const resultsUrl = `${resultsPath}&evaluationId=${evaluationId}`;
-      persistPartialReport();
 
-      if (prospectId && combinedEvaluations.length > 0) {
-        try {
-          const newEvaluation = {
-            id: evaluationId,
-            completedAt: new Date().toLocaleDateString('en-US', {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            }),
-            contexts: combinedEvaluations,
-          };
+      logEvaluation('finalizeEvaluation triggered', {
+        evaluationId,
+        processedContexts,
+        totalSelectedContexts,
+        successfulContexts,
+        failedContexts: unavailableContexts.length,
+      });
 
-          const currentProspect = getProspectById(prospectId);
-          if (currentProspect?.digitalSets?.length) {
-            const updatedSets = [...currentProspect.digitalSets];
-            updatedSets[0] = {
-              ...updatedSets[0],
-              evaluations: [
-                newEvaluation,
-                ...(updatedSets[0].evaluations || []),
-              ],
-            };
-            updateProspect(prospectId, {
-              digitalSets: updatedSets,
-            });
-          }
-        } catch (saveError) {
-          console.warn('Could not save evaluation:', saveError);
-        }
-      }
-
-      if (unavailableContexts.length > 0) {
-        setEvaluationError(
-          `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
-        );
-      }
-
+      clearPendingTimers();
       setEvaluatingContextLabel(null);
       setCurrentStep(steps.length);
       setProgress(100);
-      setEvaluationComplete(true);
+      setCompletedContextCount(totalSelectedContexts);
+      setEvaluationComplete(successfulContexts > 0);
+      setFlowFinished(true);
+      setEvaluationReady(true);
+      setCompletedEvaluationId(evaluationId);
 
-      logEvaluation('navigation_trigger', { evaluationId, resultsUrl });
-      showEvaluationReadyNotification(
-        prospectName,
-        evaluationId,
-        resultsPath,
-        navigate,
-      );
+      persistPartialReport();
 
-      window.setTimeout(() => {
-        navigate(resultsUrl);
-      }, 600);
+      if (successfulContexts > 0) {
+        if (prospectId) {
+          try {
+            const newEvaluation = {
+              id: evaluationId,
+              completedAt: new Date().toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              }),
+              contexts: combinedEvaluations,
+            };
+
+            const currentProspect = getProspectById(prospectId);
+            if (currentProspect?.digitalSets?.length) {
+              const updatedSets = [...currentProspect.digitalSets];
+              updatedSets[0] = {
+                ...updatedSets[0],
+                evaluations: [
+                  newEvaluation,
+                  ...(updatedSets[0].evaluations || []),
+                ],
+              };
+              updateProspect(prospectId, {
+                digitalSets: updatedSets,
+              });
+            }
+          } catch (saveError) {
+            console.warn('Could not save evaluation:', saveError);
+          }
+        }
+
+        if (unavailableContexts.length > 0) {
+          setEvaluationError(
+            `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
+          );
+        }
+
+        showEvaluationReadyNotification(
+          prospectName,
+          evaluationId,
+          resultsPath,
+          navigate,
+        );
+
+        logEvaluation('navigation_triggered', { evaluationId, resultsUrl });
+        navigate(resultsUrl, { replace: true });
+        return;
+      }
+
+      setEvaluationError(EVALUATION_UNAVAILABLE_MSG);
+      if (import.meta.env.DEV) {
+        saveEvaluationReport(
+          buildMockEvaluationData(contextsToEvaluate, {
+            evaluationId,
+            prospectName,
+            prospectId,
+            contextsParam,
+            profileType,
+          }),
+        );
+        logEvaluation('navigation_triggered', {
+          evaluationId,
+          resultsUrl,
+          reason: 'dev_mock_fallback',
+        });
+        navigate(resultsUrl, { replace: true });
+      } else {
+        saveEvaluationError(EVALUATION_UNAVAILABLE_MSG);
+        logEvaluation('navigation_triggered', {
+          evaluationId,
+          resultsUrl,
+          reason: 'all_contexts_failed_show_unavailable',
+        });
+        navigate(resultsUrl, { replace: true });
+      }
+    };
+
+    const maybeFinalize = () => {
+      logEvaluation('processedContexts count', {
+        processedContexts,
+        totalSelectedContexts,
+      });
+      if (processedContexts >= totalSelectedContexts) {
+        finalizeEvaluation();
+      }
+    };
+
+    const markContextProcessed = (
+      context: string,
+      outcome: 'success' | 'failed',
+      processedIndex: number,
+    ) => {
+      processedContexts += 1;
+      setCompletedContextCount(processedContexts);
+      setProgress(100);
+      logEvaluation(outcome === 'success' ? 'context_success' : 'context_failed', {
+        context,
+        processedContexts,
+        totalSelectedContexts,
+        successfulContexts: combinedEvaluations.length,
+        failedContexts: unavailableContexts.length,
+      });
+      maybeFinalize();
     };
 
     try {
+      setFlowFinished(false);
       setCurrentStep(0);
       setProgress(0);
       setCompletedContextCount(0);
@@ -273,7 +371,11 @@ export function Rendering() {
       logEvaluation('digitals_ready', { imageCount: images.length });
 
       if (images.length === 0) {
-        setEvaluationError('Missing digitals for evaluation.');
+        for (const context of contextsToEvaluate) {
+          unavailableContexts.push(context);
+        }
+        processedContexts = totalSelectedContexts;
+        setCompletedContextCount(processedContexts);
         if (import.meta.env.DEV) {
           saveEvaluationReport(
             buildMockEvaluationData(contextsToEvaluate, {
@@ -284,16 +386,16 @@ export function Rendering() {
               profileType,
             }),
           );
-          finalizeSuccess();
-        } else {
-          saveEvaluationError('Missing digitals for evaluation.');
         }
+        finalizeEvaluation();
         return;
       }
 
       setProgress(100);
 
       for (let index = 0; index < contextsToEvaluate.length; index += 1) {
+        if (finalizeCalledRef.current) break;
+
         const context = contextsToEvaluate[index];
         const stepIndex = index + 1;
 
@@ -301,11 +403,11 @@ export function Rendering() {
         setProgress(0);
         setEvaluatingContextLabel(`Evaluating ${context}...`);
 
-        logEvaluation('context_start', {
+        logEvaluation('context_started', {
           evaluationId,
           context,
           index: index + 1,
-          total: contextsToEvaluate.length,
+          total: totalSelectedContexts,
         });
 
         const requestBody = {
@@ -322,118 +424,82 @@ export function Rendering() {
 
         if (payloadBytes > MAX_EVALUATION_PAYLOAD_BYTES) {
           unavailableContexts.push(context);
-          setCompletedContextCount(index + 1);
-          setProgress(100);
           persistPartialReport();
-          logEvaluation('context_fail', { context, reason: 'payload_too_large' });
+          logEvaluation('context_failed', { context, reason: 'payload_too_large' });
+          markContextProcessed(context, 'failed', index);
           continue;
         }
 
         try {
-          const response = await withEvaluationTimeout(
-            fetch('/api/evaluate', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestBody),
-            }),
-          );
+          const result = await fetchEvaluateContext(requestBody);
 
-          if (response.ok) {
-            const data = await response.json();
-            const evaluation = data.contextEvaluations?.find(
-              (entry: ContextEvaluationResult) =>
-                entry.context.toLowerCase() === context.toLowerCase(),
+          if (result.ok && result.data) {
+            const evaluation = result.data.contextEvaluations?.find(
+              (entry) => entry.context.toLowerCase() === context.toLowerCase(),
             );
 
             if (evaluation) {
               combinedEvaluations.push({ ...evaluation, context });
               persistPartialReport();
-              logEvaluation('context_success', { context, evaluationId });
+              markContextProcessed(context, 'success', index);
             } else {
               unavailableContexts.push(context);
               persistPartialReport();
-              logEvaluation('context_fail', { context, reason: 'missing_result' });
+              logEvaluation('context_failed', { context, reason: 'missing_result' });
+              markContextProcessed(context, 'failed', index);
             }
           } else {
-            const errorBody = await response.text();
             unavailableContexts.push(context);
             persistPartialReport();
-            logEvaluation('context_fail', {
+            logEvaluation('context_failed', {
               context,
-              status: response.status,
-              errorBody: errorBody.slice(0, 500),
+              status: result.status,
+              errorBody: result.errorBody?.slice(0, 500),
             });
+            markContextProcessed(context, 'failed', index);
           }
         } catch (error) {
-          const reason =
-            error instanceof Error && error.message === 'EVALUATION_TIMEOUT'
-              ? 'timeout'
-              : 'request_error';
+          const isTimeout =
+            error instanceof Error && error.message === 'EVALUATION_TIMEOUT';
           unavailableContexts.push(context);
           persistPartialReport();
-          logEvaluation(reason === 'timeout' ? 'context_timeout' : 'context_fail', {
+          logEvaluation(isTimeout ? 'context_timeout' : 'context_failed', {
             context,
             message: error instanceof Error ? error.message : 'unknown',
           });
+          markContextProcessed(context, 'failed', index);
         }
-
-        setCompletedContextCount(index + 1);
-        setProgress(100);
       }
 
-      if (combinedEvaluations.length === 0) {
-        setEvaluationError(EVALUATION_UNAVAILABLE_MSG);
-        if (import.meta.env.DEV) {
-          saveEvaluationReport(
-            buildMockEvaluationData(contextsToEvaluate, {
-              evaluationId,
-              prospectName,
-              prospectId,
-              contextsParam,
-              profileType,
-            }),
-          );
-          finalizeSuccess();
-        } else {
-          saveEvaluationError(EVALUATION_UNAVAILABLE_MSG);
-        }
-        return;
-      }
-
-      finalizeSuccess();
+      maybeFinalize();
     } catch (error) {
       logEvaluation('flow_error', {
         message: error instanceof Error ? error.message : 'unknown',
+        processedContexts,
+        totalSelectedContexts,
       });
 
-      if (combinedEvaluations.length > 0) {
-        finalizeSuccess();
-        return;
+      while (processedContexts < totalSelectedContexts) {
+        const missing = contextsToEvaluate[processedContexts];
+        if (missing && !unavailableContexts.includes(missing)) {
+          unavailableContexts.push(missing);
+        }
+        processedContexts += 1;
       }
-
-      setEvaluationError(EVALUATION_UNAVAILABLE_MSG);
-      if (import.meta.env.DEV) {
-        saveEvaluationReport(
-          buildMockEvaluationData(contextsToEvaluate, {
-            evaluationId,
-            prospectName,
-            prospectId,
-            contextsParam,
-            profileType,
-          }),
-        );
-        finalizeSuccess();
-      } else {
-        saveEvaluationError(EVALUATION_UNAVAILABLE_MSG);
-      }
+      setCompletedContextCount(processedContexts);
+      maybeFinalize();
     } finally {
-      setEvaluationReady(true);
+      clearPendingTimers();
+      if (!finalizeCalledRef.current) {
+        maybeFinalize();
+      }
       logEvaluation('flow_complete', {
         evaluationId,
+        processedContexts,
+        totalSelectedContexts,
         successfulContexts: combinedEvaluations.length,
         unavailableContexts: unavailableContexts.length,
+        finalized: finalizeCalledRef.current,
       });
     }
   }, [
@@ -463,10 +529,17 @@ export function Rendering() {
   }, [runEvaluation]);
 
   useEffect(() => {
-    if (currentStep >= steps.length) {
+    return () => {
+      pendingTimersRef.current.forEach((id) => window.clearTimeout(id));
+      pendingTimersRef.current = [];
+    };
+  }, []);
+
+  useEffect(() => {
+    if (flowFinished || currentStep >= steps.length) {
       return;
     }
-    
+
     const stepDuration = steps[currentStep].duration;
     const interval = 50;
     const increment = 100 / (stepDuration / interval);
@@ -479,7 +552,7 @@ export function Rendering() {
     }, interval);
     
     return () => clearInterval(timer);
-  }, [currentStep, navigate, resultsPath, steps]);
+  }, [currentStep, flowFinished, steps]);
 
   // Auto-dismiss toast after 6 seconds
   useEffect(() => {
@@ -697,7 +770,12 @@ export function Rendering() {
               ✓ Evaluation Results Ready — {prospectName}
             </div>
             <button
-              onClick={() => navigate(resultsPath)}
+              onClick={() => {
+                const url = completedEvaluationId
+                  ? `${resultsPath}&evaluationId=${completedEvaluationId}`
+                  : resultsPath;
+                navigate(url, { replace: true });
+              }}
               className="text-[11px] uppercase hover:underline"
               style={{ fontFamily: 'var(--font-mono)', color: '#080808' }}
             >

@@ -113,14 +113,60 @@ export async function compressImageUrlForEvaluation(
   }
 }
 
-export function withEvaluationTimeout<T>(
-  promise: Promise<T>,
+export type EvaluateFetchResult = {
+  ok: boolean;
+  status: number;
+  data?: { contextEvaluations?: Array<{ context: string; alignmentScore: number; fitLabel: string; reasoning: string; strengths: string[]; risks: string[]; marketSignals: string[]; suggestedNextSteps: string[] }> };
+  errorBody?: string;
+};
+
+/**
+ * POST /api/evaluate with AbortController so timeouts cancel the underlying fetch.
+ */
+export async function fetchEvaluateContext(
+  requestBody: {
+    prospectName: string;
+    selectedContexts: string[];
+    images: CompressedEvaluationImage[];
+  },
   timeoutMs: number = EVALUATION_REQUEST_TIMEOUT_MS,
-): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => {
-      setTimeout(() => reject(new Error('EVALUATION_TIMEOUT')), timeoutMs);
-    }),
-  ]);
+): Promise<EvaluateFetchResult> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch('/api/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal,
+    });
+
+    window.clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      let errorBody = '';
+      try {
+        errorBody = await response.text();
+      } catch {
+        errorBody = '';
+      }
+      return { ok: false, status: response.status, errorBody };
+    }
+
+    let data: EvaluateFetchResult['data'];
+    try {
+      data = await response.json();
+    } catch {
+      return { ok: false, status: response.status, errorBody: 'invalid_json' };
+    }
+
+    return { ok: true, status: response.status, data };
+  } catch (error) {
+    window.clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('EVALUATION_TIMEOUT');
+    }
+    throw error;
+  }
 }
