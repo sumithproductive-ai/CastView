@@ -28,6 +28,7 @@ type ContextEvaluationResult = {
 
 type EvaluationApiData = {
   contextEvaluations: ContextEvaluationResult[];
+  unavailableContexts?: string[];
 };
 
 function saveEvaluationSuccess(data: EvaluationApiData) {
@@ -102,39 +103,50 @@ export function Rendering() {
   );
 
   const steps = useMemo(
-    () =>
-      selectedContexts.length > 0
-        ? [
-            { name: 'Analysing Digitals', duration: 2000 },
-            ...selectedContexts.map((ctx) => ({
-              name: ctx,
-              duration: 2500,
-            })),
-            { name: 'Alignment', duration: 2000 },
-          ]
-        : [
-            { name: 'Analysing Digitals', duration: 2000 },
-            { name: 'Fragrance', duration: 2500 },
-            { name: 'Alignment', duration: 2000 },
-          ],
+    () => [
+      { name: 'Analysing Digitals', duration: 2000 },
+      ...selectedContexts.map((ctx) => ({
+        name: ctx,
+        duration: 2500,
+      })),
+      { name: 'Alignment', duration: 2000 },
+    ],
     [selectedContexts],
   );
 
   const prospectId = searchParams.get('prospectId') || '';
   const profileType = searchParams.get('profileType') || 'prospect';
   const resultsPath = `/results?name=${encodeURIComponent(prospectName)}&contexts=${contextsParam}&prospectId=${prospectId}&profileType=${profileType}`;
-  const notificationContext = selectedContexts[0] || 'Fragrance';
-  const notificationBody = `${prospectName} · ${notificationContext} 94% · View results`;
-
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [queueProgress, setQueueProgress] = useState(0);
+  const [completedContextCount, setCompletedContextCount] = useState(0);
+  const [evaluatingContextLabel, setEvaluatingContextLabel] = useState<string | null>(
+    null,
+  );
   const [evaluationComplete, setEvaluationComplete] = useState(false);
   const [evaluationReady, setEvaluationReady] = useState(false);
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
 
+  const queueProgress =
+    selectedContexts.length > 0
+      ? (completedContextCount / selectedContexts.length) * 100
+      : 0;
+
   const runEvaluation = useCallback(async () => {
+    const contextsToEvaluate = selectedContexts;
+
+    if (contextsToEvaluate.length === 0) {
+      setEvaluationError('Select at least one context to evaluate.');
+      setEvaluationReady(true);
+      return;
+    }
+
     try {
+      setCurrentStep(0);
+      setProgress(0);
+      setCompletedContextCount(0);
+      setEvaluatingContextLabel(null);
+
       const prospect = getProspectById(prospectId);
       const digitalSet = prospect?.digitalSets?.[0];
 
@@ -151,99 +163,182 @@ export function Rendering() {
 
       logCompressedImageSizesInDev(images, 'evaluation');
 
-      const contextsForRequest =
-        selectedContexts.length > 0 ? selectedContexts : ['Fragrance'];
+      if (images.length === 0) {
+        handleEvaluationFailure(
+          contextsToEvaluate,
+          'Missing digitals for evaluation.',
+          setEvaluationError,
+        );
+        return;
+      }
 
-      const requestBody = {
-        prospectName,
-        selectedContexts: contextsForRequest,
-        images,
+      setProgress(100);
+
+      const combinedEvaluations: ContextEvaluationResult[] = [];
+      const unavailableContexts: string[] = [];
+
+      for (let index = 0; index < contextsToEvaluate.length; index += 1) {
+        const context = contextsToEvaluate[index];
+        const stepIndex = index + 1;
+
+        setCurrentStep(stepIndex);
+        setProgress(0);
+        setEvaluatingContextLabel(`Evaluating ${context}...`);
+
+        const requestBody = {
+          prospectName,
+          selectedContexts: [context],
+          images,
+        };
+
+        const payloadBytes = getEvaluationPayloadByteSize(requestBody);
+
+        if (import.meta.env.DEV) {
+          console.log(
+            `[CastView] ${context} payload: ${(payloadBytes / 1024).toFixed(1)} KB`,
+          );
+        }
+
+        if (payloadBytes > MAX_EVALUATION_PAYLOAD_BYTES) {
+          unavailableContexts.push(context);
+          setCompletedContextCount(index + 1);
+          setProgress(100);
+          continue;
+        }
+
+        try {
+          const response = await fetch('/api/evaluate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          });
+
+          if (response.ok) {
+            const data = (await response.json()) as EvaluationApiData;
+            const evaluation = data.contextEvaluations?.find(
+              (entry) =>
+                entry.context.toLowerCase() === context.toLowerCase(),
+            );
+
+            if (evaluation) {
+              combinedEvaluations.push({ ...evaluation, context });
+            } else {
+              unavailableContexts.push(context);
+            }
+          } else {
+            if (import.meta.env.DEV) {
+              await readApiErrorMessage(response);
+            }
+            unavailableContexts.push(context);
+          }
+        } catch (error) {
+          console.error(`Evaluation API error for ${context}:`, error);
+          unavailableContexts.push(context);
+        }
+
+        setCompletedContextCount(index + 1);
+        setProgress(100);
+      }
+
+      setEvaluatingContextLabel(null);
+
+      if (combinedEvaluations.length === 0) {
+        handleEvaluationFailure(
+          contextsToEvaluate,
+          EVALUATION_UNAVAILABLE_MSG,
+          setEvaluationError,
+        );
+        return;
+      }
+
+      const combinedReport: EvaluationApiData = {
+        contextEvaluations: combinedEvaluations,
+        unavailableContexts,
       };
 
-      const payloadBytes = getEvaluationPayloadByteSize(requestBody);
+      saveEvaluationSuccess(combinedReport);
 
-      if (import.meta.env.DEV) {
-        console.log(
-          `[CastView] evaluation request payload: ${(payloadBytes / 1024).toFixed(1)} KB`,
-        );
-      }
+      if (prospectId) {
+        try {
+          const newEvaluation = {
+            id: `eval-${Date.now()}`,
+            completedAt: new Date().toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            }),
+            contexts: combinedEvaluations,
+          };
 
-      if (payloadBytes > MAX_EVALUATION_PAYLOAD_BYTES) {
-        handleEvaluationFailure(
-          contextsForRequest,
-          'Images are too large. Please upload smaller digitals.',
-          setEvaluationError,
-        );
-        return;
-      }
-
-      const response = await fetch('/api/evaluate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (response.status === 413) {
-        handleEvaluationFailure(
-          contextsForRequest,
-          'Images are too large. Please upload smaller digitals.',
-          setEvaluationError,
-        );
-        return;
-      }
-
-      if (response.ok) {
-        const data = await response.json();
-
-        saveEvaluationSuccess(data);
-
-        if (prospectId && data.contextEvaluations) {
-          try {
-            const newEvaluation = {
-              id: `eval-${Date.now()}`,
-              completedAt: new Date().toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              }),
-              contexts: data.contextEvaluations,
+          const currentProspect = getProspectById(prospectId);
+          if (currentProspect?.digitalSets?.length) {
+            const updatedSets = [...currentProspect.digitalSets];
+            updatedSets[0] = {
+              ...updatedSets[0],
+              evaluations: [
+                newEvaluation,
+                ...(updatedSets[0].evaluations || []),
+              ],
             };
+            updateProspect(prospectId, {
+              digitalSets: updatedSets,
+            });
+          }
+        } catch (saveError) {
+          console.warn('Could not save evaluation:', saveError);
+        }
+      }
 
-            const currentProspect = getProspectById(prospectId);
-            if (currentProspect?.digitalSets?.length) {
-              const updatedSets = [...currentProspect.digitalSets];
-              updatedSets[0] = {
-                ...updatedSets[0],
-                evaluations: [
-                  newEvaluation,
-                  ...(updatedSets[0].evaluations || []),
-                ],
-              };
-              updateProspect(prospectId, {
-                digitalSets: updatedSets,
+      if (unavailableContexts.length > 0) {
+        setEvaluationError(
+          `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
+        );
+      }
+
+      setCurrentStep(steps.length - 1);
+      setProgress(100);
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      setCurrentStep(steps.length);
+      setEvaluationComplete(true);
+
+      if ('Notification' in window) {
+        const body = `${prospectName} · ${combinedEvaluations.length} of ${contextsToEvaluate.length} contexts ready`;
+        if (Notification.permission === 'granted') {
+          new Notification('Evaluation Results Ready', {
+            body,
+            icon: '/favicon.svg',
+          });
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+              new Notification('Evaluation Results Ready', {
+                body,
+                icon: '/favicon.svg',
               });
             }
-          } catch (saveError) {
-            console.warn('Could not save evaluation:', saveError);
-          }
+          });
         }
-      } else {
-        const apiMessage = await readApiErrorMessage(response);
-        handleEvaluationFailure(contextsForRequest, apiMessage, setEvaluationError);
       }
     } catch (error) {
       console.error('Evaluation API error:', error);
       handleEvaluationFailure(
-        selectedContexts.length > 0 ? selectedContexts : ['Fragrance'],
+        contextsToEvaluate,
         EVALUATION_UNAVAILABLE_MSG,
         setEvaluationError,
       );
     } finally {
       setEvaluationReady(true);
     }
-  }, [prospectId, prospectName, selectedContexts, getProspectById, updateProspect]);
+  }, [
+    prospectId,
+    prospectName,
+    selectedContexts,
+    steps.length,
+    getProspectById,
+    updateProspect,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -275,56 +370,14 @@ export function Rendering() {
     const increment = 100 / (stepDuration / interval);
     
     const timer = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          setCurrentStep(c => c + 1);
-          return 0;
-        }
-        return prev + increment;
+      setProgress((prev) => {
+        if (prev >= 95) return prev;
+        return Math.min(95, prev + increment);
       });
     }, interval);
     
     return () => clearInterval(timer);
   }, [currentStep, navigate, resultsPath, steps]);
-
-  // Queue progress bar animation (240 seconds = 4 minutes)
-  useEffect(() => {
-    const queueInterval = setInterval(() => {
-      setQueueProgress(prev => {
-        if (prev >= 100) return 100;
-        return prev + (100 / 2400); // 240 seconds * 10 updates per second
-      });
-    }, 100);
-    
-    return () => clearInterval(queueInterval);
-  }, []);
-
-  // Simulate evaluation completion notification after 8 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Request permission then show notification
-      if ('Notification' in window) {
-        if (Notification.permission === 'granted') {
-          new Notification('CastView — Evaluation complete', {
-            body: notificationBody,
-            icon: '/favicon.ico'
-          });
-        } else if (Notification.permission !== 'denied') {
-          Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-              new Notification('CastView — Evaluation complete', {
-                body: notificationBody,
-                icon: '/favicon.ico'
-              });
-            }
-          });
-        }
-      }
-      // Also show in-app toast
-      setEvaluationComplete(true);
-    }, 8000);
-    return () => clearTimeout(timer);
-  }, [notificationBody]);
 
   // Auto-dismiss toast after 6 seconds
   useEffect(() => {
@@ -421,6 +474,30 @@ export function Rendering() {
           >
             {Math.ceil(estimatedRemaining)}s
           </div>
+          {evaluatingContextLabel && (
+            <div
+              className="mt-[12px]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color: '#b9b9b2',
+              }}
+            >
+              {evaluatingContextLabel}
+            </div>
+          )}
+          {selectedContexts.length > 0 && (
+            <div
+              className="mt-[8px]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: '#888880',
+              }}
+            >
+              {completedContextCount} of {selectedContexts.length} contexts complete
+            </div>
+          )}
         </div>
 
         {/* Queue Status Block */}
@@ -440,7 +517,8 @@ export function Rendering() {
               className="text-[24px]"
               style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
             >
-              2 of 4
+              {Math.min(completedContextCount + 1, selectedContexts.length)} of{' '}
+              {selectedContexts.length || 1}
             </div>
           </div>
 
@@ -514,7 +592,7 @@ export function Rendering() {
               className="text-[13px]"
               style={{ fontFamily: 'var(--font-mono)' }}
             >
-              ✓ Evaluation complete — {prospectName}
+              ✓ Evaluation Results Ready — {prospectName}
             </div>
             <button
               onClick={() => navigate(resultsPath)}

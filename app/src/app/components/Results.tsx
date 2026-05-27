@@ -87,6 +87,12 @@ export function Results() {
 
   const hasRealEvaluation = Boolean(realEvalData?.contextEvaluations?.length);
   const allowDevMock = import.meta.env.DEV && !hasRealEvaluation && !evaluationError;
+  const unavailableContexts: string[] = realEvalData?.unavailableContexts ?? [];
+
+  const isContextUnavailable = (context: string) =>
+    unavailableContexts.some(
+      (entry) => entry.toLowerCase() === context.toLowerCase(),
+    );
 
   const digitalSet: DigitalSet | null = useMemo(() => {
     const prospect = prospects.find(
@@ -132,6 +138,9 @@ export function Results() {
   const [agentNotes, setAgentNotes] = useState('');
 
   const getEvalData = (context: string) => {
+    if (isContextUnavailable(context)) {
+      return null;
+    }
     if (realEvalData?.contextEvaluations) {
       const real = realEvalData.contextEvaluations.find(
         (e: any) => e.context.toLowerCase() === context.toLowerCase(),
@@ -501,6 +510,7 @@ export function Results() {
 
           {contextResults.map((result) => {
             const data = getEvalData(result.context);
+            const unavailable = isContextUnavailable(result.context);
             const displayScore =
               data?.alignmentScore ??
               (typeof result.score === 'number' ? result.score : null);
@@ -544,7 +554,9 @@ export function Results() {
                     >
                       {displayScore != null && data
                         ? `${displayScore}%  ${data.fitLabel}`
-                        : '—'}
+                        : unavailable
+                          ? 'UNAVAILABLE'
+                          : '—'}
                     </span>
                     <div className="flex items-center gap-[12px]">
                       <div
@@ -581,8 +593,10 @@ export function Results() {
                           color: '#b9b9b2',
                         }}
                       >
-                        {evaluationError ||
-                          'Evaluation temporarily unavailable.'}
+                        {unavailable
+                          ? 'This context is temporarily unavailable.'
+                          : evaluationError ||
+                            'Evaluation temporarily unavailable.'}
                       </p>
                     ) : (
                     <>

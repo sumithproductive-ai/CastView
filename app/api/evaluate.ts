@@ -178,19 +178,35 @@ export async function POST(request: Request) {
     return jsonResponse({ error: "Missing selected contexts." }, 400);
   }
 
+  if (selectedContexts.length !== 1) {
+    return jsonResponse(
+      { error: "Send exactly one context per evaluation request." },
+      400,
+    );
+  }
+
   if (imageBlocks.length === 0) {
     return jsonResponse({ error: "Missing images." }, 400);
   }
 
   const prospectName = body.prospectName?.trim() || "Prospect";
+  const targetContext = selectedContexts[0];
 
-  const prompt = `You are an expert modeling agency evaluator. Evaluate ${prospectName} for these contexts: ${selectedContexts.join(", ")}.
+  logEvent("single_context_evaluation", {
+    targetContext,
+  });
 
-Analyze the digitals and return ONLY valid JSON:
+  const prompt = `You are an expert modeling agency evaluator. Analyze all uploaded digitals for ${prospectName}.
+
+Evaluate ONLY this context: ${targetContext}.
+
+Do not evaluate any other context.
+
+Return ONLY valid JSON:
 {
   "contextEvaluations": [
     {
-      "context": "Fragrance",
+      "context": "${targetContext}",
       "alignmentScore": 85,
       "fitLabel": "STRONG ALIGNMENT",
       "reasoning": "specific reasoning about what you see",
@@ -202,7 +218,7 @@ Analyze the digitals and return ONLY valid JSON:
   ]
 }
 
-Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60. Return ONLY JSON.`;
+Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60. Return exactly one object in contextEvaluations for "${targetContext}". Return ONLY JSON.`;
 
   const textBlock: AnthropicTextBlock = { type: "text", text: prompt };
   const messageContent: Array<AnthropicImageBlock | AnthropicTextBlock> = [
@@ -317,11 +333,53 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
       );
     }
 
+    const normalizedEvaluations = parsed.contextEvaluations
+      .filter(
+        (entry) => entry.context?.toLowerCase() === targetContext.toLowerCase(),
+      )
+      .map((entry) => ({
+        ...entry,
+        context: targetContext,
+      }));
+
+    if (normalizedEvaluations.length === 0) {
+      const fallback = parsed.contextEvaluations[0];
+      const normalizedFallback = fallback
+        ? [{ ...fallback, context: targetContext }]
+        : [];
+
+      if (normalizedFallback.length === 0) {
+        logEvent("anthropic_response_missing_target_context", {
+          targetContext,
+          returnedContexts: parsed.contextEvaluations.map((entry) => entry.context),
+        });
+        return jsonResponse(
+          { error: "Invalid evaluation payload from Anthropic API." },
+          502,
+        );
+      }
+
+      logEvent("evaluation_success", {
+        contextEvaluationCount: normalizedFallback.length,
+        targetContext,
+        usedFallbackNormalization: true,
+      });
+
+      return jsonResponse(
+        { contextEvaluations: normalizedFallback },
+        200,
+      );
+    }
+
     logEvent("evaluation_success", {
-      contextEvaluationCount: parsed.contextEvaluations.length,
+      contextEvaluationCount: normalizedEvaluations.length,
+      targetContext,
     });
 
-    return jsonResponse(parsed, 200);
+    return jsonResponse(
+      { contextEvaluations: normalizedEvaluations },
+      200,
+    );
   } catch (error) {
     logEvent("unexpected_error", {
       message: error instanceof Error ? error.message : "unknown",
