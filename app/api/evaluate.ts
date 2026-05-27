@@ -1,3 +1,7 @@
+export async function POST(request: Request) {
+  const requestStartMs = Date.now();
+  console.log("[API] ENV KEYS:", Object.keys(process.env).filter(k => k.startsWith('ANTHROP')));
+  console.log("[API] request received");
 type EvaluateRequestBody = {
   prospectName?: string;
   selectedContexts?: string[];
