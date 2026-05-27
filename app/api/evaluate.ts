@@ -41,7 +41,7 @@ type AnthropicMessagesResponse = {
 const MAX_REQUEST_BYTES = 4_500_000;
 const ANTHROPIC_FETCH_TIMEOUT_MS = 45_000;
 const MAX_OUTPUT_TOKENS = 512;
-const ANTHROPIC_MODEL = "claude-3-5-haiku-20241022";
+const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 
 function logEvent(event: string, details: Record<string, unknown> = {}) {
   console.log(
