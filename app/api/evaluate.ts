@@ -1,7 +1,5 @@
-export async function POST(request: Request) {
-  const requestStartMs = Date.now();
-  console.log("[API] ENV KEYS:", Object.keys(process.env).filter(k => k.startsWith('ANTHROP')));
-  console.log("[API] request received");
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+
 type EvaluateRequestBody = {
   prospectName?: string;
   selectedContexts?: string[];
@@ -54,10 +52,6 @@ function logEvent(event: string, details: Record<string, unknown> = {}) {
       ...details,
     }),
   );
-}
-
-function jsonResponse(body: Record<string, unknown>, status: number): Response {
-  return Response.json(body, { status });
 }
 
 function stripBase64Data(value: string): string {
@@ -194,17 +188,20 @@ function finish(
   requestStartMs: number,
   body: Record<string, unknown>,
   status: number,
-): Response {
+  res: VercelResponse,
+): void {
   const totalDurationMs = Date.now() - requestStartMs;
-  console.log("[API] total backend duration ms:", totalDurationMs, {
-    status,
-    error: body.error ?? null,
-  });
+  console.log("[API] total backend duration ms:", totalDurationMs, { status });
   logEvent("request_finished", { status, totalDurationMs });
-  return jsonResponse(body, status);
+  res.status(status).json(body);
 }
 
-export async function POST(request: Request) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "Method not allowed" });
+    return;
+  }
+
   const requestStartMs = Date.now();
   console.log("[API] request received");
   console.log("[API] provider: Anthropic");
@@ -218,26 +215,19 @@ export async function POST(request: Request) {
   });
 
   if (!anthropicApiKey) {
-    return finish(
-      requestStartMs,
-      { error: "Missing ANTHROPIC_API_KEY" },
-      500,
-    );
+    finish(requestStartMs, { error: "Missing ANTHROPIC_API_KEY" }, 500, res);
+    return;
   }
 
-  let rawBody: unknown;
-  try {
-    console.log("[API] parsing body");
-    rawBody = await request.json();
-  } catch (parseBodyError) {
-    console.error("[API] request body parse failed:", parseBodyError);
-    return finish(
-      requestStartMs,
-      { error: "Invalid JSON request body." },
-      400,
-    );
+  const rawBody: unknown = req.body;
+
+  if (rawBody === undefined || rawBody === null || rawBody === "") {
+    console.error("[API] request body missing or empty");
+    finish(requestStartMs, { error: "Invalid JSON request body." }, 400, res);
+    return;
   }
 
+  console.log("[API] parsing body");
   const body = normalizeBody(rawBody);
   const payloadBytes = estimatePayloadSize(body);
 
@@ -248,11 +238,13 @@ export async function POST(request: Request) {
   });
 
   if (payloadBytes > MAX_REQUEST_BYTES) {
-    return finish(
+    finish(
       requestStartMs,
       { error: "Images too large. Please upload smaller digitals." },
       413,
+      res,
     );
+    return;
   }
 
   const selectedContexts = Array.isArray(body.selectedContexts)
@@ -264,19 +256,23 @@ export async function POST(request: Request) {
   const imageBlocks = buildAnthropicImageContent(body.images);
 
   if (selectedContexts.length === 0) {
-    return finish(requestStartMs, { error: "Missing selected contexts." }, 400);
+    finish(requestStartMs, { error: "Missing selected contexts." }, 400, res);
+    return;
   }
 
   if (selectedContexts.length !== 1) {
-    return finish(
+    finish(
       requestStartMs,
       { error: "Send exactly one context per evaluation request." },
       400,
+      res,
     );
+    return;
   }
 
   if (imageBlocks.length === 0) {
-    return finish(requestStartMs, { error: "Missing images." }, 400);
+    finish(requestStartMs, { error: "Missing images." }, 400, res);
+    return;
   }
 
   const prospectName = body.prospectName?.trim() || "Prospect";
@@ -301,10 +297,7 @@ Do not include any text outside the JSON.`;
     messages: [
       {
         role: "user",
-        content: [
-          ...imageBlocks,
-          { type: "text", text: prompt },
-        ],
+        content: [...imageBlocks, { type: "text", text: prompt }],
       },
     ],
   };
@@ -363,7 +356,7 @@ Do not include any text outside the JSON.`;
     });
     logEvent("anthropic_fetch_error", { message, isAbort });
 
-    return finish(
+    finish(
       requestStartMs,
       {
         error: isAbort
@@ -372,7 +365,9 @@ Do not include any text outside the JSON.`;
         detail: message,
       },
       isAbort ? 504 : 502,
+      res,
     );
+    return;
   } finally {
     clearTimeout(abortTimeoutId);
   }
@@ -403,14 +398,16 @@ Do not include any text outside the JSON.`;
     });
 
     if (anthropicResponse.status === 413) {
-      return finish(
+      finish(
         requestStartMs,
         { error: "Images too large. Please upload smaller digitals." },
         413,
+        res,
       );
+      return;
     }
 
-    return finish(
+    finish(
       requestStartMs,
       {
         error: "Anthropic API request failed.",
@@ -418,7 +415,9 @@ Do not include any text outside the JSON.`;
         detail: errorBody.slice(0, 1500),
       },
       502,
+      res,
     );
+    return;
   }
 
   let anthropicData: AnthropicMessagesResponse;
@@ -434,11 +433,13 @@ Do not include any text outside the JSON.`;
     logEvent("anthropic_envelope_parse_failed", {
       parseError: parseMessage,
     });
-    return finish(
+    finish(
       requestStartMs,
       { error: "Invalid JSON envelope from Anthropic API.", detail: parseMessage },
       502,
+      res,
     );
+    return;
   }
 
   console.log(
@@ -470,25 +471,29 @@ Do not include any text outside the JSON.`;
       responsePreview: responseText.slice(0, 1500),
       parseError: parseMessage,
     });
-    return finish(
+    finish(
       requestStartMs,
       {
         error: "Invalid evaluation JSON from Anthropic API.",
         detail: parseMessage,
       },
       502,
+      res,
     );
+    return;
   }
 
   if (evaluations.length === 0) {
     logEvent("anthropic_response_invalid_shape", {
       responsePreview: responseText.slice(0, 1500),
     });
-    return finish(
+    finish(
       requestStartMs,
       { error: "Invalid evaluation payload from Anthropic API." },
       502,
+      res,
     );
+    return;
   }
 
   logEvent("evaluation_success", {
@@ -506,5 +511,5 @@ Do not include any text outside the JSON.`;
     contextEvaluations: evaluations,
   };
 
-  return finish(requestStartMs, response as unknown as Record<string, unknown>, 200);
+  finish(requestStartMs, response as unknown as Record<string, unknown>, 200, res);
 }
