@@ -585,6 +585,7 @@ export function Results() {
                           'Evaluation temporarily unavailable. Please try again.'}
                       </p>
                     ) : (
+                    <>
                     <div className="grid grid-cols-2 gap-[32px]">
                       <div>
                         <div
@@ -830,6 +831,7 @@ export function Results() {
                         </div>
                       )}
                     </div>
+                    </>
                     )}
                   </div>
                 )}
