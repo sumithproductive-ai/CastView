@@ -8,12 +8,7 @@ import { isSumithProspect, SUMITH_DIGITAL_SET_V1 } from '../constants/sumithPros
 import { useProspects } from '../context/ProspectsContext';
 import type { DigitalSet } from '../types/talent';
 
-const FALLBACK_CONTEXT_RESULTS = [
-  { id: 1, context: 'Fragrance', score: 94 },
-  { id: 2, context: 'Editorial', score: 96 },
-  { id: 3, context: 'Campaign', score: 88 },
-  { id: 4, context: 'Beauty', score: 91 },
-];
+const EVALUATION_ERROR_KEY = 'castview_evaluation_error';
 
 const DIGITAL_STRIP = [
   { key: 'front' as const, label: 'FRONT' },
@@ -59,6 +54,7 @@ export function Results() {
   const [searchParams] = useSearchParams();
   const { prospects } = useProspects();
   const [realEvalData, setRealEvalData] = useState<any>(null);
+  const [evaluationError, setEvaluationError] = useState<string | null>(null);
   const prospectName = searchParams.get('name')
     ? decodeURIComponent(searchParams.get('name')!)
     : 'Prospect';
@@ -71,6 +67,12 @@ export function Results() {
   const prospectId = searchParams.get('prospectId') || '';
 
   useEffect(() => {
+    const errorStored = sessionStorage.getItem(EVALUATION_ERROR_KEY);
+    if (errorStored) {
+      setEvaluationError(errorStored);
+      sessionStorage.removeItem(EVALUATION_ERROR_KEY);
+    }
+
     const stored = sessionStorage.getItem('castview_evaluation_results');
     if (stored) {
       try {
@@ -82,6 +84,9 @@ export function Results() {
       }
     }
   }, []);
+
+  const hasRealEvaluation = Boolean(realEvalData?.contextEvaluations?.length);
+  const allowDevMock = import.meta.env.DEV && !hasRealEvaluation && !evaluationError;
 
   const digitalSet: DigitalSet | null = useMemo(() => {
     const prospect = prospects.find(
@@ -104,13 +109,19 @@ export function Results() {
       const real = realEvalData?.contextEvaluations?.find(
         (e: any) => e.context.toLowerCase() === ctx.toLowerCase(),
       );
+      let score: number | null = null;
+      if (typeof real?.alignmentScore === 'number') {
+        score = real.alignmentScore;
+      } else if (allowDevMock) {
+        score = mockScores[i % mockScores.length];
+      }
       return {
         id: i + 1,
         context: ctx,
-        score: real?.alignmentScore ?? mockScores[i % 9],
+        score,
       };
     });
-  }, [contextsParam, realEvalData]);
+  }, [selectedContexts, realEvalData, allowDevMock]);
 
   const [openContext, setOpenContext] = useState<string | null>(null);
   const [devPathwayContext, setDevPathwayContext] = useState<string | null>(null);
@@ -120,7 +131,6 @@ export function Results() {
   const [agreed, setAgreed] = useState(false);
   const [agentNotes, setAgentNotes] = useState('');
 
-  const getContextEvalData = (context: string) => getContextData(context);
   const getEvalData = (context: string) => {
     if (realEvalData?.contextEvaluations) {
       const real = realEvalData.contextEvaluations.find(
@@ -128,7 +138,11 @@ export function Results() {
       );
       if (real) return real;
     }
-    return getContextEvalData(context);
+    if (allowDevMock) {
+      const mock = getContextData(context);
+      return { ...mock, alignmentScore: mock.score };
+    }
+    return null;
   };
 
   const generatePDF = () => {
@@ -237,7 +251,12 @@ export function Results() {
     // ── PER-CONTEXT SECTIONS ─────────────────
     contextResults.forEach((result) => {
       const data = getEvalData(result.context);
-      const scoreBarW = fullW * (result.score / 100);
+      const score =
+        data?.alignmentScore ??
+        (typeof result.score === 'number' ? result.score : null);
+      if (!data || score == null) return;
+
+      const scoreBarW = fullW * (score / 100);
 
       checkBreak(60);
 
@@ -253,7 +272,7 @@ export function Results() {
       doc.text(result.context.toUpperCase(), margin + 5, y + 6);
 
       doc.setTextColor(20, 20, 20);
-      doc.text(`${result.score}%  ${data.fitLabel}`, pageW - margin - 5, y + 6, {
+      doc.text(`${score}%  ${data.fitLabel}`, pageW - margin - 5, y + 6, {
         align: 'right',
       });
       y += 12;
@@ -432,6 +451,19 @@ export function Results() {
       >
         {prospectName} — Context Alignment Report
       </h1>
+
+      {evaluationError && (
+        <div
+          className="mb-[32px]"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '12px',
+            color: '#b9b9b2',
+          }}
+        >
+          {evaluationError}
+        </div>
+      )}
       
       <div className="grid grid-cols-[1fr_320px] gap-[48px]">
         {/* Digitals strip + context dropdowns */}
@@ -468,7 +500,10 @@ export function Results() {
           </div>
 
           {contextResults.map((result) => {
-            const data = getContextData(result.context);
+            const data = getEvalData(result.context);
+            const displayScore =
+              data?.alignmentScore ??
+              (typeof result.score === 'number' ? result.score : null);
             const isOpen = openContext === result.context;
             return (
               <div key={result.id}>
@@ -507,7 +542,9 @@ export function Results() {
                         letterSpacing: '0.05em',
                       }}
                     >
-                      {data.score}%  {data.fitLabel}
+                      {displayScore != null && data
+                        ? `${displayScore}%  ${data.fitLabel}`
+                        : '—'}
                     </span>
                     <div className="flex items-center gap-[12px]">
                       <div
@@ -517,7 +554,7 @@ export function Results() {
                         <div
                           className="h-full rounded-full"
                           style={{
-                            width: `${data.score}%`,
+                            width: `${displayScore ?? 0}%`,
                             backgroundColor: '#C8A96E',
                           }}
                         />
@@ -536,6 +573,18 @@ export function Results() {
 
                 {isOpen && (
                   <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] px-[24px] py-[20px] mb-[8px]">
+                    {!data ? (
+                      <p
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '12px',
+                          color: '#b9b9b2',
+                        }}
+                      >
+                        {evaluationError ||
+                          'Evaluation temporarily unavailable. Please try again.'}
+                      </p>
+                    ) : (
                     <div className="grid grid-cols-2 gap-[32px]">
                       <div>
                         <div
@@ -781,6 +830,7 @@ export function Results() {
                         </div>
                       )}
                     </div>
+                    )}
                   </div>
                 )}
               </div>

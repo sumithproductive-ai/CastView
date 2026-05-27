@@ -12,6 +12,9 @@ import {
 } from '../utils/compressEvaluationImage';
 
 const EVALUATION_STORAGE_KEY = 'castview_evaluation_results';
+const EVALUATION_ERROR_KEY = 'castview_evaluation_error';
+const EVALUATION_UNAVAILABLE_MSG =
+  'Evaluation temporarily unavailable. Please try again.';
 
 type ContextEvaluationResult = {
   context: string;
@@ -27,6 +30,43 @@ type ContextEvaluationResult = {
 type EvaluationApiData = {
   contextEvaluations: ContextEvaluationResult[];
 };
+
+function saveEvaluationSuccess(data: EvaluationApiData) {
+  sessionStorage.removeItem(EVALUATION_ERROR_KEY);
+  sessionStorage.setItem(EVALUATION_STORAGE_KEY, JSON.stringify(data));
+}
+
+function saveEvaluationFailure(message: string) {
+  sessionStorage.removeItem(EVALUATION_STORAGE_KEY);
+  sessionStorage.setItem(EVALUATION_ERROR_KEY, message);
+}
+
+async function readApiErrorMessage(response: Response): Promise<string> {
+  try {
+    const body = await response.json();
+    if (typeof body?.error === 'string' && body.error.trim()) {
+      return body.error;
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return EVALUATION_UNAVAILABLE_MSG;
+}
+
+function handleEvaluationFailure(
+  contexts: string[],
+  message: string,
+  setError: (value: string | null) => void,
+) {
+  setError(message);
+
+  if (import.meta.env.DEV) {
+    saveEvaluationSuccess(buildMockEvaluationData(contexts));
+    return;
+  }
+
+  saveEvaluationFailure(message);
+}
 
 function buildMockEvaluationData(contexts: string[]): EvaluationApiData {
   return {
@@ -127,10 +167,10 @@ export function Rendering() {
       }
 
       if (payloadBytes > MAX_EVALUATION_PAYLOAD_BYTES) {
-        setEvaluationError('Images are too large. Please upload smaller digitals.');
-        sessionStorage.setItem(
-          EVALUATION_STORAGE_KEY,
-          JSON.stringify(buildMockEvaluationData(contextsForRequest)),
+        handleEvaluationFailure(
+          contextsForRequest,
+          'Images are too large. Please upload smaller digitals.',
+          setEvaluationError,
         );
         return;
       }
@@ -144,10 +184,10 @@ export function Rendering() {
       });
 
       if (response.status === 413) {
-        setEvaluationError('Images are too large. Please upload smaller digitals.');
-        sessionStorage.setItem(
-          EVALUATION_STORAGE_KEY,
-          JSON.stringify(buildMockEvaluationData(contextsForRequest)),
+        handleEvaluationFailure(
+          contextsForRequest,
+          'Images are too large. Please upload smaller digitals.',
+          setEvaluationError,
         );
         return;
       }
@@ -155,10 +195,7 @@ export function Rendering() {
       if (response.ok) {
         const data = await response.json();
 
-        sessionStorage.setItem(
-          EVALUATION_STORAGE_KEY,
-          JSON.stringify(data),
-        );
+        saveEvaluationSuccess(data);
 
         if (prospectId && data.contextEvaluations) {
           try {
@@ -191,18 +228,15 @@ export function Rendering() {
           }
         }
       } else {
-        setEvaluationError('Evaluation temporarily unavailable.');
-        sessionStorage.setItem(
-          EVALUATION_STORAGE_KEY,
-          JSON.stringify(buildMockEvaluationData(selectedContexts.length > 0 ? selectedContexts : ['Fragrance'])),
-        );
+        const apiMessage = await readApiErrorMessage(response);
+        handleEvaluationFailure(contextsForRequest, apiMessage, setEvaluationError);
       }
     } catch (error) {
       console.error('Evaluation API error:', error);
-      setEvaluationError('Evaluation temporarily unavailable.');
-      sessionStorage.setItem(
-        EVALUATION_STORAGE_KEY,
-        JSON.stringify(buildMockEvaluationData(selectedContexts.length > 0 ? selectedContexts : ['Fragrance'])),
+      handleEvaluationFailure(
+        selectedContexts.length > 0 ? selectedContexts : ['Fragrance'],
+        EVALUATION_UNAVAILABLE_MSG,
+        setEvaluationError,
       );
     } finally {
       setEvaluationReady(true);
