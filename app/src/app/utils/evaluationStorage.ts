@@ -22,6 +22,7 @@ export type StoredEvaluationReport = {
   contextEvaluations: StoredContextEvaluation[];
   unavailableContexts: string[];
   updatedAt: string;
+  agentNotes?: string;
 };
 
 export function createEvaluationId(): string {
@@ -77,4 +78,24 @@ export function loadEvaluationReport(
 export function clearHandoffStorage(): void {
   sessionStorage.removeItem(EVALUATION_RESULTS_KEY);
   sessionStorage.removeItem(EVALUATION_ERROR_KEY);
+}
+
+export function updateEvaluationNotes(
+  evaluationId: string,
+  agentNotes: string,
+): boolean {
+  const key = `castview_eval_${evaluationId}`;
+  const raw = localStorage.getItem(key);
+  if (!raw) return false;
+  try {
+    const report = JSON.parse(raw) as StoredEvaluationReport;
+    report.agentNotes = agentNotes;
+    report.updatedAt = new Date().toISOString();
+    const updated = JSON.stringify(report);
+    localStorage.setItem(key, updated);
+    localStorage.setItem(EVALUATION_CURRENT_KEY, updated);
+    return true;
+  } catch {
+    return false;
+  }
 }

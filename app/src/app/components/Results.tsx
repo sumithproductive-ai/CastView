@@ -11,6 +11,7 @@ import {
   clearHandoffStorage,
   EVALUATION_ERROR_KEY,
   loadEvaluationReport,
+  updateEvaluationNotes,
 } from '../utils/evaluationStorage';
 
 const DIGITAL_STRIP = [
@@ -55,7 +56,7 @@ function ContextArrowList({ items }: { items: string[] }) {
 export function Results() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { prospects } = useProspects();
+  const { prospects, updateProspect } = useProspects();
   const [realEvalData, setRealEvalData] = useState<any>(null);
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
   const prospectName = searchParams.get('name')
@@ -80,6 +81,7 @@ export function Results() {
     const stored = loadEvaluationReport(evaluationId);
     if (stored) {
       setRealEvalData(stored);
+      if (stored.agentNotes) setAgentNotes(stored.agentNotes);
       clearHandoffStorage();
     }
   }, [evaluationId]);
@@ -141,6 +143,7 @@ export function Results() {
   const [overrideText, setOverrideText] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [agentNotes, setAgentNotes] = useState('');
+  const [notesSaved, setNotesSaved] = useState(false);
 
   const getEvalData = (context: string) => {
     if (isContextUnavailable(context)) {
@@ -160,6 +163,12 @@ export function Results() {
   };
 
   const generatePDF = () => {
+    const prospectMeta = prospects.find(
+      (p) =>
+        (prospectId && p.id === prospectId) ||
+        p.name.trim().toLowerCase() === prospectName.trim().toLowerCase(),
+    );
+
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -258,6 +267,36 @@ export function Results() {
     doc.text(prospectName, margin, y);
     y += 10;
 
+    // ── METADATA ROW ─────────────────────────
+    const metaItems: string[] = [];
+    if (prospectMeta?.source) metaItems.push(`Source: ${prospectMeta.source}`);
+    if (prospectMeta?.division) metaItems.push(`Division: ${prospectMeta.division}`);
+    if (prospectMeta?.height) metaItems.push(`Height: ${prospectMeta.height}`);
+    if (prospectMeta?.markets?.length)
+      metaItems.push(`Markets: ${prospectMeta.markets.join(', ')}`);
+    if (realEvalData?.updatedAt) {
+      const evalDate = new Date(realEvalData.updatedAt).toLocaleDateString(
+        'en-US',
+        {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        },
+      );
+      metaItems.push(`Evaluated: ${evalDate}`);
+    }
+    metaItems.push(`Contexts: ${selectedContexts.join(', ')}`);
+
+    if (metaItems.length > 0) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(120, 120, 116);
+      const metaText = metaItems.join('  ·  ');
+      const metaLines = doc.splitTextToSize(metaText, fullW);
+      doc.text(metaLines, margin, y);
+      y += metaLines.length * 4.5 + 4;
+    }
+
     doc.setDrawColor(200, 200, 196);
     doc.line(margin, y, pageW - margin, y);
     y += 8;
@@ -298,55 +337,47 @@ export function Results() {
       doc.rect(margin, y, scoreBarW, 2, 'F');
       y += 6;
 
-      // Two-column content
+      let contentY = y;
+
+      // Reasoning — full width
+      label('Reasoning', margin, contentY);
+      contentY += 4;
+      contentY += body(data.reasoning, margin, contentY, fullW) + 4;
+
+      // Two columns below reasoning: left = Strengths + Risks, right = Market Signals + Next Steps
       const leftX = margin;
       const rightX = margin + col + 8;
-      const startY = y;
-
-      // LEFT COLUMN: Reasoning + Strengths
-      let leftY = startY;
-
-      label('Reasoning', leftX, leftY);
-      leftY += 4;
-      leftY += body(data.reasoning, leftX, leftY, col);
-      leftY += 5;
+      let leftY = contentY;
+      let rightY = contentY;
 
       label('Strengths', leftX, leftY, [40, 100, 40]);
       leftY += 4;
-      data.strengths.forEach((s) => {
-        leftY += body(`-  ${s}`, leftX, leftY, col);
-        leftY += 1;
+      data.strengths.forEach((s: string) => {
+        leftY += body(`→  ${s}`, leftX, leftY, col) + 1;
       });
       leftY += 4;
 
-      if (data.risks.length > 0) {
+      if (data.risks?.length > 0) {
         label('Risks', leftX, leftY, [160, 60, 60]);
         leftY += 4;
-        data.risks.forEach((r) => {
-          leftY += body(`-  ${r}`, leftX, leftY, col);
-          leftY += 1;
+        data.risks.forEach((r: string) => {
+          leftY += body(`→  ${r}`, leftX, leftY, col) + 1;
         });
       }
 
-      // RIGHT COLUMN: Market Signals + Next Steps
-      let rightY = startY;
-
       label('Market Signals', rightX, rightY);
       rightY += 4;
-      data.marketSignals.forEach((m) => {
-        rightY += body(`-  ${m}`, rightX, rightY, col);
-        rightY += 1;
+      data.marketSignals.forEach((m: string) => {
+        rightY += body(`→  ${m}`, rightX, rightY, col) + 1;
       });
-      rightY += 5;
+      rightY += 4;
 
       label('Suggested Next Steps', rightX, rightY);
       rightY += 4;
-      data.suggestedNextSteps.forEach((s) => {
-        rightY += body(`-  ${s}`, rightX, rightY, col);
-        rightY += 1;
+      data.suggestedNextSteps.forEach((s: string) => {
+        rightY += body(`→  ${s}`, rightX, rightY, col) + 1;
       });
 
-      // Move y past whichever column is taller
       y = Math.max(leftY, rightY) + 6;
 
       doc.setDrawColor(200, 200, 196);
@@ -402,6 +433,15 @@ export function Results() {
     doc.setFillColor(180, 145, 90);
     doc.rect(0, pageH - 2, pageW, 2, 'F');
 
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(140, 140, 136);
+      doc.text(`${i} / ${totalPages}`, pageW / 2, pageH - 6, { align: 'center' });
+    }
+
     doc.save(
       `CastView-${prospectName.replace(/\s+/g, '-')}-Evaluation.pdf`
     );
@@ -410,23 +450,57 @@ export function Results() {
   return (
     <div className="p-[48px]">
       <div className="flex justify-between items-center mb-[24px]">
-        <button
-          type="button"
-          onClick={() => navigate(profileType === 'model' ? '/roster' : '/prospects')}
-          className="hover:opacity-70 transition-opacity cursor-pointer"
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '11px',
-            color: '#888880',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            backgroundColor: 'transparent',
-            border: 'none',
-            padding: 0,
-          }}
-        >
-          {profileType === 'model' ? '← BACK TO ROSTER' : '← BACK TO PROSPECTS'}
-        </button>
+        <div>
+          <button
+            type="button"
+            onClick={() => navigate(profileType === 'model' ? '/roster' : '/prospects')}
+            className="hover:opacity-70 transition-opacity cursor-pointer"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: '#888880',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              backgroundColor: 'transparent',
+              border: 'none',
+              padding: 0,
+            }}
+          >
+            {profileType === 'model' ? '← BACK TO ROSTER' : '← BACK TO PROSPECTS'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!evaluationId || !prospectId) return;
+              const prospect = prospects.find((p) => p.id === prospectId);
+              if (!prospect) return;
+              const updatedSets = prospect.digitalSets.map((ds) => ({
+                ...ds,
+                evaluations: (ds.evaluations ?? []).filter(
+                  (e) => e.id !== evaluationId,
+                ),
+              }));
+              updateProspect(prospectId, { digitalSets: updatedSets });
+              localStorage.removeItem(`castview_eval_${evaluationId}`);
+              navigate(`/prospects/${prospectId}`);
+            }}
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
+              color: '#c87a7a',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              letterSpacing: '0.05em',
+              padding: 0,
+              textTransform: 'uppercase' as const,
+              display: 'block',
+              marginTop: '8px',
+            }}
+          >
+            DELETE EVALUATION
+          </button>
+        </div>
 
         <div className="flex gap-[12px]">
           <button
@@ -955,16 +1029,51 @@ export function Results() {
             </div>
             <textarea
               value={agentNotes}
-              onChange={(e) => setAgentNotes(e.target.value)}
+              onChange={(e) => {
+                setAgentNotes(e.target.value);
+                setNotesSaved(false);
+              }}
               placeholder="Add notes for this evaluation..."
-              rows={3}
-              className="w-full px-[12px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] resize-none mt-[16px]"
+              rows={4}
               style={{
+                width: '100%',
+                backgroundColor: 'transparent',
+                border: '1px solid #2a2a2a',
+                borderRadius: '4px',
+                padding: '12px',
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
                 color: '#f0f0ec',
+                lineHeight: 1.6,
+                resize: 'vertical',
+                outline: 'none',
+                marginBottom: '12px',
               }}
             />
+            <button
+              type="button"
+              onClick={() => {
+                if (evaluationId) {
+                  const saved = updateEvaluationNotes(evaluationId, agentNotes);
+                  if (saved) setNotesSaved(true);
+                }
+              }}
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                color: notesSaved ? '#4a7a4a' : '#f0f0ec',
+                background: 'none',
+                border: `1px solid ${notesSaved ? '#4a7a4a' : '#2a2a2a'}`,
+                borderRadius: '4px',
+                padding: '8px 16px',
+                cursor: 'pointer',
+                letterSpacing: '0.08em',
+                width: '100%',
+                textTransform: 'uppercase' as const,
+              }}
+            >
+              {notesSaved ? '✓ NOTES SAVED' : 'SAVE NOTES'}
+            </button>
           </div>
         </div>
       </div>

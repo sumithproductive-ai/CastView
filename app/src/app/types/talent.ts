@@ -13,6 +13,7 @@ export type Evaluation = {
   id: string;
   completedAt: string;
   contexts: ContextEvaluation[];
+  agentNotes?: string;
 };
 
 export type DigitalSet = {

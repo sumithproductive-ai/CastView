@@ -100,6 +100,7 @@ type ContextEvaluationRow = {
   alignmentScore: number;
   fitLabel: string;
   reasoning: string;
+  allContexts: string[];
 };
 
 function getContextEvaluationRows(evaluation: Evaluation): ContextEvaluationRow[] {
@@ -109,9 +110,8 @@ function getContextEvaluationRows(evaluation: Evaluation): ContextEvaluationRow[
     context: contextEvaluation.context,
     alignmentScore: contextEvaluation.alignmentScore,
     fitLabel: contextEvaluation.fitLabel,
-    reasoning:
-      contextEvaluation.reasoning ||
-      'Alignment analysis completed from uploaded digitals.',
+    reasoning: contextEvaluation.reasoning || '',
+    allContexts: evaluation.contexts.map((c) => c.context),
   }));
 }
 
@@ -814,8 +814,18 @@ export function ProspectRenderHistory({
                             {contextRows.map((row) => (
                               <div
                                 key={`${row.evaluationId}-${row.context}`}
-                                className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px]"
-                                style={{ minHeight: '64px', maxHeight: '72px' }}
+                                className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px] hover:border-[#3a3a3a] transition-colors"
+                                onClick={() => {
+                                  const contextsParam = row.allContexts.join(',');
+                                  navigate(
+                                    `/results?name=${encodeURIComponent(activeProfile.name)}&contexts=${contextsParam}&prospectId=${resolvedEntityId}&profileType=${profileType}&evaluationId=${row.evaluationId}`,
+                                  );
+                                }}
+                                style={{
+                                  minHeight: '64px',
+                                  maxHeight: '72px',
+                                  cursor: 'pointer',
+                                }}
                               >
                                 <div className="w-[25%] flex-shrink-0">
                                   <div
@@ -885,12 +895,13 @@ export function ProspectRenderHistory({
 
                                 <button
                                   type="button"
-                                  onClick={() =>
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setDeleteEvalTarget({
                                       setId: ds.id,
                                       evalId: row.evaluationId,
-                                    })
-                                  }
+                                    });
+                                  }}
                                   className="flex-shrink-0 font-mono text-[9px] text-[#c87a7a] border border-[#c87a7a] bg-transparent px-[8px] py-[3px] rounded-[2px] hover:bg-[#c87a7a] hover:text-[#080808] transition-colors cursor-pointer uppercase tracking-[0.1em]"
                                 >
                                   DELETE
