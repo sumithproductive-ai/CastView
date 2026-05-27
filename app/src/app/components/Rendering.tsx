@@ -4,7 +4,12 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { getContextData } from '../constants/contextMockData';
 import { useProspects } from '../context/ProspectsContext';
-import type { DigitalSet } from '../types/talent';
+import {
+  compressImageUrlForEvaluation,
+  getEvaluationPayloadByteSize,
+  logCompressedImageSizesInDev,
+  MAX_EVALUATION_PAYLOAD_BYTES,
+} from '../utils/compressEvaluationImage';
 
 const EVALUATION_STORAGE_KEY = 'castview_evaluation_results';
 
@@ -22,17 +27,6 @@ type ContextEvaluationResult = {
 type EvaluationApiData = {
   contextEvaluations: ContextEvaluationResult[];
 };
-
-function collectDigitalImages(digitalSet: DigitalSet | undefined): string[] {
-  if (!digitalSet) return [];
-  return [
-    digitalSet.front,
-    digitalSet.profile,
-    digitalSet.threeQuarter,
-    digitalSet.fullBody,
-    ...digitalSet.additionalImages,
-  ].filter((url): url is string => Boolean(url));
-}
 
 function buildMockEvaluationData(contexts: string[]): EvaluationApiData {
   return {
@@ -102,41 +96,6 @@ export function Rendering() {
       const prospect = getProspectById(prospectId);
       const digitalSet = prospect?.digitalSets?.[0];
 
-      const getImageData = (dataUrl: string) => {
-        if (!dataUrl || !dataUrl.startsWith('data:')) return null;
-        const parts = dataUrl.split(',');
-        if (parts.length < 2) return null;
-        return {
-          data: parts[1],
-          mediaType:
-            parts[0].replace('data:', '').replace(';base64', '') || 'image/jpeg',
-        };
-      };
-
-      const fetchImageAsBase64 = async (url: string) => {
-        if (!url) return null;
-        if (url.startsWith('data:')) {
-          return getImageData(url);
-        }
-        try {
-          const response = await fetch(url);
-          const blob = await response.blob();
-          return new Promise<{ data: string; mediaType: string } | null>(
-            (resolve) => {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const dataUrl = e.target?.result as string;
-                resolve(getImageData(dataUrl));
-              };
-              reader.onerror = () => resolve(null);
-              reader.readAsDataURL(blob);
-            }
-          );
-        } catch {
-          return null;
-        }
-      };
-
       const imageUrls = [
         digitalSet?.front,
         digitalSet?.profile,
@@ -145,20 +104,53 @@ export function Rendering() {
       ].filter(Boolean) as string[];
 
       const images = (
-        await Promise.all(imageUrls.map((img) => fetchImageAsBase64(img)))
-      ).filter(Boolean);
+        await Promise.all(imageUrls.map((url) => compressImageUrlForEvaluation(url)))
+      ).filter((img): img is NonNullable<typeof img> => Boolean(img));
+
+      logCompressedImageSizesInDev(images, 'evaluation');
+
+      const contextsForRequest =
+        selectedContexts.length > 0 ? selectedContexts : ['Fragrance'];
+
+      const requestBody = {
+        prospectName,
+        selectedContexts: contextsForRequest,
+        images,
+      };
+
+      const payloadBytes = getEvaluationPayloadByteSize(requestBody);
+
+      if (import.meta.env.DEV) {
+        console.log(
+          `[CastView] evaluation request payload: ${(payloadBytes / 1024).toFixed(1)} KB`,
+        );
+      }
+
+      if (payloadBytes > MAX_EVALUATION_PAYLOAD_BYTES) {
+        setEvaluationError('Images are too large. Please upload smaller digitals.');
+        sessionStorage.setItem(
+          EVALUATION_STORAGE_KEY,
+          JSON.stringify(buildMockEvaluationData(contextsForRequest)),
+        );
+        return;
+      }
 
       const response = await fetch('/api/evaluate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          prospectName,
-          selectedContexts: selectedContexts.length > 0 ? selectedContexts : ['Fragrance'],
-          images,
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      if (response.status === 413) {
+        setEvaluationError('Images are too large. Please upload smaller digitals.');
+        sessionStorage.setItem(
+          EVALUATION_STORAGE_KEY,
+          JSON.stringify(buildMockEvaluationData(contextsForRequest)),
+        );
+        return;
+      }
 
       if (response.ok) {
         const data = await response.json();
