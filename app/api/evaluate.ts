@@ -211,7 +211,7 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
   ];
 
   const anthropicRequestBody = {
-    model: "claude-sonnet-4-6",
+    model: "claude-3-5-sonnet-20241022",
     max_tokens: 4000,
     messages: [
       {
