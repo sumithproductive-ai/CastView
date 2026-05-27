@@ -1,38 +1,34 @@
-import Anthropic from '@anthropic-ai/sdk';
-
-export const config = { runtime: 'edge' };
-
-export default async function handler(req: Request) {
+export default async function handler(
+  req: any,
+  res: any
+) {
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', 
-      { status: 405 });
+    return res.status(405).json({
+      error: 'Method not allowed'
+    });
   }
 
-  const body = await req.json();
-  const { images, contexts, prospectName } = body;
+  const { images, contexts, prospectName } =
+    req.body;
 
-  const client = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  });
-
-  const imageContent = images
+  const imageContent = (images || [])
     .filter((img: any) => img && img.data)
     .map((img: any) => ({
-      type: 'image' as const,
+      type: 'image',
       source: {
-        type: 'base64' as const,
-        media_type: img.mediaType as any,
+        type: 'base64',
+        media_type: img.mediaType || 'image/jpeg',
         data: img.data,
       },
     }));
 
-  const prompt = `You are an expert modeling 
-agency evaluator with deep knowledge of the 
-fashion industry. You are evaluating a model 
-prospect named ${prospectName} for these 
-shoot contexts: ${contexts.join(', ')}.
+  const prompt = `You are an expert modeling
+agency evaluator with deep knowledge of the
+fashion industry. You are evaluating a model
+prospect named ${prospectName} for these
+shoot contexts: ${(contexts || []).join(', ')}.
 
-Analyze the provided digitals and evaluate 
+Analyze the provided digitals and evaluate
 alignment with each context.
 
 Return ONLY valid JSON, no other text:
@@ -52,55 +48,63 @@ Return ONLY valid JSON, no other text:
 }
 
 Rules:
-- fitLabel: "STRONG ALIGNMENT" for 80-100, 
-  "MODERATE ALIGNMENT" for 60-79, 
+- fitLabel: "STRONG ALIGNMENT" for 80-100,
+  "MODERATE ALIGNMENT" for 60-79,
   "LOW ALIGNMENT" below 60
-- Be specific — reference what you 
-  actually see in the photos
+- Be specific about what you see in photos
 - Minimum 2 items per array
-- Base evaluation on current fashion 
-  industry standards per context
-- Be honest — not every context scores high
 - Return ONLY the JSON object, nothing else`;
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            ...imageContent,
-            { type: 'text', text: prompt },
-          ],
+    const response = await fetch(
+      'https://api.anthropic.com/v1/messages',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY || '',
+          'anthropic-version': '2023-06-01',
         },
-      ],
-    });
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 4000,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                ...imageContent,
+                { type: 'text', text: prompt },
+              ],
+            },
+          ],
+        }),
+      }
+    );
 
-    const responseText = message.content
-      .filter((block) => block.type === 'text')
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Anthropic API error:', errorText);
+      return res.status(500).json({
+        error: 'Anthropic API failed',
+        details: errorText
+      });
+    }
+
+    const data = await response.json();
+
+    const responseText = data.content
+      .filter((block: any) => block.type === 'text')
       .map((block: any) => block.text)
       .join('');
 
     const parsed = JSON.parse(responseText);
-    return new Response(JSON.stringify(parsed), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    return res.status(200).json(parsed);
+
   } catch (error) {
-    console.error('Evaluation error:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: 'Evaluation failed',
-        details: String(error)
-      }),
-      { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    console.error('Handler error:', error);
+    return res.status(500).json({
+      error: 'Evaluation failed',
+      details: String(error)
+    });
   }
 }
