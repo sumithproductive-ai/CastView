@@ -642,6 +642,30 @@ export function Rendering() {
   
   return (
     <div className="flex items-center justify-center min-h-screen p-[48px]">
+      <div
+        style={{
+          position: 'fixed',
+          top: '32px',
+          left: '32px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            color: '#888880',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            letterSpacing: '0.05em',
+            padding: 0,
+          }}
+        >
+          ← BACK
+        </button>
+      </div>
       <div className="w-full max-w-[500px]">
         <h1 
           className="text-[48px] text-center mb-[80px]" 
