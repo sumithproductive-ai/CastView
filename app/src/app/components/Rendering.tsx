@@ -112,15 +112,40 @@ export function Rendering() {
         };
       };
 
-      const images = [
+      const fetchImageAsBase64 = async (url: string) => {
+        if (!url) return null;
+        if (url.startsWith('data:')) {
+          return getImageData(url);
+        }
+        try {
+          const response = await fetch(url);
+          const blob = await response.blob();
+          return new Promise<{ data: string; mediaType: string } | null>(
+            (resolve) => {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const dataUrl = e.target?.result as string;
+                resolve(getImageData(dataUrl));
+              };
+              reader.onerror = () => resolve(null);
+              reader.readAsDataURL(blob);
+            }
+          );
+        } catch {
+          return null;
+        }
+      };
+
+      const imageUrls = [
         digitalSet?.front,
         digitalSet?.profile,
         digitalSet?.threeQuarter,
         digitalSet?.fullBody,
-      ]
-        .filter(Boolean)
-        .map((img) => getImageData(img!))
-        .filter(Boolean);
+      ].filter(Boolean) as string[];
+
+      const images = (
+        await Promise.all(imageUrls.map((img) => fetchImageAsBase64(img)))
+      ).filter(Boolean);
 
       if (images.length > 0) {
         const response = await fetch('/api/evaluate', {
