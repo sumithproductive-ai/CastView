@@ -95,6 +95,7 @@ export function Rendering() {
   const [queueProgress, setQueueProgress] = useState(0);
   const [evaluationComplete, setEvaluationComplete] = useState(false);
   const [evaluationReady, setEvaluationReady] = useState(false);
+  const [evaluationError, setEvaluationError] = useState<string | null>(null);
 
   const runEvaluation = useCallback(async () => {
     try {
@@ -147,113 +148,70 @@ export function Rendering() {
         await Promise.all(imageUrls.map((img) => fetchImageAsBase64(img)))
       ).filter(Boolean);
 
-      if (images.length > 0) {
-        const imageContent = images
-          .filter((img: any) => img && img.data)
-          .map((img: any) => ({
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: img.mediaType || 'image/jpeg',
-              data: img.data,
-            },
-          }));
+      const response = await fetch('/api/evaluate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prospectName,
+          selectedContexts: selectedContexts.length > 0 ? selectedContexts : ['Fragrance'],
+          images,
+        }),
+      });
 
-        const prompt = `You are an expert modeling agency evaluator. Evaluate ${prospectName} for these contexts: ${(selectedContexts.length > 0 ? selectedContexts : ['Fragrance']).join(', ')}.
+      if (response.ok) {
+        const data = await response.json();
 
-Analyze the digitals and return ONLY valid JSON:
-{
-  "contextEvaluations": [
-    {
-      "context": "Fragrance",
-      "alignmentScore": 85,
-      "fitLabel": "STRONG ALIGNMENT",
-      "reasoning": "specific reasoning about what you see",
-      "strengths": ["strength 1", "strength 2"],
-      "risks": ["risk 1"],
-      "marketSignals": ["signal 1"],
-      "suggestedNextSteps": ["step 1", "step 2"]
-    }
-  ]
-}
-
-Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60. Return ONLY JSON.`;
-
-        const anthropicResponse = await fetch(
-          'https://api.anthropic.com/v1/messages',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY || '',
-              'anthropic-version': '2023-06-01',
-              'anthropic-dangerous-direct-browser-access': 'true',
-            },
-            body: JSON.stringify({
-              model: 'claude-sonnet-4-6',
-              max_tokens: 4000,
-              messages: [
-                {
-                  role: 'user',
-                  content: [
-                    ...imageContent,
-                    { type: 'text', text: prompt },
-                  ],
-                },
-              ],
-            }),
-          }
+        sessionStorage.setItem(
+          EVALUATION_STORAGE_KEY,
+          JSON.stringify(data),
         );
 
-        const response = anthropicResponse;
+        if (prospectId && data.contextEvaluations) {
+          try {
+            const newEvaluation = {
+              id: `eval-${Date.now()}`,
+              completedAt: new Date().toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              }),
+              contexts: data.contextEvaluations,
+            };
 
-        if (response.ok) {
-          const anthropicData = await response.json();
-          const responseText = anthropicData.content
-            .filter((block: { type: string }) => block.type === 'text')
-            .map((block: { text: string }) => block.text)
-            .join('');
-          const data = JSON.parse(responseText);
-
-          sessionStorage.setItem(
-            'castview_evaluation_results',
-            JSON.stringify(data),
-          );
-
-          if (prospectId && data.contextEvaluations) {
-            try {
-              const newEvaluation = {
-                id: `eval-${Date.now()}`,
-                completedAt: new Date().toLocaleDateString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
-                }),
-                contexts: data.contextEvaluations,
+            const currentProspect = getProspectById(prospectId);
+            if (currentProspect?.digitalSets?.length) {
+              const updatedSets = [...currentProspect.digitalSets];
+              updatedSets[0] = {
+                ...updatedSets[0],
+                evaluations: [
+                  newEvaluation,
+                  ...(updatedSets[0].evaluations || []),
+                ],
               };
-
-              const currentProspect = getProspectById(prospectId);
-              if (currentProspect?.digitalSets?.length) {
-                const updatedSets = [...currentProspect.digitalSets];
-                updatedSets[0] = {
-                  ...updatedSets[0],
-                  evaluations: [
-                    newEvaluation,
-                    ...(updatedSets[0].evaluations || []),
-                  ],
-                };
-                updateProspect(prospectId, {
-                  digitalSets: updatedSets,
-                });
-              }
-            } catch (saveError) {
-              console.warn('Could not save evaluation:', saveError);
+              updateProspect(prospectId, {
+                digitalSets: updatedSets,
+              });
             }
+          } catch (saveError) {
+            console.warn('Could not save evaluation:', saveError);
           }
         }
+      } else {
+        setEvaluationError('Evaluation temporarily unavailable.');
+        sessionStorage.setItem(
+          EVALUATION_STORAGE_KEY,
+          JSON.stringify(buildMockEvaluationData(selectedContexts.length > 0 ? selectedContexts : ['Fragrance'])),
+        );
       }
     } catch (error) {
       console.error('Evaluation API error:', error);
+      setEvaluationError('Evaluation temporarily unavailable.');
+      sessionStorage.setItem(
+        EVALUATION_STORAGE_KEY,
+        JSON.stringify(buildMockEvaluationData(selectedContexts.length > 0 ? selectedContexts : ['Fragrance'])),
+      );
     } finally {
       setEvaluationReady(true);
     }
@@ -508,6 +466,14 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
           >
             You'll be notified when this evaluation completes.
           </div>
+          {evaluationError && (
+            <div
+              className="text-[11px] mt-[10px]"
+              style={{ fontFamily: 'var(--font-mono)', color: '#b9b9b2' }}
+            >
+              {evaluationError}
+            </div>
+          )}
         </div>
 
         {/* Evaluation Complete Toast */}
