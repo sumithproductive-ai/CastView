@@ -131,6 +131,12 @@ export function Results() {
   const [openContext, setOpenContext] = useState<string | null>(null);
   const [devPathwayContext, setDevPathwayContext] = useState<string | null>(null);
   const [devPathwayNote, setDevPathwayNote] = useState('');
+  const [devPathwayLoading, setDevPathwayLoading] = useState(false);
+  const [devPathwayData, setDevPathwayData] = useState<{
+    sections: { label: string; items: string[] }[];
+    summary: string;
+  } | null>(null);
+  const [devPathwayError, setDevPathwayError] = useState<string | null>(null);
   const [showOverride, setShowOverride] = useState(false);
   const [overrideText, setOverrideText] = useState('');
   const [agreed, setAgreed] = useState(false);
@@ -734,7 +740,38 @@ export function Results() {
 
                       <button
                         type="button"
-                        onClick={() => setDevPathwayContext(result.context)}
+                        onClick={async () => {
+                          if (devPathwayLoading) return;
+                          setDevPathwayContext(result.context);
+                          setDevPathwayLoading(true);
+                          setDevPathwayData(null);
+                          setDevPathwayError(null);
+                          try {
+                            const contextData = realEvalData?.contextEvaluations?.find(
+                              (e: any) => e.context === result.context
+                            );
+                            const response = await fetch('/api/pathway', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                prospectName,
+                                context: result.context,
+                                alignmentScore: contextData?.alignmentScore ?? 0,
+                                agentNote: devPathwayNote || 'No additional notes provided.',
+                              }),
+                            });
+                            const data = await response.json();
+                            if (response.ok && data.sections) {
+                              setDevPathwayData(data);
+                            } else {
+                              setDevPathwayError('Unable to generate pathway. Try again.');
+                            }
+                          } catch {
+                            setDevPathwayError('Unable to generate pathway. Try again.');
+                          } finally {
+                            setDevPathwayLoading(false);
+                          }
+                        }}
                         className="w-full py-[12px] border border-[#C8A96E] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#C8A96E] hover:text-[#080808]"
                         style={{
                           fontFamily: 'var(--font-mono)',
@@ -742,7 +779,9 @@ export function Results() {
                           cursor: 'pointer',
                         }}
                       >
-                        GENERATE DEVELOPMENT PATHWAY
+                        {devPathwayLoading && devPathwayContext === result.context
+                          ? 'GENERATING...'
+                          : 'GENERATE DEVELOPMENT PATHWAY'}
                       </button>
 
                       {devPathwayContext === result.context && (
@@ -770,77 +809,45 @@ export function Results() {
                             alignment:
                           </div>
 
-                          {[
-                            {
-                              label: 'IMMEDIATE FOCUS',
-                              items: [
-                                'Schedule a targeted test shoot with direction specific to this context',
-                                'Review posture and framing with a photographer familiar with this market',
-                                'Build a context-specific section of the portfolio before submission',
-                              ],
-                            },
-                            {
-                              label: 'PHYSICAL DEVELOPMENT',
-                              items: [
-                                'Grooming and styling consistency across digitals',
-                                'Posture coaching — particularly for profile and 3/4 angles',
-                                'Wardrobe refinement toward context-specific aesthetic',
-                              ],
-                            },
-                            {
-                              label: 'MARKET APPROACH',
-                              items: [
-                                'Do not submit to top-tier clients until test shoot confirms alignment',
-                                'Target mid-tier clients first to build context-specific credits',
-                                'Revisit evaluation after next digital set upload',
-                              ],
-                            },
-                          ].map((section) => (
-                            <div key={section.label} className="mb-[14px]">
-                              <div
-                                className="text-[8px] uppercase tracking-[0.1em] mb-[6px]"
-                                style={{
-                                  fontFamily: 'var(--font-mono)',
-                                  color: '#C8A96E',
-                                }}
-                              >
-                                {section.label}
-                              </div>
-                              {section.items.map((item, i) => (
-                                <div
-                                  key={i}
-                                  className="mb-[4px]"
-                                  style={{
-                                    fontFamily: 'var(--font-mono)',
-                                    fontSize: '11px',
-                                    color: '#888880',
-                                    lineHeight: 1.7,
-                                  }}
-                                >
-                                  →  {item}
+                          {devPathwayLoading && devPathwayContext === result.context && (
+                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
+                              color: '#666660', padding: '16px 0' }}>
+                              Generating pathway...
+                            </div>
+                          )}
+
+                          {devPathwayError && devPathwayContext === result.context && (
+                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
+                              color: '#c87a7a', padding: '8px 0' }}>
+                              {devPathwayError}
+                            </div>
+                          )}
+
+                          {devPathwayData && devPathwayContext === result.context && (
+                            <>
+                              {devPathwayData.summary && (
+                                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
+                                  color: '#a0a09a', lineHeight: 1.8, marginBottom: '16px' }}>
+                                  {devPathwayData.summary}
+                                </p>
+                              )}
+                              {devPathwayData.sections.map((section) => (
+                                <div key={section.label} className="mb-[14px]">
+                                  <div className="text-[8px] uppercase tracking-[0.1em] mb-[6px]"
+                                    style={{ fontFamily: 'var(--font-mono)', color: '#C8A96E' }}>
+                                    {section.label}
+                                  </div>
+                                  {section.items.map((item, i) => (
+                                    <div key={i} className="mb-[4px]"
+                                      style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
+                                        color: '#888880', lineHeight: 1.7 }}>
+                                      → {item}
+                                    </div>
+                                  ))}
                                 </div>
                               ))}
-                            </div>
-                          ))}
-
-                          <div
-                            className="mt-[16px] pt-[12px]"
-                            style={{ borderTop: '1px solid #1a1a1a' }}
-                          >
-                            <div
-                              className="text-[9px]"
-                              style={{
-                                fontFamily: 'var(--font-mono)',
-                                color: '#444440',
-                                lineHeight: 1.6,
-                              }}
-                            >
-                              ⚡ AI-powered recommendations coming in next update.
-                              Current recommendations are framework-based.
-                              Real-time Claude analysis will personalise this to the
-                              uploaded digitals.
-                            </div>
-                          </div>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
