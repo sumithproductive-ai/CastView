@@ -188,7 +188,7 @@ function finish(
   requestStartMs: number,
   body: Record<string, unknown>,
   status: number,
-  res: VercelResponse,
+  res: ServerResponse & { status: (code: number) => any; json: (body: unknown) => void },
 ): void {
   const totalDurationMs = Date.now() - requestStartMs;
   console.log("[API] total backend duration ms:", totalDurationMs, { status });
