@@ -582,7 +582,7 @@ export function Results() {
                         }}
                       >
                         {evaluationError ||
-                          'Evaluation temporarily unavailable. Please try again.'}
+                          'Evaluation temporarily unavailable.'}
                       </p>
                     ) : (
                     <>

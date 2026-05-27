@@ -211,7 +211,7 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
   ];
 
   const anthropicRequestBody = {
-    model: "claude-3-5-sonnet-20241022",
+    model: "claude-sonnet-4-6",
     max_tokens: 4000,
     messages: [
       {
@@ -221,10 +221,21 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
     ],
   };
 
+  const anthropicPayloadBytes = estimatePayloadSize(anthropicRequestBody);
+
   try {
+    console.log("Anthropic request started:", {
+      model: anthropicRequestBody.model,
+      imageCount: imageBlocks.length,
+      payloadBytes: anthropicPayloadBytes,
+      payloadKb: Math.round(anthropicPayloadBytes / 1024),
+    });
+
     logEvent("anthropic_request_start", {
       model: anthropicRequestBody.model,
       imageCount: imageBlocks.length,
+      payloadBytes: anthropicPayloadBytes,
+      payloadKb: Math.round(anthropicPayloadBytes / 1024),
       contentBlockCount: messageContent.length,
     });
 
@@ -238,6 +249,8 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
       body: JSON.stringify(anthropicRequestBody),
     });
 
+    console.log("Anthropic response status:", anthropicResponse.status);
+
     logEvent("anthropic_response_received", {
       status: anthropicResponse.status,
       ok: anthropicResponse.ok,
@@ -245,6 +258,12 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
 
     if (!anthropicResponse.ok) {
       const anthropicErrorBody = await anthropicResponse.text();
+
+      console.error("Anthropic failed:", {
+        status: anthropicResponse.status,
+        body: anthropicErrorBody,
+      });
+
       logEvent("anthropic_request_failed", {
         status: anthropicResponse.status,
         errorBody: anthropicErrorBody.slice(0, 2000),
@@ -257,7 +276,14 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
         );
       }
 
-      return jsonResponse({ error: "Anthropic API request failed." }, 502);
+      return jsonResponse(
+        {
+          error: "Anthropic API request failed.",
+          status: anthropicResponse.status,
+          detail: anthropicErrorBody,
+        },
+        502,
+      );
     }
 
     const anthropicData = await anthropicResponse.json();
@@ -265,6 +291,8 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
       .filter((block: { type?: string }) => block.type === "text")
       .map((block: { text?: string }) => block.text || "")
       .join("");
+
+    console.log("Anthropic raw response preview:", responseText.slice(0, 500));
 
     let parsed: EvaluateResponseBody;
     try {
@@ -276,6 +304,8 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
       });
       return jsonResponse({ error: "Invalid response from Anthropic API." }, 502);
     }
+
+    console.log("Anthropic parsed response:", parsed);
 
     if (!parsed?.contextEvaluations || !Array.isArray(parsed.contextEvaluations)) {
       logEvent("anthropic_response_invalid_shape", {

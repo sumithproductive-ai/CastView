@@ -13,8 +13,7 @@ import {
 
 const EVALUATION_STORAGE_KEY = 'castview_evaluation_results';
 const EVALUATION_ERROR_KEY = 'castview_evaluation_error';
-const EVALUATION_UNAVAILABLE_MSG =
-  'Evaluation temporarily unavailable. Please try again.';
+const EVALUATION_UNAVAILABLE_MSG = 'Evaluation temporarily unavailable.';
 
 type ContextEvaluationResult = {
   context: string;
@@ -42,13 +41,16 @@ function saveEvaluationFailure(message: string) {
 }
 
 async function readApiErrorMessage(response: Response): Promise<string> {
-  try {
-    const body = await response.json();
-    if (typeof body?.error === 'string' && body.error.trim()) {
-      return body.error;
+  if (import.meta.env.DEV) {
+    try {
+      const body = await response.json();
+      if (typeof body?.error === 'string' && body.error.trim()) {
+        console.error('[CastView] /api/evaluate failed:', body);
+        return EVALUATION_UNAVAILABLE_MSG;
+      }
+    } catch {
+      // ignore parse errors
     }
-  } catch {
-    // ignore parse errors
   }
   return EVALUATION_UNAVAILABLE_MSG;
 }
