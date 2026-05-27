@@ -148,20 +148,72 @@ export function Rendering() {
       ).filter(Boolean);
 
       if (images.length > 0) {
-        const response = await fetch('/api/evaluate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            images,
-            contexts: selectedContexts.length > 0 ? selectedContexts : ['Fragrance'],
-            prospectName,
-          }),
-        });
+        const imageContent = images
+          .filter((img: any) => img && img.data)
+          .map((img: any) => ({
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: img.mediaType || 'image/jpeg',
+              data: img.data,
+            },
+          }));
+
+        const prompt = `You are an expert modeling agency evaluator. Evaluate ${prospectName} for these contexts: ${(selectedContexts.length > 0 ? selectedContexts : ['Fragrance']).join(', ')}.
+
+Analyze the digitals and return ONLY valid JSON:
+{
+  "contextEvaluations": [
+    {
+      "context": "Fragrance",
+      "alignmentScore": 85,
+      "fitLabel": "STRONG ALIGNMENT",
+      "reasoning": "specific reasoning about what you see",
+      "strengths": ["strength 1", "strength 2"],
+      "risks": ["risk 1"],
+      "marketSignals": ["signal 1"],
+      "suggestedNextSteps": ["step 1", "step 2"]
+    }
+  ]
+}
+
+Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60. Return ONLY JSON.`;
+
+        const anthropicResponse = await fetch(
+          'https://api.anthropic.com/v1/messages',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY || '',
+              'anthropic-version': '2023-06-01',
+              'anthropic-dangerous-direct-browser-access': 'true',
+            },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-6',
+              max_tokens: 4000,
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    ...imageContent,
+                    { type: 'text', text: prompt },
+                  ],
+                },
+              ],
+            }),
+          }
+        );
+
+        const response = anthropicResponse;
 
         if (response.ok) {
-          const data = await response.json();
+          const anthropicData = await response.json();
+          const responseText = anthropicData.content
+            .filter((block: { type: string }) => block.type === 'text')
+            .map((block: { text: string }) => block.text)
+            .join('');
+          const data = JSON.parse(responseText);
 
           sessionStorage.setItem(
             'castview_evaluation_results',
