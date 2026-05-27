@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { IncomingMessage, ServerResponse } from "http";
 
 type EvaluateRequestBody = {
   prospectName?: string;
@@ -196,7 +196,7 @@ function finish(
   res.status(status).json(body);
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: IncomingMessage & { body?: unknown; method?: string }, res: ServerResponse & { status: (code: number) => any; json: (body: unknown) => void }) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
     return;
