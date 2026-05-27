@@ -22,34 +22,24 @@ type EvaluateResponseBody = {
   contextEvaluations: ContextEvaluationResult[];
 };
 
-type OpenAIImageContentPart = {
-  type: "image_url";
-  image_url: { url: string };
+type AnthropicImageBlock = {
+  type: "image";
+  source: {
+    type: "base64";
+    media_type: string;
+    data: string;
+  };
 };
 
-type OpenAITextContentPart = {
-  type: "text";
-  text: string;
-};
-
-type OpenAIChatCompletionResponse = {
-  choices?: Array<{
-    message?: { content?: string | null };
-  }>;
-  error?: { message?: string; type?: string };
+type AnthropicMessagesResponse = {
+  content?: Array<{ type?: string; text?: string }>;
+  error?: { type?: string; message?: string };
 };
 
 const MAX_REQUEST_BYTES = 4_500_000;
-const OPENAI_FETCH_TIMEOUT_MS = 45_000;
-const MAX_OUTPUT_TOKENS = 500;
-const OPENAI_MODEL = "gpt-4o-mini";
-
-/**
- * When true, returns an immediate hardcoded evaluation (skips OpenAI) so production
- * can confirm /api/evaluate is deployed and reachable. Set false after Results
- * shows "Test response from backend route." and redeploy.
- */
-const USE_HARDCODED_TEST_RESPONSE = true;
+const ANTHROPIC_FETCH_TIMEOUT_MS = 45_000;
+const MAX_OUTPUT_TOKENS = 512;
+const ANTHROPIC_MODEL = "claude-3-5-haiku-20241022";
 
 function logEvent(event: string, details: Record<string, unknown> = {}) {
   console.log(
@@ -73,14 +63,6 @@ function stripBase64Data(value: string): string {
     return comma >= 0 ? trimmed.slice(comma + 1) : trimmed;
   }
   return trimmed;
-}
-
-function toDataUrl(data: string, mediaType: string | undefined): string {
-  const trimmed = data.trim();
-  if (trimmed.startsWith("data:")) return trimmed;
-  const base64 = stripBase64Data(trimmed);
-  const mt = normalizeMediaType(mediaType);
-  return `data:${mt};base64,${base64}`;
 }
 
 function normalizeBody(body: unknown): EvaluateRequestBody {
@@ -162,17 +144,19 @@ function normalizeContextEvaluation(
   };
 }
 
-function buildOpenAIImageContent(
+function buildAnthropicImageContent(
   images: EvaluateRequestBody["images"],
-): OpenAIImageContentPart[] {
+): AnthropicImageBlock[] {
   if (!Array.isArray(images)) return [];
 
   return images
     .filter((img) => img && typeof img.data === "string" && img.data.length > 0)
     .map((img) => ({
-      type: "image_url" as const,
-      image_url: {
-        url: toDataUrl(img.data as string, img.mediaType),
+      type: "image" as const,
+      source: {
+        type: "base64" as const,
+        media_type: normalizeMediaType(img.mediaType),
+        data: stripBase64Data(img.data as string),
       },
     }));
 }
@@ -183,13 +167,6 @@ function extractJsonText(text: string): string {
   const end = withoutFences.lastIndexOf("}");
   if (start >= 0 && end >= 0) return withoutFences.slice(start, end + 1);
   return withoutFences;
-}
-
-function extractOpenAITextContent(
-  openaiData: OpenAIChatCompletionResponse,
-): string {
-  const content = openaiData.choices?.[0]?.message?.content;
-  return typeof content === "string" ? content : "";
 }
 
 function parseModelOutput(
@@ -209,25 +186,6 @@ function parseModelOutput(
   return single ? [single] : [];
 }
 
-function buildHardcodedTestResponse(
-  targetContext: string,
-): EvaluateResponseBody {
-  return {
-    contextEvaluations: [
-      {
-        context: targetContext,
-        alignmentScore: 82,
-        fitLabel: "STRONG ALIGNMENT",
-        reasoning: "Test response from backend route.",
-        strengths: ["Backend route working"],
-        risks: [],
-        marketSignals: [],
-        suggestedNextSteps: [],
-      },
-    ],
-  };
-}
-
 function finish(
   requestStartMs: number,
   body: Record<string, unknown>,
@@ -245,21 +203,20 @@ function finish(
 export async function POST(request: Request) {
   const requestStartMs = Date.now();
   console.log("[API] request received");
-  console.log("[API] provider: OpenAI");
+  console.log("[API] provider: Anthropic");
 
-  const openaiApiKey = process.env.OPENAI_API_KEY?.trim();
+  const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
 
   logEvent("environment_checked", {
-    provider: "OpenAI",
-    hasOpenaiApiKey: Boolean(openaiApiKey),
-    model: OPENAI_MODEL,
-    useHardcodedTestResponse: USE_HARDCODED_TEST_RESPONSE,
+    provider: "Anthropic",
+    hasAnthropicApiKey: Boolean(anthropicApiKey),
+    model: ANTHROPIC_MODEL,
   });
 
-  if (!openaiApiKey) {
+  if (!anthropicApiKey) {
     return finish(
       requestStartMs,
-      { error: "Missing OPENAI_API_KEY" },
+      { error: "Missing ANTHROPIC_API_KEY" },
       500,
     );
   }
@@ -300,7 +257,7 @@ export async function POST(request: Request) {
       )
     : [];
 
-  const imageContent = buildOpenAIImageContent(body.images);
+  const imageBlocks = buildAnthropicImageContent(body.images);
 
   if (selectedContexts.length === 0) {
     return finish(requestStartMs, { error: "Missing selected contexts." }, 400);
@@ -314,7 +271,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (imageContent.length === 0) {
+  if (imageBlocks.length === 0) {
     return finish(requestStartMs, { error: "Missing images." }, 400);
   }
 
@@ -323,81 +280,68 @@ export async function POST(request: Request) {
 
   console.log("[API] evaluation request", {
     context: targetContext,
-    imageCount: imageContent.length,
+    imageCount: imageBlocks.length,
     payloadBytes,
     payloadKb: Math.round(payloadBytes / 1024),
   });
 
-  if (USE_HARDCODED_TEST_RESPONSE) {
-    console.log("[API] returning hardcoded test response (OpenAI skipped)");
-    const testResponse = buildHardcodedTestResponse(targetContext);
-    logEvent("hardcoded_test_response", {
-      context: targetContext,
-      alignmentScore: testResponse.contextEvaluations[0].alignmentScore,
-    });
-    return finish(
-      requestStartMs,
-      testResponse as unknown as Record<string, unknown>,
-      200,
-    );
-  }
-
   const prompt = `Evaluate ${prospectName} for "${targetContext}" using all digitals.
-Return ONLY this JSON shape (one object in contextEvaluations):
+Return ONLY this JSON shape:
 {"contextEvaluations":[{"context":"${targetContext}","alignmentScore":85,"fitLabel":"STRONG ALIGNMENT","reasoning":"One sentence.","strengths":["a","b"],"risks":["c"],"marketSignals":["d"],"suggestedNextSteps":["e"]}]}
 Rules: alignmentScore 0-100; fitLabel STRONG ALIGNMENT (80-100), MODERATE ALIGNMENT (60-79), LOW ALIGNMENT (below 60); reasoning exactly 1 sentence; max 2 strengths; max 1 risk; max 1 marketSignals; max 1 suggestedNextSteps.
-Do not provide prose outside JSON. Keep each field concise.`;
+Do not include any text outside the JSON.`;
 
-  const textContent: OpenAITextContentPart = { type: "text", text: prompt };
-
-  const openaiRequestBody = {
-    model: OPENAI_MODEL,
+  const anthropicRequestBody = {
+    model: ANTHROPIC_MODEL,
     max_tokens: MAX_OUTPUT_TOKENS,
-    response_format: { type: "json_object" as const },
     messages: [
       {
-        role: "user" as const,
-        content: [...imageContent, textContent],
+        role: "user",
+        content: [
+          ...imageBlocks,
+          { type: "text", text: prompt },
+        ],
       },
     ],
   };
 
-  const openaiPayloadBytes = estimatePayloadSize(openaiRequestBody);
+  const anthropicPayloadBytes = estimatePayloadSize(anthropicRequestBody);
   const abortController = new AbortController();
   const abortTimeoutId = setTimeout(() => {
-    console.log("[API] OpenAI fetch aborted");
+    console.log("[API] Anthropic fetch aborted");
     abortController.abort();
-  }, OPENAI_FETCH_TIMEOUT_MS);
+  }, ANTHROPIC_FETCH_TIMEOUT_MS);
 
-  let openaiResponse: Response;
+  let anthropicResponse: Response;
 
   try {
-    console.log("[API] OpenAI request start", {
-      model: OPENAI_MODEL,
+    console.log("[API] Anthropic request start", {
+      model: ANTHROPIC_MODEL,
       context: targetContext,
-      imageCount: imageContent.length,
+      imageCount: imageBlocks.length,
       payloadBytes,
-      payloadKb: Math.round(openaiPayloadBytes / 1024),
+      payloadKb: Math.round(anthropicPayloadBytes / 1024),
       maxTokens: MAX_OUTPUT_TOKENS,
-      fetchTimeoutMs: OPENAI_FETCH_TIMEOUT_MS,
+      fetchTimeoutMs: ANTHROPIC_FETCH_TIMEOUT_MS,
     });
 
-    logEvent("openai_request_start", {
-      model: OPENAI_MODEL,
+    logEvent("anthropic_request_start", {
+      model: ANTHROPIC_MODEL,
       context: targetContext,
-      imageCount: imageContent.length,
+      imageCount: imageBlocks.length,
       payloadBytes,
-      payloadKb: Math.round(openaiPayloadBytes / 1024),
+      payloadKb: Math.round(anthropicPayloadBytes / 1024),
       maxTokens: MAX_OUTPUT_TOKENS,
     });
 
-    openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${openaiApiKey}`,
+        "x-api-key": anthropicApiKey,
+        "anthropic-version": "2023-06-01",
       },
-      body: JSON.stringify(openaiRequestBody),
+      body: JSON.stringify(anthropicRequestBody),
       signal: abortController.signal,
     });
   } catch (fetchError) {
@@ -408,19 +352,19 @@ Do not provide prose outside JSON. Keep each field concise.`;
       fetchError instanceof Error &&
       (fetchError.name === "AbortError" || message.toLowerCase().includes("abort"));
 
-    console.error("[API] OpenAI fetch error:", {
+    console.error("[API] Anthropic fetch error:", {
       message,
       isAbort,
       name: fetchError instanceof Error ? fetchError.name : "unknown",
     });
-    logEvent("openai_fetch_error", { message, isAbort });
+    logEvent("anthropic_fetch_error", { message, isAbort });
 
     return finish(
       requestStartMs,
       {
         error: isAbort
-          ? "OpenAI request timed out."
-          : "OpenAI fetch failed.",
+          ? "Anthropic request timed out."
+          : "Anthropic fetch failed.",
         detail: message,
       },
       isAbort ? 504 : 502,
@@ -429,42 +373,32 @@ Do not provide prose outside JSON. Keep each field concise.`;
     clearTimeout(abortTimeoutId);
   }
 
-  console.log("[API] OpenAI response status:", openaiResponse.status);
+  console.log("[API] Anthropic response status:", anthropicResponse.status);
 
-  logEvent("openai_response_received", {
-    status: openaiResponse.status,
-    ok: openaiResponse.ok,
+  logEvent("anthropic_response_received", {
+    status: anthropicResponse.status,
+    ok: anthropicResponse.ok,
     durationMs: Date.now() - requestStartMs,
   });
 
-  let rawText = "";
-  try {
-    rawText = await openaiResponse.text();
-  } catch (readBodyError) {
-    console.error("[API] failed to read OpenAI response body:", readBodyError);
-    return finish(
-      requestStartMs,
-      { error: "Failed to read OpenAI response body." },
-      502,
-    );
-  }
+  if (!anthropicResponse.ok) {
+    let errorBody = "";
+    try {
+      errorBody = await anthropicResponse.text();
+    } catch {
+      errorBody = "";
+    }
 
-  console.log(
-    "[API] OpenAI response preview:",
-    rawText.slice(0, 1000),
-  );
-
-  if (!openaiResponse.ok) {
-    console.error("OpenAI failed:", {
-      status: openaiResponse.status,
-      body: rawText.slice(0, 1500),
+    console.error("Anthropic failed:", {
+      status: anthropicResponse.status,
+      body: errorBody.slice(0, 1500),
     });
-    logEvent("openai_request_failed", {
-      status: openaiResponse.status,
-      errorBody: rawText.slice(0, 1500),
+    logEvent("anthropic_request_failed", {
+      status: anthropicResponse.status,
+      errorBody: errorBody.slice(0, 1500),
     });
 
-    if (openaiResponse.status === 413) {
+    if (anthropicResponse.status === 413) {
       return finish(
         requestStartMs,
         { error: "Images too large. Please upload smaller digitals." },
@@ -475,39 +409,46 @@ Do not provide prose outside JSON. Keep each field concise.`;
     return finish(
       requestStartMs,
       {
-        error: "OpenAI API request failed.",
-        status: openaiResponse.status,
-        detail: rawText.slice(0, 1500),
+        error: "Anthropic API request failed.",
+        status: anthropicResponse.status,
+        detail: errorBody.slice(0, 1500),
       },
       502,
     );
   }
 
-  let openaiData: OpenAIChatCompletionResponse;
+  let anthropicData: AnthropicMessagesResponse;
   try {
-    console.log("[API] parsing OpenAI json");
-    openaiData = JSON.parse(rawText) as OpenAIChatCompletionResponse;
+    console.log("[API] parsing Anthropic json");
+    anthropicData = (await anthropicResponse.json()) as AnthropicMessagesResponse;
   } catch (parseError) {
     const parseMessage =
       parseError instanceof Error ? parseError.message : "unknown";
-    console.error("[API] OpenAI envelope JSON.parse failed:", {
+    console.error("[API] Anthropic envelope JSON.parse failed:", {
       parseError: parseMessage,
-      rawTextPreview: rawText.slice(0, 1500),
     });
-    logEvent("openai_envelope_parse_failed", {
+    logEvent("anthropic_envelope_parse_failed", {
       parseError: parseMessage,
-      rawTextPreview: rawText.slice(0, 1500),
     });
     return finish(
       requestStartMs,
-      { error: "Invalid JSON envelope from OpenAI API.", detail: parseMessage },
+      { error: "Invalid JSON envelope from Anthropic API.", detail: parseMessage },
       502,
     );
   }
 
-  const responseText = extractOpenAITextContent(openaiData);
   console.log(
-    "[API] OpenAI model text preview:",
+    "[API] Anthropic response preview:",
+    JSON.stringify(anthropicData).slice(0, 1000),
+  );
+
+  const responseText =
+    typeof anthropicData.content?.[0]?.text === "string"
+      ? anthropicData.content[0].text
+      : "";
+
+  console.log(
+    "[API] Anthropic model text preview:",
     responseText.slice(0, 1000),
   );
 
@@ -521,14 +462,14 @@ Do not provide prose outside JSON. Keep each field concise.`;
       parseError: parseMessage,
       rawTextPreview: responseText.slice(0, 1500),
     });
-    logEvent("openai_response_parse_failed", {
+    logEvent("anthropic_response_parse_failed", {
       responsePreview: responseText.slice(0, 1500),
       parseError: parseMessage,
     });
     return finish(
       requestStartMs,
       {
-        error: "Invalid evaluation JSON from OpenAI API.",
+        error: "Invalid evaluation JSON from Anthropic API.",
         detail: parseMessage,
       },
       502,
@@ -536,12 +477,12 @@ Do not provide prose outside JSON. Keep each field concise.`;
   }
 
   if (evaluations.length === 0) {
-    logEvent("openai_response_invalid_shape", {
+    logEvent("anthropic_response_invalid_shape", {
       responsePreview: responseText.slice(0, 1500),
     });
     return finish(
       requestStartMs,
-      { error: "Invalid evaluation payload from OpenAI API." },
+      { error: "Invalid evaluation payload from Anthropic API." },
       502,
     );
   }
@@ -563,5 +504,3 @@ Do not provide prose outside JSON. Keep each field concise.`;
 
   return finish(requestStartMs, response as unknown as Record<string, unknown>, 200);
 }
-
-export default POST;
