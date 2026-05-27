@@ -37,9 +37,14 @@ type AnthropicTextBlock = {
 };
 
 const MAX_REQUEST_BYTES = 4_500_000;
-const ANTHROPIC_TIMEOUT_MS = 50_000;
+const ANTHROPIC_FETCH_TIMEOUT_MS = 45_000;
 const MAX_OUTPUT_TOKENS = 500;
 const DEFAULT_MODEL = "claude-3-5-haiku-20241022";
+
+type AnthropicMessagesResponse = {
+  content?: Array<{ type?: string; text?: string }>;
+  error?: { type?: string; message?: string };
+};
 
 function logEvent(event: string, details: Record<string, unknown> = {}) {
   console.log(
@@ -169,6 +174,14 @@ function extractJsonText(text: string): string {
   return withoutFences;
 }
 
+function extractAnthropicTextContent(anthropicData: AnthropicMessagesResponse): string {
+  if (!Array.isArray(anthropicData.content)) return "";
+  return anthropicData.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text || "")
+    .join("");
+}
+
 function parseModelOutput(
   text: string,
   targetContext: string,
@@ -186,8 +199,23 @@ function parseModelOutput(
   return single ? [single] : [];
 }
 
+function finish(
+  requestStartMs: number,
+  body: Record<string, unknown>,
+  status: number,
+): Response {
+  const totalDurationMs = Date.now() - requestStartMs;
+  console.log("[API] total backend duration ms:", totalDurationMs, {
+    status,
+    error: body.error ?? null,
+  });
+  logEvent("request_finished", { status, totalDurationMs });
+  return jsonResponse(body, status);
+}
+
 export async function POST(request: Request) {
-  logEvent("request_received", { method: "POST" });
+  const requestStartMs = Date.now();
+  console.log("[API] request received");
 
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
   const model = process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_MODEL;
@@ -198,14 +226,24 @@ export async function POST(request: Request) {
   });
 
   if (!anthropicApiKey) {
-    return jsonResponse({ error: "Missing ANTHROPIC_API_KEY" }, 500);
+    return finish(
+      requestStartMs,
+      { error: "Missing ANTHROPIC_API_KEY" },
+      500,
+    );
   }
 
   let rawBody: unknown;
   try {
+    console.log("[API] parsing body");
     rawBody = await request.json();
-  } catch {
-    return jsonResponse({ error: "Invalid JSON request body." }, 400);
+  } catch (parseBodyError) {
+    console.error("[API] request body parse failed:", parseBodyError);
+    return finish(
+      requestStartMs,
+      { error: "Invalid JSON request body." },
+      400,
+    );
   }
 
   const body = normalizeBody(rawBody);
@@ -218,7 +256,8 @@ export async function POST(request: Request) {
   });
 
   if (payloadBytes > MAX_REQUEST_BYTES) {
-    return jsonResponse(
+    return finish(
+      requestStartMs,
       { error: "Images too large. Please upload smaller digitals." },
       413,
     );
@@ -231,25 +270,25 @@ export async function POST(request: Request) {
     : [];
 
   const imageBlocks = buildAnthropicImageBlocks(body.images);
-
-  logEvent("request_validated", {
-    selectedContextsCount: selectedContexts.length,
+  console.log("[API] images prepared", {
     imageCount: imageBlocks.length,
+    selectedContextsCount: selectedContexts.length,
   });
 
   if (selectedContexts.length === 0) {
-    return jsonResponse({ error: "Missing selected contexts." }, 400);
+    return finish(requestStartMs, { error: "Missing selected contexts." }, 400);
   }
 
   if (selectedContexts.length !== 1) {
-    return jsonResponse(
+    return finish(
+      requestStartMs,
       { error: "Send exactly one context per evaluation request." },
       400,
     );
   }
 
   if (imageBlocks.length === 0) {
-    return jsonResponse({ error: "Missing images." }, 400);
+    return finish(requestStartMs, { error: "Missing images." }, 400);
   }
 
   const prospectName = body.prospectName?.trim() || "Prospect";
@@ -273,9 +312,22 @@ Do not provide prose outside JSON. Keep each field concise.`;
   };
 
   const anthropicPayloadBytes = estimatePayloadSize(anthropicRequestBody);
+  const abortController = new AbortController();
+  const abortTimeoutId = setTimeout(() => {
+    console.log("[API] anthropic fetch aborted");
+    abortController.abort();
+  }, ANTHROPIC_FETCH_TIMEOUT_MS);
+
+  let anthropicResponse: Response;
 
   try {
-    const requestStartedAtMs = Date.now();
+    console.log("[API] anthropic request starting", {
+      model,
+      imageCount: imageBlocks.length,
+      payloadKb: Math.round(anthropicPayloadBytes / 1024),
+      maxTokens: MAX_OUTPUT_TOKENS,
+      fetchTimeoutMs: ANTHROPIC_FETCH_TIMEOUT_MS,
+    });
 
     logEvent("anthropic_request_start", {
       model,
@@ -284,7 +336,7 @@ Do not provide prose outside JSON. Keep each field concise.`;
       maxTokens: MAX_OUTPUT_TOKENS,
     });
 
-    const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
+    anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -292,101 +344,171 @@ Do not provide prose outside JSON. Keep each field concise.`;
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify(anthropicRequestBody),
-      signal: AbortSignal.timeout(ANTHROPIC_TIMEOUT_MS),
+      signal: abortController.signal,
     });
+  } catch (fetchError) {
+    clearTimeout(abortTimeoutId);
+    const message =
+      fetchError instanceof Error ? fetchError.message : "unknown";
+    const isAbort =
+      fetchError instanceof Error &&
+      (fetchError.name === "AbortError" || message.toLowerCase().includes("abort"));
 
-    logEvent("anthropic_response_received", {
-      status: anthropicResponse.status,
-      ok: anthropicResponse.ok,
-      durationMs: Date.now() - requestStartedAtMs,
+    console.error("[API] anthropic fetch error:", {
+      message,
+      isAbort,
+      name: fetchError instanceof Error ? fetchError.name : "unknown",
     });
+    logEvent("anthropic_fetch_error", { message, isAbort });
 
-    if (!anthropicResponse.ok) {
-      const anthropicErrorBody = await anthropicResponse.text();
-      console.error("Anthropic failed:", {
-        status: anthropicResponse.status,
-        body: anthropicErrorBody.slice(0, 1500),
-      });
-      logEvent("anthropic_request_failed", {
-        status: anthropicResponse.status,
-        errorBody: anthropicErrorBody.slice(0, 1500),
-      });
+    return finish(
+      requestStartMs,
+      {
+        error: isAbort
+          ? "Anthropic request timed out."
+          : "Anthropic fetch failed.",
+        detail: message,
+      },
+      isAbort ? 504 : 502,
+    );
+  } finally {
+    clearTimeout(abortTimeoutId);
+  }
 
-      if (anthropicResponse.status === 413) {
-        return jsonResponse(
-          { error: "Images too large. Please upload smaller digitals." },
-          413,
-        );
-      }
+  console.log("[API] anthropic response received");
+  console.log("[API] anthropic status:", anthropicResponse.status);
 
-      return jsonResponse(
-        {
-          error: "Anthropic API request failed.",
-          status: anthropicResponse.status,
-          detail: anthropicErrorBody.slice(0, 1500),
-        },
-        502,
-      );
-    }
+  logEvent("anthropic_response_received", {
+    status: anthropicResponse.status,
+    ok: anthropicResponse.ok,
+    durationMs: Date.now() - requestStartMs,
+  });
 
-    const anthropicData = await anthropicResponse.json();
-    const responseText = (anthropicData.content || [])
-      .filter((block: { type?: string }) => block.type === "text")
-      .map((block: { text?: string }) => block.text || "")
-      .join("");
-
-    logEvent("anthropic_raw_preview", {
-      preview: responseText.slice(0, 500),
-    });
-
-    let evaluations: ContextEvaluationResult[];
-    try {
-      evaluations = parseModelOutput(responseText, targetContext);
-    } catch (parseError) {
-      console.error("Anthropic JSON parse failed:", {
-        preview: responseText.slice(0, 1500),
-        message: parseError instanceof Error ? parseError.message : "unknown",
-      });
-      logEvent("anthropic_response_parse_failed", {
-        responsePreview: responseText.slice(0, 1500),
-        parseError: parseError instanceof Error ? parseError.message : "unknown",
-      });
-      return jsonResponse({ error: "Invalid response from Anthropic API." }, 502);
-    }
-
-    if (evaluations.length === 0) {
-      logEvent("anthropic_response_invalid_shape", {
-        responsePreview: responseText.slice(0, 1500),
-      });
-      return jsonResponse(
-        { error: "Invalid evaluation payload from Anthropic API." },
-        502,
-      );
-    }
-
-    logEvent("evaluation_success", {
-      targetContext,
-      alignmentScore: evaluations[0].alignmentScore,
-      durationMs: Date.now() - requestStartedAtMs,
-    });
-
-    console.log("Anthropic parsed response:", evaluations[0]);
-
-    const response: EvaluateResponseBody = {
-      contextEvaluations: evaluations,
-    };
-
-    return jsonResponse(response, 200);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "unknown";
-    const isTimeout =
-      message.includes("timeout") || message.includes("aborted");
-    logEvent("unexpected_error", { message, isTimeout });
-    return jsonResponse(
-      { error: isTimeout ? "Anthropic request timed out." : "Unexpected server error." },
-      isTimeout ? 504 : 503,
+  let rawText = "";
+  try {
+    rawText = await anthropicResponse.text();
+  } catch (readBodyError) {
+    console.error("[API] failed to read anthropic response body:", readBodyError);
+    return finish(
+      requestStartMs,
+      { error: "Failed to read Anthropic response body." },
+      502,
     );
   }
+
+  console.log(
+    "[API] anthropic raw body preview:",
+    rawText.slice(0, 1000),
+  );
+
+  if (!anthropicResponse.ok) {
+    console.error("Anthropic failed:", {
+      status: anthropicResponse.status,
+      body: rawText.slice(0, 1500),
+    });
+    logEvent("anthropic_request_failed", {
+      status: anthropicResponse.status,
+      errorBody: rawText.slice(0, 1500),
+    });
+
+    if (anthropicResponse.status === 413) {
+      return finish(
+        requestStartMs,
+        { error: "Images too large. Please upload smaller digitals." },
+        413,
+      );
+    }
+
+    return finish(
+      requestStartMs,
+      {
+        error: "Anthropic API request failed.",
+        status: anthropicResponse.status,
+        detail: rawText.slice(0, 1500),
+      },
+      502,
+    );
+  }
+
+  let anthropicData: AnthropicMessagesResponse;
+  try {
+    console.log("[API] parsing anthropic json");
+    anthropicData = JSON.parse(rawText) as AnthropicMessagesResponse;
+  } catch (parseError) {
+    const parseMessage =
+      parseError instanceof Error ? parseError.message : "unknown";
+    console.error("[API] anthropic envelope JSON.parse failed:", {
+      parseError: parseMessage,
+      rawTextPreview: rawText.slice(0, 1500),
+    });
+    logEvent("anthropic_envelope_parse_failed", {
+      parseError: parseMessage,
+      rawTextPreview: rawText.slice(0, 1500),
+    });
+    return finish(
+      requestStartMs,
+      { error: "Invalid JSON envelope from Anthropic API.", detail: parseMessage },
+      502,
+    );
+  }
+
+  const responseText = extractAnthropicTextContent(anthropicData);
+  console.log(
+    "[API] anthropic model text preview:",
+    responseText.slice(0, 1000),
+  );
+
+  let evaluations: ContextEvaluationResult[];
+  try {
+    evaluations = parseModelOutput(responseText, targetContext);
+  } catch (parseError) {
+    const parseMessage =
+      parseError instanceof Error ? parseError.message : "unknown";
+    console.error("[API] evaluation JSON.parse failed:", {
+      parseError: parseMessage,
+      rawTextPreview: responseText.slice(0, 1500),
+    });
+    logEvent("anthropic_response_parse_failed", {
+      responsePreview: responseText.slice(0, 1500),
+      parseError: parseMessage,
+    });
+    return finish(
+      requestStartMs,
+      {
+        error: "Invalid evaluation JSON from Anthropic API.",
+        detail: parseMessage,
+      },
+      502,
+    );
+  }
+
+  if (evaluations.length === 0) {
+    logEvent("anthropic_response_invalid_shape", {
+      responsePreview: responseText.slice(0, 1500),
+    });
+    return finish(
+      requestStartMs,
+      { error: "Invalid evaluation payload from Anthropic API." },
+      502,
+    );
+  }
+
+  logEvent("evaluation_success", {
+    targetContext,
+    alignmentScore: evaluations[0].alignmentScore,
+    durationMs: Date.now() - requestStartMs,
+  });
+
+  console.log("[API] returning success response", {
+    context: targetContext,
+    alignmentScore: evaluations[0].alignmentScore,
+  });
+
+  const response: EvaluateResponseBody = {
+    contextEvaluations: evaluations,
+  };
+
+  return finish(requestStartMs, response as unknown as Record<string, unknown>, 200);
 }
 
 export default POST;
