@@ -9,70 +9,40 @@ import {
   getEvaluationPayloadByteSize,
   logCompressedImageSizesInDev,
   MAX_EVALUATION_PAYLOAD_BYTES,
+  withEvaluationTimeout,
 } from '../utils/compressEvaluationImage';
+import {
+  createEvaluationId,
+  saveEvaluationError,
+  saveEvaluationReport,
+  type StoredContextEvaluation,
+  type StoredEvaluationReport,
+} from '../utils/evaluationStorage';
 
-const EVALUATION_STORAGE_KEY = 'castview_evaluation_results';
-const EVALUATION_ERROR_KEY = 'castview_evaluation_error';
 const EVALUATION_UNAVAILABLE_MSG = 'Evaluation temporarily unavailable.';
 
-type ContextEvaluationResult = {
-  context: string;
-  alignmentScore: number;
-  fitLabel: string;
-  reasoning: string;
-  strengths: string[];
-  risks: string[];
-  marketSignals: string[];
-  suggestedNextSteps: string[];
-};
+type ContextEvaluationResult = StoredContextEvaluation;
 
-type EvaluationApiData = {
-  contextEvaluations: ContextEvaluationResult[];
-  unavailableContexts?: string[];
-};
-
-function saveEvaluationSuccess(data: EvaluationApiData) {
-  sessionStorage.removeItem(EVALUATION_ERROR_KEY);
-  sessionStorage.setItem(EVALUATION_STORAGE_KEY, JSON.stringify(data));
+function logEvaluation(event: string, details: Record<string, unknown> = {}) {
+  console.log(`[CastView evaluation] ${event}`, details);
 }
 
-function saveEvaluationFailure(message: string) {
-  sessionStorage.removeItem(EVALUATION_STORAGE_KEY);
-  sessionStorage.setItem(EVALUATION_ERROR_KEY, message);
-}
-
-async function readApiErrorMessage(response: Response): Promise<string> {
-  if (import.meta.env.DEV) {
-    try {
-      const body = await response.json();
-      if (typeof body?.error === 'string' && body.error.trim()) {
-        console.error('[CastView] /api/evaluate failed:', body);
-        return EVALUATION_UNAVAILABLE_MSG;
-      }
-    } catch {
-      // ignore parse errors
-    }
-  }
-  return EVALUATION_UNAVAILABLE_MSG;
-}
-
-function handleEvaluationFailure(
+function buildMockEvaluationData(
   contexts: string[],
-  message: string,
-  setError: (value: string | null) => void,
-) {
-  setError(message);
-
-  if (import.meta.env.DEV) {
-    saveEvaluationSuccess(buildMockEvaluationData(contexts));
-    return;
-  }
-
-  saveEvaluationFailure(message);
-}
-
-function buildMockEvaluationData(contexts: string[]): EvaluationApiData {
+  meta: {
+    evaluationId: string;
+    prospectName: string;
+    prospectId: string;
+    contextsParam: string;
+    profileType: string;
+  },
+): StoredEvaluationReport {
   return {
+    evaluationId: meta.evaluationId,
+    prospectName: meta.prospectName,
+    prospectId: meta.prospectId,
+    contextsParam: meta.contextsParam,
+    profileType: meta.profileType,
     contextEvaluations: contexts.map((context) => {
       const mock = getContextData(context);
       return {
@@ -86,7 +56,60 @@ function buildMockEvaluationData(contexts: string[]): EvaluationApiData {
         suggestedNextSteps: mock.suggestedNextSteps,
       };
     }),
+    unavailableContexts: [],
+    updatedAt: new Date().toISOString(),
   };
+}
+
+function buildReport(
+  evaluationId: string,
+  prospectName: string,
+  prospectId: string,
+  contextsParam: string,
+  profileType: string,
+  contextEvaluations: ContextEvaluationResult[],
+  unavailableContexts: string[],
+): StoredEvaluationReport {
+  return {
+    evaluationId,
+    prospectName,
+    prospectId,
+    contextsParam,
+    profileType,
+    contextEvaluations,
+    unavailableContexts,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function showEvaluationReadyNotification(
+  prospectName: string,
+  evaluationId: string,
+  resultsPath: string,
+  navigate: (path: string) => void,
+) {
+  if (!('Notification' in window)) return;
+
+  const notify = () => {
+    const notification = new Notification('Evaluation Results Ready', {
+      body: `${prospectName} · tap to view report`,
+      icon: '/favicon.svg',
+      tag: evaluationId,
+    });
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+      navigate(`${resultsPath}&evaluationId=${evaluationId}`);
+    };
+  };
+
+  if (Notification.permission === 'granted') {
+    notify();
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') notify();
+    });
+  }
 }
 
 export function Rendering() {
@@ -134,136 +157,47 @@ export function Rendering() {
 
   const runEvaluation = useCallback(async () => {
     const contextsToEvaluate = selectedContexts;
+    const evaluationId = createEvaluationId();
 
     if (contextsToEvaluate.length === 0) {
       setEvaluationError('Select at least one context to evaluate.');
-      setEvaluationReady(true);
       return;
     }
 
-    try {
-      setCurrentStep(0);
-      setProgress(0);
-      setCompletedContextCount(0);
-      setEvaluatingContextLabel(null);
+    logEvaluation('flow_start', {
+      evaluationId,
+      contexts: contextsToEvaluate,
+    });
 
-      const prospect = getProspectById(prospectId);
-      const digitalSet = prospect?.digitalSets?.[0];
+    const combinedEvaluations: ContextEvaluationResult[] = [];
+    const unavailableContexts: string[] = [];
 
-      const imageUrls = [
-        digitalSet?.front,
-        digitalSet?.profile,
-        digitalSet?.threeQuarter,
-        digitalSet?.fullBody,
-      ].filter(Boolean) as string[];
-
-      const images = (
-        await Promise.all(imageUrls.map((url) => compressImageUrlForEvaluation(url)))
-      ).filter((img): img is NonNullable<typeof img> => Boolean(img));
-
-      logCompressedImageSizesInDev(images, 'evaluation');
-
-      if (images.length === 0) {
-        handleEvaluationFailure(
-          contextsToEvaluate,
-          'Missing digitals for evaluation.',
-          setEvaluationError,
-        );
-        return;
-      }
-
-      setProgress(100);
-
-      const combinedEvaluations: ContextEvaluationResult[] = [];
-      const unavailableContexts: string[] = [];
-
-      for (let index = 0; index < contextsToEvaluate.length; index += 1) {
-        const context = contextsToEvaluate[index];
-        const stepIndex = index + 1;
-
-        setCurrentStep(stepIndex);
-        setProgress(0);
-        setEvaluatingContextLabel(`Evaluating ${context}...`);
-
-        const requestBody = {
-          prospectName,
-          selectedContexts: [context],
-          images,
-        };
-
-        const payloadBytes = getEvaluationPayloadByteSize(requestBody);
-
-        if (import.meta.env.DEV) {
-          console.log(
-            `[CastView] ${context} payload: ${(payloadBytes / 1024).toFixed(1)} KB`,
-          );
-        }
-
-        if (payloadBytes > MAX_EVALUATION_PAYLOAD_BYTES) {
-          unavailableContexts.push(context);
-          setCompletedContextCount(index + 1);
-          setProgress(100);
-          continue;
-        }
-
-        try {
-          const response = await fetch('/api/evaluate', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-          });
-
-          if (response.ok) {
-            const data = (await response.json()) as EvaluationApiData;
-            const evaluation = data.contextEvaluations?.find(
-              (entry) =>
-                entry.context.toLowerCase() === context.toLowerCase(),
-            );
-
-            if (evaluation) {
-              combinedEvaluations.push({ ...evaluation, context });
-            } else {
-              unavailableContexts.push(context);
-            }
-          } else {
-            if (import.meta.env.DEV) {
-              await readApiErrorMessage(response);
-            }
-            unavailableContexts.push(context);
-          }
-        } catch (error) {
-          console.error(`Evaluation API error for ${context}:`, error);
-          unavailableContexts.push(context);
-        }
-
-        setCompletedContextCount(index + 1);
-        setProgress(100);
-      }
-
-      setEvaluatingContextLabel(null);
-
-      if (combinedEvaluations.length === 0) {
-        handleEvaluationFailure(
-          contextsToEvaluate,
-          EVALUATION_UNAVAILABLE_MSG,
-          setEvaluationError,
-        );
-        return;
-      }
-
-      const combinedReport: EvaluationApiData = {
-        contextEvaluations: combinedEvaluations,
+    const persistPartialReport = () => {
+      const report = buildReport(
+        evaluationId,
+        prospectName,
+        prospectId,
+        contextsParam,
+        profileType,
+        combinedEvaluations,
         unavailableContexts,
-      };
+      );
+      saveEvaluationReport(report);
+      logEvaluation('results_save_trigger', {
+        evaluationId,
+        successfulContexts: combinedEvaluations.length,
+        unavailableContexts: unavailableContexts.length,
+      });
+    };
 
-      saveEvaluationSuccess(combinedReport);
+    const finalizeSuccess = () => {
+      const resultsUrl = `${resultsPath}&evaluationId=${evaluationId}`;
+      persistPartialReport();
 
-      if (prospectId) {
+      if (prospectId && combinedEvaluations.length > 0) {
         try {
           const newEvaluation = {
-            id: `eval-${Date.now()}`,
+            id: evaluationId,
             completedAt: new Date().toLocaleDateString('en-US', {
               month: 'long',
               day: 'numeric',
@@ -297,68 +231,236 @@ export function Rendering() {
         );
       }
 
-      setCurrentStep(steps.length - 1);
-      setProgress(100);
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      setEvaluatingContextLabel(null);
       setCurrentStep(steps.length);
+      setProgress(100);
       setEvaluationComplete(true);
 
-      if ('Notification' in window) {
-        const body = `${prospectName} · ${combinedEvaluations.length} of ${contextsToEvaluate.length} contexts ready`;
-        if (Notification.permission === 'granted') {
-          new Notification('Evaluation Results Ready', {
-            body,
-            icon: '/favicon.svg',
-          });
-        } else if (Notification.permission !== 'denied') {
-          Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-              new Notification('Evaluation Results Ready', {
-                body,
-                icon: '/favicon.svg',
-              });
+      logEvaluation('navigation_trigger', { evaluationId, resultsUrl });
+      showEvaluationReadyNotification(
+        prospectName,
+        evaluationId,
+        resultsPath,
+        navigate,
+      );
+
+      window.setTimeout(() => {
+        navigate(resultsUrl);
+      }, 600);
+    };
+
+    try {
+      setCurrentStep(0);
+      setProgress(0);
+      setCompletedContextCount(0);
+      setEvaluatingContextLabel('Analysing digitals...');
+
+      const prospect = getProspectById(prospectId);
+      const digitalSet = prospect?.digitalSets?.[0];
+
+      const imageUrls = [
+        digitalSet?.front,
+        digitalSet?.profile,
+        digitalSet?.threeQuarter,
+        digitalSet?.fullBody,
+      ].filter(Boolean) as string[];
+
+      const images = (
+        await Promise.all(imageUrls.map((url) => compressImageUrlForEvaluation(url)))
+      ).filter((img): img is NonNullable<typeof img> => Boolean(img));
+
+      logCompressedImageSizesInDev(images, 'digitals');
+      logEvaluation('digitals_ready', { imageCount: images.length });
+
+      if (images.length === 0) {
+        setEvaluationError('Missing digitals for evaluation.');
+        if (import.meta.env.DEV) {
+          saveEvaluationReport(
+            buildMockEvaluationData(contextsToEvaluate, {
+              evaluationId,
+              prospectName,
+              prospectId,
+              contextsParam,
+              profileType,
+            }),
+          );
+          finalizeSuccess();
+        } else {
+          saveEvaluationError('Missing digitals for evaluation.');
+        }
+        return;
+      }
+
+      setProgress(100);
+
+      for (let index = 0; index < contextsToEvaluate.length; index += 1) {
+        const context = contextsToEvaluate[index];
+        const stepIndex = index + 1;
+
+        setCurrentStep(stepIndex);
+        setProgress(0);
+        setEvaluatingContextLabel(`Evaluating ${context}...`);
+
+        logEvaluation('context_start', {
+          evaluationId,
+          context,
+          index: index + 1,
+          total: contextsToEvaluate.length,
+        });
+
+        const requestBody = {
+          prospectName,
+          selectedContexts: [context],
+          images,
+        };
+
+        const payloadBytes = getEvaluationPayloadByteSize(requestBody);
+        logEvaluation('context_payload', {
+          context,
+          payloadKb: Math.round(payloadBytes / 1024),
+        });
+
+        if (payloadBytes > MAX_EVALUATION_PAYLOAD_BYTES) {
+          unavailableContexts.push(context);
+          setCompletedContextCount(index + 1);
+          setProgress(100);
+          persistPartialReport();
+          logEvaluation('context_fail', { context, reason: 'payload_too_large' });
+          continue;
+        }
+
+        try {
+          const response = await withEvaluationTimeout(
+            fetch('/api/evaluate', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(requestBody),
+            }),
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const evaluation = data.contextEvaluations?.find(
+              (entry: ContextEvaluationResult) =>
+                entry.context.toLowerCase() === context.toLowerCase(),
+            );
+
+            if (evaluation) {
+              combinedEvaluations.push({ ...evaluation, context });
+              persistPartialReport();
+              logEvaluation('context_success', { context, evaluationId });
+            } else {
+              unavailableContexts.push(context);
+              persistPartialReport();
+              logEvaluation('context_fail', { context, reason: 'missing_result' });
             }
+          } else {
+            const errorBody = await response.text();
+            unavailableContexts.push(context);
+            persistPartialReport();
+            logEvaluation('context_fail', {
+              context,
+              status: response.status,
+              errorBody: errorBody.slice(0, 500),
+            });
+          }
+        } catch (error) {
+          const reason =
+            error instanceof Error && error.message === 'EVALUATION_TIMEOUT'
+              ? 'timeout'
+              : 'request_error';
+          unavailableContexts.push(context);
+          persistPartialReport();
+          logEvaluation(reason === 'timeout' ? 'context_timeout' : 'context_fail', {
+            context,
+            message: error instanceof Error ? error.message : 'unknown',
           });
         }
+
+        setCompletedContextCount(index + 1);
+        setProgress(100);
       }
+
+      if (combinedEvaluations.length === 0) {
+        setEvaluationError(EVALUATION_UNAVAILABLE_MSG);
+        if (import.meta.env.DEV) {
+          saveEvaluationReport(
+            buildMockEvaluationData(contextsToEvaluate, {
+              evaluationId,
+              prospectName,
+              prospectId,
+              contextsParam,
+              profileType,
+            }),
+          );
+          finalizeSuccess();
+        } else {
+          saveEvaluationError(EVALUATION_UNAVAILABLE_MSG);
+        }
+        return;
+      }
+
+      finalizeSuccess();
     } catch (error) {
-      console.error('Evaluation API error:', error);
-      handleEvaluationFailure(
-        contextsToEvaluate,
-        EVALUATION_UNAVAILABLE_MSG,
-        setEvaluationError,
-      );
+      logEvaluation('flow_error', {
+        message: error instanceof Error ? error.message : 'unknown',
+      });
+
+      if (combinedEvaluations.length > 0) {
+        finalizeSuccess();
+        return;
+      }
+
+      setEvaluationError(EVALUATION_UNAVAILABLE_MSG);
+      if (import.meta.env.DEV) {
+        saveEvaluationReport(
+          buildMockEvaluationData(contextsToEvaluate, {
+            evaluationId,
+            prospectName,
+            prospectId,
+            contextsParam,
+            profileType,
+          }),
+        );
+        finalizeSuccess();
+      } else {
+        saveEvaluationError(EVALUATION_UNAVAILABLE_MSG);
+      }
     } finally {
       setEvaluationReady(true);
+      logEvaluation('flow_complete', {
+        evaluationId,
+        successfulContexts: combinedEvaluations.length,
+        unavailableContexts: unavailableContexts.length,
+      });
     }
   }, [
     prospectId,
     prospectName,
     selectedContexts,
+    contextsParam,
+    profileType,
     steps.length,
+    resultsPath,
     getProspectById,
     updateProspect,
+    navigate,
   ]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       await runEvaluation();
-      if (!cancelled) setEvaluationReady(true);
+      if (!cancelled) {
+        setEvaluationReady(true);
+      }
     })();
     return () => {
       cancelled = true;
     };
   }, [runEvaluation]);
-
-  useEffect(() => {
-    if (currentStep < steps.length) return;
-    if (!evaluationReady) return;
-    const timer = setTimeout(() => {
-      navigate(resultsPath);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [currentStep, steps.length, evaluationReady, navigate, resultsPath]);
 
   useEffect(() => {
     if (currentStep >= steps.length) {

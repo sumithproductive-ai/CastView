@@ -3,11 +3,22 @@ export type CompressedEvaluationImage = {
   mediaType: string;
 };
 
-const MAX_WIDTH = 768;
-const JPEG_QUALITY = 0.7;
+const MAX_WIDTH = 384;
+const JPEG_QUALITY = 0.45;
 
 /** Stay under Vercel serverless request body limits (~4.5MB). */
-export const MAX_EVALUATION_PAYLOAD_BYTES = 3_500_000;
+export const MAX_EVALUATION_PAYLOAD_BYTES = 1_500_000;
+
+export const EVALUATION_REQUEST_TIMEOUT_MS = 45_000;
+
+function stripBase64Payload(value: string): string {
+  if (!value) return '';
+  if (value.startsWith('data:')) {
+    const parts = value.split(',');
+    return parts[1] || '';
+  }
+  return value;
+}
 
 function parseDataUrl(dataUrl: string): { data: string; mediaType: string } | null {
   if (!dataUrl.startsWith('data:')) return null;
@@ -15,7 +26,7 @@ function parseDataUrl(dataUrl: string): { data: string; mediaType: string } | nu
   if (parts.length < 2) return null;
   const mediaType =
     parts[0].replace('data:', '').replace(';base64', '') || 'image/jpeg';
-  return { data: parts[1], mediaType };
+  return { data: stripBase64Payload(parts[1]), mediaType };
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -30,7 +41,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 function canvasToCompressedJpeg(canvas: HTMLCanvasElement): CompressedEvaluationImage | null {
   const dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
   const parsed = parseDataUrl(dataUrl);
-  if (!parsed) return null;
+  if (!parsed || !parsed.data) return null;
   return { data: parsed.data, mediaType: 'image/jpeg' };
 }
 
@@ -100,4 +111,16 @@ export async function compressImageUrlForEvaluation(
   } catch {
     return null;
   }
+}
+
+export function withEvaluationTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number = EVALUATION_REQUEST_TIMEOUT_MS,
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error('EVALUATION_TIMEOUT')), timeoutMs);
+    }),
+  ]);
 }

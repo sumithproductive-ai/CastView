@@ -7,8 +7,11 @@ import { getContextData } from '../constants/contextMockData';
 import { isSumithProspect, SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 import { useProspects } from '../context/ProspectsContext';
 import type { DigitalSet } from '../types/talent';
-
-const EVALUATION_ERROR_KEY = 'castview_evaluation_error';
+import {
+  clearHandoffStorage,
+  EVALUATION_ERROR_KEY,
+  loadEvaluationReport,
+} from '../utils/evaluationStorage';
 
 const DIGITAL_STRIP = [
   { key: 'front' as const, label: 'FRONT' },
@@ -65,6 +68,7 @@ export function Results() {
   );
   const profileType = searchParams.get('profileType') || 'prospect';
   const prospectId = searchParams.get('prospectId') || '';
+  const evaluationId = searchParams.get('evaluationId') || '';
 
   useEffect(() => {
     const errorStored = sessionStorage.getItem(EVALUATION_ERROR_KEY);
@@ -73,17 +77,12 @@ export function Results() {
       sessionStorage.removeItem(EVALUATION_ERROR_KEY);
     }
 
-    const stored = sessionStorage.getItem('castview_evaluation_results');
+    const stored = loadEvaluationReport(evaluationId);
     if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setRealEvalData(parsed);
-        sessionStorage.removeItem('castview_evaluation_results');
-      } catch {
-        // ignore parse errors
-      }
+      setRealEvalData(stored);
+      clearHandoffStorage();
     }
-  }, []);
+  }, [evaluationId]);
 
   const hasRealEvaluation = Boolean(realEvalData?.contextEvaluations?.length);
   const allowDevMock = import.meta.env.DEV && !hasRealEvaluation && !evaluationError;
