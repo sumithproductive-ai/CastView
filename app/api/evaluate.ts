@@ -49,6 +49,16 @@ function logEvent(event: string, details: Record<string, unknown> = {}) {
   );
 }
 
+function jsonResponse(body: Record<string, unknown>, status: number): Response {
+  return Response.json(body, { status });
+}
+
+function listAnthropicEnvKeyNames(): string[] {
+  return Object.keys(process.env).filter((key) =>
+    key.toUpperCase().includes("ANTHROPIC"),
+  );
+}
+
 function normalizeBody(body: unknown): EvaluateRequestBody {
   if (!body) return {};
   if (typeof body === "string") {
@@ -112,23 +122,29 @@ function extractJsonObject(text: string): EvaluateResponseBody {
   return JSON.parse(candidate) as EvaluateResponseBody;
 }
 
-export default async function handler(req: any, res: any) {
-  const method = req.method ?? "UNKNOWN";
-  logEvent("request_received", { method });
+export async function POST(request: Request) {
+  logEvent("request_received", { method: "POST" });
 
-  if (method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  const anthropicEnvKeys = listAnthropicEnvKeyNames();
+
+  logEvent("environment_checked", {
+    hasAnthropicApiKey: Boolean(anthropicApiKey),
+    anthropicEnvKeys,
+  });
+
+  if (!anthropicApiKey) {
+    return jsonResponse({ error: "Missing ANTHROPIC_API_KEY" }, 500);
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  const hasApiKey = Boolean(apiKey && apiKey.trim().length > 0);
-  logEvent("environment_checked", { hasAnthropicApiKey: hasApiKey });
-
-  if (!hasApiKey) {
-    return res.status(500).json({ error: "Server configuration error: missing API key." });
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return jsonResponse({ error: "Invalid JSON request body." }, 400);
   }
 
-  const body = normalizeBody(req.body);
+  const body = normalizeBody(rawBody);
   const bodyKeys = Object.keys(body);
   const payloadBytes = estimatePayloadSize(body);
 
@@ -139,13 +155,16 @@ export default async function handler(req: any, res: any) {
   });
 
   if (payloadBytes > MAX_REQUEST_BYTES) {
-    return res.status(413).json({
-      error: "Images too large. Please upload smaller digitals.",
-    });
+    return jsonResponse(
+      { error: "Images too large. Please upload smaller digitals." },
+      413,
+    );
   }
 
   const selectedContexts = Array.isArray(body.selectedContexts)
-    ? body.selectedContexts.filter((ctx): ctx is string => typeof ctx === "string" && ctx.trim().length > 0)
+    ? body.selectedContexts.filter(
+        (ctx): ctx is string => typeof ctx === "string" && ctx.trim().length > 0,
+      )
     : [];
 
   const imageBlocks = buildAnthropicImageBlocks(body.images);
@@ -156,11 +175,11 @@ export default async function handler(req: any, res: any) {
   });
 
   if (selectedContexts.length === 0) {
-    return res.status(400).json({ error: "Missing selected contexts." });
+    return jsonResponse({ error: "Missing selected contexts." }, 400);
   }
 
   if (imageBlocks.length === 0) {
-    return res.status(400).json({ error: "Missing images." });
+    return jsonResponse({ error: "Missing images." }, 400);
   }
 
   const prospectName = body.prospectName?.trim() || "Prospect";
@@ -213,7 +232,7 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
+        "x-api-key": anthropicApiKey,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify(anthropicRequestBody),
@@ -232,12 +251,13 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
       });
 
       if (anthropicResponse.status === 413) {
-        return res.status(413).json({
-          error: "Images too large. Please upload smaller digitals.",
-        });
+        return jsonResponse(
+          { error: "Images too large. Please upload smaller digitals." },
+          413,
+        );
       }
 
-      return res.status(502).json({ error: "Anthropic API request failed." });
+      return jsonResponse({ error: "Anthropic API request failed." }, 502);
     }
 
     const anthropicData = await anthropicResponse.json();
@@ -254,25 +274,30 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
         responsePreview: responseText.slice(0, 500),
         parseError: parseError instanceof Error ? parseError.message : "unknown",
       });
-      return res.status(502).json({ error: "Invalid response from Anthropic API." });
+      return jsonResponse({ error: "Invalid response from Anthropic API." }, 502);
     }
 
     if (!parsed?.contextEvaluations || !Array.isArray(parsed.contextEvaluations)) {
       logEvent("anthropic_response_invalid_shape", {
         parsedKeys: parsed ? Object.keys(parsed as object) : [],
       });
-      return res.status(502).json({ error: "Invalid evaluation payload from Anthropic API." });
+      return jsonResponse(
+        { error: "Invalid evaluation payload from Anthropic API." },
+        502,
+      );
     }
 
     logEvent("evaluation_success", {
       contextEvaluationCount: parsed.contextEvaluations.length,
     });
 
-    return res.status(200).json(parsed);
+    return jsonResponse(parsed, 200);
   } catch (error) {
     logEvent("unexpected_error", {
       message: error instanceof Error ? error.message : "unknown",
     });
-    return res.status(503).json({ error: "Unexpected server error." });
+    return jsonResponse({ error: "Unexpected server error." }, 503);
   }
 }
+
+export default POST;

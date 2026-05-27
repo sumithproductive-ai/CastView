@@ -5,18 +5,33 @@ AI evaluation platform for modeling agencies.
 ## Local development
 
 ```bash
+cd app
 npm install
+cp .env.example .env.local
+# Add your key to .env.local as ANTHROPIC_API_KEY=
 npm run dev
 ```
 
 ## Deploy on Vercel
 
-The app lives in **`CastView v2.0 (8)`**. In Vercel → Project → Settings → General, set:
+Set **Root Directory** to `app`.
 
-- **Root Directory:** `CastView v2.0 (8)`
-- **Build Command:** `npm run build`
-- **Output Directory:** `dist`
+| Setting | Value |
+|---------|--------|
+| Root Directory | `app` |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
 
-`CastView v2.0 (8)/vercel.json` includes SPA rewrites so client-side routes serve `index.html`.
+### Required environment variable
 
-To use the repository root instead, move the app files up and set Root Directory to `.` (empty).
+In **Vercel → Project → Settings → Environment Variables**, add:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Enable it for **Production** (and Preview if needed), then **Redeploy**.
+
+A `500` from `/api/evaluate` almost always means this variable is missing or the deployment was not redeployed after adding it. Check function logs for `hasAnthropicApiKey: false`.
+
+Do **not** use `VITE_ANTHROPIC_API_KEY` — that exposes the key to the browser. The server reads `ANTHROPIC_API_KEY` only.
