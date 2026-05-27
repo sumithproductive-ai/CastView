@@ -9,7 +9,7 @@ const JPEG_QUALITY = 0.45;
 /** Stay under Vercel serverless request body limits (~4.5MB). */
 export const MAX_EVALUATION_PAYLOAD_BYTES = 1_500_000;
 
-export const EVALUATION_REQUEST_TIMEOUT_MS = 45_000;
+export const EVALUATION_REQUEST_TIMEOUT_MS = 55_000;
 
 function stripBase64Payload(value: string): string {
   if (!value) return '';
@@ -131,12 +131,17 @@ export async function fetchEvaluateContext(
   },
   timeoutMs: number = EVALUATION_REQUEST_TIMEOUT_MS,
 ): Promise<EvaluateFetchResult> {
+  const context = requestBody.selectedContexts[0] ?? 'unknown';
+  const requestStartedAt = new Date();
+  const requestStartedAtMs = Date.now();
   const payloadBytes = getEvaluationPayloadByteSize(requestBody);
   console.log(
     `[CastView] /api/evaluate request payload: ${(payloadBytes / 1024).toFixed(1)} KB`,
     {
-      context: requestBody.selectedContexts[0],
+      context,
       imageCount: requestBody.images.length,
+      timeoutMs,
+      requestStartTimestamp: requestStartedAt.toISOString(),
     },
   );
 
@@ -159,6 +164,13 @@ export async function fetchEvaluateContext(
     });
 
     window.clearTimeout(timeoutId);
+    const responseAt = new Date();
+    const durationMs = Date.now() - requestStartedAtMs;
+    console.log('[CastView] /api/evaluate response timestamp:', {
+      context,
+      responseTimestamp: responseAt.toISOString(),
+      totalDurationMs: durationMs,
+    });
 
     if (!response.ok) {
       let errorBody = '';
@@ -169,8 +181,12 @@ export async function fetchEvaluateContext(
       }
       console.error('[CastView] /api/evaluate failed:', {
         status: response.status,
-        context: requestBody.selectedContexts[0],
+        context,
         body: errorBody.slice(0, 1500),
+        timeoutMs,
+        requestStartTimestamp: requestStartedAt.toISOString(),
+        responseTimestamp: responseAt.toISOString(),
+        totalDurationMs: durationMs,
       });
       return { ok: false, status: response.status, errorBody };
     }
@@ -183,16 +199,28 @@ export async function fetchEvaluateContext(
     }
 
     console.log('[CastView] /api/evaluate response:', {
-      context: requestBody.selectedContexts[0],
+      context,
       data,
+      timeoutMs,
+      requestStartTimestamp: requestStartedAt.toISOString(),
+      responseTimestamp: responseAt.toISOString(),
+      totalDurationMs: durationMs,
     });
 
     return { ok: true, status: response.status, data };
   } catch (error) {
     window.clearTimeout(timeoutId);
     if (error instanceof Error && error.name === 'AbortError') {
+      const responseAt = new Date();
+      const durationMs = Date.now() - requestStartedAtMs;
       console.error(
-        `context timeout: ${requestBody.selectedContexts[0] ?? 'unknown'}`,
+        `context timeout: ${context}`,
+        {
+          timeoutMs,
+          requestStartTimestamp: requestStartedAt.toISOString(),
+          responseTimestamp: responseAt.toISOString(),
+          totalDurationMs: durationMs,
+        },
       );
       throw new Error('EVALUATION_TIMEOUT');
     }

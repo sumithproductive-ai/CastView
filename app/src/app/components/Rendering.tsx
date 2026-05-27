@@ -6,6 +6,7 @@ import { getContextData } from '../constants/contextMockData';
 import { useProspects } from '../context/ProspectsContext';
 import {
   compressImageUrlForEvaluation,
+  EVALUATION_REQUEST_TIMEOUT_MS,
   fetchEvaluateContext,
   getEvaluationPayloadByteSize,
   logCompressedImageSizesInDev,
@@ -431,8 +432,22 @@ export function Rendering() {
         }
 
         try {
-          console.log('[CastView] context start:', context);
-          const result = await fetchEvaluateContext(requestBody);
+          const contextRequestStartedAt = new Date();
+          const contextRequestStartedAtMs = Date.now();
+          console.log('[CastView] context start:', context, {
+            timeoutMs: EVALUATION_REQUEST_TIMEOUT_MS,
+            requestStartTimestamp: contextRequestStartedAt.toISOString(),
+          });
+          const result = await fetchEvaluateContext(
+            requestBody,
+            EVALUATION_REQUEST_TIMEOUT_MS,
+          );
+          const contextResponseAt = new Date();
+          const contextDurationMs = Date.now() - contextRequestStartedAtMs;
+          console.log('[CastView] context response timestamp:', context, {
+            responseTimestamp: contextResponseAt.toISOString(),
+            totalDurationMs: contextDurationMs,
+          });
 
           if (result.ok && result.data?.contextEvaluations?.length) {
             const evaluation =
@@ -459,7 +474,13 @@ export function Rendering() {
               };
               combinedEvaluations.push(mapped);
               persistPartialReport();
-              console.log('[CastView] context success:', context, mapped);
+              console.log('[CastView] context success:', context, {
+                timeoutMs: EVALUATION_REQUEST_TIMEOUT_MS,
+                requestStartTimestamp: contextRequestStartedAt.toISOString(),
+                responseTimestamp: contextResponseAt.toISOString(),
+                totalDurationMs: contextDurationMs,
+              });
+              console.log('[CastView] context response payload:', context, mapped);
               logEvaluation('context_success', { context, evaluation: mapped });
               markContextProcessed(context, 'success', index);
             } else {
@@ -484,6 +505,10 @@ export function Rendering() {
             console.log('[CastView] context fail:', context, failReason, {
               status: result.status,
               body: result.errorBody?.slice(0, 1500),
+              timeoutMs: EVALUATION_REQUEST_TIMEOUT_MS,
+              requestStartTimestamp: contextRequestStartedAt.toISOString(),
+              responseTimestamp: contextResponseAt.toISOString(),
+              totalDurationMs: contextDurationMs,
             });
             unavailableContexts.push(context);
             persistPartialReport();
@@ -498,10 +523,20 @@ export function Rendering() {
         } catch (error) {
           const isTimeout =
             error instanceof Error && error.message === 'EVALUATION_TIMEOUT';
+          const contextResponseAt = new Date();
           if (isTimeout) {
             console.error(`context timeout: ${context}`);
           }
-          console.log('[CastView] context fail:', context, isTimeout ? 'timeout' : 'request_error', error);
+          console.log(
+            '[CastView] context fail:',
+            context,
+            isTimeout ? 'timeout' : 'request_error',
+            {
+              error,
+              timeoutMs: EVALUATION_REQUEST_TIMEOUT_MS,
+              responseTimestamp: contextResponseAt.toISOString(),
+            },
+          );
           unavailableContexts.push(context);
           persistPartialReport();
           logEvaluation(isTimeout ? 'context_timeout' : 'context_failed', {
@@ -605,10 +640,6 @@ export function Rendering() {
     }
   }, [evaluationComplete]);
   
-  const totalSteps = steps.length;
-  const completedSteps = currentStep;
-  const estimatedRemaining = steps.slice(currentStep).reduce((sum, step) => sum + step.duration, 0) / 1000;
-  
   return (
     <div className="flex items-center justify-center min-h-screen p-[48px]">
       <div className="w-full max-w-[500px]">
@@ -682,13 +713,13 @@ export function Rendering() {
             className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
           >
-            Estimated Time Remaining
+            Estimated Time
           </div>
           <div 
             className="text-[32px]" 
             style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, color: '#f0f0ec' }}
           >
-            {Math.ceil(estimatedRemaining)}s
+            1-3 minutes
           </div>
           {evaluatingContextLabel && (
             <div
@@ -750,7 +781,7 @@ export function Rendering() {
               className="text-[16px]"
               style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
             >
-              ~4 minutes
+              1-3 minutes
             </div>
           </div>
 
