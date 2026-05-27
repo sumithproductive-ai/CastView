@@ -167,6 +167,7 @@ export function Rendering() {
     const contextsToEvaluate = selectedContexts;
     const evaluationId = createEvaluationId();
     const totalSelectedContexts = contextsToEvaluate.length;
+    const requestStartMs = Date.now();
 
     finalizeCalledRef.current = false;
     pendingTimersRef.current.forEach((id) => window.clearTimeout(id));
@@ -218,105 +219,111 @@ export function Rendering() {
       if (finalizeCalledRef.current) return;
       finalizeCalledRef.current = true;
 
-      const successfulContexts = combinedEvaluations.length;
-      const resultsUrl = `${resultsPath}&evaluationId=${evaluationId}`;
+      const MINIMUM_DISPLAY_MS = 3000;
+      const elapsedMs = Date.now() - requestStartMs;
+      const remainingMs = Math.max(0, MINIMUM_DISPLAY_MS - elapsedMs);
 
-      logEvaluation('finalizeEvaluation triggered', {
-        evaluationId,
-        processedContexts,
-        totalSelectedContexts,
-        successfulContexts,
-        failedContexts: unavailableContexts.length,
-      });
+      setTimeout(() => {
+        const successfulContexts = combinedEvaluations.length;
+        const resultsUrl = `${resultsPath}&evaluationId=${evaluationId}`;
 
-      clearPendingTimers();
-      setEvaluatingContextLabel(null);
-      setCurrentStep(steps.length);
-      setProgress(100);
-      setCompletedContextCount(totalSelectedContexts);
-      setEvaluationComplete(successfulContexts > 0);
-      setFlowFinished(true);
-      setEvaluationReady(true);
-      setCompletedEvaluationId(evaluationId);
+        logEvaluation('finalizeEvaluation triggered', {
+          evaluationId,
+          processedContexts,
+          totalSelectedContexts,
+          successfulContexts,
+          failedContexts: unavailableContexts.length,
+        });
 
-      persistPartialReport();
+        clearPendingTimers();
+        setEvaluatingContextLabel(null);
+        setCurrentStep(steps.length);
+        setProgress(100);
+        setCompletedContextCount(totalSelectedContexts);
+        setEvaluationComplete(successfulContexts > 0);
+        setFlowFinished(true);
+        setEvaluationReady(true);
+        setCompletedEvaluationId(evaluationId);
 
-      if (successfulContexts > 0) {
-        if (prospectId) {
-          try {
-            const newEvaluation = {
-              id: evaluationId,
-              completedAt: new Date().toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              }),
-              contexts: combinedEvaluations,
-            };
+        persistPartialReport();
 
-            const currentProspect = getProspectById(prospectId);
-            if (currentProspect?.digitalSets?.length) {
-              const updatedSets = [...currentProspect.digitalSets];
-              updatedSets[0] = {
-                ...updatedSets[0],
-                evaluations: [
-                  newEvaluation,
-                  ...(updatedSets[0].evaluations || []),
-                ],
+        if (successfulContexts > 0) {
+          if (prospectId) {
+            try {
+              const newEvaluation = {
+                id: evaluationId,
+                completedAt: new Date().toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                }),
+                contexts: combinedEvaluations,
               };
-              updateProspect(prospectId, {
-                digitalSets: updatedSets,
-              });
+
+              const currentProspect = getProspectById(prospectId);
+              if (currentProspect?.digitalSets?.length) {
+                const updatedSets = [...currentProspect.digitalSets];
+                updatedSets[0] = {
+                  ...updatedSets[0],
+                  evaluations: [
+                    newEvaluation,
+                    ...(updatedSets[0].evaluations || []),
+                  ],
+                };
+                updateProspect(prospectId, {
+                  digitalSets: updatedSets,
+                });
+              }
+            } catch (saveError) {
+              console.warn('Could not save evaluation:', saveError);
             }
-          } catch (saveError) {
-            console.warn('Could not save evaluation:', saveError);
           }
-        }
 
-        if (unavailableContexts.length > 0) {
-          setEvaluationError(
-            `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
-          );
-        }
+          if (unavailableContexts.length > 0) {
+            setEvaluationError(
+              `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
+            );
+          }
 
-        showEvaluationReadyNotification(
-          prospectName,
-          evaluationId,
-          resultsPath,
-          navigate,
-        );
-
-        logEvaluation('navigation_triggered', { evaluationId, resultsUrl });
-        navigate(resultsUrl, { replace: true });
-        return;
-      }
-
-      setEvaluationError(EVALUATION_UNAVAILABLE_MSG);
-      if (import.meta.env.DEV) {
-        saveEvaluationReport(
-          buildMockEvaluationData(contextsToEvaluate, {
-            evaluationId,
+          showEvaluationReadyNotification(
             prospectName,
-            prospectId,
-            contextsParam,
-            profileType,
-          }),
-        );
-        logEvaluation('navigation_triggered', {
-          evaluationId,
-          resultsUrl,
-          reason: 'dev_mock_fallback',
-        });
-        navigate(resultsUrl, { replace: true });
-      } else {
-        saveEvaluationError(EVALUATION_UNAVAILABLE_MSG);
-        logEvaluation('navigation_triggered', {
-          evaluationId,
-          resultsUrl,
-          reason: 'all_contexts_failed_show_unavailable',
-        });
-        navigate(resultsUrl, { replace: true });
-      }
+            evaluationId,
+            resultsPath,
+            navigate,
+          );
+
+          logEvaluation('navigation_triggered', { evaluationId, resultsUrl });
+          navigate(resultsUrl, { replace: true });
+          return;
+        }
+
+        setEvaluationError(EVALUATION_UNAVAILABLE_MSG);
+        if (import.meta.env.DEV) {
+          saveEvaluationReport(
+            buildMockEvaluationData(contextsToEvaluate, {
+              evaluationId,
+              prospectName,
+              prospectId,
+              contextsParam,
+              profileType,
+            }),
+          );
+          logEvaluation('navigation_triggered', {
+            evaluationId,
+            resultsUrl,
+            reason: 'dev_mock_fallback',
+          });
+          navigate(resultsUrl, { replace: true });
+        } else {
+          saveEvaluationError(EVALUATION_UNAVAILABLE_MSG);
+          logEvaluation('navigation_triggered', {
+            evaluationId,
+            resultsUrl,
+            reason: 'all_contexts_failed_show_unavailable',
+          });
+          navigate(resultsUrl, { replace: true });
+        }
+      }, remainingMs);
     };
 
     const maybeFinalize = () => {
