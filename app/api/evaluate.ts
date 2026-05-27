@@ -38,7 +38,8 @@ type AnthropicTextBlock = {
 
 const MAX_REQUEST_BYTES = 4_500_000;
 const ANTHROPIC_TIMEOUT_MS = 50_000;
-const DEFAULT_MODEL = "claude-3-5-sonnet-20241022";
+const MAX_OUTPUT_TOKENS = 500;
+const DEFAULT_MODEL = "claude-3-5-haiku-20241022";
 
 function logEvent(event: string, details: Record<string, unknown> = {}) {
   console.log(
@@ -136,10 +137,10 @@ function normalizeContextEvaluation(
     alignmentScore: Math.round(score),
     fitLabel,
     reasoning,
-    strengths: asStringArray(raw.strengths),
-    risks: asStringArray(raw.risks),
-    marketSignals: asStringArray(raw.marketSignals),
-    suggestedNextSteps: asStringArray(raw.suggestedNextSteps),
+    strengths: asStringArray(raw.strengths).slice(0, 2),
+    risks: asStringArray(raw.risks).slice(0, 1),
+    marketSignals: asStringArray(raw.marketSignals).slice(0, 1),
+    suggestedNextSteps: asStringArray(raw.suggestedNextSteps).slice(0, 1),
   };
 }
 
@@ -254,14 +255,15 @@ export async function POST(request: Request) {
   const prospectName = body.prospectName?.trim() || "Prospect";
   const targetContext = selectedContexts[0];
 
-  const prompt = `Analyze all digitals for ${prospectName}. Evaluate ONLY "${targetContext}".
-Return JSON only:
-{"contextEvaluations":[{"context":"${targetContext}","alignmentScore":85,"fitLabel":"STRONG ALIGNMENT","reasoning":"brief","strengths":["a"],"risks":["b"],"marketSignals":["c"],"suggestedNextSteps":["d"]}]}
-Rules: 80-100 STRONG ALIGNMENT, 60-79 MODERATE ALIGNMENT, below 60 LOW ALIGNMENT. One object only.`;
+  const prompt = `Evaluate ${prospectName} for "${targetContext}" using all digitals.
+Return ONLY this JSON shape (one object in contextEvaluations):
+{"contextEvaluations":[{"context":"${targetContext}","alignmentScore":85,"fitLabel":"STRONG ALIGNMENT","reasoning":"One sentence.","strengths":["a","b"],"risks":["c"],"marketSignals":["d"],"suggestedNextSteps":["e"]}]}
+Rules: alignmentScore 0-100; fitLabel STRONG ALIGNMENT (80-100), MODERATE ALIGNMENT (60-79), LOW ALIGNMENT (below 60); reasoning exactly 1 sentence; max 2 strengths; max 1 risk; max 1 marketSignals; max 1 suggestedNextSteps.
+Do not provide prose outside JSON. Keep each field concise.`;
 
   const anthropicRequestBody = {
     model,
-    max_tokens: 600,
+    max_tokens: MAX_OUTPUT_TOKENS,
     messages: [
       {
         role: "user",
@@ -273,11 +275,13 @@ Rules: 80-100 STRONG ALIGNMENT, 60-79 MODERATE ALIGNMENT, below 60 LOW ALIGNMENT
   const anthropicPayloadBytes = estimatePayloadSize(anthropicRequestBody);
 
   try {
+    const requestStartedAtMs = Date.now();
+
     logEvent("anthropic_request_start", {
       model,
       imageCount: imageBlocks.length,
       payloadKb: Math.round(anthropicPayloadBytes / 1024),
-      maxTokens: 600,
+      maxTokens: MAX_OUTPUT_TOKENS,
     });
 
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
@@ -294,6 +298,7 @@ Rules: 80-100 STRONG ALIGNMENT, 60-79 MODERATE ALIGNMENT, below 60 LOW ALIGNMENT
     logEvent("anthropic_response_received", {
       status: anthropicResponse.status,
       ok: anthropicResponse.ok,
+      durationMs: Date.now() - requestStartedAtMs,
     });
 
     if (!anthropicResponse.ok) {
@@ -362,6 +367,7 @@ Rules: 80-100 STRONG ALIGNMENT, 60-79 MODERATE ALIGNMENT, below 60 LOW ALIGNMENT
     logEvent("evaluation_success", {
       targetContext,
       alignmentScore: evaluations[0].alignmentScore,
+      durationMs: Date.now() - requestStartedAtMs,
     });
 
     console.log("Anthropic parsed response:", evaluations[0]);
