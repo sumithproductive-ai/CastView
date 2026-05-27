@@ -431,36 +431,77 @@ export function Rendering() {
         }
 
         try {
+          console.log('[CastView] context start:', context);
           const result = await fetchEvaluateContext(requestBody);
 
-          if (result.ok && result.data) {
-            const evaluation = result.data.contextEvaluations?.find(
-              (entry) => entry.context.toLowerCase() === context.toLowerCase(),
-            );
+          if (result.ok && result.data?.contextEvaluations?.length) {
+            const evaluation =
+              result.data.contextEvaluations.find(
+                (entry) =>
+                  entry.context.toLowerCase() === context.toLowerCase(),
+              ) ?? result.data.contextEvaluations[0];
 
-            if (evaluation) {
-              combinedEvaluations.push({ ...evaluation, context });
+            if (
+              evaluation &&
+              typeof evaluation.alignmentScore === 'number' &&
+              typeof evaluation.reasoning === 'string' &&
+              evaluation.reasoning.trim()
+            ) {
+              const mapped: ContextEvaluationResult = {
+                context,
+                alignmentScore: evaluation.alignmentScore,
+                fitLabel: evaluation.fitLabel,
+                reasoning: evaluation.reasoning,
+                strengths: evaluation.strengths ?? [],
+                risks: evaluation.risks ?? [],
+                marketSignals: evaluation.marketSignals ?? [],
+                suggestedNextSteps: evaluation.suggestedNextSteps ?? [],
+              };
+              combinedEvaluations.push(mapped);
               persistPartialReport();
+              console.log('[CastView] context success:', context, mapped);
+              logEvaluation('context_success', { context, evaluation: mapped });
               markContextProcessed(context, 'success', index);
             } else {
+              console.log('[CastView] context fail:', context, 'missing_fields', result.data);
               unavailableContexts.push(context);
               persistPartialReport();
-              logEvaluation('context_failed', { context, reason: 'missing_result' });
+              logEvaluation('context_failed', {
+                context,
+                reason: 'missing_required_fields',
+              });
               markContextProcessed(context, 'failed', index);
             }
           } else {
+            const failReason =
+              result.status === 504
+                ? 'gateway_timeout'
+                : result.status === 502
+                  ? 'anthropic_error'
+                  : result.status === 413
+                    ? 'payload_too_large'
+                    : 'api_error';
+            console.log('[CastView] context fail:', context, failReason, {
+              status: result.status,
+              body: result.errorBody?.slice(0, 1500),
+            });
             unavailableContexts.push(context);
             persistPartialReport();
             logEvaluation('context_failed', {
               context,
+              reason: failReason,
               status: result.status,
-              errorBody: result.errorBody?.slice(0, 500),
+              errorBody: result.errorBody?.slice(0, 1500),
             });
             markContextProcessed(context, 'failed', index);
           }
         } catch (error) {
           const isTimeout =
             error instanceof Error && error.message === 'EVALUATION_TIMEOUT';
+          if (isTimeout) {
+            console.error(`context timeout: ${context}`);
+          }
+          console.log('[CastView] context fail:', context, isTimeout ? 'timeout' : 'request_error', error);
           unavailableContexts.push(context);
           persistPartialReport();
           logEvaluation(isTimeout ? 'context_timeout' : 'context_failed', {

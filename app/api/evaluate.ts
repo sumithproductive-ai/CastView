@@ -37,6 +37,8 @@ type AnthropicTextBlock = {
 };
 
 const MAX_REQUEST_BYTES = 4_500_000;
+const ANTHROPIC_TIMEOUT_MS = 50_000;
+const DEFAULT_MODEL = "claude-3-5-sonnet-20241022";
 
 function logEvent(event: string, details: Record<string, unknown> = {}) {
   console.log(
@@ -53,10 +55,13 @@ function jsonResponse(body: Record<string, unknown>, status: number): Response {
   return Response.json(body, { status });
 }
 
-function listAnthropicEnvKeyNames(): string[] {
-  return Object.keys(process.env).filter((key) =>
-    key.toUpperCase().includes("ANTHROPIC"),
-  );
+function stripBase64Data(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.startsWith("data:")) {
+    const comma = trimmed.indexOf(",");
+    return comma >= 0 ? trimmed.slice(comma + 1) : trimmed;
+  }
+  return trimmed;
 }
 
 function normalizeBody(body: unknown): EvaluateRequestBody {
@@ -96,6 +101,48 @@ function normalizeMediaType(mediaType: string | undefined): string {
   return "image/jpeg";
 }
 
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string");
+}
+
+function normalizeContextEvaluation(
+  entry: unknown,
+  targetContext: string,
+): ContextEvaluationResult | null {
+  if (!entry || typeof entry !== "object") return null;
+
+  const raw = entry as Record<string, unknown>;
+  const score = Number(raw.alignmentScore ?? raw.score);
+  if (!Number.isFinite(score)) return null;
+
+  const fitLabel =
+    typeof raw.fitLabel === "string" && raw.fitLabel.trim()
+      ? raw.fitLabel.trim()
+      : score >= 80
+        ? "STRONG ALIGNMENT"
+        : score >= 60
+          ? "MODERATE ALIGNMENT"
+          : "LOW ALIGNMENT";
+
+  const reasoning =
+    typeof raw.reasoning === "string" && raw.reasoning.trim()
+      ? raw.reasoning.trim()
+      : null;
+  if (!reasoning) return null;
+
+  return {
+    context: targetContext,
+    alignmentScore: Math.round(score),
+    fitLabel,
+    reasoning,
+    strengths: asStringArray(raw.strengths),
+    risks: asStringArray(raw.risks),
+    marketSignals: asStringArray(raw.marketSignals),
+    suggestedNextSteps: asStringArray(raw.suggestedNextSteps),
+  };
+}
+
 function buildAnthropicImageBlocks(
   images: EvaluateRequestBody["images"],
 ): AnthropicImageBlock[] {
@@ -108,29 +155,45 @@ function buildAnthropicImageBlocks(
       source: {
         type: "base64" as const,
         media_type: normalizeMediaType(img.mediaType),
-        data: img.data as string,
+        data: stripBase64Data(img.data as string),
       },
     }));
 }
 
-function extractJsonObject(text: string): EvaluateResponseBody {
+function extractJsonText(text: string): string {
   const withoutFences = text.replace(/```json|```/gi, "").trim();
   const start = withoutFences.indexOf("{");
   const end = withoutFences.lastIndexOf("}");
-  const candidate =
-    start >= 0 && end >= 0 ? withoutFences.slice(start, end + 1) : withoutFences;
-  return JSON.parse(candidate) as EvaluateResponseBody;
+  if (start >= 0 && end >= 0) return withoutFences.slice(start, end + 1);
+  return withoutFences;
+}
+
+function parseModelOutput(
+  text: string,
+  targetContext: string,
+): ContextEvaluationResult[] {
+  const jsonText = extractJsonText(text);
+  const parsed = JSON.parse(jsonText) as Record<string, unknown>;
+
+  if (Array.isArray(parsed.contextEvaluations)) {
+    return parsed.contextEvaluations
+      .map((entry) => normalizeContextEvaluation(entry, targetContext))
+      .filter((entry): entry is ContextEvaluationResult => entry !== null);
+  }
+
+  const single = normalizeContextEvaluation(parsed, targetContext);
+  return single ? [single] : [];
 }
 
 export async function POST(request: Request) {
   logEvent("request_received", { method: "POST" });
 
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  const anthropicEnvKeys = listAnthropicEnvKeyNames();
+  const model = process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_MODEL;
 
   logEvent("environment_checked", {
     hasAnthropicApiKey: Boolean(anthropicApiKey),
-    anthropicEnvKeys,
+    model,
   });
 
   if (!anthropicApiKey) {
@@ -145,11 +208,10 @@ export async function POST(request: Request) {
   }
 
   const body = normalizeBody(rawBody);
-  const bodyKeys = Object.keys(body);
   const payloadBytes = estimatePayloadSize(body);
 
   logEvent("request_body_parsed", {
-    bodyKeys,
+    bodyKeys: Object.keys(body),
     payloadBytes,
     payloadKb: Math.round(payloadBytes / 1024),
   });
@@ -192,47 +254,18 @@ export async function POST(request: Request) {
   const prospectName = body.prospectName?.trim() || "Prospect";
   const targetContext = selectedContexts[0];
 
-  logEvent("single_context_evaluation", {
-    targetContext,
-  });
-
-  const prompt = `You are an expert modeling agency evaluator. Analyze all uploaded digitals for ${prospectName}.
-
-Evaluate ONLY this context: ${targetContext}.
-
-Do not evaluate any other context.
-
-Return ONLY valid JSON:
-{
-  "contextEvaluations": [
-    {
-      "context": "${targetContext}",
-      "alignmentScore": 85,
-      "fitLabel": "STRONG ALIGNMENT",
-      "reasoning": "specific reasoning about what you see",
-      "strengths": ["strength 1", "strength 2"],
-      "risks": ["risk 1"],
-      "marketSignals": ["signal 1"],
-      "suggestedNextSteps": ["step 1", "step 2"]
-    }
-  ]
-}
-
-Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60. Return exactly one object in contextEvaluations for "${targetContext}". Return ONLY JSON.`;
-
-  const textBlock: AnthropicTextBlock = { type: "text", text: prompt };
-  const messageContent: Array<AnthropicImageBlock | AnthropicTextBlock> = [
-    ...imageBlocks,
-    textBlock,
-  ];
+  const prompt = `Analyze all digitals for ${prospectName}. Evaluate ONLY "${targetContext}".
+Return JSON only:
+{"contextEvaluations":[{"context":"${targetContext}","alignmentScore":85,"fitLabel":"STRONG ALIGNMENT","reasoning":"brief","strengths":["a"],"risks":["b"],"marketSignals":["c"],"suggestedNextSteps":["d"]}]}
+Rules: 80-100 STRONG ALIGNMENT, 60-79 MODERATE ALIGNMENT, below 60 LOW ALIGNMENT. One object only.`;
 
   const anthropicRequestBody = {
-    model: "claude-sonnet-4-6",
-    max_tokens: 4000,
+    model,
+    max_tokens: 600,
     messages: [
       {
         role: "user",
-        content: messageContent,
+        content: [...imageBlocks, { type: "text", text: prompt }],
       },
     ],
   };
@@ -240,19 +273,11 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
   const anthropicPayloadBytes = estimatePayloadSize(anthropicRequestBody);
 
   try {
-    console.log("Anthropic request started:", {
-      model: anthropicRequestBody.model,
-      imageCount: imageBlocks.length,
-      payloadBytes: anthropicPayloadBytes,
-      payloadKb: Math.round(anthropicPayloadBytes / 1024),
-    });
-
     logEvent("anthropic_request_start", {
-      model: anthropicRequestBody.model,
+      model,
       imageCount: imageBlocks.length,
-      payloadBytes: anthropicPayloadBytes,
       payloadKb: Math.round(anthropicPayloadBytes / 1024),
-      contentBlockCount: messageContent.length,
+      maxTokens: 600,
     });
 
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
@@ -263,9 +288,8 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify(anthropicRequestBody),
+      signal: AbortSignal.timeout(ANTHROPIC_TIMEOUT_MS),
     });
-
-    console.log("Anthropic response status:", anthropicResponse.status);
 
     logEvent("anthropic_response_received", {
       status: anthropicResponse.status,
@@ -274,15 +298,13 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
 
     if (!anthropicResponse.ok) {
       const anthropicErrorBody = await anthropicResponse.text();
-
       console.error("Anthropic failed:", {
         status: anthropicResponse.status,
-        body: anthropicErrorBody,
+        body: anthropicErrorBody.slice(0, 1500),
       });
-
       logEvent("anthropic_request_failed", {
         status: anthropicResponse.status,
-        errorBody: anthropicErrorBody.slice(0, 2000),
+        errorBody: anthropicErrorBody.slice(0, 1500),
       });
 
       if (anthropicResponse.status === 413) {
@@ -296,7 +318,7 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
         {
           error: "Anthropic API request failed.",
           status: anthropicResponse.status,
-          detail: anthropicErrorBody,
+          detail: anthropicErrorBody.slice(0, 1500),
         },
         502,
       );
@@ -308,24 +330,28 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
       .map((block: { text?: string }) => block.text || "")
       .join("");
 
-    console.log("Anthropic raw response preview:", responseText.slice(0, 500));
+    logEvent("anthropic_raw_preview", {
+      preview: responseText.slice(0, 500),
+    });
 
-    let parsed: EvaluateResponseBody;
+    let evaluations: ContextEvaluationResult[];
     try {
-      parsed = extractJsonObject(responseText);
+      evaluations = parseModelOutput(responseText, targetContext);
     } catch (parseError) {
+      console.error("Anthropic JSON parse failed:", {
+        preview: responseText.slice(0, 1500),
+        message: parseError instanceof Error ? parseError.message : "unknown",
+      });
       logEvent("anthropic_response_parse_failed", {
-        responsePreview: responseText.slice(0, 500),
+        responsePreview: responseText.slice(0, 1500),
         parseError: parseError instanceof Error ? parseError.message : "unknown",
       });
       return jsonResponse({ error: "Invalid response from Anthropic API." }, 502);
     }
 
-    console.log("Anthropic parsed response:", parsed);
-
-    if (!parsed?.contextEvaluations || !Array.isArray(parsed.contextEvaluations)) {
+    if (evaluations.length === 0) {
       logEvent("anthropic_response_invalid_shape", {
-        parsedKeys: parsed ? Object.keys(parsed as object) : [],
+        responsePreview: responseText.slice(0, 1500),
       });
       return jsonResponse(
         { error: "Invalid evaluation payload from Anthropic API." },
@@ -333,58 +359,27 @@ Rules: STRONG ALIGNMENT 80-100, MODERATE ALIGNMENT 60-79, LOW ALIGNMENT below 60
       );
     }
 
-    const normalizedEvaluations = parsed.contextEvaluations
-      .filter(
-        (entry) => entry.context?.toLowerCase() === targetContext.toLowerCase(),
-      )
-      .map((entry) => ({
-        ...entry,
-        context: targetContext,
-      }));
-
-    if (normalizedEvaluations.length === 0) {
-      const fallback = parsed.contextEvaluations[0];
-      const normalizedFallback = fallback
-        ? [{ ...fallback, context: targetContext }]
-        : [];
-
-      if (normalizedFallback.length === 0) {
-        logEvent("anthropic_response_missing_target_context", {
-          targetContext,
-          returnedContexts: parsed.contextEvaluations.map((entry) => entry.context),
-        });
-        return jsonResponse(
-          { error: "Invalid evaluation payload from Anthropic API." },
-          502,
-        );
-      }
-
-      logEvent("evaluation_success", {
-        contextEvaluationCount: normalizedFallback.length,
-        targetContext,
-        usedFallbackNormalization: true,
-      });
-
-      return jsonResponse(
-        { contextEvaluations: normalizedFallback },
-        200,
-      );
-    }
-
     logEvent("evaluation_success", {
-      contextEvaluationCount: normalizedEvaluations.length,
       targetContext,
+      alignmentScore: evaluations[0].alignmentScore,
     });
 
-    return jsonResponse(
-      { contextEvaluations: normalizedEvaluations },
-      200,
-    );
+    console.log("Anthropic parsed response:", evaluations[0]);
+
+    const response: EvaluateResponseBody = {
+      contextEvaluations: evaluations,
+    };
+
+    return jsonResponse(response, 200);
   } catch (error) {
-    logEvent("unexpected_error", {
-      message: error instanceof Error ? error.message : "unknown",
-    });
-    return jsonResponse({ error: "Unexpected server error." }, 503);
+    const message = error instanceof Error ? error.message : "unknown";
+    const isTimeout =
+      message.includes("timeout") || message.includes("aborted");
+    logEvent("unexpected_error", { message, isTimeout });
+    return jsonResponse(
+      { error: isTimeout ? "Anthropic request timed out." : "Unexpected server error." },
+      isTimeout ? 504 : 503,
+    );
   }
 }
 

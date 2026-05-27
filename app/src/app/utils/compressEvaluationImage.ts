@@ -131,6 +131,15 @@ export async function fetchEvaluateContext(
   },
   timeoutMs: number = EVALUATION_REQUEST_TIMEOUT_MS,
 ): Promise<EvaluateFetchResult> {
+  const payloadBytes = getEvaluationPayloadByteSize(requestBody);
+  console.log(
+    `[CastView] /api/evaluate request payload: ${(payloadBytes / 1024).toFixed(1)} KB`,
+    {
+      context: requestBody.selectedContexts[0],
+      imageCount: requestBody.images.length,
+    },
+  );
+
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
@@ -138,7 +147,14 @@ export async function fetchEvaluateContext(
     const response = await fetch('/api/evaluate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        prospectName: requestBody.prospectName,
+        selectedContexts: requestBody.selectedContexts,
+        images: requestBody.images.map((img) => ({
+          data: stripBase64Payload(img.data),
+          mediaType: 'image/jpeg',
+        })),
+      }),
       signal: controller.signal,
     });
 
@@ -151,6 +167,11 @@ export async function fetchEvaluateContext(
       } catch {
         errorBody = '';
       }
+      console.error('[CastView] /api/evaluate failed:', {
+        status: response.status,
+        context: requestBody.selectedContexts[0],
+        body: errorBody.slice(0, 1500),
+      });
       return { ok: false, status: response.status, errorBody };
     }
 
@@ -161,10 +182,18 @@ export async function fetchEvaluateContext(
       return { ok: false, status: response.status, errorBody: 'invalid_json' };
     }
 
+    console.log('[CastView] /api/evaluate response:', {
+      context: requestBody.selectedContexts[0],
+      data,
+    });
+
     return { ok: true, status: response.status, data };
   } catch (error) {
     window.clearTimeout(timeoutId);
     if (error instanceof Error && error.name === 'AbortError') {
+      console.error(
+        `context timeout: ${requestBody.selectedContexts[0] ?? 'unknown'}`,
+      );
       throw new Error('EVALUATION_TIMEOUT');
     }
     throw error;
