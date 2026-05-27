@@ -207,6 +207,7 @@ export default async function handler(req: IncomingMessage & { body?: unknown; m
   console.log("[API] provider: Anthropic");
 
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  console.log("[API] KEY_STATE:", JSON.stringify({ exists: 'ANTHROPIC_API_KEY' in process.env, length: (process.env.ANTHROPIC_API_KEY || '').length, trimmedLength: (process.env.ANTHROPIC_API_KEY || '').trim().length }));
 
   logEvent("environment_checked", {
     provider: "Anthropic",
