@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { jsPDF } from 'jspdf';
 import { ChevronDown } from 'lucide-react';
@@ -58,6 +58,7 @@ export function Results() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { prospects } = useProspects();
+  const [realEvalData, setRealEvalData] = useState<any>(null);
   const prospectName = searchParams.get('name')
     ? decodeURIComponent(searchParams.get('name')!)
     : 'Prospect';
@@ -68,6 +69,19 @@ export function Results() {
   );
   const profileType = searchParams.get('profileType') || 'prospect';
   const prospectId = searchParams.get('prospectId') || '';
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem('castview_evaluation_results');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setRealEvalData(parsed);
+        sessionStorage.removeItem('castview_evaluation_results');
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, []);
 
   const digitalSet: DigitalSet | null = useMemo(() => {
     const prospect = prospects.find(
@@ -84,17 +98,19 @@ export function Results() {
     return null;
   }, [prospects, prospectId, prospectName]);
 
-  const contextResults = useMemo(
-    () =>
-      selectedContexts.length > 0
-        ? selectedContexts.map((ctx, i) => ({
-            id: i + 1,
-            context: ctx,
-            score: getContextData(ctx).score,
-          }))
-        : FALLBACK_CONTEXT_RESULTS,
-    [contextsParam],
-  );
+  const contextResults = useMemo(() => {
+    const mockScores = [94, 91, 88, 88, 87, 85, 82, 86, 89];
+    return selectedContexts.map((ctx, i) => {
+      const real = realEvalData?.contextEvaluations?.find(
+        (e: any) => e.context.toLowerCase() === ctx.toLowerCase(),
+      );
+      return {
+        id: i + 1,
+        context: ctx,
+        score: real?.alignmentScore ?? mockScores[i % 9],
+      };
+    });
+  }, [contextsParam, realEvalData]);
 
   const [openContext, setOpenContext] = useState<string | null>(null);
   const [devPathwayContext, setDevPathwayContext] = useState<string | null>(null);
@@ -105,6 +121,15 @@ export function Results() {
   const [agentNotes, setAgentNotes] = useState('');
 
   const getContextEvalData = (context: string) => getContextData(context);
+  const getEvalData = (context: string) => {
+    if (realEvalData?.contextEvaluations) {
+      const real = realEvalData.contextEvaluations.find(
+        (e: any) => e.context.toLowerCase() === context.toLowerCase(),
+      );
+      if (real) return real;
+    }
+    return getContextEvalData(context);
+  };
 
   const generatePDF = () => {
     const doc = new jsPDF({
@@ -211,7 +236,7 @@ export function Results() {
 
     // ── PER-CONTEXT SECTIONS ─────────────────
     contextResults.forEach((result) => {
-      const data = getContextEvalData(result.context);
+      const data = getEvalData(result.context);
       const scoreBarW = fullW * (result.score / 100);
 
       checkBreak(60);

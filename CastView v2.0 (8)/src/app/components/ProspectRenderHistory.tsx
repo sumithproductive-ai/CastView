@@ -71,21 +71,7 @@ const emptyUploadForm = {
 
 type UploadFormImageKey = 'front' | 'profile' | 'threeQuarter' | 'fullBody';
 
-const uploadFormImageKeys: UploadFormImageKey[] = [
-  'front',
-  'profile',
-  'threeQuarter',
-  'fullBody',
-];
-
-function revokeUploadFormBlobUrls(form: typeof emptyUploadForm) {
-  uploadFormImageKeys.forEach((key) => {
-    const url = form[key];
-    if (url.startsWith('blob:')) {
-      URL.revokeObjectURL(url);
-    }
-  });
-}
+function revokeUploadFormBlobUrls(_form: typeof emptyUploadForm) {}
 
 const formFieldLabelStyle = {
   fontFamily: 'var(--font-mono)',
@@ -367,13 +353,7 @@ export function ProspectRenderHistory({
   };
 
   const handleClearUploadField = (fieldKey: UploadFormImageKey) => {
-    setUploadForm((prev) => {
-      const current = prev[fieldKey];
-      if (current.startsWith('blob:')) {
-        URL.revokeObjectURL(current);
-      }
-      return { ...prev, [fieldKey]: '' };
-    });
+    setUploadForm((prev) => ({ ...prev, [fieldKey]: '' }));
     setUploadFileNames((prev) => {
       const next = { ...prev };
       delete next[fieldKey];
@@ -1047,21 +1027,19 @@ export function ProspectRenderHistory({
                           const file = e.target.files?.[0];
                           if (!file) return;
 
-                          setUploadForm((prev) => {
-                            const current = prev[fieldKey];
-                            if (current.startsWith('blob:')) {
-                              URL.revokeObjectURL(current);
-                            }
-                            const url = URL.createObjectURL(file);
-                            return {
+                          const reader = new FileReader();
+                          reader.onload = (evt) => {
+                            const base64 = evt.target?.result as string;
+                            setUploadForm((prev) => ({
                               ...prev,
-                              [fieldKey]: url,
-                            };
-                          });
-                          setUploadFileNames((prev) => ({
-                            ...prev,
-                            [fieldKey]: file.name,
-                          }));
+                              [fieldKey]: base64,
+                            }));
+                            setUploadFileNames((prev) => ({
+                              ...prev,
+                              [fieldKey]: file.name,
+                            }));
+                          };
+                          reader.readAsDataURL(file);
                           e.target.value = '';
                         }}
                       />
@@ -1115,7 +1093,6 @@ export function ProspectRenderHistory({
                           <button
                             type="button"
                             onClick={() => {
-                              URL.revokeObjectURL(uploadForm[fieldKey]);
                               setUploadForm((prev) => ({
                                 ...prev,
                                 [fieldKey]: '',

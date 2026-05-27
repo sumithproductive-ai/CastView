@@ -97,94 +97,90 @@ export function Rendering() {
   const [evaluationReady, setEvaluationReady] = useState(false);
 
   const runEvaluation = useCallback(async () => {
-    const contextsToRun =
-      selectedContexts.length > 0 ? selectedContexts : ['Fragrance'];
-    const prospect = getProspectById(prospectId);
-    const digitalSet = prospect?.digitalSets?.[0];
-    const images = collectDigitalImages(digitalSet);
+    try {
+      const prospect = getProspectById(prospectId);
+      const digitalSet = prospect?.digitalSets?.[0];
 
-    let data: EvaluationApiData;
-    if (images.length === 0) {
-      data = buildMockEvaluationData(contextsToRun);
-    } else {
-      try {
-        const apiUrl =
-          import.meta.env.VITE_EVALUATION_API_URL ?? '/api/evaluate';
-        const response = await fetch(apiUrl, {
+      const getImageData = (dataUrl: string) => {
+        if (!dataUrl || !dataUrl.startsWith('data:')) return null;
+        const parts = dataUrl.split(',');
+        if (parts.length < 2) return null;
+        return {
+          data: parts[1],
+          mediaType:
+            parts[0].replace('data:', '').replace(';base64', '') || 'image/jpeg',
+        };
+      };
+
+      const images = [
+        digitalSet?.front,
+        digitalSet?.profile,
+        digitalSet?.threeQuarter,
+        digitalSet?.fullBody,
+      ]
+        .filter(Boolean)
+        .map((img) => getImageData(img!))
+        .filter(Boolean);
+
+      if (images.length > 0) {
+        const response = await fetch('/api/evaluate', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
             images,
-            contexts: contextsToRun,
-            prospectId,
+            contexts: selectedContexts.length > 0 ? selectedContexts : ['Fragrance'],
             prospectName,
           }),
         });
-        if (!response.ok) throw new Error('Evaluation request failed');
-        data = await response.json();
-      } catch {
-        data = buildMockEvaluationData(contextsToRun);
-      }
-    }
 
-    sessionStorage.setItem(
-      EVALUATION_STORAGE_KEY,
-      JSON.stringify({
-        ...data,
-        prospectId,
-        prospectName,
-        contexts: contextsToRun,
-      }),
-    );
+        if (response.ok) {
+          const data = await response.json();
 
-    if (!prospectId) {
-      // no prospect to save to, just continue
-    } else {
-      try {
-        const prospectToUpdate = getProspectById(prospectId);
-        if (prospectToUpdate && prospectToUpdate.digitalSets.length > 0) {
-          const updatedSets = [...prospectToUpdate.digitalSets];
-          const latestSetIndex = 0;
-          const newEvaluation = {
-            id: `eval-${Date.now()}`,
-            completedAt: new Date().toLocaleDateString('en-US', {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            }),
-            contexts: data.contextEvaluations.map((ce) => ({
-              context: ce.context,
-              alignmentScore: ce.alignmentScore,
-              fitLabel: ce.fitLabel,
-              reasoning: ce.reasoning,
-              strengths: ce.strengths,
-              risks: ce.risks,
-              marketSignals: ce.marketSignals,
-              suggestedNextSteps: ce.suggestedNextSteps,
-            })),
-          };
-          updatedSets[latestSetIndex] = {
-            ...updatedSets[latestSetIndex],
-            evaluations: [
-              newEvaluation,
-              ...updatedSets[latestSetIndex].evaluations,
-            ],
-          };
-          updateProspect(prospectId, {
-            digitalSets: updatedSets,
-          });
+          sessionStorage.setItem(
+            'castview_evaluation_results',
+            JSON.stringify(data),
+          );
+
+          if (prospectId && data.contextEvaluations) {
+            try {
+              const newEvaluation = {
+                id: `eval-${Date.now()}`,
+                completedAt: new Date().toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                }),
+                contexts: data.contextEvaluations,
+              };
+
+              const currentProspect = getProspectById(prospectId);
+              if (currentProspect?.digitalSets?.length) {
+                const updatedSets = [...currentProspect.digitalSets];
+                updatedSets[0] = {
+                  ...updatedSets[0],
+                  evaluations: [
+                    newEvaluation,
+                    ...(updatedSets[0].evaluations || []),
+                  ],
+                };
+                updateProspect(prospectId, {
+                  digitalSets: updatedSets,
+                });
+              }
+            } catch (saveError) {
+              console.warn('Could not save evaluation:', saveError);
+            }
+          }
         }
-      } catch (err) {
-        console.warn('Could not save evaluation to prospect:', err);
       }
+    } catch (error) {
+      console.error('Evaluation API error:', error);
+    } finally {
+      setEvaluationReady(true);
     }
-  }, [
-    getProspectById,
-    updateProspect,
-    prospectId,
-    prospectName,
-    selectedContexts,
-  ]);
+  }, [prospectId, prospectName, selectedContexts, getProspectById, updateProspect]);
 
   useEffect(() => {
     let cancelled = false;

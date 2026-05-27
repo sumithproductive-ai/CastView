@@ -36,15 +36,19 @@ export function NewModelDigitals() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const objectUrl = URL.createObjectURL(file);
-    setUploadedImages((prev) => ({
-      ...prev,
-      [key]: objectUrl,
-    }));
-    setUploadFileNames((prev) => ({
-      ...prev,
-      [key]: file.name,
-    }));
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const base64 = evt.target?.result as string;
+      setUploadedImages((prev) => ({
+        ...prev,
+        [key]: base64,
+      }));
+      setUploadFileNames((prev) => ({
+        ...prev,
+        [key]: file.name,
+      }));
+    };
+    reader.readAsDataURL(file);
     setShowDigitalsError(false);
   };
 
@@ -259,10 +263,6 @@ export function NewModelDigitals() {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    const url = uploadedImages[zone.key];
-                    if (url?.startsWith('blob:')) {
-                      URL.revokeObjectURL(url);
-                    }
                     setUploadedImages((prev) => ({
                       ...prev,
                       [zone.key]: null,
