@@ -617,26 +617,30 @@ export function Rendering() {
   }, [evaluationComplete]);
   
   return (
-    <div className="flex items-center justify-center min-h-screen p-[48px]">
+    <div
+      className="flex items-center justify-center min-h-screen p-[48px]"
+      style={{ position: 'relative' }}
+    >
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        style={{
+          position: 'absolute',
+          top: '32px',
+          left: '32px',
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: '#888880',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          letterSpacing: '0.05em',
+          padding: 0,
+        }}
+      >
+        ← BACK
+      </button>
       <div className="w-full max-w-[500px]">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '11px',
-            color: '#888880',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            letterSpacing: '0.05em',
-            padding: 0,
-            display: 'block',
-            marginBottom: '32px',
-          }}
-        >
-          ← BACK
-        </button>
         <h1 
           className="text-[48px] text-center mb-[80px]" 
           style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
