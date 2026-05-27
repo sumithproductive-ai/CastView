@@ -144,6 +144,7 @@ export function Results() {
   const [agreed, setAgreed] = useState(false);
   const [agentNotes, setAgentNotes] = useState('');
   const [notesSaved, setNotesSaved] = useState(false);
+  const [evalSaved, setEvalSaved] = useState(false);
 
   const getEvalData = (context: string) => {
     if (isContextUnavailable(context)) {
@@ -501,6 +502,52 @@ export function Results() {
             DELETE EVALUATION
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (evalSaved || !hasRealEvaluation || !prospectId || !evaluationId) return;
+            const prospect = prospects.find((p) => p.id === prospectId);
+            if (!prospect) return;
+            const newEvaluation = {
+              id: evaluationId,
+              completedAt: new Date().toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              }),
+              contexts: realEvalData.contextEvaluations,
+            };
+            const updatedSets = prospect.digitalSets.map((ds, i) =>
+              i === 0
+                ? {
+                    ...ds,
+                    evaluations: [
+                      newEvaluation,
+                      ...(ds.evaluations ?? []).filter((e) => e.id !== evaluationId),
+                    ],
+                  }
+                : ds,
+            );
+            updateProspect(prospectId, { digitalSets: updatedSets });
+            setEvalSaved(true);
+          }}
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            color: evalSaved ? '#4a7a4a' : '#f0f0ec',
+            background: 'none',
+            border: `1px solid ${evalSaved ? '#4a7a4a' : '#2a2a2a'}`,
+            borderRadius: '4px',
+            padding: '8px 16px',
+            cursor: evalSaved ? 'default' : 'pointer',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {evalSaved ? '✓ SAVED' : 'SAVE EVALUATION'}
+        </button>
 
         <div className="flex gap-[12px]">
           <button

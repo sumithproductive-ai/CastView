@@ -248,37 +248,6 @@ export function Rendering() {
         persistPartialReport();
 
         if (successfulContexts > 0) {
-          if (prospectId) {
-            try {
-              const newEvaluation = {
-                id: evaluationId,
-                completedAt: new Date().toLocaleDateString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
-                }),
-                contexts: combinedEvaluations,
-              };
-
-              const currentProspect = getProspectById(prospectId);
-              if (currentProspect?.digitalSets?.length) {
-                const updatedSets = [...currentProspect.digitalSets];
-                updatedSets[0] = {
-                  ...updatedSets[0],
-                  evaluations: [
-                    newEvaluation,
-                    ...(updatedSets[0].evaluations || []),
-                  ],
-                };
-                updateProspect(prospectId, {
-                  digitalSets: updatedSets,
-                });
-              }
-            } catch (saveError) {
-              console.warn('Could not save evaluation:', saveError);
-            }
-          }
-
           if (unavailableContexts.length > 0) {
             setEvaluationError(
               `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
