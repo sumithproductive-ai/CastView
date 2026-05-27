@@ -42,7 +42,14 @@ type OpenAIChatCompletionResponse = {
 const MAX_REQUEST_BYTES = 4_500_000;
 const OPENAI_FETCH_TIMEOUT_MS = 45_000;
 const MAX_OUTPUT_TOKENS = 500;
-const DEFAULT_MODEL = "gpt-4o-mini";
+const OPENAI_MODEL = "gpt-4o-mini";
+
+/**
+ * When true, returns an immediate hardcoded evaluation (skips OpenAI) so production
+ * can confirm /api/evaluate is deployed and reachable. Set false after Results
+ * shows "Test response from backend route." and redeploy.
+ */
+const USE_HARDCODED_TEST_RESPONSE = true;
 
 function logEvent(event: string, details: Record<string, unknown> = {}) {
   console.log(
@@ -202,6 +209,25 @@ function parseModelOutput(
   return single ? [single] : [];
 }
 
+function buildHardcodedTestResponse(
+  targetContext: string,
+): EvaluateResponseBody {
+  return {
+    contextEvaluations: [
+      {
+        context: targetContext,
+        alignmentScore: 82,
+        fitLabel: "STRONG ALIGNMENT",
+        reasoning: "Test response from backend route.",
+        strengths: ["Backend route working"],
+        risks: [],
+        marketSignals: [],
+        suggestedNextSteps: [],
+      },
+    ],
+  };
+}
+
 function finish(
   requestStartMs: number,
   body: Record<string, unknown>,
@@ -219,13 +245,15 @@ function finish(
 export async function POST(request: Request) {
   const requestStartMs = Date.now();
   console.log("[API] request received");
+  console.log("[API] provider: OpenAI");
 
   const openaiApiKey = process.env.OPENAI_API_KEY?.trim();
-  const model = process.env.OPENAI_MODEL?.trim() || DEFAULT_MODEL;
 
   logEvent("environment_checked", {
+    provider: "OpenAI",
     hasOpenaiApiKey: Boolean(openaiApiKey),
-    model,
+    model: OPENAI_MODEL,
+    useHardcodedTestResponse: USE_HARDCODED_TEST_RESPONSE,
   });
 
   if (!openaiApiKey) {
@@ -300,6 +328,20 @@ export async function POST(request: Request) {
     payloadKb: Math.round(payloadBytes / 1024),
   });
 
+  if (USE_HARDCODED_TEST_RESPONSE) {
+    console.log("[API] returning hardcoded test response (OpenAI skipped)");
+    const testResponse = buildHardcodedTestResponse(targetContext);
+    logEvent("hardcoded_test_response", {
+      context: targetContext,
+      alignmentScore: testResponse.contextEvaluations[0].alignmentScore,
+    });
+    return finish(
+      requestStartMs,
+      testResponse as unknown as Record<string, unknown>,
+      200,
+    );
+  }
+
   const prompt = `Evaluate ${prospectName} for "${targetContext}" using all digitals.
 Return ONLY this JSON shape (one object in contextEvaluations):
 {"contextEvaluations":[{"context":"${targetContext}","alignmentScore":85,"fitLabel":"STRONG ALIGNMENT","reasoning":"One sentence.","strengths":["a","b"],"risks":["c"],"marketSignals":["d"],"suggestedNextSteps":["e"]}]}
@@ -309,7 +351,7 @@ Do not provide prose outside JSON. Keep each field concise.`;
   const textContent: OpenAITextContentPart = { type: "text", text: prompt };
 
   const openaiRequestBody = {
-    model,
+    model: OPENAI_MODEL,
     max_tokens: MAX_OUTPUT_TOKENS,
     response_format: { type: "json_object" as const },
     messages: [
@@ -331,7 +373,7 @@ Do not provide prose outside JSON. Keep each field concise.`;
 
   try {
     console.log("[API] OpenAI request start", {
-      model,
+      model: OPENAI_MODEL,
       context: targetContext,
       imageCount: imageContent.length,
       payloadBytes,
@@ -341,7 +383,7 @@ Do not provide prose outside JSON. Keep each field concise.`;
     });
 
     logEvent("openai_request_start", {
-      model,
+      model: OPENAI_MODEL,
       context: targetContext,
       imageCount: imageContent.length,
       payloadBytes,
