@@ -40,7 +40,7 @@ type AnthropicMessagesResponse = {
 
 const MAX_REQUEST_BYTES = 4_500_000;
 const ANTHROPIC_FETCH_TIMEOUT_MS = 45_000;
-const MAX_OUTPUT_TOKENS = 512;
+const MAX_OUTPUT_TOKENS = 1500;
 const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 
 function logEvent(event: string, details: Record<string, unknown> = {}) {
@@ -286,11 +286,32 @@ export default async function handler(req: IncomingMessage & { body?: unknown; m
     payloadKb: Math.round(payloadBytes / 1024),
   });
 
-  const prompt = `Evaluate ${prospectName} for "${targetContext}" using all digitals.
-Return ONLY this JSON shape:
-{"contextEvaluations":[{"context":"${targetContext}","alignmentScore":85,"fitLabel":"STRONG ALIGNMENT","reasoning":"One sentence.","strengths":["a","b"],"risks":["c"],"marketSignals":["d"],"suggestedNextSteps":["e"]}]}
-Rules: alignmentScore 0-100; fitLabel STRONG ALIGNMENT (80-100), MODERATE ALIGNMENT (60-79), LOW ALIGNMENT (below 60); reasoning exactly 1 sentence; max 2 strengths; max 1 risk; max 1 marketSignals; max 1 suggestedNextSteps.
-Do not include any text outside the JSON.`;
+  const prompt = `You are an expert modeling agency casting director evaluating ${prospectName} for the "${targetContext}" market using all four uploaded digitals (front, profile, 3/4, full body).
+
+Analyse the digitals carefully and return ONLY valid JSON in exactly this shape:
+{
+  "contextEvaluations": [{
+    "context": "${targetContext}",
+    "alignmentScore": 85,
+    "fitLabel": "STRONG ALIGNMENT",
+    "reasoning": "2-3 sentence assessment of overall suitability for this context based on physical attributes, proportions, facial structure, and what shows in the digitals.",
+    "strengths": ["specific strength 1", "specific strength 2", "specific strength 3"],
+    "risks": ["specific risk or gap 1", "specific risk or gap 2"],
+    "marketSignals": ["market observation 1", "market observation 2"],
+    "suggestedNextSteps": ["actionable next step 1", "actionable next step 2", "actionable next step 3"]
+  }]
+}
+
+Rules:
+- alignmentScore: integer 0-100 based on genuine visual assessment
+- fitLabel: "STRONG ALIGNMENT" (80-100), "MODERATE ALIGNMENT" (60-79), "LOW ALIGNMENT" (0-59)
+- reasoning: 2-3 sentences, specific to what you observe in the digitals
+- strengths: 3 items, specific physical or aesthetic attributes that serve this context
+- risks: 2 items, honest gaps or concerns for this specific market
+- marketSignals: 2 items, current market demand observations for this context
+- suggestedNextSteps: 3 actionable items for the booker to pursue
+- All items must be specific to ${targetContext} — no generic filler
+- Return ONLY the JSON. No preamble, no explanation, no markdown fences.`;
 
   const anthropicRequestBody = {
     model: ANTHROPIC_MODEL,
