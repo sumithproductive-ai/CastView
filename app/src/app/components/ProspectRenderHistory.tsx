@@ -211,6 +211,7 @@ export function ProspectRenderHistory({
     setId: string;
     evalId: string;
   } | null>(null);
+  const [openEvalId, setOpenEvalId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const resetUploadFormState = () => {
@@ -260,6 +261,16 @@ export function ProspectRenderHistory({
         ) ?? 0;
   const hasDigitalSets = digitalSetCount > 0;
   const digitalSetsForDisplay = isProspect ? profileDigitalSets : digitalSets;
+  const allEvaluations = digitalSetsForDisplay
+    .flatMap((ds) =>
+      (ds.evaluations ?? []).map((ev) => ({
+        id: ev.id,
+        completedAt: ev.completedAt,
+        contexts: ev.contexts,
+        allContextNames: ev.contexts.map((c) => c.context),
+      })),
+    )
+    .sort((a, b) => b.id.localeCompare(a.id));
   const canCompare = digitalSetsForDisplay.length >= 2;
   const selectedDigitalSetForEvaluation =
     (openedSetId
@@ -651,6 +662,7 @@ export function ProspectRenderHistory({
           )}
         </div>
       ) : (
+        <>
         <div>
           <div className="mb-[16px]" style={sectionLabelStyle}>
             DIGITAL SETS
@@ -980,6 +992,179 @@ export function ProspectRenderHistory({
             UPLOAD NEW DIGITAL SET
           </button>
         </div>
+
+        {allEvaluations.length > 0 && (
+          <div className="mt-[48px]">
+            <div className="mb-[16px]" style={sectionLabelStyle}>
+              EVALUATIONS
+            </div>
+
+            <div>
+              {allEvaluations.map((ev) => {
+                const isOpen = openEvalId === ev.id;
+                const avgScore =
+                  ev.contexts.length > 0
+                    ? Math.round(
+                        ev.contexts.reduce(
+                          (sum, c) => sum + c.alignmentScore,
+                          0,
+                        ) / ev.contexts.length,
+                      )
+                    : null;
+
+                return (
+                  <div key={ev.id} style={{ borderBottom: '1px solid #1a1a1a' }}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenEvalId(isOpen ? null : ev.id)}
+                      className="w-full flex items-center gap-[24px] py-[16px] text-left"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '12px',
+                            color: '#f0f0ec',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {ev.completedAt}
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '9px',
+                            color: '#888880',
+                            marginTop: '4px',
+                          }}
+                        >
+                          {ev.allContextNames.join('  ·  ')}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          color: '#888880',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {ev.contexts.length} context
+                        {ev.contexts.length !== 1 ? 's' : ''}
+                        {avgScore != null ? `  ·  avg ${avgScore}%` : ''}
+                      </div>
+
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          color: '#888880',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isOpen ? '▲' : '▼'}
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="pb-[24px]">
+                        <div className="space-y-[8px] mb-[16px]">
+                          {ev.contexts.map((ctx) => (
+                            <div
+                              key={ctx.context}
+                              className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px]"
+                            >
+                              <div className="w-[30%] flex-shrink-0">
+                                <div
+                                  style={{
+                                    fontFamily: 'var(--font-mono)',
+                                    fontSize: '11px',
+                                    color: '#f0f0ec',
+                                    textTransform: 'uppercase',
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {ctx.context}
+                                </div>
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <p
+                                  style={{
+                                    fontFamily: 'var(--font-mono)',
+                                    fontSize: '10px',
+                                    color: '#a0a09a',
+                                    lineHeight: 1.6,
+                                    overflow: 'hidden',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                  }}
+                                >
+                                  {ctx.reasoning}
+                                </p>
+                              </div>
+
+                              <div className="flex-shrink-0 text-right">
+                                <div
+                                  style={{
+                                    fontFamily: 'Georgia, serif',
+                                    fontSize: '24px',
+                                    color: '#f0f0ec',
+                                    lineHeight: 1,
+                                  }}
+                                >
+                                  {ctx.alignmentScore}
+                                </div>
+                                <div
+                                  style={{
+                                    fontFamily: 'var(--font-mono)',
+                                    fontSize: '8px',
+                                    color: getFitLabelColor(ctx.fitLabel),
+                                    marginTop: '4px',
+                                    letterSpacing: '0.12em',
+                                    textTransform: 'uppercase',
+                                  }}
+                                >
+                                  {ctx.fitLabel}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const contextsParam = ev.allContextNames.join(',');
+                            navigate(
+                              `/results?name=${encodeURIComponent(activeProfile.name)}&contexts=${contextsParam}&prospectId=${resolvedEntityId}&profileType=${profileType}&evaluationId=${ev.id}`,
+                            );
+                          }}
+                          className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            color: '#f0f0ec',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          VIEW FULL REPORT →
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        </>
       )}
 
       {showUploadForm && (
