@@ -765,6 +765,7 @@ export function ProspectRenderHistory({
           </button>
 
           {digitalSetsExpanded && (
+          <>
           <div data-tutorial="digital-sets-timeline">
             {digitalSetsForDisplay.map((ds) => {
               const digitalsOnFile = countDigitalsOnFile(ds);
@@ -1172,6 +1173,8 @@ export function ProspectRenderHistory({
             >
               Upload a second digital set to compare progression.
             </p>
+          )}
+          </>
           )}
         </div>
 
