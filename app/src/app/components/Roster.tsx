@@ -139,6 +139,10 @@ export function Roster() {
   const [briefMatchActive, setBriefMatchActive] = useState(false);
   const [briefQuery, setBriefQuery] = useState('');
   const [showMatchResults, setShowMatchResults] = useState(false);
+  const [briefMatchLoading, setBriefMatchLoading] = useState(false);
+  const [briefMatchResults, setBriefMatchResults] = useState<
+    Array<{ id: string; score: number; reasoning: string }>
+  >([]);
   const [showDevReportModal, setShowDevReportModal] = useState(false);
   const [selectedModel, setSelectedModel] = useState<RosterModel | null>(null);
   const [showCopiedConfirmation, setShowCopiedConfirmation] = useState(false);
@@ -347,7 +351,36 @@ export function Roster() {
 
             {/* Match Button */}
             <button
-              onClick={() => setShowMatchResults(true)}
+              onClick={async () => {
+                if (!briefQuery.trim() || briefMatchLoading) return;
+                setBriefMatchLoading(true);
+                setShowMatchResults(false);
+                try {
+                  const response = await fetch('/api/brief-match', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      brief: briefQuery,
+                      models: models.map((m) => ({
+                        id: m.id,
+                        name: m.name,
+                        topScore: m.topScore,
+                        contexts: m.contexts,
+                        division: m.division,
+                      })),
+                    }),
+                  });
+                  const data = await response.json();
+                  if (response.ok && data.matches) {
+                    setBriefMatchResults(data.matches);
+                    setShowMatchResults(true);
+                  }
+                } catch {
+                  // silently fail — keep results hidden
+                } finally {
+                  setBriefMatchLoading(false);
+                }
+              }}
               className="px-[16px] py-[10px] rounded-[4px] text-[12px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 whitespace-nowrap"
               style={{ 
                 fontFamily: 'var(--font-mono)', 
@@ -355,7 +388,7 @@ export function Roster() {
                 color: '#080808'
               }}
             >
-              MATCH
+              {briefMatchLoading ? 'MATCHING...' : 'MATCH'}
             </button>
 
             {/* Cancel Button */}
@@ -364,6 +397,7 @@ export function Roster() {
                 setBriefMatchActive(false);
                 setShowMatchResults(false);
                 setBriefQuery('');
+                setBriefMatchResults([]);
               }}
               className="px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors"
             >
@@ -387,60 +421,60 @@ export function Roster() {
 
           {/* Match Results */}
           <div className="space-y-[1px]">
-            {[...models]
+            {(briefMatchResults.length > 0 ? briefMatchResults : [...models]
               .sort((a, b) => b.topScore - a.topScore)
-              .map((model) => ({
-                name: model.name,
-                percentage: model.topScore,
-                image: model.image,
-                id: model.id,
-              }))
-              .map((match, index) => (
-              <div 
-                key={match.id}
-                className="flex items-center gap-[12px] py-[12px]"
-                style={{ 
-                  borderTop: index > 0 ? '1px solid #1a1a1a' : 'none'
-                }}
-              >
-                {/* Thumbnail */}
-                <div 
-                  className="w-[40px] h-[40px] bg-[#1a1a1a] rounded-[4px] overflow-hidden flex-shrink-0"
+              .map((m) => ({ id: m.id, score: m.topScore, reasoning: '' }))
+            ).map((match, index) => {
+              const model = models.find((m) => m.id === match.id);
+              if (!model) return null;
+              return (
+                <div
+                  key={match.id}
+                  className="flex flex-col py-[12px]"
+                  style={{ borderTop: index > 0 ? '1px solid #1a1a1a' : 'none' }}
                 >
-                  <img 
-                    src={match.image} 
-                    alt={match.name}
-                    className="w-full h-full object-cover"
-                    style={{ objectPosition: 'center 15%' }}
-                  />
+                  <div className="flex items-center gap-[12px]">
+                    <div className="w-[40px] h-[40px] bg-[#1a1a1a] rounded-[4px] overflow-hidden flex-shrink-0">
+                      <img
+                        src={model.image}
+                        alt={model.name}
+                        className="w-full h-full object-cover"
+                        style={{ objectPosition: 'center 15%' }}
+                      />
+                    </div>
+                    <div className="flex-1 text-[13px]"
+                      style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}>
+                      {model.name}
+                    </div>
+                    <div className="text-[16px] font-bold"
+                      style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}>
+                      {match.score}%
+                    </div>
+                    <div
+                      className="text-[12px] cursor-pointer hover:opacity-70 transition-opacity"
+                      style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+                      onClick={() => navigate(`/roster/${match.id}/history`)}
+                    >
+                      VIEW →
+                    </div>
+                  </div>
+                  {match.reasoning && (
+                    <div
+                      className="mt-[6px]"
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '10px',
+                        color: '#666660',
+                        lineHeight: 1.6,
+                        paddingLeft: '52px',
+                      }}
+                    >
+                      {match.reasoning}
+                    </div>
+                  )}
                 </div>
-
-                {/* Name */}
-                <div 
-                  className="flex-1 text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-                >
-                  {match.name}
-                </div>
-
-                {/* Match Percentage */}
-                <div 
-                  className="text-[16px] font-bold"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-                >
-                  {match.percentage}%
-                </div>
-
-                {/* View Link */}
-                <div 
-                  className="text-[12px] cursor-pointer hover:opacity-70 transition-opacity"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
-                  onClick={() => navigate(`/roster/${match.id}/history`)}
-                >
-                  VIEW →
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
