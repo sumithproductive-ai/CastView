@@ -214,6 +214,8 @@ export function ProspectRenderHistory({
   const [openEvalId, setOpenEvalId] = useState<string | null>(null);
   const [digitalSetsExpanded, setDigitalSetsExpanded] = useState(true);
   const [evaluationsExpanded, setEvaluationsExpanded] = useState(true);
+  const [compareSelectMode, setCompareSelectMode] = useState(false);
+  const [compareSelectedIds, setCompareSelectedIds] = useState<string[]>([]);
   const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
   const navigate = useNavigate();
 
@@ -597,11 +599,16 @@ export function ProspectRenderHistory({
             </button>
             <button
               type="button"
-              onClick={() =>
-                navigate(
-                  `/compare?prospectId=${resolvedEntityId}&profileType=${isModel ? 'model' : 'prospect'}`,
-                )
-              }
+              onClick={() => {
+                if (compareSelectMode) {
+                  setCompareSelectMode(false);
+                  setCompareSelectedIds([]);
+                } else {
+                  setCompareSelectMode(true);
+                  setCompareSelectedIds([]);
+                  setDigitalSetsExpanded(true);
+                }
+              }}
               className="w-full px-[16px] py-[10px] border border-[#2a2a2a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] transition-colors"
               style={{
                 fontFamily: 'var(--font-mono)',
@@ -609,7 +616,7 @@ export function ProspectRenderHistory({
                 cursor: 'pointer',
               }}
             >
-              COMPARE DIGITALS
+              {compareSelectMode ? 'CANCEL COMPARE' : 'COMPARE DIGITALS'}
             </button>
             <div className="w-full h-[1px] bg-[#2a2a2a] my-[4px]" />
             <div
@@ -676,7 +683,16 @@ export function ProspectRenderHistory({
               <button
                 type="button"
                 disabled={!canCompare}
-                onClick={handleCompareDigitals}
+                onClick={() => {
+                  if (compareSelectMode) {
+                    setCompareSelectMode(false);
+                    setCompareSelectedIds([]);
+                  } else {
+                    setCompareSelectMode(true);
+                    setCompareSelectedIds([]);
+                    setDigitalSetsExpanded(true);
+                  }
+                }}
                 className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
                 style={{
                   fontFamily: 'var(--font-mono)',
@@ -685,7 +701,7 @@ export function ProspectRenderHistory({
                   opacity: canCompare ? 1 : 0.4,
                 }}
               >
-                COMPARE DIGITALS
+                {compareSelectMode ? 'CANCEL COMPARE' : 'COMPARE DIGITALS'}
               </button>
             </div>
             <button
@@ -759,9 +775,58 @@ export function ProspectRenderHistory({
                 <div key={ds.id}>
                   <div
                     className="flex items-center gap-[24px] py-[16px]"
-                    style={{ borderBottom: '1px solid #1a1a1a', cursor: 'pointer' }}
-                    onClick={() => toggleOpenSet(ds.id)}
+                    style={{
+                      borderBottom: '1px solid #1a1a1a',
+                      cursor: 'pointer',
+                      opacity:
+                        compareSelectMode &&
+                        compareSelectedIds.length === 2 &&
+                        !compareSelectedIds.includes(ds.id)
+                          ? 0.3
+                          : 1,
+                    }}
+                    onClick={() => {
+                      if (compareSelectMode) {
+                        if (compareSelectedIds.includes(ds.id)) {
+                          setCompareSelectedIds((prev) =>
+                            prev.filter((id) => id !== ds.id),
+                          );
+                        } else if (compareSelectedIds.length < 2) {
+                          setCompareSelectedIds((prev) => [...prev, ds.id]);
+                        }
+                      } else {
+                        toggleOpenSet(ds.id);
+                      }
+                    }}
                   >
+                    {compareSelectMode && (
+                      <div
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '2px',
+                          border: `1px solid ${compareSelectedIds.includes(ds.id) ? '#f0f0ec' : '#2a2a2a'}`,
+                          backgroundColor: compareSelectedIds.includes(ds.id)
+                            ? '#f0f0ec'
+                            : 'transparent',
+                          flexShrink: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {compareSelectedIds.includes(ds.id) && (
+                          <div
+                            style={{
+                              width: '10px',
+                              height: '10px',
+                              backgroundColor: '#080808',
+                              borderRadius: '1px',
+                            }}
+                          />
+                        )}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div
                         style={{
@@ -798,6 +863,7 @@ export function ProspectRenderHistory({
                     </div>
 
                     <div className="flex items-center gap-[8px] flex-shrink-0">
+                      {!compareSelectMode && (
                       <button
                         type="button"
                         onClick={(e) => {
@@ -809,6 +875,8 @@ export function ProspectRenderHistory({
                       >
                         OPEN
                       </button>
+                      )}
+                      {!compareSelectMode && (
                       <button
                         type="button"
                         disabled={digitalsOnFile === 0}
@@ -831,6 +899,7 @@ export function ProspectRenderHistory({
                       >
                         RUN EVALUATION
                       </button>
+                      )}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -1068,6 +1137,28 @@ export function ProspectRenderHistory({
               );
             })}
           </div>
+
+          {compareSelectMode && compareSelectedIds.length === 2 && (
+            <button
+              type="button"
+              onClick={() => {
+                setCompareSelectMode(false);
+                navigate(
+                  `/compare?prospectId=${resolvedEntityId}&profileType=${profileType}&previousSetId=${compareSelectedIds[0]}&currentSetId=${compareSelectedIds[1]}`,
+                );
+              }}
+              className="w-full mt-[16px] py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                backgroundColor: '#f0f0ec',
+                color: '#080808',
+                cursor: 'pointer',
+                border: 'none',
+              }}
+            >
+              CONFIRM COMPARISON →
+            </button>
+          )}
           )}
 
           {!canCompare && (

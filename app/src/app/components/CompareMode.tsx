@@ -168,8 +168,19 @@ export function CompareMode() {
       ? `/roster/${modelId ?? resolvedProspectId}/history`
       : `/prospects/${resolvedProspectId ?? ''}`);
 
+  const previousSetIdFromUrl = searchParams.get('previousSetId');
+  const currentSetIdFromUrl = searchParams.get('currentSetId');
+
   const [selectedSetIds, setSelectedSetIds] = useState<string[]>(() => {
     const sets = prospectDigitalSets;
+    if (
+      previousSetIdFromUrl &&
+      currentSetIdFromUrl &&
+      sets.some((s) => s.id === previousSetIdFromUrl) &&
+      sets.some((s) => s.id === currentSetIdFromUrl)
+    ) {
+      return [previousSetIdFromUrl, currentSetIdFromUrl];
+    }
     if (sets.length >= 2) return [sets[sets.length - 1].id, sets[0].id];
     if (sets.length === 1) return [sets[0].id];
     return [];
