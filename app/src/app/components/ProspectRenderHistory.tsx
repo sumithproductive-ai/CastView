@@ -1159,7 +1159,6 @@ export function ProspectRenderHistory({
               CONFIRM COMPARISON →
             </button>
           )}
-          )}
 
           {!canCompare && (
             <p
