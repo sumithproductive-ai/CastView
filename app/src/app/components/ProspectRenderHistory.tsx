@@ -710,7 +710,7 @@ export function ProspectRenderHistory({
             <button
               type="button"
               onClick={() => navigate(
-                `/prospects/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
+                `/${profileType === 'model' ? 'roster' : 'prospects'}/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
               )}
               className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
               style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
@@ -729,7 +729,7 @@ export function ProspectRenderHistory({
           <button
             type="button"
             onClick={() => navigate(
-              `/prospects/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
+              `/${profileType === 'model' ? 'roster' : 'prospects'}/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
             )}
             data-tutorial="upload-new-set"
             className="w-full mt-[16px] px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
