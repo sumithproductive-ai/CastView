@@ -739,7 +739,7 @@ export function ProspectRenderHistory({
           <button
             type="button"
             onClick={() => setDigitalSetsExpanded(prev => !prev)}
-            className="mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
+            className="mt-[32px] mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
             style={{ cursor: 'pointer' }}
           >
             <span style={sectionLabelStyle}>DIGITAL SETS</span>
@@ -808,23 +808,6 @@ export function ProspectRenderHistory({
                         style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
                       >
                         OPEN
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!canCompare}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCompare(ds.id);
-                        }}
-                        className={ghostButtonClass}
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          color: '#f0f0ec',
-                          cursor: canCompare ? 'pointer' : 'not-allowed',
-                          opacity: canCompare ? 1 : 0.4,
-                        }}
-                      >
-                        {isModel ? 'COMPARE DIGITALS' : 'COMPARE'}
                       </button>
                       <button
                         type="button"
