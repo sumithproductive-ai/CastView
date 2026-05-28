@@ -743,6 +743,16 @@ export function ProspectRenderHistory({
             DIGITAL SETS
           </div>
 
+          <button
+            type="button"
+            onClick={() => setShowUploadForm(true)}
+            data-tutorial="upload-new-set"
+            className="w-full mt-[16px] px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+          >
+            UPLOAD NEW DIGITAL SET
+          </button>
+
           <div data-tutorial="digital-sets-timeline">
             {digitalSetsForDisplay.map((ds) => {
               const digitalsOnFile = countDigitalsOnFile(ds);
@@ -833,6 +843,35 @@ export function ProspectRenderHistory({
                         }}
                       >
                         RUN EVALUATION
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!window.confirm('Delete this digital set? This cannot be undone.')) return;
+                          const updatedSets = activeProfile.digitalSets.filter(
+                            (digitalSet) => digitalSet.id !== ds.id
+                          );
+                          if (profileType === 'prospect') {
+                            updateProspect(resolvedEntityId, { digitalSets: updatedSets });
+                          } else {
+                            updateModel(resolvedEntityId, { digitalSets: updatedSets });
+                          }
+                        }}
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '10px',
+                          color: '#c87a7a',
+                          background: 'none',
+                          border: '1px solid #3a1a1a',
+                          borderRadius: '4px',
+                          padding: '6px 12px',
+                          cursor: 'pointer',
+                          letterSpacing: '0.05em',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        DELETE
                       </button>
                     </div>
                   </div>
@@ -1056,16 +1095,6 @@ export function ProspectRenderHistory({
               Upload a second digital set to compare progression.
             </p>
           )}
-
-          <button
-            type="button"
-            onClick={() => setShowUploadForm(true)}
-            data-tutorial="upload-new-set"
-            className="w-full mt-[16px] px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
-          >
-            UPLOAD NEW DIGITAL SET
-          </button>
         </div>
 
         {allEvaluations.length > 0 && (
@@ -1230,6 +1259,36 @@ export function ProspectRenderHistory({
                           }}
                         >
                           VIEW FULL REPORT →
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!window.confirm('Delete this evaluation? This cannot be undone.')) return;
+                            const updatedSets = activeProfile.digitalSets.map((digitalSet) => ({
+                              ...digitalSet,
+                              evaluations: (digitalSet.evaluations ?? []).filter((e) => e.id !== ev.id),
+                            }));
+                            if (profileType === 'prospect') {
+                              updateProspect(resolvedEntityId, { digitalSets: updatedSets });
+                            } else {
+                              updateModel(resolvedEntityId, { digitalSets: updatedSets });
+                            }
+                            localStorage.removeItem(`castview_eval_${ev.id}`);
+                          }}
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '10px',
+                            color: '#c87a7a',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            letterSpacing: '0.05em',
+                            padding: 0,
+                            marginLeft: '16px',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          DELETE
                         </button>
                       </div>
                     )}
