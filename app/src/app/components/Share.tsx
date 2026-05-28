@@ -413,6 +413,25 @@ export function Share() {
   
   return (
     <div className="p-[48px]">
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: '#888880',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          letterSpacing: '0.05em',
+          padding: 0,
+          display: 'block',
+          marginBottom: '24px',
+        }}
+      >
+        ← BACK
+      </button>
+
       <h1 
         className="text-[48px] mb-[8px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}

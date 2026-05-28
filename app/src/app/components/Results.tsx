@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react';
 import { getContextData } from '../constants/contextMockData';
 import { isSumithProspect, SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 import { useProspects } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
 import {
   clearHandoffStorage,
@@ -57,6 +58,7 @@ export function Results() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { prospects, updateProspect } = useProspects();
+  const { models, updateModel } = useRoster();
   const [realEvalData, setRealEvalData] = useState<any>(null);
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
   const prospectName = searchParams.get('name')
@@ -472,18 +474,40 @@ export function Results() {
           <button
             type="button"
             onClick={() => {
-              if (!evaluationId || !prospectId) return;
-              const prospect = prospects.find((p) => p.id === prospectId);
-              if (!prospect) return;
-              const updatedSets = prospect.digitalSets.map((ds) => ({
-                ...ds,
-                evaluations: (ds.evaluations ?? []).filter(
-                  (e) => e.id !== evaluationId,
-                ),
-              }));
-              updateProspect(prospectId, { digitalSets: updatedSets });
-              localStorage.removeItem(`castview_eval_${evaluationId}`);
-              navigate(`/prospects/${prospectId}`);
+              if (!evaluationId) return;
+              if (!window.confirm('Delete this evaluation? This cannot be undone.')) return;
+
+              if (profileType === 'model') {
+                const model = models.find(
+                  (m) =>
+                    m.id === prospectId ||
+                    m.name.trim().toLowerCase() === prospectName.trim().toLowerCase(),
+                );
+                if (model) {
+                  const updatedSets = model.digitalSets.map((ds) => ({
+                    ...ds,
+                    evaluations: (ds.evaluations ?? []).filter(
+                      (e) => e.id !== evaluationId,
+                    ),
+                  }));
+                  updateModel(model.id, { digitalSets: updatedSets });
+                  localStorage.removeItem(`castview_eval_${evaluationId}`);
+                  navigate(`/roster/${model.id}`);
+                }
+              } else {
+                if (!prospectId) return;
+                const prospect = prospects.find((p) => p.id === prospectId);
+                if (!prospect) return;
+                const updatedSets = prospect.digitalSets.map((ds) => ({
+                  ...ds,
+                  evaluations: (ds.evaluations ?? []).filter(
+                    (e) => e.id !== evaluationId,
+                  ),
+                }));
+                updateProspect(prospectId, { digitalSets: updatedSets });
+                localStorage.removeItem(`castview_eval_${evaluationId}`);
+                navigate(`/prospects/${prospectId}`);
+              }
             }}
             style={{
               fontFamily: 'var(--font-mono)',

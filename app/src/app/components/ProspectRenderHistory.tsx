@@ -837,7 +837,7 @@ export function ProspectRenderHistory({
                           fontWeight: 700,
                         }}
                       >
-                        {ds.uploadedAt || ds.title}
+                        {ds.title && ds.title !== 'Untitled Set' ? ds.title : ds.uploadedAt}
                       </div>
                       <div
                         style={{

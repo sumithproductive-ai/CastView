@@ -85,6 +85,27 @@ export function Profile() {
   
   return (
     <div className="p-[48px]">
+      <button
+        type="button"
+        onClick={() =>
+          navigate(profileType === 'model' ? '/roster' : '/prospects')
+        }
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: '#888880',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          letterSpacing: '0.05em',
+          padding: 0,
+          display: 'block',
+          marginBottom: '24px',
+        }}
+      >
+        {profileType === 'model' ? '← BACK TO ROSTER' : '← BACK TO PROSPECTS'}
+      </button>
+
       <div className="flex items-center gap-[8px] mb-[48px]">
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}>
           Prospects
