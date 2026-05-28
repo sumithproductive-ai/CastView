@@ -6,6 +6,10 @@ import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { TutorialOverlay, compareTutorialSteps } from './TutorialOverlay';
 import { getRosterModelById } from './Roster';
+import {
+  compressImageUrlForEvaluation,
+  fetchEvaluateContext,
+} from '../utils/compressEvaluationImage';
 
 type DigitalSetOption = {
   id: string;
@@ -36,15 +40,6 @@ function getDigitalSetDisplayTitle(title: string | null | undefined): string {
 function hasDigitalImageValue(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim() !== '';
 }
-
-type MockResult = {
-  context: string;
-  oldScore: number;
-  newScore: number;
-  change: 'improved' | 'declined' | 'stable';
-  reasoning: string;
-  nextStep: string;
-};
 
 type CompareNavigationState = {
   prospectId?: string;
@@ -119,96 +114,6 @@ const contexts = [
   'Swimwear',
   'Streetwear',
   'E-commerce',
-];
-
-const mockResults: MockResult[] = [
-  {
-    context: 'Fragrance',
-    oldScore: 78,
-    newScore: 91,
-    change: 'improved',
-    reasoning:
-      'Updated digitals show improved bone structure visibility and stronger contrast range. More aligned with current luxury fragrance casting criteria.',
-    nextStep: 'Prioritise fragrance test shoot within next 30 days.',
-  },
-  {
-    context: 'Editorial',
-    oldScore: 82,
-    newScore: 88,
-    change: 'improved',
-    reasoning:
-      'Improved posture and framing in new digitals. Editorial versatility score has increased.',
-    nextStep: 'Submit to editorial clients in NYC and London markets.',
-  },
-  {
-    context: 'Runway',
-    oldScore: 74,
-    newScore: 71,
-    change: 'declined',
-    reasoning:
-      'Slight decline in proportion indicators. May reflect digital quality rather than actual change.',
-    nextStep:
-      'Upload full body digital with better lighting for more accurate runway assessment.',
-  },
-  {
-    context: 'Campaign',
-    oldScore: 85,
-    newScore: 85,
-    change: 'stable',
-    reasoning:
-      'Commercial appeal indicators remain consistent across both digital sets.',
-    nextStep: 'Maintain current positioning for commercial campaign submissions.',
-  },
-  {
-    context: 'Beauty',
-    oldScore: 79,
-    newScore: 86,
-    change: 'improved',
-    reasoning:
-      'Skin clarity and facial detail improved in updated digitals. Better alignment with beauty context criteria.',
-    nextStep: 'Consider beauty and grooming campaign submissions.',
-  },
-  {
-    context: 'Sportswear',
-    oldScore: 81,
-    newScore: 83,
-    change: 'improved',
-    reasoning: 'Slight improvement in physicality indicators from updated digitals.',
-    nextStep: 'Athletic and activewear submissions viable.',
-  },
-  {
-    context: 'Couture',
-    oldScore: 76,
-    newScore: 79,
-    change: 'improved',
-    reasoning: 'Marginal improvement. Couture alignment remains moderate.',
-    nextStep: 'Focus on editorial and fragrance first before couture submissions.',
-  },
-  {
-    context: 'Swimwear',
-    oldScore: 80,
-    newScore: 80,
-    change: 'stable',
-    reasoning: 'Consistent alignment across both digital sets for swimwear context.',
-    nextStep: 'Swimwear submissions viable when seasonally relevant.',
-  },
-  {
-    context: 'Streetwear',
-    oldScore: 88,
-    newScore: 90,
-    change: 'improved',
-    reasoning:
-      'Strong contemporary style alignment. Updated digitals reinforce street style positioning.',
-    nextStep: 'High priority for streetwear and contemporary brand submissions.',
-  },
-  {
-    context: 'E-commerce',
-    oldScore: 83,
-    newScore: 84,
-    change: 'stable',
-    reasoning: 'Consistent commercial versatility across both digital sets.',
-    nextStep: 'Suitable for e-commerce and product campaign work.',
-  },
 ];
 
 const sectionLabelStyle = {
@@ -506,6 +411,8 @@ export function CompareMode() {
     'Editorial',
   ]);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [isComparing, setIsComparing] = useState(false);
+  const [comparingStatus, setComparingStatus] = useState('');
   const profileType = searchParams.get('profileType') || 'prospect';
 
   useEffect(() => {
@@ -589,44 +496,135 @@ export function CompareMode() {
     setSelectedContexts([]);
   };
 
-  const handleRunComparison = () => {
-    const comparisonResults = mockResults
-      .filter((result) => selectedContexts.includes(result.context))
-      .map((result) => ({
-        context: result.context,
-        oldScore: result.oldScore,
-        newScore: result.newScore,
-        direction: result.change,
-        reasoning: result.reasoning,
-        nextStep: result.nextStep,
-      }));
+  const handleRunComparison = async () => {
+    if (isComparing || selectedContexts.length === 0) return;
+    if (!previousSet || !currentSet) return;
 
-    sessionStorage.setItem(
-      'castview_comparison_results',
-      JSON.stringify({
-        results: comparisonResults,
-        previousSet: {
-          title: previousSet.title,
-          date: previousSet.date,
-        },
-        currentSet: {
-          title: currentSet.title,
-          date: currentSet.date,
-        },
-        improvedCount: comparisonResults.filter(
-          (r) => r.direction === 'improved',
-        ).length,
-        stableCount: comparisonResults.filter((r) => r.direction === 'stable')
-          .length,
-        declinedCount: comparisonResults.filter(
-          (r) => r.direction === 'declined',
-        ).length,
-      }),
-    );
+    setIsComparing(true);
+    setComparingStatus('Compressing digitals...');
 
-    navigate(
-      `/compare/results?name=${encodeURIComponent(prospectName)}&prospectId=${resolvedProspectId ?? ''}&profileType=${profileType}`,
-    );
+    try {
+      // Compress images for both sets
+      const compressSet = async (set: DigitalSetOption) => {
+        const urls = [set.front, set.profile, set.threeQuarter, set.fullBody]
+          .filter((u): u is string => Boolean(u));
+        const compressed = await Promise.all(
+          urls.map((url) => compressImageUrlForEvaluation(url)),
+        );
+        return compressed.filter((img): img is NonNullable<typeof img> => Boolean(img));
+      };
+
+      setComparingStatus('Preparing digital sets...');
+      const [prevImages, currImages] = await Promise.all([
+        compressSet(previousSet),
+        compressSet(currentSet),
+      ]);
+
+      if (prevImages.length === 0 || currImages.length === 0) {
+        setIsComparing(false);
+        setComparingStatus('');
+        alert(
+          'Could not load images from one or both digital sets. Make sure both sets have uploaded digitals.',
+        );
+        return;
+      }
+
+      // Evaluate both sets for all selected contexts in parallel
+      const comparisonResults: Array<{
+        context: string;
+        oldScore: number;
+        newScore: number;
+        direction: 'improved' | 'declined' | 'stable';
+        reasoning: string;
+        nextStep: string;
+      }> = [];
+
+      for (let i = 0; i < selectedContexts.length; i++) {
+        const context = selectedContexts[i];
+        setComparingStatus(
+          `Evaluating ${context}... (${i + 1} of ${selectedContexts.length})`,
+        );
+
+        // Evaluate previous and current set in parallel for this context
+        const [prevResult, currResult] = await Promise.all([
+          fetchEvaluateContext({
+            prospectName,
+            selectedContexts: [context],
+            images: prevImages,
+          }),
+          fetchEvaluateContext({
+            prospectName,
+            selectedContexts: [context],
+            images: currImages,
+          }),
+        ]);
+
+        const prevEval = prevResult.ok
+          ? prevResult.data?.contextEvaluations?.[0]
+          : null;
+        const currEval = currResult.ok
+          ? currResult.data?.contextEvaluations?.[0]
+          : null;
+
+        if (!prevEval || !currEval) continue;
+
+        const oldScore = prevEval.alignmentScore;
+        const newScore = currEval.alignmentScore;
+        const diff = newScore - oldScore;
+        const direction: 'improved' | 'declined' | 'stable' =
+          diff > 2 ? 'improved' : diff < -2 ? 'declined' : 'stable';
+
+        comparisonResults.push({
+          context,
+          oldScore,
+          newScore,
+          direction,
+          reasoning: currEval.reasoning,
+          nextStep:
+            currEval.suggestedNextSteps?.[0] ??
+            'Reassess after next digital set upload.',
+        });
+      }
+
+      if (comparisonResults.length === 0) {
+        setIsComparing(false);
+        setComparingStatus('');
+        alert('Evaluation failed for all selected contexts. Please try again.');
+        return;
+      }
+
+      setComparingStatus('Building report...');
+
+      sessionStorage.setItem(
+        'castview_comparison_results',
+        JSON.stringify({
+          results: comparisonResults,
+          previousSet: {
+            title: previousSet.title,
+            date: previousSet.date,
+          },
+          currentSet: {
+            title: currentSet.title,
+            date: currentSet.date,
+          },
+          improvedCount: comparisonResults.filter((r) => r.direction === 'improved')
+            .length,
+          stableCount: comparisonResults.filter((r) => r.direction === 'stable')
+            .length,
+          declinedCount: comparisonResults.filter((r) => r.direction === 'declined')
+            .length,
+        }),
+      );
+
+      navigate(
+        `/compare/results?name=${encodeURIComponent(prospectName)}&prospectId=${resolvedProspectId ?? ''}&profileType=${profileType}`,
+      );
+    } catch (err) {
+      console.error('[CompareMode] comparison error:', err);
+      setIsComparing(false);
+      setComparingStatus('');
+      alert('Something went wrong during comparison. Please try again.');
+    }
   };
 
   return (
@@ -782,16 +780,19 @@ export function CompareMode() {
       <button
         type="button"
         onClick={handleRunComparison}
+        disabled={isComparing || selectedContexts.length === 0}
         data-tutorial="compare-run"
-        className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 mb-[32px]"
+        className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity mb-[32px]"
         style={{
           fontFamily: 'var(--font-mono)',
-          backgroundColor: '#f0f0ec',
-          color: '#080808',
-          cursor: 'pointer',
+          backgroundColor: isComparing ? '#2a2a2a' : '#f0f0ec',
+          color: isComparing ? '#666660' : '#080808',
+          cursor:
+            isComparing || selectedContexts.length === 0 ? 'not-allowed' : 'pointer',
+          opacity: selectedContexts.length === 0 ? 0.4 : 1,
         }}
       >
-        RUN COMPARISON
+        {isComparing ? comparingStatus || 'COMPARING...' : 'RUN COMPARISON'}
       </button>
 
       {showTutorial && (
