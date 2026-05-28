@@ -212,8 +212,8 @@ export function ProspectRenderHistory({
     evalId: string;
   } | null>(null);
   const [openEvalId, setOpenEvalId] = useState<string | null>(null);
-  const [digitalSetsExpanded, setDigitalSetsExpanded] = useState(true);
-  const [evaluationsExpanded, setEvaluationsExpanded] = useState(true);
+  const [digitalSetsExpanded, setDigitalSetsExpanded] = useState(false);
+  const [evaluationsExpanded, setEvaluationsExpanded] = useState(false);
   const [compareSelectMode, setCompareSelectMode] = useState(false);
   const [compareSelectedIds, setCompareSelectedIds] = useState<string[]>([]);
   const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
