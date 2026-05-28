@@ -221,6 +221,14 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: '/roster/:prospectId/upload-digitals',
+    element: (
+      <Layout>
+        <UploadDigitalSet />
+      </Layout>
+    ),
+  },
+  {
     path: '/settings',
     element: (
       <Layout>
