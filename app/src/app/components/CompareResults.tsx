@@ -14,6 +14,8 @@ type ComparisonResultItem = {
   direction: ComparisonDirection;
   reasoning: string;
   nextStep: string;
+  strengths?: string[];
+  risks?: string[];
 };
 
 type ComparisonStorageData = {
@@ -597,6 +599,22 @@ export function CompareResults() {
                   >
                     → {result.nextStep}
                   </p>
+
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      color: result.newScore > result.oldScore ? '#4a7a4a' : 
+                             result.newScore < result.oldScore ? '#c87a7a' : '#888880',
+                      marginTop: '12px',
+                    }}
+                  >
+                    {result.newScore > result.oldScore
+                      ? `▲ +${result.newScore - result.oldScore} from previous set`
+                      : result.newScore < result.oldScore
+                      ? `▼ ${result.newScore - result.oldScore} from previous set`
+                      : `→ No change from previous set`}
+                  </div>
 
                   <div
                     className="uppercase mb-[8px]"
