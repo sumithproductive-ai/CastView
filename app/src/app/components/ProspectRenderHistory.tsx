@@ -212,6 +212,7 @@ export function ProspectRenderHistory({
     evalId: string;
   } | null>(null);
   const [openEvalId, setOpenEvalId] = useState<string | null>(null);
+  const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
   const navigate = useNavigate();
 
   const resetUploadFormState = () => {
@@ -283,6 +284,10 @@ export function ProspectRenderHistory({
   const resolvedEntityId = isModel
     ? modelId ?? 'sumith-chittimalla-roster'
     : prospectId ?? 'sumith-chittimalla';
+  const rosterModelForImage = models.find((m) => m.id === (modelId ?? ''));
+  const profileImageSrc = isProspect
+    ? (contextProspect?.image ?? null)
+    : (rosterModelForImage?.image ?? null);
   const profilePath = isModel
     ? `/roster/${resolvedEntityId}`
     : `/prospects/${resolvedEntityId}`;
@@ -474,6 +479,76 @@ export function ProspectRenderHistory({
       >
         {isModel ? 'ROSTER MODEL' : 'PROSPECT PROFILE'}
       </p>
+
+      <div className="aspect-[3/4] bg-[#1a1a1a] rounded-[4px] overflow-hidden mb-[24px]">
+        <label
+          style={{ position: 'relative', cursor: 'pointer', display: 'block' }}
+          title="Click to update profile photo"
+        >
+          {profileImageSrc ? (
+            <img
+              src={profileImageSrc}
+              alt={activeProfile.name}
+              className="w-full h-full object-cover"
+              style={{ objectPosition: 'center 15%' }}
+            />
+          ) : null}
+
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #2a2a2a',
+              borderRadius: '2px',
+              padding: '3px 5px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '8px',
+              color: '#888880',
+              letterSpacing: '0.08em',
+              pointerEvents: 'none',
+            }}
+          >
+            EDIT
+          </div>
+
+          <input
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setUploadingProfilePic(true);
+              const reader = new FileReader();
+              reader.onload = () => {
+                const base64 = reader.result as string;
+                if (profileType === 'prospect') {
+                  updateProspect(resolvedEntityId, { image: base64 });
+                } else {
+                  updateModel(resolvedEntityId, { image: base64 });
+                }
+                setUploadingProfilePic(false);
+              };
+              reader.readAsDataURL(file);
+            }}
+          />
+        </label>
+      </div>
+
+      {uploadingProfilePic && (
+        <div
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '9px',
+            color: '#888880',
+            marginTop: '4px',
+          }}
+        >
+          Updating...
+        </div>
+      )}
 
       <h1
         className="text-[48px] mb-[12px]"
