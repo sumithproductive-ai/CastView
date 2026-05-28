@@ -16,26 +16,6 @@ interface ClientResponse {
   responseTime?: string;
 }
 
-const clientResponses: ClientResponse[] = [
-  {
-    id: '1',
-    prospectName: 'Sumith Chittimalla',
-    contexts: 'Fragrance · Editorial',
-    sentTime: '2 days ago',
-    status: 'VIEWED',
-    openedTime: '1 day ago',
-  },
-  {
-    id: '2',
-    prospectName: 'Sumith Chittimalla',
-    contexts: 'Campaign · Beauty',
-    sentTime: '5 days ago',
-    status: 'RESPONDED',
-    openedTime: '4 days ago',
-    responseTime: '3 days ago',
-  },
-];
-
 function submissionDateRank(submissionDate: string): number {
   const value = submissionDate.toLowerCase().trim();
   if (value === 'today') return 0;
@@ -60,26 +40,10 @@ type RosterActivityItem = {
   image: string;
 };
 
-const rosterActivity: RosterActivityItem[] = [
-  {
-    id: 'sumith-chittimalla-roster',
-    name: 'Sumith Chittimalla',
-    activity: 'New evaluation completed — Fragrance 94%',
-    timeAgo: '3 days ago',
-    image: 'https://i.imgur.com/F70z8kX.jpg',
-  },
-  {
-    id: 'john-doe-roster',
-    name: 'John Doe',
-    activity: 'Digital set comparison run — Fragrance improved',
-    timeAgo: '1 week ago',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80',
-  },
-];
-
 export function Dashboard() {
   const { prospects } = useProspects();
   const { models } = useRoster();
+  const clientResponses: ClientResponse[] = [];
 
   const activeModelsCount = models.filter(
     (m) => m.status === 'ACTIVE'
@@ -118,6 +82,25 @@ export function Dashboard() {
         .slice(0, 3),
     [prospects],
   );
+
+  const rosterActivity = useMemo(() => {
+    return models
+      .flatMap((model) =>
+        model.digitalSets.flatMap((ds) =>
+          ds.evaluations.map((ev) => ({
+            id: model.id,
+            name: model.name,
+            image: model.image,
+            activity: ev.contexts.length > 0
+              ? `Evaluation completed — ${ev.contexts[0].context} ${ev.contexts[0].alignmentScore}%`
+              : 'Evaluation completed',
+            timeAgo: ev.completedAt,
+          }))
+        )
+      )
+      .sort((a, b) => b.timeAgo.localeCompare(a.timeAgo))
+      .slice(0, 3);
+  }, [models]);
   
   return (
     <div className="p-[20px] md:p-[48px]">
