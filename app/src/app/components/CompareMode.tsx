@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import type { DigitalSet } from '../types/talent';
 import { useProspects } from '../context/ProspectsContext';
@@ -22,23 +22,12 @@ type DigitalSetOption = {
   fullBody: string | null;
 };
 
-const DIGITAL_PREVIEW_FIELDS = [
-  { key: 'front' as const, label: 'FRONT' },
-  { key: 'profile' as const, label: 'PROFILE' },
-  { key: 'threeQuarter' as const, label: '3/4' },
-  { key: 'fullBody' as const, label: 'FULL BODY' },
-];
-
 function getDigitalSetDisplayTitle(title: string | null | undefined): string {
   const trimmed = title?.trim();
   if (!trimmed || trimmed === 'Untitled Set') {
     return 'Unnamed Set';
   }
   return trimmed;
-}
-
-function hasDigitalImageValue(value: string | null | undefined): value is string {
-  return typeof value === 'string' && value.trim() !== '';
 }
 
 type CompareNavigationState = {
@@ -80,29 +69,6 @@ function navDigitalSetToOption(navSet: {
   };
 }
 
-function resolveCompareSelection(
-  sets: DigitalSetOption[],
-  previousSetIdFromNav?: string
-) {
-  if (sets.length === 0) {
-    return { previousSetId: '', currentSetId: '' };
-  }
-  if (sets.length === 1) {
-    return { previousSetId: sets[0].id, currentSetId: sets[0].id };
-  }
-
-  const newest = sets[0];
-  const oldest = sets[sets.length - 1];
-
-  if (previousSetIdFromNav && sets.some((set) => set.id === previousSetIdFromNav)) {
-    const currentSetId =
-      sets.find((set) => set.id !== previousSetIdFromNav)?.id ?? newest.id;
-    return { previousSetId: previousSetIdFromNav, currentSetId };
-  }
-
-  return { previousSetId: oldest.id, currentSetId: newest.id };
-}
-
 const contexts = [
   'Fragrance',
   'Editorial',
@@ -123,199 +89,6 @@ const sectionLabelStyle = {
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
 };
-
-function DigitalSetSelector({
-  panelLabel,
-  selectedId,
-  onSelect,
-  sets,
-}: {
-  panelLabel: string;
-  selectedId: string;
-  onSelect: (id: string) => void;
-  sets: DigitalSetOption[];
-}) {
-  return (
-    <div className="flex-1 min-w-0">
-      <div
-        className="mb-[12px]"
-        style={sectionLabelStyle}
-      >
-        {panelLabel}
-      </div>
-      <div className="space-y-[8px]">
-        {sets.map((set) => {
-          const isSelected = selectedId === set.id;
-          return (
-            <button
-              key={set.id}
-              type="button"
-              onClick={() => onSelect(set.id)}
-              className="w-full flex items-center gap-[12px] p-[12px] rounded-[4px] text-left transition-colors"
-              style={{
-                backgroundColor: '#111111',
-                border: `1px solid ${isSelected ? '#f0f0ec' : '#2a2a2a'}`,
-                cursor: 'pointer',
-              }}
-            >
-              <div
-                className="flex-shrink-0 overflow-hidden rounded-[4px] bg-[#1a1a1a]"
-                style={{ width: '48px', height: '48px' }}
-              >
-                <img
-                  src={set.thumbnail}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '12px',
-                    color: '#f0f0ec',
-                  }}
-                >
-                  {getDigitalSetDisplayTitle(set.title)}
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '11px',
-                    color: '#555550',
-                    marginTop: '2px',
-                  }}
-                >
-                  {set.date}
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function DigitalsPreviewGrid({
-  selectedId,
-  sets,
-}: {
-  selectedId: string;
-  sets: DigitalSetOption[];
-}) {
-  if (!selectedId) {
-    return (
-      <p
-        className="mt-[16px]"
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '12px',
-          color: '#888880',
-        }}
-      >
-        Select a digital set to preview
-      </p>
-    );
-  }
-
-  const selectedSet = sets.find((set) => set.id === selectedId);
-  if (!selectedSet) {
-    return (
-      <p
-        className="mt-[16px]"
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '12px',
-          color: '#888880',
-        }}
-      >
-        Select a digital set to preview
-      </p>
-    );
-  }
-
-  return (
-    <div className="flex flex-row flex-wrap gap-[8px] mt-[16px]">
-      {DIGITAL_PREVIEW_FIELDS.map(({ key, label }) => {
-        const value = selectedSet[key];
-        const slotStyle = { width: 'calc(50% - 4px)' };
-
-        if (hasDigitalImageValue(value)) {
-          return (
-            <div key={key} style={slotStyle}>
-              <div
-                style={{
-                  aspectRatio: '3/4',
-                  overflow: 'hidden',
-                  border: '1px solid #2a2a2a',
-                  borderRadius: '4px',
-                  background: '#111111',
-                }}
-              >
-                <img
-                  src={value}
-                  alt={label}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    objectPosition: 'center 15%',
-                  }}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </div>
-              <div
-                className="uppercase mt-[4px]"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '8px',
-                  color: '#888880',
-                }}
-              >
-                {label}
-              </div>
-            </div>
-          );
-        }
-
-        return (
-          <div key={key} style={slotStyle}>
-            <div
-              className="bg-[#0d0d0d] border border-dashed border-[#2a2a2a] flex items-center justify-center"
-              style={{ aspectRatio: '3/4', borderRadius: '4px' }}
-            >
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '9px',
-                  color: '#444440',
-                }}
-              >
-                —
-              </span>
-            </div>
-            <div
-              className="uppercase mt-[4px]"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '8px',
-                color: '#888880',
-              }}
-            >
-              {label}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 export function CompareMode() {
   const location = useLocation();
@@ -395,17 +168,12 @@ export function CompareMode() {
       ? `/roster/${modelId ?? resolvedProspectId}/history`
       : `/prospects/${resolvedProspectId ?? ''}`);
 
-  const initialSelection = useMemo(
-    () =>
-      resolveCompareSelection(
-        prospectDigitalSets,
-        modelId ? undefined : navigationState?.previousSetId
-      ),
-    [prospectDigitalSets, navigationState?.previousSetId, modelId]
-  );
-
-  const [previousSetId, setPreviousSetId] = useState(initialSelection.previousSetId);
-  const [currentSetId, setCurrentSetId] = useState(initialSelection.currentSetId);
+  const [selectedSetIds, setSelectedSetIds] = useState<string[]>(() => {
+    const sets = prospectDigitalSets;
+    if (sets.length >= 2) return [sets[sets.length - 1].id, sets[0].id];
+    if (sets.length === 1) return [sets[0].id];
+    return [];
+  });
   const [selectedContexts, setSelectedContexts] = useState<string[]>([
     'Fragrance',
     'Editorial',
@@ -414,16 +182,6 @@ export function CompareMode() {
   const [isComparing, setIsComparing] = useState(false);
   const [comparingStatus, setComparingStatus] = useState('');
   const profileType = searchParams.get('profileType') || 'prospect';
-
-  useEffect(() => {
-    if (!canCompare) return;
-    const next = resolveCompareSelection(
-      prospectDigitalSets,
-      modelId ? undefined : navigationState?.previousSetId
-    );
-    setPreviousSetId(next.previousSetId);
-    setCurrentSetId(next.currentSetId);
-  }, [location.key, prospectDigitalSets, navigationState?.previousSetId, canCompare, modelId]);
 
   if (prospectDigitalSets.length === 0) {
     return (
@@ -475,10 +233,9 @@ export function CompareMode() {
   }
 
   const previousSet =
-    prospectDigitalSets.find((set) => set.id === previousSetId) ?? prospectDigitalSets[0];
+    prospectDigitalSets.find((s) => s.id === selectedSetIds[0]) ?? prospectDigitalSets[0];
   const currentSet =
-    prospectDigitalSets.find((set) => set.id === currentSetId) ??
-    prospectDigitalSets[prospectDigitalSets.length - 1];
+    prospectDigitalSets.find((s) => s.id === selectedSetIds[1]) ?? prospectDigitalSets[1];
 
   const toggleContext = (context: string) => {
     setSelectedContexts((prev) =>
@@ -629,6 +386,25 @@ export function CompareMode() {
 
   return (
     <div className="p-[32px] min-h-screen flex flex-col overflow-y-auto">
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: '#888880',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          letterSpacing: '0.05em',
+          padding: 0,
+          marginBottom: '24px',
+          display: 'block',
+        }}
+      >
+        ← BACK
+      </button>
+
       <div className="flex items-baseline justify-between mb-[20px] flex-shrink-0">
         <div>
           <div className="mb-[4px]">
@@ -686,31 +462,137 @@ export function CompareMode() {
       </div>
 
       {/* STEP 1 — Digital Set Selection */}
-      <div className="flex gap-[16px] mb-[32px]" data-tutorial="compare-selectors">
-        <div className="flex-1 min-w-0">
-          <DigitalSetSelector
-            panelLabel="PREVIOUS DIGITALS"
-            selectedId={previousSetId}
-            onSelect={setPreviousSetId}
-            sets={prospectDigitalSets}
-          />
-          <DigitalsPreviewGrid
-            selectedId={previousSetId}
-            sets={prospectDigitalSets}
-          />
+      <div className="mb-[32px]" data-tutorial="compare-selectors">
+        <div className="mb-[12px]" style={sectionLabelStyle}>
+          SELECT 2 DIGITAL SETS TO COMPARE
         </div>
-        <div className="flex-1 min-w-0">
-          <DigitalSetSelector
-            panelLabel="CURRENT DIGITALS"
-            selectedId={currentSetId}
-            onSelect={setCurrentSetId}
-            sets={prospectDigitalSets}
-          />
-          <DigitalsPreviewGrid
-            selectedId={currentSetId}
-            sets={prospectDigitalSets}
-          />
+        <div className="space-y-[8px]">
+          {prospectDigitalSets.map((set) => {
+            const isSelected = selectedSetIds.includes(set.id);
+            const isDisabled = !isSelected && selectedSetIds.length >= 2;
+            const selectionIndex = selectedSetIds.indexOf(set.id);
+
+            return (
+              <button
+                key={set.id}
+                type="button"
+                disabled={isDisabled}
+                onClick={() => {
+                  if (isDisabled) return;
+                  setSelectedSetIds((prev) =>
+                    prev.includes(set.id)
+                      ? prev.filter((id) => id !== set.id)
+                      : [...prev, set.id],
+                  );
+                }}
+                className="w-full flex items-center gap-[16px] p-[14px] rounded-[4px] text-left transition-colors"
+                style={{
+                  backgroundColor: '#111111',
+                  border: `1px solid ${isSelected ? '#f0f0ec' : '#2a2a2a'}`,
+                  cursor: isDisabled ? 'not-allowed' : 'pointer',
+                  opacity: isDisabled ? 0.35 : 1,
+                }}
+              >
+                <div
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '2px',
+                    border: `1px solid ${isSelected ? '#f0f0ec' : '#444440'}`,
+                    backgroundColor: isSelected ? '#f0f0ec' : 'transparent',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {isSelected && (
+                    <span style={{ color: '#080808', fontSize: '10px', lineHeight: 1 }}>
+                      ✓
+                    </span>
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                    backgroundColor: '#1a1a1a',
+                    flexShrink: 0,
+                  }}
+                >
+                  {set.front && (
+                    <img
+                      src={set.front}
+                      alt=""
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center 15%',
+                      }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '12px',
+                      color: '#f0f0ec',
+                    }}
+                  >
+                    {set.date || getDigitalSetDisplayTitle(set.title)}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '10px',
+                      color: '#555550',
+                      marginTop: '2px',
+                    }}
+                  >
+                    {set.date}
+                  </div>
+                </div>
+
+                {isSelected && (
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '9px',
+                      color: '#888880',
+                      letterSpacing: '0.08em',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {selectionIndex === 0 ? 'BEFORE' : 'AFTER'}
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
+        {selectedSetIds.length === 2 && (
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
+              color: '#666660',
+              marginTop: '10px',
+            }}
+          >
+            Comparing{' '}
+            {prospectDigitalSets.find((s) => s.id === selectedSetIds[0])?.date} →{' '}
+            {prospectDigitalSets.find((s) => s.id === selectedSetIds[1])?.date}
+          </div>
+        )}
       </div>
 
       {/* STEP 2 — Context Selection */}
@@ -780,7 +662,7 @@ export function CompareMode() {
       <button
         type="button"
         onClick={handleRunComparison}
-        disabled={isComparing || selectedContexts.length === 0}
+        disabled={isComparing || selectedContexts.length === 0 || selectedSetIds.length !== 2}
         data-tutorial="compare-run"
         className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity mb-[32px]"
         style={{
@@ -788,8 +670,11 @@ export function CompareMode() {
           backgroundColor: isComparing ? '#2a2a2a' : '#f0f0ec',
           color: isComparing ? '#666660' : '#080808',
           cursor:
-            isComparing || selectedContexts.length === 0 ? 'not-allowed' : 'pointer',
-          opacity: selectedContexts.length === 0 ? 0.4 : 1,
+            isComparing || selectedContexts.length === 0 || selectedSetIds.length !== 2
+              ? 'not-allowed'
+              : 'pointer',
+          opacity:
+            selectedContexts.length === 0 || selectedSetIds.length !== 2 ? 0.4 : 1,
         }}
       >
         {isComparing ? comparingStatus || 'COMPARING...' : 'RUN COMPARISON'}

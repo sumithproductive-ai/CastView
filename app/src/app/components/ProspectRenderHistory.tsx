@@ -212,6 +212,8 @@ export function ProspectRenderHistory({
     evalId: string;
   } | null>(null);
   const [openEvalId, setOpenEvalId] = useState<string | null>(null);
+  const [digitalSetsExpanded, setDigitalSetsExpanded] = useState(true);
+  const [evaluationsExpanded, setEvaluationsExpanded] = useState(true);
   const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
   const navigate = useNavigate();
 
@@ -722,10 +724,6 @@ export function ProspectRenderHistory({
       ) : (
         <>
         <div>
-          <div className="mb-[16px]" style={sectionLabelStyle}>
-            DIGITAL SETS
-          </div>
-
           <button
             type="button"
             onClick={() => navigate(
@@ -738,6 +736,19 @@ export function ProspectRenderHistory({
             UPLOAD NEW DIGITAL SET
           </button>
 
+          <button
+            type="button"
+            onClick={() => setDigitalSetsExpanded(prev => !prev)}
+            className="mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
+            style={{ cursor: 'pointer' }}
+          >
+            <span style={sectionLabelStyle}>DIGITAL SETS</span>
+            <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
+              {digitalSetsExpanded ? '▲' : '▼'}
+            </span>
+          </button>
+
+          {digitalSetsExpanded && (
           <div data-tutorial="digital-sets-timeline">
             {digitalSetsForDisplay.map((ds) => {
               const digitalsOnFile = countDigitalsOnFile(ds);
@@ -866,23 +877,6 @@ export function ProspectRenderHistory({
                       >
                         DELETE
                       </button>
-                    </div>
-
-                    <div
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleOpenSet(ds.id);
-                      }}
-                      style={{
-                        cursor: 'pointer',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '9px',
-                        color: '#888880',
-                        flexShrink: 0,
-                        paddingLeft: '16px',
-                      }}
-                    >
-                      {isOpen ? '▲' : '▼'}
                     </div>
                   </div>
 
@@ -1091,6 +1085,7 @@ export function ProspectRenderHistory({
               );
             })}
           </div>
+          )}
 
           {!canCompare && (
             <p
@@ -1109,10 +1104,19 @@ export function ProspectRenderHistory({
 
         {allEvaluations.length > 0 && (
           <div className="mt-[48px]">
-            <div className="mb-[16px]" style={sectionLabelStyle}>
-              EVALUATIONS
-            </div>
+            <button
+              type="button"
+              onClick={() => setEvaluationsExpanded(prev => !prev)}
+              className="mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
+              style={{ cursor: 'pointer' }}
+            >
+              <span style={sectionLabelStyle}>EVALUATIONS</span>
+              <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
+                {evaluationsExpanded ? '▲' : '▼'}
+              </span>
+            </button>
 
+            {evaluationsExpanded && (
             <div>
               {allEvaluations.map((ev) => {
                 const isOpen = openEvalId === ev.id;
@@ -1306,6 +1310,7 @@ export function ProspectRenderHistory({
                 );
               })}
             </div>
+            )}
           </div>
         )}
         </>
