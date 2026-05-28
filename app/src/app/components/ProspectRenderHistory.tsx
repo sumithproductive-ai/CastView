@@ -473,107 +473,88 @@ export function ProspectRenderHistory({
           : '← BACK TO PROSPECTS'}
       </button>
 
-      <p
-        className="mb-[8px]"
-        style={sectionLabelStyle}
-      >
-        {isModel ? 'ROSTER MODEL' : 'PROSPECT PROFILE'}
-      </p>
-
-      <div className="aspect-[3/4] bg-[#1a1a1a] rounded-[4px] overflow-hidden mb-[24px]">
-        <label
-          style={{ position: 'relative', cursor: 'pointer', display: 'block' }}
-          title="Click to update profile photo"
-        >
-          {profileImageSrc ? (
-            <img
-              src={profileImageSrc}
-              alt={activeProfile.name}
-              className="w-full h-full object-cover"
-              style={{ objectPosition: 'center 15%' }}
-            />
-          ) : null}
-
+      <div className="flex items-start gap-[24px] mb-[48px]">
+        <div style={{ position: 'relative', flexShrink: 0 }}>
           <div
             style={{
-              position: 'absolute',
-              bottom: 0,
-              right: 0,
-              backgroundColor: '#1a1a1a',
+              width: '72px',
+              height: '72px',
+              borderRadius: '4px',
+              overflow: 'hidden',
               border: '1px solid #2a2a2a',
-              borderRadius: '2px',
-              padding: '3px 5px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '8px',
-              color: '#888880',
-              letterSpacing: '0.08em',
-              pointerEvents: 'none',
+              backgroundColor: '#111111',
             }}
           >
-            EDIT
+            {(contextProspect?.image || (models.find(m => m.id === resolvedEntityId)?.image)) ? (
+              <img
+                src={contextProspect?.image || models.find(m => m.id === resolvedEntityId)?.image}
+                alt={activeProfile.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%' }}
+              />
+            ) : (
+              <div style={{
+                width: '100%', height: '100%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'var(--font-mono)', fontSize: '20px', color: '#2a2a2a',
+              }}>
+                {activeProfile.name.charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
 
-          <input
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              setUploadingProfilePic(true);
-              const reader = new FileReader();
-              reader.onload = () => {
-                const base64 = reader.result as string;
-                if (profileType === 'prospect') {
-                  updateProspect(resolvedEntityId, { image: base64 });
-                } else {
-                  updateModel(resolvedEntityId, { image: base64 });
-                }
-                setUploadingProfilePic(false);
-              };
-              reader.readAsDataURL(file);
-            }}
-          />
-        </label>
-      </div>
-
-      {uploadingProfilePic && (
-        <div
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '9px',
-            color: '#888880',
-            marginTop: '4px',
-          }}
-        >
-          Updating...
+          <label
+            style={{ cursor: 'pointer', display: 'block', marginTop: '6px' }}
+            title="Change profile photo"
+          >
+            <div style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '8px',
+              color: '#666660',
+              letterSpacing: '0.08em',
+              textAlign: 'center',
+              textTransform: 'uppercase',
+            }}>
+              CHANGE
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const base64 = reader.result as string;
+                  if (profileType === 'prospect' && prospectId) {
+                    updateProspect(prospectId, { image: base64 });
+                  } else if (profileType === 'model' && modelId) {
+                    updateModel(modelId, { image: base64 });
+                  }
+                };
+                reader.readAsDataURL(file);
+              }}
+            />
+          </label>
         </div>
-      )}
 
-      <h1
-        className="text-[48px] mb-[12px]"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
-      >
-        {activeProfile.name} — {isModel ? 'Development History' : 'Evaluation History'}
-      </h1>
-
-      <p
-        className="mb-[12px]"
-        style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
-      >
-        {isModel
-          ? 'Development history'
-          : 'Evaluation history for this prospect'}
-      </p>
-
-      <p
-        className="mb-[48px]"
-        style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
-      >
-        {digitalSetCount} digital set{digitalSetCount !== 1 ? 's' : ''} · {totalEvaluations}{' '}
-        evaluation{totalEvaluations !== 1 ? 's' : ''} completed
-        {isProspect && activeProfile.signedDate ? ` · Signed ${activeProfile.signedDate}` : ''}
-      </p>
+        <div className="flex-1 min-w-0">
+          <p className="mb-[4px]" style={sectionLabelStyle}>
+            {isModel ? 'ROSTER MODEL' : 'PROSPECT PROFILE'}
+          </p>
+          <h1
+            className="text-[40px] mb-[8px]"
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec', lineHeight: 1.1 }}
+          >
+            {activeProfile.name}
+          </h1>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}>
+            {digitalSetCount} digital set{digitalSetCount !== 1 ? 's' : ''} · {totalEvaluations}{' '}
+            evaluation{totalEvaluations !== 1 ? 's' : ''} completed
+            {isProspect && activeProfile.signedDate ? ` · Signed ${activeProfile.signedDate}` : ''}
+          </p>
+        </div>
+      </div>
 
       <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[48px]">
         <div
@@ -728,7 +709,9 @@ export function ProspectRenderHistory({
           {!showUploadForm && (
             <button
               type="button"
-              onClick={() => setShowUploadForm(true)}
+              onClick={() => navigate(
+                `/prospects/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
+              )}
               className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
               style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
             >
@@ -745,7 +728,9 @@ export function ProspectRenderHistory({
 
           <button
             type="button"
-            onClick={() => setShowUploadForm(true)}
+            onClick={() => navigate(
+              `/prospects/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
+            )}
             data-tutorial="upload-new-set"
             className="w-full mt-[16px] px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
             style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
@@ -763,7 +748,8 @@ export function ProspectRenderHistory({
                 <div key={ds.id}>
                   <div
                     className="flex items-center gap-[24px] py-[16px]"
-                    style={{ borderBottom: '1px solid #1a1a1a' }}
+                    style={{ borderBottom: '1px solid #1a1a1a', cursor: 'pointer' }}
+                    onClick={() => toggleOpenSet(ds.id)}
                   >
                     <div className="flex-1 min-w-0">
                       <div
@@ -774,7 +760,7 @@ export function ProspectRenderHistory({
                           fontWeight: 700,
                         }}
                       >
-                        {ds.title}
+                        {ds.uploadedAt || ds.title}
                       </div>
                       <div
                         style={{
@@ -803,7 +789,10 @@ export function ProspectRenderHistory({
                     <div className="flex items-center gap-[8px] flex-shrink-0">
                       <button
                         type="button"
-                        onClick={() => toggleOpenSet(ds.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleOpenSet(ds.id);
+                        }}
                         className={ghostButtonClass}
                         style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
                       >
@@ -812,7 +801,10 @@ export function ProspectRenderHistory({
                       <button
                         type="button"
                         disabled={!canCompare}
-                        onClick={() => handleCompare(ds.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCompare(ds.id);
+                        }}
                         className={ghostButtonClass}
                         style={{
                           fontFamily: 'var(--font-mono)',
@@ -827,7 +819,8 @@ export function ProspectRenderHistory({
                         type="button"
                         disabled={digitalsOnFile === 0}
                         title={digitalsOnFile === 0 ? runEvaluationDisabledTitle : undefined}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (digitalsOnFile > 0) {
                             navigate(
                               `/profile?name=${encodeURIComponent(activeProfile.name)}&prospectId=${resolvedEntityId}&profileType=${profileType}`
@@ -873,6 +866,23 @@ export function ProspectRenderHistory({
                       >
                         DELETE
                       </button>
+                    </div>
+
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleOpenSet(ds.id);
+                      }}
+                      style={{
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '9px',
+                        color: '#888880',
+                        flexShrink: 0,
+                        paddingLeft: '16px',
+                      }}
+                    >
+                      {isOpen ? '▲' : '▼'}
                     </div>
                   </div>
 
