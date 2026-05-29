@@ -384,34 +384,30 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     try {
       const { digitalSets, ...prospectFields } = updates;
 
-      if (Object.keys(prospectFields).length > 0) {
+      // Only update prospect row fields that are actually provided
+      const prospectUpdate: Record<string, unknown> = {};
+      if (prospectFields.name !== undefined) prospectUpdate.name = prospectFields.name;
+      if (prospectFields.status !== undefined) prospectUpdate.status = prospectFields.status;
+      if (prospectFields.statusColor !== undefined) prospectUpdate.status_color = prospectFields.statusColor;
+      if (prospectFields.source !== undefined) prospectUpdate.source = prospectFields.source;
+      if (prospectFields.height !== undefined) prospectUpdate.height = prospectFields.height;
+      if (prospectFields.markets !== undefined) prospectUpdate.markets = prospectFields.markets;
+      if (prospectFields.image !== undefined) prospectUpdate.image = prospectFields.image;
+
+      if (Object.keys(prospectUpdate).length > 0) {
         const { error } = await supabase
           .from('prospects')
-          .update({
-            name: prospectFields.name,
-            status: prospectFields.status,
-            status_color: prospectFields.statusColor,
-            source: prospectFields.source,
-            height: prospectFields.height,
-            markets: prospectFields.markets,
-            image: prospectFields.image,
-          })
+          .update(prospectUpdate)
           .eq('id', id);
-
         if (error) throw error;
       }
 
       if (digitalSets !== undefined) {
-        await supabase
-          .from('digital_sets')
-          .delete()
-          .eq('entity_id', id);
-
-        if (digitalSets.length > 0) {
-          await saveDigitalSets(id, digitalSets);
-        }
+        // Instead of delete+reinsert, upsert each digital set and its evaluations
+        await saveDigitalSets(id, digitalSets);
       }
 
+      // Reload fresh state from Supabase
       const { data } = await supabase
         .from('prospects')
         .select('*')
@@ -425,7 +421,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
           .eq('entity_id', id)
           .order('created_at', { ascending: false });
 
-        const setIds = (freshSets ?? []).map(s => s.id);
+        const setIds = (freshSets ?? []).map((s: { id: string }) => s.id);
         const { data: allEvals } = setIds.length > 0
           ? await supabase
               .from('evaluations')

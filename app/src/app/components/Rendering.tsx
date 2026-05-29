@@ -330,7 +330,41 @@ export function Rendering() {
       setCompletedContextCount(0);
       setEvaluatingContextLabel('Analysing digitals...');
 
-      const prospect = getProspectById(prospectId);
+      let prospect = getProspectById(prospectId);
+      
+      // If prospect not in state yet or has no digital sets, fetch directly from Supabase
+      if (!prospect?.digitalSets?.[0]?.front) {
+        const { supabase } = await import('../../lib/supabase');
+        const { data: freshSets } = await supabase
+          .from('digital_sets')
+          .select('*')
+          .eq('entity_id', prospectId)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        if (freshSets?.[0]) {
+          const ds = freshSets[0];
+          prospect = {
+            ...prospect,
+            id: prospectId,
+            name: prospectName,
+            digitalSets: [{
+              id: ds.id,
+              title: ds.title ?? '',
+              uploadedAt: ds.uploaded_at ?? '',
+              front: ds.front ?? null,
+              profile: ds.profile ?? null,
+              threeQuarter: ds.three_quarter ?? null,
+              fullBody: ds.full_body ?? null,
+              additionalImages: [],
+              notes: ds.notes ?? '',
+              tags: ds.tags ?? [],
+              evaluations: [],
+            }],
+          } as any;
+        }
+      }
+
       const digitalSet = prospect?.digitalSets?.[0];
 
       const imageUrls = [

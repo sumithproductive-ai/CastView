@@ -529,7 +529,7 @@ export function Results() {
 
         <button
           type="button"
-          onClick={() => {
+          onClick={async () => {
             if (evalSaved || !hasRealEvaluation || !prospectId || !evaluationId) return;
             const prospect = prospects.find((p) => p.id === prospectId);
             if (!prospect) return;
@@ -563,7 +563,7 @@ export function Results() {
                   }
                 : ds,
             );
-            updateProspect(prospectId, { digitalSets: updatedSets });
+            await updateProspect(prospectId, { digitalSets: updatedSets });
             setEvalSaved(true);
           }}
           style={{
