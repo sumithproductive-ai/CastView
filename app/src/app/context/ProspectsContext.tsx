@@ -50,7 +50,7 @@ const ProspectsContext = createContext<ProspectsContextType | undefined>(undefin
 // loading is now exposed in context value
 
 export function ProspectsProvider({ children }: { children: ReactNode }) {
-  const { agencyId } = useAuth();
+  const { agencyId, loading: authLoading } = useAuth();
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -320,12 +320,16 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!agencyId) {
-      setProspects([]);
-      setLoading(false);
+      if (authLoading) {
+        setLoading(true);
+      } else {
+        setProspects([]);
+        setLoading(false);
+      }
       return;
     }
     loadProspects();
-  }, [agencyId]);
+  }, [agencyId, authLoading]);
 
   const addProspect = useCallback(async (prospect: Prospect) => {
     if (!agencyId) return;

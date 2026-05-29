@@ -27,11 +27,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [agencyId, setAgencyId] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchAgencyId(session.user.id);
+        await fetchAgencyId(session.user.id);
       }
       setLoading(false);
     });
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          fetchAgencyId(session.user.id);
+          await fetchAgencyId(session.user.id);
         } else {
           setAgencyId(null);
         }

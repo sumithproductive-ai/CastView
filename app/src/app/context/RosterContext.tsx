@@ -38,7 +38,7 @@ type RosterContextType = {
 const RosterContext = createContext<RosterContextType | undefined>(undefined);
 
 export function RosterProvider({ children }: { children: ReactNode }) {
-  const { agencyId } = useAuth();
+  const { agencyId, loading: authLoading } = useAuth();
   const [models, setModels] = useState<RosterModel[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -215,12 +215,16 @@ export function RosterProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!agencyId) {
-      setModels([]);
-      setLoading(false);
+      if (authLoading) {
+        setLoading(true);
+      } else {
+        setModels([]);
+        setLoading(false);
+      }
       return;
     }
     loadModels();
-  }, [agencyId]);
+  }, [agencyId, authLoading]);
 
   const addModel = useCallback(async (model: RosterModel) => {
     if (!agencyId) return;
