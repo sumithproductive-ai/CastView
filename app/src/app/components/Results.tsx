@@ -540,7 +540,17 @@ export function Results() {
                 day: 'numeric',
                 year: 'numeric',
               }),
-              contexts: realEvalData.contextEvaluations,
+              agentNotes: agentNotes ?? '',
+              contexts: (realEvalData.contextEvaluations ?? []).map((ce: any) => ({
+                context: ce.context,
+                alignmentScore: ce.alignmentScore ?? ce.alignment_score ?? 0,
+                fitLabel: ce.fitLabel ?? ce.fit_label ?? '',
+                reasoning: ce.reasoning ?? '',
+                strengths: ce.strengths ?? [],
+                risks: ce.risks ?? [],
+                marketSignals: ce.marketSignals ?? ce.market_signals ?? [],
+                suggestedNextSteps: ce.suggestedNextSteps ?? ce.suggested_next_steps ?? [],
+              })),
             };
             const updatedSets = prospect.digitalSets.map((ds, i) =>
               i === 0
