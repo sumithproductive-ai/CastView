@@ -26,7 +26,7 @@ export type StoredEvaluationReport = {
 };
 
 export function createEvaluationId(): string {
-  return `eval-${Date.now()}`;
+  return crypto.randomUUID();
 }
 
 export function saveEvaluationReport(report: StoredEvaluationReport): void {
