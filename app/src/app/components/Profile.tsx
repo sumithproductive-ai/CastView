@@ -20,10 +20,11 @@ export function Profile() {
     : 'Prospect';
   const prospectId = searchParams.get('prospectId') || '';
   const profileType = searchParams.get('profileType') || 'prospect';
-  const { getProspectById } = useProspects();
+  const { getProspectById, prospects } = useProspects();
   const { models } = useRoster();
 
   const prospect = getProspectById(prospectId);
+  const isLoading = prospects.length === 0 && prospectId !== '';
   const rosterModel = !prospect
     ? models.find((m) => m.id === prospectId)
     : null;
@@ -119,7 +120,16 @@ export function Profile() {
       <div className="grid grid-cols-2 gap-[48px]">
         {/* Left Column */}
         <div>
-          {digitals.length > 0 ? (
+          {isLoading ? (
+            <div style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: '#666660',
+              padding: '24px 0',
+            }}>
+              Loading digitals...
+            </div>
+          ) : digitals.length > 0 ? (
             <div className="grid grid-cols-2 gap-[16px] mb-[16px]">
               {digitals.map((digital) => (
                 <div key={digital.label}>

@@ -43,7 +43,7 @@ export function NewModelReview() {
     allDigitalsUploaded: Boolean(front && profile && threeQuarter && fullBody),
   };
 
-  const handleAddToRoster = () => {
+  const handleAddToRoster = async () => {
     const name = searchParams.get('name')?.trim() || modelName;
     const notes = searchParams.get('notes') || '';
     const now = Date.now();
@@ -80,7 +80,7 @@ export function NewModelReview() {
       ],
     };
 
-    addModel(newModel);
+    await addModel(newModel);
     navigate('/roster');
   };
 

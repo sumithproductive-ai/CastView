@@ -92,19 +92,17 @@ export function NewProspectReview() {
     };
   };
 
-  const handleSaveDraft = () => {
-    addProspect(buildNewProspect('DRAFT'));
+  const handleSaveDraft = async () => {
+    await addProspect(buildNewProspect('DRAFT'));
     navigate('/prospects');
   };
 
-  const handleSaveAndRender = () => {
+  const handleSaveAndRender = async () => {
     const newProspect = buildNewProspect('IN REVIEW');
-    addProspect(newProspect);
-    setTimeout(() => {
-      navigate(
-        `/profile?name=${encodeURIComponent(newProspect.name)}&prospectId=${newProspect.id}&profileType=prospect`,
-      );
-    }, 100);
+    await addProspect(newProspect);
+    navigate(
+      `/profile?name=${encodeURIComponent(newProspect.name)}&prospectId=${newProspect.id}&profileType=prospect`,
+    );
   };
 
   return (
