@@ -52,7 +52,7 @@ export function NewProspectReview() {
     });
 
     return {
-      id: `${name.trim().toLowerCase().replace(/\s+/g, '-')}-${now}`,
+      id: crypto.randomUUID(),
       name,
       status,
       statusColor: status === 'DRAFT' ? '#666666' : '#C8A96E',
