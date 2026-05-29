@@ -52,60 +52,64 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadDigitalSets = async (entityId: string): Promise<DigitalSet[]> => {
-    const { data: sets } = await supabase
-      .from('digital_sets')
-      .select('*')
-      .eq('entity_id', entityId)
-      .order('created_at', { ascending: false });
-
-    if (!sets) return [];
-
-    return Promise.all(sets.map(async (ds) => {
-      const { data: evals } = await supabase
-        .from('evaluations')
-        .select('*, context_evaluations(*)')
-        .eq('digital_set_id', ds.id)
-        .order('created_at', { ascending: false });
-
-      return {
-        id: ds.id,
-        title: ds.title ?? '',
-        uploadedAt: ds.uploaded_at ?? '',
-        front: ds.front ?? null,
-        profile: ds.profile ?? null,
-        threeQuarter: ds.three_quarter ?? null,
-        fullBody: ds.full_body ?? null,
-        additionalImages: [],
-        notes: ds.notes ?? '',
-        tags: ds.tags ?? [],
-        evaluations: (evals ?? []).map(ev => ({
-          id: ev.id,
-          completedAt: ev.completed_at ?? '',
-          agentNotes: ev.agent_notes ?? '',
-          contexts: (ev.context_evaluations ?? []).map((ce: {
-            context: string;
-            alignment_score: number;
-            fit_label: string;
-            reasoning: string;
-            strengths?: string[];
-            risks?: string[];
-            market_signals?: string[];
-            suggested_next_steps?: string[];
-          }) => ({
-            context: ce.context,
-            alignmentScore: ce.alignment_score,
-            fitLabel: ce.fit_label,
-            reasoning: ce.reasoning,
-            strengths: ce.strengths ?? [],
-            risks: ce.risks ?? [],
-            marketSignals: ce.market_signals ?? [],
-            suggestedNextSteps: ce.suggested_next_steps ?? [],
-          })),
-        })),
-      };
+  const mapEvaluationsForSet = (evals: Array<{
+    id: string;
+    completed_at?: string;
+    agent_notes?: string;
+    context_evaluations?: Array<{
+      context: string;
+      alignment_score: number;
+      fit_label: string;
+      reasoning: string;
+      strengths?: string[];
+      risks?: string[];
+      market_signals?: string[];
+      suggested_next_steps?: string[];
+    }>;
+  }>) =>
+    evals.map(ev => ({
+      id: ev.id,
+      completedAt: ev.completed_at ?? '',
+      agentNotes: ev.agent_notes ?? '',
+      contexts: (ev.context_evaluations ?? []).map((ce) => ({
+        context: ce.context,
+        alignmentScore: ce.alignment_score,
+        fitLabel: ce.fit_label,
+        reasoning: ce.reasoning,
+        strengths: ce.strengths ?? [],
+        risks: ce.risks ?? [],
+        marketSignals: ce.market_signals ?? [],
+        suggestedNextSteps: ce.suggested_next_steps ?? [],
+      })),
     }));
-  };
+
+  const mapDigitalSetRows = (
+    sets: Array<{
+      id: string;
+      title?: string;
+      uploaded_at?: string;
+      front?: string | null;
+      profile?: string | null;
+      three_quarter?: string | null;
+      full_body?: string | null;
+      notes?: string;
+      tags?: string[];
+    }>,
+    evalsBySetId: Record<string, Parameters<typeof mapEvaluationsForSet>[0]>,
+  ): DigitalSet[] =>
+    sets.map(ds => ({
+      id: ds.id,
+      title: ds.title ?? '',
+      uploadedAt: ds.uploaded_at ?? '',
+      front: ds.front ?? null,
+      profile: ds.profile ?? null,
+      threeQuarter: ds.three_quarter ?? null,
+      fullBody: ds.full_body ?? null,
+      additionalImages: [],
+      notes: ds.notes ?? '',
+      tags: ds.tags ?? [],
+      evaluations: mapEvaluationsForSet(evalsBySetId[ds.id] ?? []),
+    }));
 
   const mapProspect = (row: {
     id: string;
@@ -215,6 +219,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
   const loadProspects = async () => {
     setLoading(true);
     try {
+      // 1. Fetch all prospects
       const { data: prospectsData, error } = await supabase
         .from('prospects')
         .select('*')
@@ -222,16 +227,88 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      if (!prospectsData) return;
+      if (!prospectsData || prospectsData.length === 0) {
+        setProspects([]);
+        return;
+      }
 
-      const prospectsWithSets = await Promise.all(
-        prospectsData.map(async (p) => {
-          const digitalSets = await loadDigitalSets(p.id);
-          return mapProspect(p, digitalSets);
-        })
+      const prospectIds = prospectsData.map(p => p.id);
+
+      // 2. Fetch all digital sets for all prospects in one query
+      const { data: allSets } = await supabase
+        .from('digital_sets')
+        .select('*')
+        .in('entity_id', prospectIds)
+        .order('created_at', { ascending: false });
+
+      const setIds = (allSets ?? []).map(s => s.id);
+
+      // 3. Fetch all evaluations + context_evaluations for all sets in one query
+      const { data: allEvals } = setIds.length > 0
+        ? await supabase
+            .from('evaluations')
+            .select('*, context_evaluations(*)')
+            .in('digital_set_id', setIds)
+            .order('created_at', { ascending: false })
+        : { data: [] };
+
+      // Group evaluations by digital_set_id
+      const evalsBySetId: Record<string, NonNullable<typeof allEvals>> = {};
+      for (const ev of (allEvals ?? [])) {
+        if (!evalsBySetId[ev.digital_set_id]) evalsBySetId[ev.digital_set_id] = [];
+        evalsBySetId[ev.digital_set_id]!.push(ev);
+      }
+
+      // Group digital sets by entity_id
+      const setsByProspectId: Record<string, DigitalSet[]> = {};
+      for (const ds of (allSets ?? [])) {
+        if (!setsByProspectId[ds.entity_id]) setsByProspectId[ds.entity_id] = [];
+        const evals = (evalsBySetId[ds.id] ?? []).map(ev => ({
+          id: ev.id,
+          completedAt: ev.completed_at ?? '',
+          agentNotes: ev.agent_notes ?? '',
+          contexts: (ev.context_evaluations ?? []).map((ce: {
+            context: string;
+            alignment_score: number;
+            fit_label: string;
+            reasoning: string;
+            strengths?: string[];
+            risks?: string[];
+            market_signals?: string[];
+            suggested_next_steps?: string[];
+          }) => ({
+            context: ce.context,
+            alignmentScore: ce.alignment_score,
+            fitLabel: ce.fit_label,
+            reasoning: ce.reasoning,
+            strengths: ce.strengths ?? [],
+            risks: ce.risks ?? [],
+            marketSignals: ce.market_signals ?? [],
+            suggestedNextSteps: ce.suggested_next_steps ?? [],
+          })),
+        }));
+
+        setsByProspectId[ds.entity_id]!.push({
+          id: ds.id,
+          title: ds.title ?? '',
+          uploadedAt: ds.uploaded_at ?? '',
+          front: ds.front ?? null,
+          profile: ds.profile ?? null,
+          threeQuarter: ds.three_quarter ?? null,
+          fullBody: ds.full_body ?? null,
+          additionalImages: [],
+          notes: ds.notes ?? '',
+          tags: ds.tags ?? [],
+          evaluations: evals,
+        });
+      }
+
+      // Assemble final prospects
+      const assembled = prospectsData.map(p =>
+        mapProspect(p, setsByProspectId[p.id] ?? [])
       );
 
-      setProspects(prospectsWithSets);
+      setProspects(assembled);
     } catch (err) {
       console.error('[ProspectsContext] load error:', err);
     } finally {
@@ -273,7 +350,28 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
         await saveDigitalSets(prospect.id, prospect.digitalSets);
       }
 
-      const digitalSets = await loadDigitalSets(prospect.id);
+      const { data: freshSets } = await supabase
+        .from('digital_sets')
+        .select('*')
+        .eq('entity_id', prospect.id)
+        .order('created_at', { ascending: false });
+
+      const setIds = (freshSets ?? []).map(s => s.id);
+      const { data: allEvals } = setIds.length > 0
+        ? await supabase
+            .from('evaluations')
+            .select('*, context_evaluations(*)')
+            .in('digital_set_id', setIds)
+            .order('created_at', { ascending: false })
+        : { data: [] };
+
+      const evalsBySetId: Record<string, NonNullable<typeof allEvals>> = {};
+      for (const ev of (allEvals ?? [])) {
+        if (!evalsBySetId[ev.digital_set_id]) evalsBySetId[ev.digital_set_id] = [];
+        evalsBySetId[ev.digital_set_id]!.push(ev);
+      }
+
+      const digitalSets = mapDigitalSetRows(freshSets ?? [], evalsBySetId);
       const newProspect = mapProspect(data, digitalSets);
       setProspects(prev => [newProspect, ...prev]);
     } catch (err) {
@@ -321,8 +419,29 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (data) {
-        const freshSets = await loadDigitalSets(id);
-        const updated = mapProspect(data, freshSets);
+        const { data: freshSets } = await supabase
+          .from('digital_sets')
+          .select('*')
+          .eq('entity_id', id)
+          .order('created_at', { ascending: false });
+
+        const setIds = (freshSets ?? []).map(s => s.id);
+        const { data: allEvals } = setIds.length > 0
+          ? await supabase
+              .from('evaluations')
+              .select('*, context_evaluations(*)')
+              .in('digital_set_id', setIds)
+              .order('created_at', { ascending: false })
+          : { data: [] };
+
+        const evalsBySetId: Record<string, NonNullable<typeof allEvals>> = {};
+        for (const ev of (allEvals ?? [])) {
+          if (!evalsBySetId[ev.digital_set_id]) evalsBySetId[ev.digital_set_id] = [];
+          evalsBySetId[ev.digital_set_id]!.push(ev);
+        }
+
+        const mappedSets = mapDigitalSetRows(freshSets ?? [], evalsBySetId);
+        const updated = mapProspect(data, mappedSets);
         setProspects(prev => prev.map(p => p.id === id ? updated : p));
       }
     } catch (err) {
