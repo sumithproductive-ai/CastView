@@ -31,6 +31,7 @@ import { OnboardingFirstProspect } from './components/OnboardingFirstProspect';
 import { Notifications } from './components/Notifications';
 import { AuthLayout } from './layouts/AuthLayout';
 import { Login } from './components/Login';
+import { useAuth } from './context/AuthContext';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { useTutorial } from './context/TutorialContext';
 
@@ -51,249 +52,327 @@ function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      backgroundColor: '#080808',
+      fontFamily: 'var(--font-mono)',
+      fontSize: '11px',
+      color: '#888880'
+    }}>
+      Loading...
+    </div>
+  );
+  if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
 export const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <Dashboard />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/profile',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <Profile />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/rendering',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <Rendering />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/results',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <Results />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/share',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <Share />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/mass-send',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <MassSend />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/roster',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <Roster />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/roster/new',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <NewModelBasicInfo />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/roster/new/digitals',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <NewModelDigitals />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/roster/new/review',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <NewModelReview />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/roster/:modelId',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <ProspectRenderHistory profileType="model" />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/roster/:modelId/history',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <ProspectRenderHistory profileType="model" />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/prospects',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <ProspectsIndex />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/prospects/new',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <NewProspectBasicInfo />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/prospects/new/consent',
     element: (
-      <AuthLayout>
+      <ProtectedRoute>
+        <AuthLayout>
         <ProspectConsent />
       </AuthLayout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/prospects/new/digitals',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <NewProspectDigitals />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/prospects/new/review',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <NewProspectReview />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/compare',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <CompareMode />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/compare/results',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <CompareResults />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/prospects/:prospectId',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <ProspectRenderHistory profileType="prospect" />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/prospects/:prospectId/upload-digitals',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <UploadDigitalSet />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/roster/:prospectId/upload-digitals',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <UploadDigitalSet />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/settings',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <Settings />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/render-lab',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <RenderLab />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/notifications',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <Notifications />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/client-portal',
     element: (
-      <ClientLayout>
+      <ProtectedRoute>
+        <ClientLayout>
         <ClientPortal />
       </ClientLayout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/onboarding',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <OnboardingAgencySetup />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/onboarding/invite',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <OnboardingInviteTeam />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/onboarding/first-prospect',
     element: (
-      <Layout>
+      <ProtectedRoute>
+        <Layout>
         <OnboardingFirstProspect />
       </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/login',
-    element: (
-      <AuthLayout>
-        <Login />
-      </AuthLayout>
-    ),
+    element: <Login />,
   },
   {
     path: '*',
-    element: <Navigate to="/" replace />,
+    element: (
+      <ProtectedRoute>
+        <Navigate to="/" replace />
+      </ProtectedRoute>
+    ),
   },
 ]);
