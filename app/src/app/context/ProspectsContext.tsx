@@ -47,6 +47,7 @@ type ProspectsContextType = {
 };
 
 const ProspectsContext = createContext<ProspectsContextType | undefined>(undefined);
+// loading is now exposed in context value
 
 export function ProspectsProvider({ children }: { children: ReactNode }) {
   const { agencyId } = useAuth();

@@ -86,6 +86,28 @@ export function Profile() {
   
   return (
     <div className="p-[48px]">
+      {isLoading && (
+        <div style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: '#888880',
+          letterSpacing: '0.05em',
+          padding: '48px 0',
+        }}>
+          Loading profile...
+        </div>
+      )}
+      {!isLoading && !entity && prospectId && (
+        <div style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: '#c87a7a',
+          letterSpacing: '0.05em',
+          padding: '48px 0',
+        }}>
+          Profile not found. It may have been deleted or the link is invalid.
+        </div>
+      )}
       <button
         type="button"
         onClick={() =>
