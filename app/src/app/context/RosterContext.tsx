@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   createContext,
   useCallback,
@@ -8,12 +7,9 @@ import {
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
-import sumithThumbnail from '@/assets/sumith-thumbnail.jpg';
-import sumithFront from '@/assets/sumith-front.jpg';
-import sumithProfile from '@/assets/sumith-profile.jpg';
-import sumithThreeQuarter from '@/assets/sumith-three-quarter.jpg';
-import sumithFullBody from '@/assets/sumith-full-body.jpg';
 import type { DigitalSet } from '../types/talent';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from './AuthContext';
 
 export type RosterModel = {
   id: string;
@@ -30,180 +26,6 @@ export type RosterModel = {
   digitalSets: DigitalSet[];
 };
 
-const STORAGE_VERSION = 'v5';
-const STORAGE_VERSION_KEY = 'castview_roster_version';
-const STORAGE_KEY = 'castview_roster';
-
-const SEED_MODELS: RosterModel[] = [
-  {
-    id: 'sumith-chittimalla-roster',
-    name: 'Sumith Chittimalla',
-    image: sumithThumbnail,
-    primaryContext: 'FRAGRANCE',
-    contexts: ['FR', 'ED', 'CA'],
-    renderedContexts: ['FR', 'ED'],
-    topScore: 94,
-    lastEvaluation: '3 days ago',
-    status: 'ACTIVE',
-    recentlySigned: true,
-    division: 'men',
-    digitalSets: [
-      {
-        id: 'sumith-roster-ds-1',
-        uploadedAt: 'May 2026',
-        title: 'May 2026 Update',
-        front: sumithFront,
-        profile: sumithProfile,
-        threeQuarter: sumithThreeQuarter,
-        fullBody: sumithFullBody,
-        additionalImages: [],
-        notes: 'Updated digitals post first season.',
-        tags: ['updated', 'post-season'],
-        evaluations: [],
-      },
-    ],
-  },
-  {
-    id: 'john-doe-roster',
-    name: 'John Doe',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80',
-    primaryContext: 'EDITORIAL',
-    contexts: ['FR', 'ED', 'RW'],
-    renderedContexts: ['FR', 'ED'],
-    topScore: 87,
-    lastEvaluation: '1 week ago',
-    status: 'ACTIVE',
-    recentlySigned: false,
-    division: 'men',
-    digitalSets: [
-      {
-        id: 'john-ds-2',
-        uploadedAt: 'May 2026',
-        title: 'Updated Digitals',
-        front: 'https://i.imgur.com/jZHp7Ei.jpg',
-        profile: 'https://i.imgur.com/aBlfily.jpg',
-        threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
-        fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
-        additionalImages: [],
-        notes: 'Second submission — updated after first season.',
-        tags: ['updated'],
-        evaluations: [
-          {
-            id: 'john-eval-2',
-            completedAt: 'May 10, 2026',
-            contexts: [
-              {
-                context: 'Fragrance',
-                alignmentScore: 87,
-                fitLabel: 'STRONG ALIGNMENT',
-                reasoning: 'Updated digitals show improved bone structure visibility.',
-                strengths: ['Improved contrast range', 'Stronger profile definition'],
-                risks: ['Limited market data'],
-                marketSignals: ['Strong demand in EU markets'],
-                suggestedNextSteps: ['Schedule fragrance test shoot'],
-              },
-              {
-                context: 'Editorial',
-                alignmentScore: 91,
-                fitLabel: 'STRONG ALIGNMENT',
-                reasoning: 'Editorial indicators improved significantly from first set.',
-                strengths: ['Strong editorial framing', 'Versatile look range'],
-                risks: [],
-                marketSignals: ['NYC editorial market active'],
-                suggestedNextSteps: ['Approach editorial clients in NYC'],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: 'john-ds-1',
-        uploadedAt: 'January 2026',
-        title: 'Initial Submission',
-        front: 'https://i.imgur.com/jZHp7Ei.jpg',
-        profile: 'https://i.imgur.com/aBlfily.jpg',
-        threeQuarter: 'https://i.imgur.com/AlYexxj.jpg',
-        fullBody: 'https://i.imgur.com/sH8hoNb.jpg',
-        additionalImages: [],
-        notes: 'First submission after signing.',
-        tags: ['initial'],
-        evaluations: [
-          {
-            id: 'john-eval-1',
-            completedAt: 'January 15, 2026',
-            contexts: [
-              {
-                context: 'Fragrance',
-                alignmentScore: 78,
-                fitLabel: 'MODERATE ALIGNMENT',
-                reasoning: 'Initial digitals show potential but limited progression data.',
-                strengths: ['Good bone structure baseline'],
-                risks: ['Image quality inconsistent', 'Limited contrast range'],
-                marketSignals: ['Early stage — more data needed'],
-                suggestedNextSteps: ['Schedule updated digitals shoot', 'Focus on lighting quality'],
-              },
-              {
-                context: 'Editorial',
-                alignmentScore: 82,
-                fitLabel: 'STRONG ALIGNMENT',
-                reasoning: 'Editorial potential visible in initial submission.',
-                strengths: ['Natural editorial presence'],
-                risks: ['Needs updated digitals'],
-                marketSignals: ['Editorial market receptive'],
-                suggestedNextSteps: ['Update digitals within 60 days'],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-];
-
-function isValidRosterModel(value: unknown): value is RosterModel {
-  if (!value || typeof value !== 'object') return false;
-  const model = value as RosterModel;
-  return (
-    typeof model.id === 'string' &&
-    typeof model.name === 'string' &&
-    typeof model.primaryContext === 'string' &&
-    typeof model.topScore === 'number' &&
-    typeof model.lastEvaluation === 'string' &&
-    typeof model.status === 'string' &&
-    typeof model.recentlySigned === 'boolean' &&
-    typeof model.division === 'string' &&
-    Array.isArray(model.contexts) &&
-    Array.isArray(model.renderedContexts) &&
-    Array.isArray(model.digitalSets) &&
-    (model.image === null || typeof model.image === 'string')
-  );
-}
-
-function loadModelsFromStorage(): RosterModel[] {
-  try {
-    const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
-    const raw = localStorage.getItem(STORAGE_KEY);
-
-    if (storedVersion !== STORAGE_VERSION) {
-      if (!raw) {
-        localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
-        return SEED_MODELS;
-      }
-      localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
-    }
-
-    if (!raw) return SEED_MODELS;
-
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed) || parsed.length === 0) return SEED_MODELS;
-    if (!parsed.every(isValidRosterModel)) return SEED_MODELS;
-
-    return parsed;
-  } catch {
-    return SEED_MODELS;
-  }
-}
-
 type RosterContextType = {
   models: RosterModel[];
   addModel: (model: RosterModel) => void;
@@ -215,29 +37,281 @@ type RosterContextType = {
 const RosterContext = createContext<RosterContextType | undefined>(undefined);
 
 export function RosterProvider({ children }: { children: ReactNode }) {
-  const [models, setModels] = useState<RosterModel[]>(loadModelsFromStorage);
+  const { agencyId } = useAuth();
+  const [models, setModels] = useState<RosterModel[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadDigitalSets = async (entityId: string): Promise<DigitalSet[]> => {
+    const { data: sets } = await supabase
+      .from('digital_sets')
+      .select('*')
+      .eq('entity_id', entityId)
+      .order('created_at', { ascending: false });
+
+    if (!sets) return [];
+
+    return Promise.all(sets.map(async (ds) => {
+      const { data: evals } = await supabase
+        .from('evaluations')
+        .select('*, context_evaluations(*)')
+        .eq('digital_set_id', ds.id)
+        .order('created_at', { ascending: false });
+
+      return {
+        id: ds.id,
+        title: ds.title ?? '',
+        uploadedAt: ds.uploaded_at ?? '',
+        front: ds.front ?? null,
+        profile: ds.profile ?? null,
+        threeQuarter: ds.three_quarter ?? null,
+        fullBody: ds.full_body ?? null,
+        additionalImages: [],
+        notes: ds.notes ?? '',
+        tags: ds.tags ?? [],
+        evaluations: (evals ?? []).map(ev => ({
+          id: ev.id,
+          completedAt: ev.completed_at ?? '',
+          agentNotes: ev.agent_notes ?? '',
+          contexts: (ev.context_evaluations ?? []).map((ce: {
+            context: string;
+            alignment_score: number;
+            fit_label: string;
+            reasoning: string;
+            strengths?: string[];
+            risks?: string[];
+            market_signals?: string[];
+            suggested_next_steps?: string[];
+          }) => ({
+            context: ce.context,
+            alignmentScore: ce.alignment_score,
+            fitLabel: ce.fit_label,
+            reasoning: ce.reasoning,
+            strengths: ce.strengths ?? [],
+            risks: ce.risks ?? [],
+            marketSignals: ce.market_signals ?? [],
+            suggestedNextSteps: ce.suggested_next_steps ?? [],
+          })),
+        })),
+      };
+    }));
+  };
+
+  const mapModel = (row: {
+    id: string;
+    name: string;
+    image?: string | null;
+    contexts?: string[];
+    status?: string;
+  }, digitalSets: DigitalSet[]): RosterModel => {
+    const allEvals = digitalSets.flatMap(ds => ds.evaluations ?? []);
+    const allScores = allEvals.flatMap(ev =>
+      ev.contexts.map(ctx => ctx.alignmentScore)
+    );
+    const topScore = allScores.length > 0 ? Math.max(...allScores) : 0;
+
+    return {
+      id: row.id,
+      name: row.name,
+      image: row.image ?? null,
+      primaryContext: (row.contexts ?? [])[0] ?? '',
+      contexts: row.contexts ?? [],
+      renderedContexts: [],
+      topScore,
+      lastEvaluation: allEvals.length > 0
+        ? allEvals[0].completedAt
+        : 'No evaluations yet',
+      status: row.status ?? 'ACTIVE',
+      recentlySigned: false,
+      division: '',
+      digitalSets,
+    };
+  };
+
+  const saveDigitalSets = async (entityId: string, digitalSets: DigitalSet[]) => {
+    for (const ds of digitalSets) {
+      const { data: savedSet, error } = await supabase
+        .from('digital_sets')
+        .upsert({
+          id: ds.id,
+          entity_id: entityId,
+          entity_type: 'model',
+          agency_id: agencyId,
+          title: ds.title,
+          uploaded_at: ds.uploadedAt,
+          front: ds.front,
+          profile: ds.profile,
+          three_quarter: ds.threeQuarter,
+          full_body: ds.fullBody,
+          notes: ds.notes,
+          tags: ds.tags,
+        })
+        .select()
+        .single();
+
+      if (error || !savedSet) continue;
+
+      for (const ev of (ds.evaluations ?? [])) {
+        const { data: savedEval, error: evalError } = await supabase
+          .from('evaluations')
+          .upsert({
+            id: ev.id,
+            digital_set_id: savedSet.id,
+            entity_id: entityId,
+            agency_id: agencyId,
+            completed_at: ev.completedAt,
+            agent_notes: ev.agentNotes ?? '',
+          })
+          .select()
+          .single();
+
+        if (evalError || !savedEval) continue;
+
+        for (const ctx of ev.contexts) {
+          await supabase
+            .from('context_evaluations')
+            .upsert({
+              evaluation_id: savedEval.id,
+              context: ctx.context,
+              alignment_score: ctx.alignmentScore,
+              fit_label: ctx.fitLabel,
+              reasoning: ctx.reasoning,
+              strengths: ctx.strengths,
+              risks: ctx.risks,
+              market_signals: ctx.marketSignals,
+              suggested_next_steps: ctx.suggestedNextSteps,
+            });
+        }
+      }
+    }
+  };
+
+  const loadModels = async () => {
+    setLoading(true);
+    try {
+      const { data: modelsData, error } = await supabase
+        .from('models')
+        .select('*')
+        .eq('agency_id', agencyId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (!modelsData) return;
+
+      const modelsWithSets = await Promise.all(
+        modelsData.map(async (m) => {
+          const digitalSets = await loadDigitalSets(m.id);
+          return mapModel(m, digitalSets);
+        })
+      );
+
+      setModels(modelsWithSets);
+    } catch (err) {
+      console.error('[RosterContext] load error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(models));
-  }, [models]);
+    if (!agencyId) {
+      setModels([]);
+      setLoading(false);
+      return;
+    }
+    loadModels();
+  }, [agencyId]);
 
-  const addModel = useCallback((model: RosterModel) => {
-    setModels((prev) => [model, ...prev]);
-  }, []);
+  const addModel = useCallback(async (model: RosterModel) => {
+    if (!agencyId) return;
+    try {
+      const { data, error } = await supabase
+        .from('models')
+        .insert({
+          id: model.id,
+          agency_id: agencyId,
+          name: model.name,
+          status: model.status,
+          markets: model.contexts,
+          contexts: model.contexts,
+          image: model.image ?? null,
+        })
+        .select()
+        .single();
 
-  const updateModel = useCallback((id: string, updates: Partial<RosterModel>) => {
-    setModels((prev) =>
-      prev.map((model) => (model.id === id ? { ...model, ...updates } : model)),
-    );
-  }, []);
+      if (error) throw error;
 
-  const removeModel = useCallback((id: string) => {
-    setModels((prev) => prev.filter((model) => model.id !== id));
-  }, []);
+      if (model.digitalSets?.length > 0) {
+        await saveDigitalSets(model.id, model.digitalSets);
+      }
+
+      const digitalSets = await loadDigitalSets(model.id);
+      const newModel = mapModel(data, digitalSets);
+      setModels(prev => [newModel, ...prev]);
+    } catch (err) {
+      console.error('[RosterContext] addModel error:', err);
+    }
+  }, [agencyId]);
+
+  const updateModel = useCallback(async (id: string, updates: Partial<RosterModel>) => {
+    if (!agencyId) return;
+    try {
+      const { digitalSets, ...modelFields } = updates;
+
+      if (Object.keys(modelFields).length > 0) {
+        const { error } = await supabase
+          .from('models')
+          .update({
+            name: modelFields.name,
+            status: modelFields.status,
+            contexts: modelFields.contexts,
+            markets: modelFields.contexts,
+            image: modelFields.image,
+          })
+          .eq('id', id);
+
+        if (error) throw error;
+      }
+
+      if (digitalSets !== undefined) {
+        await supabase
+          .from('digital_sets')
+          .delete()
+          .eq('entity_id', id);
+
+        if (digitalSets.length > 0) {
+          await saveDigitalSets(id, digitalSets);
+        }
+      }
+
+      const { data } = await supabase
+        .from('models')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (data) {
+        const freshSets = await loadDigitalSets(id);
+        const updated = mapModel(data, freshSets);
+        setModels(prev => prev.map(m => m.id === id ? updated : m));
+      }
+    } catch (err) {
+      console.error('[RosterContext] updateModel error:', err);
+    }
+  }, [agencyId]);
+
+  const removeModel = useCallback(async (id: string) => {
+    if (!agencyId) return;
+    try {
+      await supabase.from('models').delete().eq('id', id);
+      setModels(prev => prev.filter(m => m.id !== id));
+    } catch (err) {
+      console.error('[RosterContext] removeModel error:', err);
+    }
+  }, [agencyId]);
 
   const getModelById = useCallback(
-    (id: string) => models.find((model) => model.id === id),
-    [models],
+    (id: string) => models.find(m => m.id === id),
+    [models]
   );
 
   const value = useMemo(
@@ -248,11 +322,13 @@ export function RosterProvider({ children }: { children: ReactNode }) {
       removeModel,
       getModelById,
     }),
-    [models, addModel, updateModel, removeModel, getModelById],
+    [models, addModel, updateModel, removeModel, getModelById]
   );
 
   return (
-    <RosterContext.Provider value={value}>{children}</RosterContext.Provider>
+    <RosterContext.Provider value={value}>
+      {children}
+    </RosterContext.Provider>
   );
 }
 
