@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   createContext,
   useCallback,
@@ -11,6 +10,8 @@ import type { ReactNode } from 'react';
 import sumithThumbnail from '@/assets/sumith-thumbnail.jpg';
 import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 import type { DigitalSet } from '../types/talent';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from './AuthContext';
 
 export type Prospect = {
   id: string;
@@ -36,73 +37,6 @@ export type Prospect = {
   digitalSets: DigitalSet[];
 };
 
-const STORAGE_VERSION = 'v3';
-const STORAGE_VERSION_KEY = 'castview_prospects_version';
-const STORAGE_KEY = 'castview_prospects';
-
-const SEED_PROSPECTS: Prospect[] = [
-  {
-    id: 'sumith-chittimalla',
-    name: 'Sumith Chittimalla',
-    status: 'IN REVIEW',
-    statusColor: '#C8A96E',
-    evaluations: 1,
-    submissionDate: '2 days ago',
-    source: 'DIRECT',
-    image: sumithThumbnail,
-    contexts: ['FR', 'ED', 'CA'],
-    renderedContexts: ['FR'],
-    division: 'men',
-    primaryContext: 'FRAGRANCE',
-    markets: ['NYC', 'London'],
-    height: "6'1\"",
-    measurements: { chest: '38', waist: '30', hips: '33', shoe: '11' },
-    digitalSets: [SUMITH_DIGITAL_SET_V1],
-  },
-];
-
-function isValidProspect(value: unknown): value is Prospect {
-  if (!value || typeof value !== 'object') return false;
-  const prospect = value as Prospect;
-  return (
-    typeof prospect.id === 'string' &&
-    typeof prospect.name === 'string' &&
-    typeof prospect.status === 'string' &&
-    typeof prospect.statusColor === 'string' &&
-    typeof prospect.evaluations === 'number' &&
-    typeof prospect.submissionDate === 'string' &&
-    Array.isArray(prospect.contexts) &&
-    Array.isArray(prospect.renderedContexts) &&
-    Array.isArray(prospect.digitalSets) &&
-    (prospect.image === null || typeof prospect.image === 'string')
-  );
-}
-
-function loadProspectsFromStorage(): Prospect[] {
-  try {
-    const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
-    const raw = localStorage.getItem(STORAGE_KEY);
-
-    if (storedVersion !== STORAGE_VERSION) {
-      if (!raw) {
-        localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
-        return SEED_PROSPECTS;
-      }
-      localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
-    }
-
-    if (!raw) return SEED_PROSPECTS;
-
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed) || parsed.length === 0) return SEED_PROSPECTS;
-    if (!parsed.every(isValidProspect)) return SEED_PROSPECTS;
-
-    return parsed;
-  } catch {
-    return SEED_PROSPECTS;
-  }
-}
-
 type ProspectsContextType = {
   prospects: Prospect[];
   addProspect: (prospect: Prospect) => void;
@@ -114,31 +48,283 @@ type ProspectsContextType = {
 const ProspectsContext = createContext<ProspectsContextType | undefined>(undefined);
 
 export function ProspectsProvider({ children }: { children: ReactNode }) {
-  const [prospects, setProspects] = useState<Prospect[]>(loadProspectsFromStorage);
+  const { agencyId } = useAuth();
+  const [prospects, setProspects] = useState<Prospect[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadDigitalSets = async (entityId: string): Promise<DigitalSet[]> => {
+    const { data: sets } = await supabase
+      .from('digital_sets')
+      .select('*')
+      .eq('entity_id', entityId)
+      .order('created_at', { ascending: false });
+
+    if (!sets) return [];
+
+    return Promise.all(sets.map(async (ds) => {
+      const { data: evals } = await supabase
+        .from('evaluations')
+        .select('*, context_evaluations(*)')
+        .eq('digital_set_id', ds.id)
+        .order('created_at', { ascending: false });
+
+      return {
+        id: ds.id,
+        title: ds.title ?? '',
+        uploadedAt: ds.uploaded_at ?? '',
+        front: ds.front ?? null,
+        profile: ds.profile ?? null,
+        threeQuarter: ds.three_quarter ?? null,
+        fullBody: ds.full_body ?? null,
+        additionalImages: [],
+        notes: ds.notes ?? '',
+        tags: ds.tags ?? [],
+        evaluations: (evals ?? []).map(ev => ({
+          id: ev.id,
+          completedAt: ev.completed_at ?? '',
+          agentNotes: ev.agent_notes ?? '',
+          contexts: (ev.context_evaluations ?? []).map((ce: {
+            context: string;
+            alignment_score: number;
+            fit_label: string;
+            reasoning: string;
+            strengths?: string[];
+            risks?: string[];
+            market_signals?: string[];
+            suggested_next_steps?: string[];
+          }) => ({
+            context: ce.context,
+            alignmentScore: ce.alignment_score,
+            fitLabel: ce.fit_label,
+            reasoning: ce.reasoning,
+            strengths: ce.strengths ?? [],
+            risks: ce.risks ?? [],
+            marketSignals: ce.market_signals ?? [],
+            suggestedNextSteps: ce.suggested_next_steps ?? [],
+          })),
+        })),
+      };
+    }));
+  };
+
+  const mapProspect = (row: {
+    id: string;
+    name: string;
+    status?: string;
+    status_color?: string;
+    created_at: string;
+    source?: string;
+    image?: string | null;
+    markets?: string[];
+    height?: string;
+  }, digitalSets: DigitalSet[]): Prospect => ({
+    id: row.id,
+    name: row.name,
+    status: row.status ?? 'DRAFT',
+    statusColor: row.status_color ?? '#888880',
+    evaluations: digitalSets.reduce((sum, ds) => sum + (ds.evaluations?.length ?? 0), 0),
+    submissionDate: new Date(row.created_at).toLocaleDateString(),
+    source: row.source ?? '',
+    image: row.image ?? null,
+    contexts: row.markets ?? [],
+    renderedContexts: [],
+    division: '',
+    primaryContext: '',
+    markets: row.markets ?? [],
+    height: row.height ?? '',
+    measurements: { chest: '', waist: '', hips: '', shoe: '' },
+    digitalSets,
+  });
+
+  const saveDigitalSets = async (entityId: string, digitalSets: DigitalSet[]) => {
+    for (const ds of digitalSets) {
+      const { data: savedSet, error } = await supabase
+        .from('digital_sets')
+        .upsert({
+          id: ds.id,
+          entity_id: entityId,
+          entity_type: 'prospect',
+          agency_id: agencyId,
+          title: ds.title,
+          uploaded_at: ds.uploadedAt,
+          front: ds.front,
+          profile: ds.profile,
+          three_quarter: ds.threeQuarter,
+          full_body: ds.fullBody,
+          notes: ds.notes,
+          tags: ds.tags,
+        })
+        .select()
+        .single();
+
+      if (error || !savedSet) continue;
+
+      for (const ev of (ds.evaluations ?? [])) {
+        const { data: savedEval, error: evalError } = await supabase
+          .from('evaluations')
+          .upsert({
+            id: ev.id,
+            digital_set_id: savedSet.id,
+            entity_id: entityId,
+            agency_id: agencyId,
+            completed_at: ev.completedAt,
+            agent_notes: ev.agentNotes ?? '',
+          })
+          .select()
+          .single();
+
+        if (evalError || !savedEval) continue;
+
+        for (const ctx of ev.contexts) {
+          await supabase
+            .from('context_evaluations')
+            .upsert({
+              evaluation_id: savedEval.id,
+              context: ctx.context,
+              alignment_score: ctx.alignmentScore,
+              fit_label: ctx.fitLabel,
+              reasoning: ctx.reasoning,
+              strengths: ctx.strengths,
+              risks: ctx.risks,
+              market_signals: ctx.marketSignals,
+              suggested_next_steps: ctx.suggestedNextSteps,
+            });
+        }
+      }
+    }
+  };
+
+  const loadProspects = async () => {
+    setLoading(true);
+    try {
+      const { data: prospectsData, error } = await supabase
+        .from('prospects')
+        .select('*')
+        .eq('agency_id', agencyId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (!prospectsData) return;
+
+      const prospectsWithSets = await Promise.all(
+        prospectsData.map(async (p) => {
+          const digitalSets = await loadDigitalSets(p.id);
+          return mapProspect(p, digitalSets);
+        })
+      );
+
+      setProspects(prospectsWithSets);
+    } catch (err) {
+      console.error('[ProspectsContext] load error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prospects));
-  }, [prospects]);
+    if (!agencyId) {
+      setProspects([]);
+      setLoading(false);
+      return;
+    }
+    loadProspects();
+  }, [agencyId]);
 
-  const addProspect = useCallback((prospect: Prospect) => {
-    setProspects((prev) => [prospect, ...prev]);
-  }, []);
+  const addProspect = useCallback(async (prospect: Prospect) => {
+    if (!agencyId) return;
+    try {
+      const { data, error } = await supabase
+        .from('prospects')
+        .insert({
+          id: prospect.id,
+          agency_id: agencyId,
+          name: prospect.name,
+          status: prospect.status,
+          status_color: prospect.statusColor,
+          source: prospect.source ?? '',
+          height: prospect.height ?? '',
+          markets: prospect.markets ?? [],
+          image: prospect.image ?? null,
+        })
+        .select()
+        .single();
 
-  const updateProspect = useCallback((id: string, updates: Partial<Prospect>) => {
-    setProspects((prev) =>
-      prev.map((prospect) =>
-        prospect.id === id ? { ...prospect, ...updates } : prospect,
-      ),
-    );
-  }, []);
+      if (error) throw error;
 
-  const removeProspect = useCallback((id: string) => {
-    setProspects((prev) => prev.filter((p) => p.id !== id));
-  }, []);
+      if (prospect.digitalSets?.length > 0) {
+        await saveDigitalSets(prospect.id, prospect.digitalSets);
+      }
+
+      const digitalSets = await loadDigitalSets(prospect.id);
+      const newProspect = mapProspect(data, digitalSets);
+      setProspects(prev => [newProspect, ...prev]);
+    } catch (err) {
+      console.error('[ProspectsContext] addProspect error:', err);
+    }
+  }, [agencyId]);
+
+  const updateProspect = useCallback(async (id: string, updates: Partial<Prospect>) => {
+    if (!agencyId) return;
+    try {
+      const { digitalSets, ...prospectFields } = updates;
+
+      if (Object.keys(prospectFields).length > 0) {
+        const { error } = await supabase
+          .from('prospects')
+          .update({
+            name: prospectFields.name,
+            status: prospectFields.status,
+            status_color: prospectFields.statusColor,
+            source: prospectFields.source,
+            height: prospectFields.height,
+            markets: prospectFields.markets,
+            image: prospectFields.image,
+          })
+          .eq('id', id);
+
+        if (error) throw error;
+      }
+
+      if (digitalSets !== undefined) {
+        await supabase
+          .from('digital_sets')
+          .delete()
+          .eq('entity_id', id);
+
+        if (digitalSets.length > 0) {
+          await saveDigitalSets(id, digitalSets);
+        }
+      }
+
+      const { data } = await supabase
+        .from('prospects')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (data) {
+        const freshSets = await loadDigitalSets(id);
+        const updated = mapProspect(data, freshSets);
+        setProspects(prev => prev.map(p => p.id === id ? updated : p));
+      }
+    } catch (err) {
+      console.error('[ProspectsContext] updateProspect error:', err);
+    }
+  }, [agencyId]);
+
+  const removeProspect = useCallback(async (id: string) => {
+    if (!agencyId) return;
+    try {
+      await supabase.from('prospects').delete().eq('id', id);
+      setProspects(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error('[ProspectsContext] removeProspect error:', err);
+    }
+  }, [agencyId]);
 
   const getProspectById = useCallback(
-    (id: string) => prospects.find((prospect) => prospect.id === id),
-    [prospects],
+    (id: string) => prospects.find(p => p.id === id),
+    [prospects]
   );
 
   const value = useMemo(
@@ -149,11 +335,13 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       removeProspect,
       getProspectById,
     }),
-    [prospects, addProspect, updateProspect, removeProspect, getProspectById],
+    [prospects, addProspect, updateProspect, removeProspect, getProspectById]
   );
 
   return (
-    <ProspectsContext.Provider value={value}>{children}</ProspectsContext.Provider>
+    <ProspectsContext.Provider value={value}>
+      {children}
+    </ProspectsContext.Provider>
   );
 }
 
