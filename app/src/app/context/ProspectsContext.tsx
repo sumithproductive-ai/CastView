@@ -328,6 +328,15 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
   const addProspect = useCallback(async (prospect: Prospect) => {
     if (!agencyId) return;
     try {
+      // Upload profile image to storage if it's base64
+      let profileImageUrl = prospect.image;
+      if (profileImageUrl && profileImageUrl.startsWith('data:')) {
+        profileImageUrl = await uploadDigitalImage(
+          profileImageUrl,
+          `prospects/${prospect.id}/profile_image`
+        );
+      }
+
       const { data, error } = await supabase
         .from('prospects')
         .insert({
@@ -339,7 +348,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
           source: prospect.source ?? '',
           height: prospect.height ?? '',
           markets: prospect.markets ?? [],
-          image: prospect.image ?? null,
+          image: profileImageUrl ?? null,
         })
         .select()
         .single();
@@ -392,7 +401,13 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       if (prospectFields.source !== undefined) prospectUpdate.source = prospectFields.source;
       if (prospectFields.height !== undefined) prospectUpdate.height = prospectFields.height;
       if (prospectFields.markets !== undefined) prospectUpdate.markets = prospectFields.markets;
-      if (prospectFields.image !== undefined) prospectUpdate.image = prospectFields.image;
+      if (prospectFields.image !== undefined) {
+        let imageToSave = prospectFields.image;
+        if (imageToSave && imageToSave.startsWith('data:')) {
+          imageToSave = await uploadDigitalImage(imageToSave, `prospects/${id}/profile_image`) ?? imageToSave;
+        }
+        prospectUpdate.image = imageToSave;
+      }
 
       if (Object.keys(prospectUpdate).length > 0) {
         const { error } = await supabase
