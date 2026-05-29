@@ -2,7 +2,17 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
-type Market = 'NEW YORK' | 'LONDON' | 'PARIS';
+type Market =
+  | 'NEW YORK'
+  | 'LONDON'
+  | 'PARIS'
+  | 'MILAN'
+  | 'LOS ANGELES'
+  | 'TOKYO'
+  | 'SYDNEY'
+  | 'DUBAI'
+  | 'BERLIN'
+  | 'OTHER';
 type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL';
 
 export function NewModelBasicInfo() {
@@ -40,14 +50,6 @@ export function NewModelBasicInfo() {
     const no = searchParams.get('notes');
     if (no) setNotes(no);
   }, []);
-
-  const toggleMarket = (market: Market) => {
-    setMarkets((prev) =>
-      prev.includes(market)
-        ? prev.filter((m) => m !== market)
-        : [...prev, market]
-    );
-  };
 
   const handleContinue = () => {
     const params = new URLSearchParams({
@@ -174,24 +176,51 @@ export function NewModelBasicInfo() {
             >
               PRIMARY MARKET
             </label>
-            <div className="flex gap-[8px]">
-              {(['NEW YORK', 'LONDON', 'PARIS'] as Market[]).map((market) => (
-                <button
-                  key={market}
-                  onClick={() => toggleMarket(market)}
-                  className="px-[16px] py-[8px] rounded-full text-[9px] uppercase tracking-[0.1em] transition-colors border cursor-pointer"
-                  style={{
-                    fontFamily: 'var(--font-label)',
-                    backgroundColor: markets.includes(market)
-                      ? '#f0f0ec'
-                      : 'transparent',
-                    borderColor: markets.includes(market) ? '#f0f0ec' : '#2a2a2a',
-                    color: markets.includes(market) ? '#080808' : '#a0a09a',
-                  }}
-                >
-                  {market}
-                </button>
-              ))}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {(
+                [
+                  'NEW YORK',
+                  'LONDON',
+                  'PARIS',
+                  'MILAN',
+                  'LOS ANGELES',
+                  'TOKYO',
+                  'SYDNEY',
+                  'DUBAI',
+                  'BERLIN',
+                  'OTHER',
+                ] as Market[]
+              ).map((m) => {
+                const isSelected = markets.includes(m);
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => {
+                      setMarkets(prev =>
+                        prev.includes(m)
+                          ? prev.filter(x => x !== m)
+                          : [...prev, m]
+                      );
+                    }}
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '10px',
+                      letterSpacing: '0.08em',
+                      padding: '8px 14px',
+                      borderRadius: '4px',
+                      border: `1px solid ${isSelected ? '#f0f0ec' : '#2a2a2a'}`,
+                      backgroundColor: isSelected ? '#f0f0ec' : 'transparent',
+                      color: isSelected ? '#080808' : '#888880',
+                      cursor: 'pointer',
+                      textTransform: 'uppercase',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {m}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
