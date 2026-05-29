@@ -191,24 +191,7 @@ export function NewProspectBasicInfo() {
             >
               PRIMARY MARKET
             </label>
-            <select
-              multiple
-              value={markets}
-              onChange={(e) => {
-                const selected = Array.from(
-                  e.target.selectedOptions,
-                  (opt) => opt.value as Market,
-                );
-                setMarkets(selected);
-              }}
-              className="w-full px-[16px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '13px',
-                color: '#f0f0ec',
-                height: '140px',
-              }}
-            >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {(
                 [
                   'NEW YORK',
@@ -222,29 +205,37 @@ export function NewProspectBasicInfo() {
                   'BERLIN',
                   'OTHER',
                 ] as Market[]
-              ).map((m) => (
-                <option
-                  key={m}
-                  value={m}
-                  style={{
-                    backgroundColor: '#111111',
-                    color: '#f0f0ec',
-                    padding: '8px',
-                  }}
-                >
-                  {m}
-                </option>
-              ))}
-            </select>
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                color: '#666660',
-                marginTop: '8px',
-              }}
-            >
-              Hold Ctrl / Cmd to select multiple markets
+              ).map((m) => {
+                const isSelected = markets.includes(m);
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => {
+                      setMarkets(prev =>
+                        prev.includes(m)
+                          ? prev.filter(x => x !== m)
+                          : [...prev, m]
+                      );
+                    }}
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '10px',
+                      letterSpacing: '0.08em',
+                      padding: '8px 14px',
+                      borderRadius: '4px',
+                      border: `1px solid ${isSelected ? '#f0f0ec' : '#2a2a2a'}`,
+                      backgroundColor: isSelected ? '#f0f0ec' : 'transparent',
+                      color: isSelected ? '#080808' : '#888880',
+                      cursor: 'pointer',
+                      textTransform: 'uppercase',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {m}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
