@@ -20,11 +20,11 @@ export function Profile() {
     : 'Prospect';
   const prospectId = searchParams.get('prospectId') || '';
   const profileType = searchParams.get('profileType') || 'prospect';
-  const { getProspectById, prospects } = useProspects();
-  const { models } = useRoster();
+  const { getProspectById, prospects, loading: prospectsLoading } = useProspects();
+  const { models, loading: rosterLoading } = useRoster();
 
+  const isLoading = (prospectsLoading || rosterLoading) && prospectId !== '';
   const prospect = getProspectById(prospectId);
-  const isLoading = prospects.length === 0 && prospectId !== '';
   const rosterModel = !prospect
     ? models.find((m) => m.id === prospectId)
     : null;

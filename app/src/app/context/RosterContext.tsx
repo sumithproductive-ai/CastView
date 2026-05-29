@@ -28,6 +28,7 @@ export type RosterModel = {
 
 type RosterContextType = {
   models: RosterModel[];
+  loading: boolean;
   addModel: (model: RosterModel) => void;
   updateModel: (id: string, updates: Partial<RosterModel>) => void;
   removeModel: (id: string) => void;
@@ -317,12 +318,13 @@ export function RosterProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       models,
+      loading,
       addModel,
       updateModel,
       removeModel,
       getModelById,
     }),
-    [models, addModel, updateModel, removeModel, getModelById]
+    [models, loading, addModel, updateModel, removeModel, getModelById]
   );
 
   return (

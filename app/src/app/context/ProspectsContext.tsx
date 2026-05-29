@@ -39,6 +39,7 @@ export type Prospect = {
 
 type ProspectsContextType = {
   prospects: Prospect[];
+  loading: boolean;
   addProspect: (prospect: Prospect) => void;
   updateProspect: (id: string, updates: Partial<Prospect>) => void;
   removeProspect: (id: string) => void;
@@ -478,12 +479,13 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       prospects,
+      loading,
       addProspect,
       updateProspect,
       removeProspect,
       getProspectById,
     }),
-    [prospects, addProspect, updateProspect, removeProspect, getProspectById]
+    [prospects, loading, addProspect, updateProspect, removeProspect, getProspectById]
   );
 
   return (
