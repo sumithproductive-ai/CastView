@@ -26,46 +26,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [agencyId, setAgencyId] = useState<string | null>(null);
 
+  const fetchAgencyId = async (userId: string) => {
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('agency_id')
+        .eq('id', userId)
+        .single();
+      if (data?.agency_id) setAgencyId(data.agency_id);
+    } catch {
+      // fail silently
+    }
+  };
+
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // Step 1: get session once on mount, set loading false immediately
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchAgencyId(session.user.id);
-      }
       setLoading(false);
+      // fetch agencyId in background — does not block loading
+      if (session?.user) {
+        fetchAgencyId(session.user.id);
+      }
     });
 
+    // Step 2: listen for future auth changes (sign in, sign out, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchAgencyId(session.user.id);
-        } else {
+        if (!session?.user) {
           setAgencyId(null);
+        } else {
+          // fetch agencyId in background — never await inside this listener
+          fetchAgencyId(session.user.id);
         }
-        setLoading(false);
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchAgencyId = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('agency_id')
-      .eq('id', userId)
-      .single();
-    if (data?.agency_id) setAgencyId(data.agency_id);
-  };
-
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error?.message ?? null };
   };
 
