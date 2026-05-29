@@ -2,7 +2,6 @@ import React from 'react';
 import { useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Upload, X, Check, Lock } from 'lucide-react';
-import { isSumithProspect, sumithDigitals } from '../constants/sumithProspect';
 
 type DigitalImageKey = 'front' | 'profile' | 'three_quarter' | 'full_body';
 
@@ -12,28 +11,18 @@ export function NewProspectDigitals() {
   const [searchParams] = useSearchParams();
   const prospectId = routeProspectId ?? searchParams.get('prospectId');
   const prospectName = searchParams.get('name');
-  const isSumithDemo = isSumithProspect(prospectId, prospectName);
 
   const [showDigitalsError, setShowDigitalsError] = useState(false);
   const [uploadFileNames, setUploadFileNames] = useState<
     Partial<Record<DigitalImageKey, string>>
   >({});
 
-  const [uploadedImages, setUploadedImages] = useState<Record<DigitalImageKey, string | null>>(() =>
-    isSumithDemo
-      ? {
-          front: sumithDigitals.front,
-          profile: sumithDigitals.profile,
-          three_quarter: sumithDigitals.three_quarter,
-          full_body: sumithDigitals.full_body,
-        }
-      : {
-          front: null,
-          profile: null,
-          three_quarter: null,
-          full_body: null,
-        }
-  );
+  const [uploadedImages, setUploadedImages] = useState<Record<DigitalImageKey, string | null>>({
+    front: null,
+    profile: null,
+    three_quarter: null,
+    full_body: null,
+  });
 
   const fileInputRefs = {
     front: useRef<HTMLInputElement>(null),
@@ -46,8 +35,6 @@ export function NewProspectDigitals() {
     e: ChangeEvent<HTMLInputElement>,
     key: DigitalImageKey
   ) => {
-    if (isSumithDemo) return;
-
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -217,21 +204,15 @@ export function NewProspectDigitals() {
               borderColor: zone.uploaded ? '#2a2a2a' : '#2a2a2a',
               height: '140px'
             }}
-            onClick={
-              isSumithDemo
-                ? undefined
-                : () => fileInputRefs[zone.key].current?.click()
-            }
+            onClick={() => fileInputRefs[zone.key].current?.click()}
           >
-            {!isSumithDemo && (
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                style={{ display: 'none' }}
-                ref={fileInputRefs[zone.key]}
-                onChange={(e) => handleFileSelect(e, zone.key)}
-              />
-            )}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: 'none' }}
+              ref={fileInputRefs[zone.key]}
+              onChange={(e) => handleFileSelect(e, zone.key)}
+            />
             {zone.uploaded ? (
               <div
                 style={{
@@ -281,7 +262,6 @@ export function NewProspectDigitals() {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (isSumithDemo) return;
                     setUploadedImages((prev) => ({
                       ...prev,
                       [zone.key]: null,
