@@ -58,7 +58,7 @@ export function UploadDigitalSet() {
 
   const handleSave = () => {
     const newSet: DigitalSet = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       title: title.trim() || 'Untitled Set',
       uploadedAt: date.trim() || '—',
       front: images.front.trim() || '',

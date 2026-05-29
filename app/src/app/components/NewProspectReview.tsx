@@ -75,7 +75,7 @@ export function NewProspectReview() {
       digitalSets: front
         ? [
             {
-              id: `ds-${now}`,
+              id: crypto.randomUUID(),
               uploadedAt,
               title: 'Initial Submission',
               front: front || null,

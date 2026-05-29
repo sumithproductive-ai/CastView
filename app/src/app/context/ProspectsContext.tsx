@@ -10,7 +10,7 @@ import type { ReactNode } from 'react';
 import sumithThumbnail from '@/assets/sumith-thumbnail.jpg';
 import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 import type { DigitalSet } from '../types/talent';
-import { supabase } from '../../lib/supabase';
+import { supabase, uploadDigitalImage } from '../../lib/supabase';
 import { useAuth } from './AuthContext';
 
 export type Prospect = {
@@ -137,7 +137,22 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
   });
 
   const saveDigitalSets = async (entityId: string, digitalSets: DigitalSet[]) => {
+    const uploadIfBase64 = async (value: string | null | undefined, path: string): Promise<string | null> => {
+      if (!value) return null;
+      if (value.startsWith('data:')) {
+        const url = await uploadDigitalImage(value, path);
+        return url;
+      }
+      return value;
+    };
+
     for (const ds of digitalSets) {
+      const basePath = `prospects/${entityId}/${ds.id}`;
+      const front = await uploadIfBase64(ds.front, `${basePath}/front`);
+      const profile = await uploadIfBase64(ds.profile, `${basePath}/profile`);
+      const threeQuarter = await uploadIfBase64(ds.threeQuarter, `${basePath}/three_quarter`);
+      const fullBody = await uploadIfBase64(ds.fullBody, `${basePath}/full_body`);
+
       const { data: savedSet, error } = await supabase
         .from('digital_sets')
         .upsert({
@@ -147,17 +162,20 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
           agency_id: agencyId,
           title: ds.title,
           uploaded_at: ds.uploadedAt,
-          front: ds.front,
-          profile: ds.profile,
-          three_quarter: ds.threeQuarter,
-          full_body: ds.fullBody,
+          front,
+          profile,
+          three_quarter: threeQuarter,
+          full_body: fullBody,
           notes: ds.notes,
           tags: ds.tags,
         })
         .select()
         .single();
 
-      if (error || !savedSet) continue;
+      if (error || !savedSet) {
+        console.error('[CastView] saveDigitalSets upsert error:', error);
+        continue;
+      }
 
       for (const ev of (ds.evaluations ?? [])) {
         const { data: savedEval, error: evalError } = await supabase
