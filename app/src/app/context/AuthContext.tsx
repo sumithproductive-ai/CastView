@@ -36,32 +36,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data?.agency_id) setAgencyId(data.agency_id);
     } catch {
       // fail silently
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Step 1: get session once on mount, set loading false immediately
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
-      // fetch agencyId in background — does not block loading
       if (session?.user) {
+        // keep loading=true until agencyId arrives
         fetchAgencyId(session.user.id);
+      } else {
+        setLoading(false);
       }
     });
 
-    // Step 2: listen for future auth changes (sign in, sign out, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (!session?.user) {
           setAgencyId(null);
-        } else {
-          // fetch agencyId in background — never await inside this listener
-          fetchAgencyId(session.user.id);
+          setLoading(false);
         }
+        // agencyId already fetched by getSession — don't re-fetch here
       }
     );
 

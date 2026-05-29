@@ -12,6 +12,26 @@ const contexts = [
   'Swimwear', 'Couture', 'Street'
 ];
 
+function NotFoundMessage() {
+  const [show, setShow] = React.useState(false);
+  React.useEffect(() => {
+    const t = setTimeout(() => setShow(true), 2000);
+    return () => clearTimeout(t);
+  }, []);
+  if (!show) return null;
+  return (
+    <div style={{
+      fontFamily: 'var(--font-mono)',
+      fontSize: '11px',
+      color: '#c87a7a',
+      letterSpacing: '0.05em',
+      padding: '48px 0',
+    }}>
+      Profile not found. It may have been deleted or the link is invalid.
+    </div>
+  );
+}
+
 export function Profile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -97,17 +117,7 @@ export function Profile() {
           Loading profile...
         </div>
       )}
-      {!isLoading && !entity && prospectId && (
-        <div style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '11px',
-          color: '#c87a7a',
-          letterSpacing: '0.05em',
-          padding: '48px 0',
-        }}>
-          Profile not found. It may have been deleted or the link is invalid.
-        </div>
-      )}
+      {!isLoading && !entity && prospectId && <NotFoundMessage />}
       <button
         type="button"
         onClick={() =>
