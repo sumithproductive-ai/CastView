@@ -49,7 +49,7 @@ export function NewModelReview() {
     const now = Date.now();
 
     const newModel: RosterModel = {
-      id: `${name.toLowerCase().replace(/\s+/g, '-')}-${now}`,
+      id: crypto.randomUUID(),
       name,
       image: front || null,
       primaryContext: 'EDITORIAL',
