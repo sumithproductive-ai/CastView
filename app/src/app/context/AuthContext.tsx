@@ -32,20 +32,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchAgencyId(session.user.id);
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchAgencyId(session.user.id);
-        } else {
+        if (!session?.user) {
           setAgencyId(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
@@ -53,12 +52,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchAgencyId = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('agency_id')
-      .eq('id', userId)
-      .single();
-    if (data?.agency_id) setAgencyId(data.agency_id);
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('agency_id')
+        .eq('id', userId)
+        .single();
+      if (data?.agency_id) setAgencyId(data.agency_id);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
