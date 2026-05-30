@@ -274,6 +274,16 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: '/prospects/:prospectId/draft',
+    element: (
+      <ProtectedRoute>
+        <Layout>
+        <ProspectRenderHistory profileType="prospect" />
+      </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: '/prospects/:prospectId/upload-digitals',
     element: (
       <ProtectedRoute>

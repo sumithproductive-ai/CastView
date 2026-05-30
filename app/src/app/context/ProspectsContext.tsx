@@ -320,9 +320,13 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!agencyId) {
-      setProspects([]);
-      setLoading(false);
-      return;
+      const timer = setTimeout(() => {
+        if (!agencyId) {
+          setProspects([]);
+          setLoading(false);
+        }
+      }, 1500);
+      return () => clearTimeout(timer);
     }
     loadProspects();
   }, [agencyId]);

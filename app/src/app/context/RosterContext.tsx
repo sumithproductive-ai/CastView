@@ -215,9 +215,13 @@ export function RosterProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!agencyId) {
-      setModels([]);
-      setLoading(false);
-      return;
+      const timer = setTimeout(() => {
+        if (!agencyId) {
+          setModels([]);
+          setLoading(false);
+        }
+      }, 1500);
+      return () => clearTimeout(timer);
     }
     loadModels();
   }, [agencyId]);
