@@ -98,15 +98,26 @@ export async function compressImageUrlForEvaluation(
       return compressLoadedImage(img);
     }
 
-    const response = await fetch(url);
-    const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob);
+    // For remote URLs (Supabase Storage), load via img element to avoid CORS fetch issues.
+    // Add cache-busting param to force the browser to load with image credentials.
+    const cacheBustedUrl = url.includes('?')
+      ? `${url}&t=${Date.now()}`
+      : `${url}?t=${Date.now()}`;
 
     try {
-      const img = await loadImage(objectUrl);
+      const img = await loadImage(cacheBustedUrl);
       return compressLoadedImage(img);
-    } finally {
-      URL.revokeObjectURL(objectUrl);
+    } catch {
+      // Fallback: try fetch with no-cors mode, create blob URL
+      const response = await fetch(url, { mode: 'cors', cache: 'no-store' });
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      try {
+        const img = await loadImage(objectUrl);
+        return compressLoadedImage(img);
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
     }
   } catch {
     return null;

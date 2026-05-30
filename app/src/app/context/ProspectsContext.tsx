@@ -332,7 +332,10 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
   }, [agencyId, authLoading]);
 
   const addProspect = useCallback(async (prospect: Prospect) => {
-    if (!agencyId) return;
+    if (!agencyId) {
+      console.error('[ProspectsContext] addProspect aborted: agencyId not ready. Prospect NOT saved to database.');
+      throw new Error('NO_AGENCY_ID');
+    }
     try {
       // Upload profile image to storage if it's base64
       let profileImageUrl = prospect.image;
@@ -391,6 +394,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       setProspects(prev => [newProspect, ...prev]);
     } catch (err) {
       console.error('[ProspectsContext] addProspect error:', err);
+      throw err;
     }
   }, [agencyId]);
 

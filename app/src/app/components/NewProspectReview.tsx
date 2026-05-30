@@ -93,16 +93,24 @@ export function NewProspectReview() {
   };
 
   const handleSaveDraft = async () => {
-    await addProspect(buildNewProspect('DRAFT'));
-    navigate('/prospects');
+    try {
+      await addProspect(buildNewProspect('DRAFT'));
+      navigate('/prospects');
+    } catch {
+      alert('Could not save — your account is still loading. Please wait 2 seconds and try again.');
+    }
   };
 
   const handleSaveAndRender = async () => {
     const newProspect = buildNewProspect('IN REVIEW');
-    await addProspect(newProspect);
-    navigate(
-      `/profile?name=${encodeURIComponent(newProspect.name)}&prospectId=${newProspect.id}&profileType=prospect`,
-    );
+    try {
+      await addProspect(newProspect);
+      navigate(
+        `/profile?name=${encodeURIComponent(newProspect.name)}&prospectId=${newProspect.id}&profileType=prospect`,
+      );
+    } catch {
+      alert('Could not save — your account is still loading. Please wait 2 seconds and try again.');
+    }
   };
 
   return (
