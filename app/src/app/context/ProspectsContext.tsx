@@ -142,6 +142,96 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     digitalSets,
   });
 
+  const PROSPECT_LIST_COLUMNS =
+    'id, name, status, status_color, created_at, source, markets, height';
+
+  const fetchEvaluationsForSetIds = async (setIds: string[]) => {
+    if (setIds.length === 0) return [];
+
+    const { data: evalRows, error: evalError } = await supabase
+      .from('evaluations')
+      .select('id, digital_set_id, completed_at, agent_notes, entity_id, created_at')
+      .in('digital_set_id', setIds)
+      .order('created_at', { ascending: false });
+
+    if (evalError) throw evalError;
+    if (!evalRows?.length) return [];
+
+    const evalIds = evalRows.map((e) => e.id);
+    const { data: contextRows, error: ctxError } = await supabase
+      .from('context_evaluations')
+      .select('*')
+      .in('evaluation_id', evalIds);
+
+    if (ctxError) throw ctxError;
+
+    const contextsByEvalId: Record<string, NonNullable<typeof contextRows>> = {};
+    for (const row of contextRows ?? []) {
+      if (!contextsByEvalId[row.evaluation_id]) contextsByEvalId[row.evaluation_id] = [];
+      contextsByEvalId[row.evaluation_id]!.push(row);
+    }
+
+    return evalRows.map((ev) => ({
+      ...ev,
+      context_evaluations: contextsByEvalId[ev.id] ?? [],
+    }));
+  };
+
+  const hydrateProspectImages = async (prospectIds: string[]) => {
+    for (const id of prospectIds) {
+      const { data, error } = await supabase
+        .from('prospects')
+        .select('image')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error || !data?.image || data.image.startsWith('data:')) continue;
+
+      setProspects((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, image: data.image } : p)),
+      );
+    }
+  };
+
+  const fetchDigitalSetsForProspectIds = async (prospectIds: string[]) => {
+    const batchSize = 15;
+    const allSets: Array<{
+      id: string;
+      entity_id: string;
+      title?: string;
+      uploaded_at?: string;
+      front?: string | null;
+      profile?: string | null;
+      three_quarter?: string | null;
+      full_body?: string | null;
+      notes?: string;
+      tags?: string[];
+    }> = [];
+
+    for (let i = 0; i < prospectIds.length; i += batchSize) {
+      const batch = prospectIds.slice(i, i + batchSize);
+      const { data, error } = await supabase
+        .from('digital_sets')
+        .select(
+          'id, entity_id, title, uploaded_at, front, profile, three_quarter, full_body, notes, tags',
+        )
+        .in('entity_id', batch)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (data?.length) allSets.push(...data);
+    }
+
+    return allSets;
+  };
+
+  const toCompletedAtForDb = (value: string): string => {
+    if (!value) return new Date().toISOString();
+    const parsed = Date.parse(value);
+    if (!Number.isNaN(parsed)) return new Date(parsed).toISOString();
+    return new Date().toISOString();
+  };
+
   const saveDigitalSets = async (entityId: string, digitalSets: DigitalSet[]) => {
     const uploadIfBase64 = async (value: string | null | undefined, path: string): Promise<string | null> => {
       if (!value) return null;
@@ -180,6 +270,9 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
 
       if (error || !savedSet) {
         console.error('[CastView] saveDigitalSets upsert error:', error);
+        if ((ds.evaluations ?? []).length > 0) {
+          throw error ?? new Error('Failed to save digital set before evaluation');
+        }
         continue;
       }
 
@@ -191,16 +284,19 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
             digital_set_id: savedSet.id,
             entity_id: entityId,
             agency_id: agencyId,
-            completed_at: ev.completedAt,
+            completed_at: toCompletedAtForDb(ev.completedAt),
             agent_notes: ev.agentNotes ?? '',
           })
           .select()
           .single();
 
-        if (evalError || !savedEval) continue;
+        if (evalError || !savedEval) {
+          console.error('[CastView] evaluation upsert error:', evalError);
+          throw evalError ?? new Error('Failed to save evaluation');
+        }
 
         for (const ctx of ev.contexts) {
-          await supabase
+          const { error: ctxError } = await supabase
             .from('context_evaluations')
             .upsert({
               evaluation_id: savedEval.id,
@@ -213,6 +309,11 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
               market_signals: ctx.marketSignals,
               suggested_next_steps: ctx.suggestedNextSteps,
             });
+
+          if (ctxError) {
+            console.error('[CastView] context_evaluation upsert error:', ctxError);
+            throw ctxError;
+          }
         }
       }
     }
@@ -221,10 +322,10 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
   const loadProspects = async () => {
     setLoading(true);
     try {
-      // 1. Fetch all prospects
+      // 1. Fetch prospects without profile images (avoids timeout from large base64 blobs)
       const { data: prospectsData, error } = await supabase
         .from('prospects')
-        .select('*')
+        .select(PROSPECT_LIST_COLUMNS)
         .eq('agency_id', agencyId)
         .order('created_at', { ascending: false });
 
@@ -234,25 +335,15 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const prospectIds = prospectsData.map(p => p.id);
+      const prospectIds = prospectsData.map((p) => p.id);
 
-      // 2. Fetch all digital sets for all prospects in one query
-      const { data: allSets } = await supabase
-        .from('digital_sets')
-        .select('*')
-        .in('entity_id', prospectIds)
-        .order('created_at', { ascending: false });
+      // 2. Fetch digital sets in batches
+      const allSets = await fetchDigitalSetsForProspectIds(prospectIds);
 
-      const setIds = (allSets ?? []).map(s => s.id);
+      const setIds = allSets.map((s) => s.id);
 
-      // 3. Fetch all evaluations + context_evaluations for all sets in one query
-      const { data: allEvals } = setIds.length > 0
-        ? await supabase
-            .from('evaluations')
-            .select('*, context_evaluations(*)')
-            .in('digital_set_id', setIds)
-            .order('created_at', { ascending: false })
-        : { data: [] };
+      // 3. Fetch evaluations + context rows (split queries — faster than nested join)
+      const allEvals = await fetchEvaluationsForSetIds(setIds);
 
       // Group evaluations by digital_set_id
       const evalsBySetId: Record<string, NonNullable<typeof allEvals>> = {};
@@ -263,7 +354,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
 
       // Group digital sets by entity_id
       const setsByProspectId: Record<string, DigitalSet[]> = {};
-      for (const ds of (allSets ?? [])) {
+      for (const ds of allSets) {
         if (!setsByProspectId[ds.entity_id]) setsByProspectId[ds.entity_id] = [];
         const evals = (evalsBySetId[ds.id] ?? []).map(ev => ({
           id: ev.id,
@@ -306,11 +397,12 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       }
 
       // Assemble final prospects
-      const assembled = prospectsData.map(p =>
-        mapProspect(p, setsByProspectId[p.id] ?? [])
+      const assembled = prospectsData.map((p) =>
+        mapProspect({ ...p, image: null }, setsByProspectId[p.id] ?? []),
       );
 
       setProspects(assembled);
+      void hydrateProspectImages(prospectIds);
     } catch (err) {
       console.error('[ProspectsContext] load error:', err);
     } finally {
@@ -428,28 +520,24 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
         await saveDigitalSets(id, digitalSets);
       }
 
-      // Reload fresh state from Supabase
+      // Reload fresh state from Supabase (single prospect — safe to include image)
       const { data } = await supabase
         .from('prospects')
-        .select('*')
+        .select(`${PROSPECT_LIST_COLUMNS}, image`)
         .eq('id', id)
         .single();
 
       if (data) {
         const { data: freshSets } = await supabase
           .from('digital_sets')
-          .select('*')
+          .select(
+            'id, entity_id, title, uploaded_at, front, profile, three_quarter, full_body, notes, tags',
+          )
           .eq('entity_id', id)
           .order('created_at', { ascending: false });
 
         const setIds = (freshSets ?? []).map((s: { id: string }) => s.id);
-        const { data: allEvals } = setIds.length > 0
-          ? await supabase
-              .from('evaluations')
-              .select('*, context_evaluations(*)')
-              .in('digital_set_id', setIds)
-              .order('created_at', { ascending: false })
-          : { data: [] };
+        const allEvals = await fetchEvaluationsForSetIds(setIds);
 
         const evalsBySetId: Record<string, NonNullable<typeof allEvals>> = {};
         for (const ev of (allEvals ?? [])) {
@@ -463,6 +551,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       console.error('[ProspectsContext] updateProspect error:', err);
+      throw err;
     }
   }, [agencyId]);
 

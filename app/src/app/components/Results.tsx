@@ -8,6 +8,7 @@ import { isSumithProspect, SUMITH_DIGITAL_SET_V1 } from '../constants/sumithPros
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
+import { supabase } from '../../lib/supabase';
 import {
   clearHandoffStorage,
   EVALUATION_ERROR_KEY,
@@ -72,6 +73,7 @@ export function Results() {
   const profileType = searchParams.get('profileType') || 'prospect';
   const prospectId = searchParams.get('prospectId') || '';
   const evaluationId = searchParams.get('evaluationId') || '';
+  const digitalSetId = searchParams.get('digitalSetId') || '';
 
   useEffect(() => {
     const errorStored = sessionStorage.getItem(EVALUATION_ERROR_KEY);
@@ -147,6 +149,8 @@ export function Results() {
   const [agentNotes, setAgentNotes] = useState('');
   const [notesSaved, setNotesSaved] = useState(false);
   const [evalSaved, setEvalSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [savingEval, setSavingEval] = useState(false);
 
   const getEvalData = (context: string) => {
     if (isContextUnavailable(context)) {
@@ -530,57 +534,103 @@ export function Results() {
         <button
           type="button"
           onClick={async () => {
-            if (evalSaved || !hasRealEvaluation || !prospectId || !evaluationId) return;
+            if (evalSaved || savingEval || !hasRealEvaluation || !prospectId || !evaluationId) return;
             const prospect = prospects.find((p) => p.id === prospectId);
-            if (!prospect) return;
-            const newEvaluation = {
-              id: evaluationId,
-              completedAt: new Date().toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              }),
-              agentNotes: agentNotes ?? '',
-              contexts: (realEvalData.contextEvaluations ?? []).map((ce: any) => ({
-                context: ce.context,
-                alignmentScore: ce.alignmentScore ?? ce.alignment_score ?? 0,
-                fitLabel: ce.fitLabel ?? ce.fit_label ?? '',
-                reasoning: ce.reasoning ?? '',
-                strengths: ce.strengths ?? [],
-                risks: ce.risks ?? [],
-                marketSignals: ce.marketSignals ?? ce.market_signals ?? [],
-                suggestedNextSteps: ce.suggestedNextSteps ?? ce.suggested_next_steps ?? [],
-              })),
-            };
-            const updatedSets = prospect.digitalSets.map((ds, i) =>
-              i === 0
-                ? {
-                    ...ds,
-                    evaluations: [
-                      newEvaluation,
-                      ...(ds.evaluations ?? []).filter((e) => e.id !== evaluationId),
-                    ],
-                  }
-                : ds,
-            );
-            await updateProspect(prospectId, { digitalSets: updatedSets });
-            setEvalSaved(true);
+            if (!prospect) {
+              setSaveError('Prospect not found in session');
+              return;
+            }
+
+            setSavingEval(true);
+            setSaveError(null);
+
+            try {
+              let digitalSets = prospect.digitalSets ?? [];
+              if (digitalSets.length === 0) {
+                const { data: freshSets, error: setsError } = await supabase
+                  .from('digital_sets')
+                  .select('*')
+                  .eq('entity_id', prospectId)
+                  .order('created_at', { ascending: false });
+
+                if (setsError) throw setsError;
+                digitalSets = (freshSets ?? []).map((ds) => ({
+                  id: ds.id,
+                  title: ds.title ?? '',
+                  uploadedAt: ds.uploaded_at ?? '',
+                  front: ds.front ?? null,
+                  profile: ds.profile ?? null,
+                  threeQuarter: ds.three_quarter ?? null,
+                  fullBody: ds.full_body ?? null,
+                  additionalImages: [],
+                  notes: ds.notes ?? '',
+                  tags: ds.tags ?? [],
+                  evaluations: [],
+                }));
+              }
+
+              if (digitalSets.length === 0) {
+                throw new Error('No digital set found for this prospect');
+              }
+
+              const targetSetId = digitalSetId || digitalSets[0].id;
+              const newEvaluation = {
+                id: evaluationId,
+                completedAt: new Date().toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                }),
+                agentNotes: agentNotes ?? '',
+                contexts: (realEvalData.contextEvaluations ?? []).map((ce: any) => ({
+                  context: ce.context,
+                  alignmentScore: ce.alignmentScore ?? ce.alignment_score ?? 0,
+                  fitLabel: ce.fitLabel ?? ce.fit_label ?? '',
+                  reasoning: ce.reasoning ?? '',
+                  strengths: ce.strengths ?? [],
+                  risks: ce.risks ?? [],
+                  marketSignals: ce.marketSignals ?? ce.market_signals ?? [],
+                  suggestedNextSteps: ce.suggestedNextSteps ?? ce.suggested_next_steps ?? [],
+                })),
+              };
+              const updatedSets = digitalSets.map((ds) =>
+                ds.id === targetSetId
+                  ? {
+                      ...ds,
+                      evaluations: [
+                        newEvaluation,
+                        ...(ds.evaluations ?? []).filter((e) => e.id !== evaluationId),
+                      ],
+                    }
+                  : ds,
+              );
+
+              await updateProspect(prospectId, { digitalSets: updatedSets });
+              setEvalSaved(true);
+            } catch (err) {
+              const message =
+                err instanceof Error ? err.message : 'Failed to save evaluation';
+              console.error('[CastView] save evaluation error:', err);
+              setSaveError(message);
+            } finally {
+              setSavingEval(false);
+            }
           }}
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '11px',
-            color: evalSaved ? '#4a7a4a' : '#f0f0ec',
+            color: evalSaved ? '#4a7a4a' : saveError ? '#c87a7a' : '#f0f0ec',
             background: 'none',
-            border: `1px solid ${evalSaved ? '#4a7a4a' : '#2a2a2a'}`,
+            border: `1px solid ${evalSaved ? '#4a7a4a' : saveError ? '#c87a7a' : '#2a2a2a'}`,
             borderRadius: '4px',
             padding: '8px 16px',
-            cursor: evalSaved ? 'default' : 'pointer',
+            cursor: evalSaved || savingEval ? 'default' : 'pointer',
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
           }}
         >
-          {evalSaved ? '✓ SAVED' : 'SAVE EVALUATION'}
+          {evalSaved ? '✓ SAVED' : savingEval ? 'SAVING…' : saveError ? 'SAVE FAILED — RETRY' : 'SAVE EVALUATION'}
         </button>
 
         <div className="flex gap-[12px]">

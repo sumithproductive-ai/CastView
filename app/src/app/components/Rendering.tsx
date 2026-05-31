@@ -189,6 +189,7 @@ export function Rendering() {
     const combinedEvaluations: ContextEvaluationResult[] = [];
     const unavailableContexts: string[] = [];
     let processedContexts = 0;
+    let evaluatedDigitalSetId: string | undefined;
 
     const persistPartialReport = () => {
       const report = buildReport(
@@ -225,7 +226,10 @@ export function Rendering() {
 
       setTimeout(() => {
         const successfulContexts = combinedEvaluations.length;
-        const resultsUrl = `${resultsPath}&evaluationId=${evaluationId}`;
+        const digitalSetParam = evaluatedDigitalSetId
+          ? `&digitalSetId=${evaluatedDigitalSetId}`
+          : '';
+        const resultsUrl = `${resultsPath}&evaluationId=${evaluationId}${digitalSetParam}`;
 
         logEvaluation('finalizeEvaluation triggered', {
           evaluationId,
@@ -366,6 +370,7 @@ export function Rendering() {
       }
 
       const digitalSet = prospect?.digitalSets?.[0];
+      evaluatedDigitalSetId = digitalSet?.id;
 
       const imageUrls = [
         digitalSet?.front,
