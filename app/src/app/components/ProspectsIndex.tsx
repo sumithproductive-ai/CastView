@@ -565,6 +565,24 @@ export function ProspectsIndex() {
                     >
                       COMPLETE PROFILE →
                     </div>
+                    <div onClick={(e) => e.preventDefault()}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDeleteTargetId(prospect.id);
+                        }}
+                        className="w-full mt-[8px] px-[10px] py-[6px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] transition-colors"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          color: '#c87a7a',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        DELETE DRAFT
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between mb-[16px]">
@@ -728,6 +746,17 @@ export function ProspectsIndex() {
               style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
             >
               MARK AS PASSED
+            </button>
+
+            <button
+              onClick={() => {
+                Array.from(selected).forEach((id) => removeProspect(id));
+                setSelected(new Set());
+              }}
+              className="px-[16px] py-[10px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#c87a7a] hover:text-[#080808] transition-colors"
+              style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a', cursor: 'pointer' }}
+            >
+              DELETE SELECTED
             </button>
 
             {/* Close Button */}
