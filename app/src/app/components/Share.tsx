@@ -4,6 +4,8 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { Copy, Check } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { useProspects } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
+import { useAuth } from '../context/AuthContext';
 
 const deliveryMethods = [
   { name: 'Share Link', description: 'Generate a secure link' },
@@ -17,6 +19,11 @@ export function Share() {
   const prospectName = searchParams.get('name')
     ? decodeURIComponent(searchParams.get('name')!)
     : 'Prospect';
+  const prospectId = searchParams.get('prospectId') || '';
+  const profileType = searchParams.get('profileType') || 'prospect';
+  const evaluationId = searchParams.get('evaluationId') || '';
+  const { prospects } = useProspects();
+  const { models } = useRoster();
   const slug = prospectName
     .toLowerCase()
     .replace(/\s+/g, '-')
@@ -65,6 +72,12 @@ export function Share() {
   const [expiry, setExpiry] = useState('7-days');
   const [passwordEnabled, setPasswordEnabled] = useState(false);
   const [agentNotes, setAgentNotes] = useState('');
+  const [emailTo, setEmailTo] = useState('');
+  const [emailSubject, setEmailSubject] = useState(`Evaluation Report — ${prospectName}`);
+  const [emailBody, setEmailBody] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const { agencyId } = useAuth();
   const shareLinkInputRef = useRef<HTMLInputElement>(null);
   
   const toggleEvaluation = (id: number) => {
@@ -101,296 +114,160 @@ export function Share() {
   };
 
   const generatePDF = () => {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
+    const entity = profileType === 'model'
+      ? models.find(m => m.id === prospectId)
+      : prospects.find(p => p.id === prospectId);
 
-    const pageWidth = 210;
-    const margin = 20;
-    const contentWidth = pageWidth - margin * 2;
-    let y = 20;
+    const allEvals = entity?.digitalSets?.flatMap(ds => ds.evaluations ?? []) ?? [];
+    const evaluation = allEvals.find(e => e.id === evaluationId) ?? allEvals[0];
+    const contexts = evaluation?.contexts ?? [];
 
-    const addText = (
-      text: string,
-      x: number,
-      fontSize: number,
-      color: [number, number, number],
-      style: 'normal' | 'bold' = 'normal'
-    ) => {
-      doc.setFontSize(fontSize);
-      doc.setTextColor(...color);
-      doc.setFont('helvetica', style);
-      doc.text(text, x, y);
-    };
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = 210;
+    const pageH = 297;
+    const margin = 16;
+    const col = (pageW - margin * 2 - 8) / 2;
+    const fullW = pageW - margin * 2;
+    let y = margin;
 
-    const checkPageBreak = (neededSpace: number) => {
-      if (y + neededSpace > 277) {
+    const checkBreak = (need: number) => {
+      if (y + need > pageH - margin) {
         doc.addPage();
-        y = 20;
+        y = margin;
+        doc.setFillColor(180, 145, 90);
+        doc.rect(0, 0, pageW, 3, 'F');
+        y = 10;
       }
     };
 
-    // ── HEADER ──
-    doc.setFillColor(8, 8, 8);
-    doc.rect(0, 0, 210, 297, 'F');
+    const lbl = (text: string, x: number, yPos: number, color: [number,number,number] = [120,120,116]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(...color);
+      doc.text(text.toUpperCase(), x, yPos);
+    };
 
-    addText('CASTVIEW', margin, 9, [200, 169, 110]);
-    y += 6;
-    addText('Context Alignment Report', margin, 22, [240, 240, 236], 'bold');
-    y += 10;
-    addText('castview.io · hello@castview.io', margin, 8, [136, 136, 128]);
-    y += 10;
+    const bdy = (text: string, x: number, yPos: number, maxW: number, color: [number,number,number] = [80,80,76]): number => {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...color);
+      const lines = doc.splitTextToSize(text, maxW);
+      doc.text(lines, x, yPos);
+      return lines.length * 4.2;
+    };
 
-    // ── DIVIDER ──
-    doc.setDrawColor(42, 42, 42);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, pageWidth - margin, y);
+    // Header
+    doc.setFillColor(180, 145, 90);
+    doc.rect(0, 0, pageW, 3, 'F');
+    y = 10;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(180, 145, 90);
+    doc.text('CASTVIEW', margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(140, 140, 136);
+    doc.text('castview.org', pageW - margin, y, { align: 'right' });
     y += 8;
 
-    // ── PROSPECT INFO ──
-    addText('PROSPECT', margin, 8, [136, 136, 128]);
-    y += 5;
-    addText(prospectName, margin, 18, [240, 240, 236], 'bold');
-    y += 6;
-    addText('Division: Men  ·  Primary Context: Fragrance  ·  Markets: NYC, London', margin, 8, [160, 160, 154]);
-    y += 5;
-    addText(`Report generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, margin, 8, [136, 136, 128]);
+    doc.setDrawColor(200, 200, 196);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pageW - margin, y);
+    y += 8;
+
+    // Prospect name
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.setTextColor(20, 20, 20);
+    doc.text(prospectName, margin, y);
     y += 10;
 
-    // ── OVERALL SUMMARY ──
-    doc.setFillColor(26, 26, 26);
-    doc.roundedRect(margin, y, contentWidth, 18, 2, 2, 'F');
-    y += 6;
-    addText('OVERALL SUMMARY', margin + 6, 7, [200, 169, 110]);
-    y += 5;
-    const summaryLines = doc.splitTextToSize(
-      'Strong contextual alignment across luxury and editorial contexts based on uploaded digitals. Facial geometry, proportions, and market fit indicators score above benchmark across all evaluated contexts.',
-      contentWidth - 12
-    );
-    doc.setFontSize(9);
-    doc.setTextColor(192, 192, 186);
-    doc.setFont('helvetica', 'normal');
-    doc.text(summaryLines, margin + 6, y);
-    y += summaryLines.length * 5 + 10;
-
-    // ── CONTEXT EVALUATIONS ──
-    const selectedEvals = dynamicEvaluations.filter((e) =>
-      checkedEvaluations.includes(e.id),
-    );
-
-    const evalData: Record<string, {
-      reasoning: string;
-      strengths: string[];
-      risks: string[];
-      marketSignals: string[];
-      suggestedNextSteps: string[];
-      fitLabel: string;
-    }> = {
-      'Fragrance': {
-        fitLabel: 'STRONG ALIGNMENT',
-        reasoning: 'The uploaded digitals show strong alignment with current European luxury fragrance casting criteria. Facial geometry and proportions match the framing requirements of this context.',
-        strengths: [
-          'Strong angular bone structure aligns with fragrance campaign framing criteria',
-          'Skin tone and undertone range scores well against editorial lighting benchmarks',
-          'Proportions support tight crop compositions typical of this context'
-        ],
-        risks: ['Limited progression data — one digital set on file'],
-        marketSignals: [
-          'European luxury fragrance market trending toward this profile type',
-          'High demand for this look in NYC and London markets'
-        ],
-        suggestedNextSteps: [
-          'Schedule fragrance test shoot',
-          'Approach luxury fragrance clients in NYC market first',
-          'Upload updated digitals after next shoot for progression tracking'
-        ]
-      },
-      'Editorial': {
-        fitLabel: 'STRONG ALIGNMENT',
-        reasoning: 'Editorial versatility indicators are high. Strong framing and posture in digitals support editorial and magazine contexts across European and US markets.',
-        strengths: [
-          'Strong editorial presence in digitals',
-          'Versatile look range supports multiple editorial styles',
-          'Bone structure reads well in both close-crop and full-frame compositions'
-        ],
-        risks: ['No editorial test shoot on file yet'],
-        marketSignals: [
-          'NYC editorial market active and receptive to this profile',
-          'Strong alignment with current European editorial casting trends'
-        ],
-        suggestedNextSteps: [
-          'Approach editorial clients in NYC and London',
-          'Schedule editorial test shoot to build portfolio'
-        ]
-      },
-      'Campaign': {
-        fitLabel: 'STRONG ALIGNMENT',
-        reasoning: 'Commercial appeal remains strong across campaign context benchmarks. Proportions and approachability scores are above average for brand advertising contexts.',
-        strengths: [
-          'High commercial appeal across broad consumer demographics',
-          'Strong brand-fit indicators for lifestyle and luxury campaign contexts'
-        ],
-        risks: ['Campaign versatility requires test shoot confirmation'],
-        marketSignals: ['Strong demand for this profile in US campaign market'],
-        suggestedNextSteps: [
-          'Target lifestyle brand campaigns first',
-          'Build campaign-specific portfolio section'
-        ]
-      },
-      'Beauty': {
-        fitLabel: 'STRONG ALIGNMENT',
-        reasoning: 'Skin tone consistency and facial symmetry indicators score well against beauty campaign benchmarks.',
-        strengths: [
-          'Skin tone scores well for beauty and skincare contexts',
-          'Facial symmetry above benchmark for beauty casting criteria'
-        ],
-        risks: ['Beauty portfolio not yet established'],
-        marketSignals: ['Beauty context demand growing in NYC market'],
-        suggestedNextSteps: [
-          'Schedule beauty-specific test shoot',
-          'Approach skincare and grooming brand clients'
-        ]
+    if (entity) {
+      const meta = [];
+      if ((entity as any).source) meta.push(`Source: ${(entity as any).source}`);
+      if ((entity as any).height) meta.push(`Height: ${(entity as any).height}`);
+      if ((entity as any).markets?.length) meta.push(`Markets: ${(entity as any).markets.join(', ')}`);
+      if (evaluation?.completedAt) meta.push(`Evaluated: ${evaluation.completedAt}`);
+      if (meta.length > 0) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(120, 120, 116);
+        const metaText = meta.join('  ·  ');
+        const metaLines = doc.splitTextToSize(metaText, fullW);
+        doc.text(metaLines, margin, y);
+        y += metaLines.length * 4.5 + 4;
       }
-    };
+    }
 
-    selectedEvals.forEach((evaluation) => {
-      const data = evalData[evaluation.context] ?? {
-        fitLabel: 'STRONG ALIGNMENT',
-        reasoning: 'Strong alignment with context criteria based on uploaded digitals.',
-        strengths: ['Alignment criteria met'],
-        risks: ['Limited data'],
-        marketSignals: ['Market demand present'],
-        suggestedNextSteps: ['Schedule test shoot']
-      };
+    doc.setDrawColor(200, 200, 196);
+    doc.line(margin, y, pageW - margin, y);
+    y += 8;
 
-      checkPageBreak(80);
+    // Context sections
+    contexts.forEach((ctx: any) => {
+      if (!ctx) return;
+      const score = ctx.alignmentScore ?? 0;
+      checkBreak(60);
 
-      // Context header bar
-      doc.setFillColor(26, 26, 26);
-      doc.roundedRect(margin, y, contentWidth, 10, 2, 2, 'F');
-      addText(evaluation.context.toUpperCase(), margin + 6, 8, [200, 169, 110], 'bold');
-
-      // Score on right
-      doc.setFontSize(8);
-      doc.setTextColor(240, 240, 236);
+      doc.setFillColor(248, 248, 244);
+      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'F');
+      doc.setDrawColor(220, 210, 190);
+      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'S');
       doc.setFont('helvetica', 'bold');
-      doc.text(`${evaluation.score}%  ${data.fitLabel}`, pageWidth - margin - 6, y + 3, { align: 'right' });
-      y += 14;
-
-      // Score bar
-      doc.setFillColor(42, 42, 42);
-      doc.roundedRect(margin, y, contentWidth, 3, 1, 1, 'F');
-      doc.setFillColor(200, 169, 110);
-      doc.roundedRect(margin, y, contentWidth * (evaluation.score / 100), 3, 1, 1, 'F');
-      y += 8;
-
-      // Reasoning
-      addText('REASONING', margin, 7, [136, 136, 128], 'bold');
-      y += 4;
-      const reasoningLines = doc.splitTextToSize(data.reasoning, contentWidth);
       doc.setFontSize(8);
-      doc.setTextColor(192, 192, 186);
-      doc.setFont('helvetica', 'normal');
-      doc.text(reasoningLines, margin, y);
-      y += reasoningLines.length * 4.5 + 5;
+      doc.setTextColor(160, 120, 60);
+      doc.text(ctx.context?.toUpperCase() ?? '', margin + 5, y + 6);
+      doc.setTextColor(20, 20, 20);
+      doc.text(`${score}%  ${ctx.fitLabel ?? ''}`, pageW - margin - 5, y + 6, { align: 'right' });
+      y += 12;
 
-      // Strengths
-      checkPageBreak(30);
-      addText('STRENGTHS', margin, 7, [74, 122, 74], 'bold');
-      y += 4;
-      data.strengths.forEach(s => {
-        const lines = doc.splitTextToSize(`→  ${s}`, contentWidth - 4);
-        doc.setFontSize(8);
-        doc.setTextColor(160, 160, 154);
-        doc.setFont('helvetica', 'normal');
-        doc.text(lines, margin + 2, y);
-        y += lines.length * 4.5;
-      });
-      y += 3;
+      doc.setFillColor(220, 220, 218);
+      doc.rect(margin, y, fullW, 2, 'F');
+      doc.setFillColor(180, 145, 90);
+      doc.rect(margin, y, fullW * (score / 100), 2, 'F');
+      y += 6;
 
-      // Risks
-      if (data.risks.length > 0) {
-        checkPageBreak(20);
-        addText('RISKS', margin, 7, [200, 122, 122], 'bold');
-        y += 4;
-        data.risks.forEach(r => {
-          const lines = doc.splitTextToSize(`→  ${r}`, contentWidth - 4);
-          doc.setFontSize(8);
-          doc.setTextColor(160, 160, 154);
-          doc.setFont('helvetica', 'normal');
-          doc.text(lines, margin + 2, y);
-          y += lines.length * 4.5;
-        });
-        y += 3;
+      let contentY = y;
+      lbl('Reasoning', margin, contentY);
+      contentY += 4;
+      contentY += bdy(ctx.reasoning ?? '', margin, contentY, fullW) + 4;
+
+      const leftX = margin;
+      const rightX = margin + col + 8;
+      let leftY = contentY;
+      let rightY = contentY;
+
+      lbl('Strengths', leftX, leftY, [40, 100, 40]);
+      leftY += 4;
+      (ctx.strengths ?? []).forEach((s: string) => { leftY += bdy(`→  ${s}`, leftX, leftY, col) + 1; });
+      leftY += 4;
+      if ((ctx.risks ?? []).length > 0) {
+        lbl('Risks', leftX, leftY, [160, 60, 60]);
+        leftY += 4;
+        (ctx.risks ?? []).forEach((r: string) => { leftY += bdy(`→  ${r}`, leftX, leftY, col) + 1; });
       }
 
-      // Market Signals
-      checkPageBreak(20);
-      addText('MARKET SIGNALS', margin, 7, [136, 136, 128], 'bold');
-      y += 4;
-      data.marketSignals.forEach(m => {
-        const lines = doc.splitTextToSize(`→  ${m}`, contentWidth - 4);
-        doc.setFontSize(8);
-        doc.setTextColor(160, 160, 154);
-        doc.setFont('helvetica', 'normal');
-        doc.text(lines, margin + 2, y);
-        y += lines.length * 4.5;
-      });
-      y += 3;
+      lbl('Market Signals', rightX, rightY);
+      rightY += 4;
+      (ctx.marketSignals ?? []).forEach((m: string) => { rightY += bdy(`→  ${m}`, rightX, rightY, col) + 1; });
+      rightY += 4;
+      lbl('Suggested Next Steps', rightX, rightY);
+      rightY += 4;
+      (ctx.suggestedNextSteps ?? []).forEach((s: string) => { rightY += bdy(`→  ${s}`, rightX, rightY, col) + 1; });
 
-      // Next Steps
-      checkPageBreak(20);
-      addText('SUGGESTED NEXT STEPS', margin, 7, [136, 136, 128], 'bold');
-      y += 4;
-      data.suggestedNextSteps.forEach(step => {
-        const lines = doc.splitTextToSize(`→  ${step}`, contentWidth - 4);
-        doc.setFontSize(8);
-        doc.setTextColor(160, 160, 154);
-        doc.setFont('helvetica', 'normal');
-        doc.text(lines, margin + 2, y);
-        y += lines.length * 4.5;
-      });
-
-      y += 8;
-      doc.setDrawColor(42, 42, 42);
-      doc.line(margin, y, pageWidth - margin, y);
-      y += 8;
+      y = Math.max(leftY, rightY) + 6;
+      doc.setDrawColor(200, 200, 196);
+      doc.line(margin, y, pageW - margin, y);
+      y += 6;
     });
 
-    // ── AGENT NOTES ──
-    checkPageBreak(30);
-    addText('AGENT NOTES', margin, 8, [200, 169, 110], 'bold');
-    y += 5;
-    doc.setFillColor(20, 20, 20);
-    doc.roundedRect(margin, y, contentWidth, 20, 2, 2, 'F');
-    y += 6;
-    const notesText = agentNotes.trim() || 'No agent notes added for this evaluation.';
-    const notesLines = doc.splitTextToSize(notesText, contentWidth - 12);
-    doc.setFontSize(8.5);
-    doc.setTextColor(192, 192, 186);
+    // Footer
     doc.setFont('helvetica', 'normal');
-    doc.text(notesLines, margin + 6, y);
-    y += notesLines.length * 5 + 14;
-
-    // ── DISCLAIMER ──
-    checkPageBreak(30);
-    doc.setDrawColor(42, 42, 42);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 6;
-    addText('DISCLAIMER', margin, 7, [136, 136, 128], 'bold');
-    y += 4;
-    const disclaimer = 'This report is generated by AI analysis of uploaded digitals and is intended as a decision-support tool only. Context alignment scores do not constitute professional casting advice and should be used alongside agent judgment. CastView does not guarantee casting outcomes. All evaluations reflect the digitals available at time of analysis.';
-    const disclaimerLines = doc.splitTextToSize(disclaimer, contentWidth);
-    doc.setFontSize(7.5);
-    doc.setTextColor(100, 100, 96);
-    doc.setFont('helvetica', 'normal');
-    doc.text(disclaimerLines, margin, y);
-    y += disclaimerLines.length * 4 + 8;
-
-    // ── FOOTER ──
-    addText('Prepared by CastView  ·  castview.io  ·  hello@castview.io', margin, 7, [100, 100, 96]);
+    doc.setFontSize(7);
+    doc.setTextColor(160, 120, 60);
+    doc.text('Prepared by CastView  ·  castview.org', pageW / 2, y + 5, { align: 'center' });
+    doc.setFillColor(180, 145, 90);
+    doc.rect(0, pageH - 2, pageW, 2, 'F');
 
     doc.save(`CastView-${prospectName.replace(/\s+/g, '-')}-Evaluation.pdf`);
   };
@@ -730,13 +607,61 @@ export function Share() {
           )}
           
           {selectedMethod === 'Send Email' && (
-            <div className="text-center py-[48px]">
-              <div 
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}
-              >
-                Email delivery options
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <input
+                  type="email"
+                  placeholder="Recipient email"
+                  value={emailTo}
+                  onChange={e => setEmailTo(e.target.value)}
+                  style={{ background: '#111111', border: '1px solid #2a2a2a', borderRadius: '4px', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#F0F0EC', outline: 'none' }}
+                />
+                <input
+                  type="text"
+                  placeholder="Subject"
+                  value={emailSubject}
+                  onChange={e => setEmailSubject(e.target.value)}
+                  style={{ background: '#111111', border: '1px solid #2a2a2a', borderRadius: '4px', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#F0F0EC', outline: 'none' }}
+                />
+                <textarea
+                  placeholder="Add a note..."
+                  value={emailBody}
+                  onChange={e => setEmailBody(e.target.value)}
+                  rows={4}
+                  style={{ background: '#111111', border: '1px solid #2a2a2a', borderRadius: '4px', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#F0F0EC', resize: 'none', outline: 'none' }}
+                />
+                {emailSent ? (
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#4a7a4a', letterSpacing: '0.08em' }}>✓ Email sent successfully</div>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      if (!emailTo || !agencyId || !prospectId) return;
+                      setEmailSending(true);
+                      try {
+                        const res = await fetch('/api/send-message', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            prospectId,
+                            agencyId,
+                            toEmail: emailTo,
+                            toName: prospectName,
+                            subject: emailSubject,
+                            body: emailBody || `Please find the CastView alignment report for ${prospectName} attached.`,
+                            agencyName: 'CastView Agency',
+                          }),
+                        });
+                        if (res.ok) setEmailSent(true);
+                      } finally {
+                        setEmailSending(false);
+                      }
+                    }}
+                    disabled={emailSending || !emailTo}
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '10px 20px', background: '#C8A96E', color: '#080808', border: 'none', borderRadius: '4px', cursor: !emailTo ? 'not-allowed' : 'pointer', opacity: !emailTo ? 0.5 : 1 }}
+                  >
+                    {emailSending ? 'SENDING...' : 'SEND EMAIL →'}
+                  </button>
+                )}
               </div>
-            </div>
           )}
         </div>
       </div>

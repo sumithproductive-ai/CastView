@@ -67,6 +67,33 @@ export function Dashboard() {
         });
         setRecentMessages(withNames);
       });
+
+    const channel = supabase
+      .channel('dashboard-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `agency_id=eq.${agencyId}`,
+        },
+        async (payload) => {
+          const msg = payload.new as typeof recentMessages[0];
+          const prospect = prospects.find(p => p.id === msg.prospect_id);
+          const model = models.find(m => m.id === msg.prospect_id);
+          const withName = {
+            ...msg,
+            prospectName: prospect?.name ?? model?.name ?? (msg as any).to_email ?? 'Unknown',
+          };
+          setRecentMessages(prev => [withName, ...prev.filter(m => m.id !== withName.id)].slice(0, 10));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [agencyId, prospects, models]);
 
   const activeModelsCount = models.filter(
