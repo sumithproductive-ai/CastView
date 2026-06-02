@@ -129,7 +129,21 @@ export function RosterProvider({ children }: { children: ReactNode }) {
   };
 
   const saveDigitalSets = async (entityId: string, digitalSets: DigitalSet[]) => {
+    const { uploadDigitalImage } = await import('../../lib/supabase');
+    
+    const uploadIfBase64 = async (value: string | null | undefined, path: string): Promise<string | null> => {
+      if (!value) return null;
+      if (value.startsWith('data:')) return uploadDigitalImage(value, path);
+      return value;
+    };
+
     for (const ds of digitalSets) {
+      const basePath = `models/${entityId}/${ds.id}`;
+      const front = await uploadIfBase64(ds.front, `${basePath}/front`);
+      const profile = await uploadIfBase64(ds.profile, `${basePath}/profile`);
+      const threeQuarter = await uploadIfBase64(ds.threeQuarter, `${basePath}/three_quarter`);
+      const fullBody = await uploadIfBase64(ds.fullBody, `${basePath}/full_body`);
+
       const { data: savedSet, error } = await supabase
         .from('digital_sets')
         .upsert({
@@ -139,17 +153,20 @@ export function RosterProvider({ children }: { children: ReactNode }) {
           agency_id: agencyId,
           title: ds.title,
           uploaded_at: ds.uploadedAt,
-          front: ds.front,
-          profile: ds.profile,
-          three_quarter: ds.threeQuarter,
-          full_body: ds.fullBody,
+          front,
+          profile,
+          three_quarter: threeQuarter,
+          full_body: fullBody,
           notes: ds.notes,
           tags: ds.tags,
         })
         .select()
         .single();
 
-      if (error || !savedSet) continue;
+      if (error || !savedSet) {
+        console.error('[RosterContext] saveDigitalSets error:', error);
+        continue;
+      }
 
       for (const ev of (ds.evaluations ?? [])) {
         const { data: savedEval, error: evalError } = await supabase
@@ -196,16 +213,81 @@ export function RosterProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      if (!modelsData) return;
+      if (!modelsData || modelsData.length === 0) {
+        setModels([]);
+        return;
+      }
 
-      const modelsWithSets = await Promise.all(
-        modelsData.map(async (m) => {
-          const digitalSets = await loadDigitalSets(m.id);
-          return mapModel(m, digitalSets);
-        })
+      const modelIds = modelsData.map(m => m.id);
+
+      const { data: allSets } = await supabase
+        .from('digital_sets')
+        .select('*')
+        .in('entity_id', modelIds)
+        .order('created_at', { ascending: false });
+
+      const setIds = (allSets ?? []).map(s => s.id);
+
+      const { data: allEvals } = setIds.length > 0
+        ? await supabase
+            .from('evaluations')
+            .select('*, context_evaluations(*)')
+            .in('digital_set_id', setIds)
+            .order('created_at', { ascending: false })
+        : { data: [] };
+
+      const evalsBySetId: Record<string, NonNullable<typeof allEvals>> = {};
+      for (const ev of (allEvals ?? [])) {
+        if (!evalsBySetId[ev.digital_set_id]) evalsBySetId[ev.digital_set_id] = [];
+        evalsBySetId[ev.digital_set_id]!.push(ev);
+      }
+
+      const setsByModelId: Record<string, DigitalSet[]> = {};
+      for (const ds of (allSets ?? [])) {
+        if (!setsByModelId[ds.entity_id]) setsByModelId[ds.entity_id] = [];
+        const evals = (evalsBySetId[ds.id] ?? []).map(ev => ({
+          id: ev.id,
+          completedAt: ev.completed_at ?? '',
+          agentNotes: ev.agent_notes ?? '',
+          contexts: (ev.context_evaluations ?? []).map((ce: {
+            context: string;
+            alignment_score: number;
+            fit_label: string;
+            reasoning: string;
+            strengths?: string[];
+            risks?: string[];
+            market_signals?: string[];
+            suggested_next_steps?: string[];
+          }) => ({
+            context: ce.context,
+            alignmentScore: ce.alignment_score,
+            fitLabel: ce.fit_label,
+            reasoning: ce.reasoning,
+            strengths: ce.strengths ?? [],
+            risks: ce.risks ?? [],
+            marketSignals: ce.market_signals ?? [],
+            suggestedNextSteps: ce.suggested_next_steps ?? [],
+          })),
+        }));
+        setsByModelId[ds.entity_id]!.push({
+          id: ds.id,
+          title: ds.title ?? '',
+          uploadedAt: ds.uploaded_at ?? '',
+          front: ds.front ?? null,
+          profile: ds.profile ?? null,
+          threeQuarter: ds.three_quarter ?? null,
+          fullBody: ds.full_body ?? null,
+          additionalImages: [],
+          notes: ds.notes ?? '',
+          tags: ds.tags ?? [],
+          evaluations: evals,
+        });
+      }
+
+      const assembled = modelsData.map(m =>
+        mapModel(m, setsByModelId[m.id] ?? [])
       );
-
-      setModels(modelsWithSets);
+      setModels(assembled);
     } catch (err) {
       console.error('[RosterContext] load error:', err);
     } finally {
@@ -227,7 +309,10 @@ export function RosterProvider({ children }: { children: ReactNode }) {
   }, [agencyId]);
 
   const addModel = useCallback(async (model: RosterModel) => {
-    if (!agencyId) return;
+    if (!agencyId) {
+      console.error('[RosterContext] addModel aborted: agencyId not ready');
+      throw new Error('NO_AGENCY_ID');
+    }
     try {
       const { data, error } = await supabase
         .from('models')
@@ -254,6 +339,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
       setModels(prev => [newModel, ...prev]);
     } catch (err) {
       console.error('[RosterContext] addModel error:', err);
+      throw err;
     }
   }, [agencyId]);
 

@@ -7,6 +7,7 @@ import { useRoster, type RosterModel } from '../context/RosterContext';
 import { getRosterModelById } from './Roster';
 import type { DigitalSet, Evaluation } from '../types/talent';
 import { TutorialOverlay, uploadTutorialSteps } from './TutorialOverlay';
+import { MessageThread } from './MessageThread';
 
 type ProfileType = 'prospect' | 'model';
 
@@ -559,6 +560,14 @@ export function ProspectRenderHistory({
           </p>
         </div>
       </div>
+
+      {isModel && modelId && (
+        <MessageThread
+          prospectId={modelId}
+          prospectName={activeProfile.name}
+          prospectEmail={(rosterModelForImage as { email?: string } | undefined)?.email ?? ''}
+        />
+      )}
 
       <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[48px]">
         <div

@@ -62,7 +62,7 @@ export function NewModelReview() {
       division: 'men',
       digitalSets: [
         {
-          id: `ds-${now}`,
+          id: crypto.randomUUID(),
           uploadedAt: new Date().toLocaleString('en-US', {
             month: 'long',
             year: 'numeric',
