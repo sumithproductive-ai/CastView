@@ -56,31 +56,41 @@ export function UploadDigitalSet() {
   });
   const [fileNames, setFileNames] = useState<Partial<Record<UploadFormImageKey, string>>>({});
 
-  const handleSave = () => {
-    const newSet: DigitalSet = {
-      id: crypto.randomUUID(),
-      title: title.trim() || 'Untitled Set',
-      uploadedAt: date.trim() || '—',
-      front: images.front.trim() || '',
-      profile: images.profile.trim() || '',
-      threeQuarter: images.threeQuarter.trim() || '',
-      fullBody: images.fullBody.trim() || '',
-      additionalImages: [],
-      notes: notes.trim(),
-      tags: [],
-      evaluations: [],
-    };
+  const [saving, setSaving] = useState(false);
 
-    if (profileType === 'prospect') {
-      const currentProspect = getProspectById(entityId);
-      const baseSets = currentProspect?.digitalSets ?? [];
-      updateProspect(entityId, { digitalSets: [newSet, ...baseSets] });
-      navigate(`/prospects/${entityId}`);
-    } else {
-      const currentModel = models.find((m) => m.id === entityId);
-      const baseSets = currentModel?.digitalSets ?? [];
-      updateModel(entityId, { digitalSets: [newSet, ...baseSets] });
-      navigate(`/roster/${entityId}`);
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const newSet: DigitalSet = {
+        id: crypto.randomUUID(),
+        title: title.trim() || 'Untitled Set',
+        uploadedAt: date.trim() || '—',
+        front: images.front.trim() || '',
+        profile: images.profile.trim() || '',
+        threeQuarter: images.threeQuarter.trim() || '',
+        fullBody: images.fullBody.trim() || '',
+        additionalImages: [],
+        notes: notes.trim(),
+        tags: [],
+        evaluations: [],
+      };
+
+      if (profileType === 'prospect') {
+        const currentProspect = getProspectById(entityId);
+        const baseSets = currentProspect?.digitalSets ?? [];
+        await updateProspect(entityId, { digitalSets: [newSet, ...baseSets] });
+        navigate(`/prospects/${entityId}`);
+      } else {
+        const currentModel = models.find((m) => m.id === entityId);
+        const baseSets = currentModel?.digitalSets ?? [];
+        await updateModel(entityId, { digitalSets: [newSet, ...baseSets] });
+        navigate(`/roster/${entityId}`);
+      }
+    } catch (err) {
+      console.error('[UploadDigitalSet] save error:', err);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -162,6 +172,7 @@ export function UploadDigitalSet() {
           />
         </div>
 
+        <div className="grid grid-cols-2 gap-[12px]">
         {uploadFields.map((field) => {
           const fieldKey = field.key;
           const imageUrl = images[fieldKey];
@@ -194,7 +205,7 @@ export function UploadDigitalSet() {
               {imageUrl ? (
                 <div
                   className="relative bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden"
-                  style={{ height: '140px' }}
+                  style={{ height: '200px' }}
                 >
                   <img
                     src={imageUrl}
@@ -254,7 +265,7 @@ export function UploadDigitalSet() {
                   role="button"
                   tabIndex={0}
                   className="relative bg-[#0d0d0d] border border-dashed rounded-[4px] cursor-pointer hover:border-[#3a3a3a] transition-colors"
-                  style={{ borderColor: '#2a2a2a', height: '140px' }}
+                  style={{ borderColor: '#2a2a2a', height: '200px' }}
                   onClick={() =>
                     document.getElementById(`upload-digitals-${fieldKey}`)?.click()
                   }
@@ -289,6 +300,7 @@ export function UploadDigitalSet() {
             </div>
           );
         })}
+        </div>
 
         <div>
           <label className="block mb-[8px]" style={formFieldLabelStyle}>
@@ -312,11 +324,12 @@ export function UploadDigitalSet() {
             fontFamily: 'var(--font-mono)',
             backgroundColor: '#f0f0ec',
             color: '#080808',
-            cursor: 'pointer',
+            cursor: saving ? 'not-allowed' : 'pointer',
             border: 'none',
+            opacity: saving ? 0.6 : 1,
           }}
         >
-          SAVE DIGITAL SET
+          {saving ? 'SAVING...' : 'SAVE DIGITAL SET'}
         </button>
 
         <button
