@@ -12,3 +12,13 @@ html, body {
   background-color: #080808;
   min-height: 100vh;
 }
+
+button,
+a,
+[role="button"],
+select,
+label[for],
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer !important;
+}
