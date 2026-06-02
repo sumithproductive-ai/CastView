@@ -49,11 +49,17 @@ export function NotificationsPanel({ isOpen, onClose, onMarkAllRead }: Notificat
   }, [isOpen, onClose]);
 
   useEffect(() => {
+    if (!agencyId) return;
+    loadNotifications();
+  }, [agencyId]);
+
+  useEffect(() => {
     if (!isOpen || !agencyId) return;
     loadNotifications();
-  }, [isOpen, agencyId]);
+  }, [isOpen]);
 
   const loadNotifications = async () => {
+    if (!agencyId) return;
     const { data: events } = await supabase
       .from('events')
       .select('*')

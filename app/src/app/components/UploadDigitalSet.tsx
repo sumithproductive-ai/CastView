@@ -104,7 +104,7 @@ export function UploadDigitalSet() {
   };
 
   return (
-    <div className="p-[20px] md:p-[48px]" style={{ backgroundColor: '#080808', minHeight: '100%' }}>
+    <div className="p-[20px] md:p-[32px]" style={{ backgroundColor: '#080808', minHeight: '100%' }}>
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -143,36 +143,37 @@ export function UploadDigitalSet() {
         {entityName}
       </p>
 
-      <div className="max-w-[640px] space-y-[16px]">
-        <div>
-          <label className="block mb-[8px]" style={formFieldLabelStyle}>
-            SET TITLE
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. May 2026 Update"
-            className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
-            style={formInputStyle}
-          />
+      <div className="max-w-[900px]">
+        <div className="grid grid-cols-2 gap-[12px] mb-[16px]">
+          <div>
+            <label className="block mb-[8px]" style={formFieldLabelStyle}>
+              SET TITLE
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. May 2026 Update"
+              className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+              style={formInputStyle}
+            />
+          </div>
+          <div>
+            <label className="block mb-[8px]" style={formFieldLabelStyle}>
+              DATE
+            </label>
+            <input
+              type="text"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              placeholder="e.g. May 2026"
+              className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+              style={formInputStyle}
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="block mb-[8px]" style={formFieldLabelStyle}>
-            DATE
-          </label>
-          <input
-            type="text"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            placeholder="e.g. May 2026"
-            className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
-            style={formInputStyle}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-[12px]">
+        <div className="grid grid-cols-4 gap-[10px] mb-[16px]">
         {uploadFields.map((field) => {
           const fieldKey = field.key;
           const imageUrl = images[fieldKey];
@@ -205,7 +206,7 @@ export function UploadDigitalSet() {
               {imageUrl ? (
                 <div
                   className="relative bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden"
-                  style={{ height: '200px' }}
+                  style={{ height: '220px' }}
                 >
                   <img
                     src={imageUrl}
@@ -265,7 +266,7 @@ export function UploadDigitalSet() {
                   role="button"
                   tabIndex={0}
                   className="relative bg-[#0d0d0d] border border-dashed rounded-[4px] cursor-pointer hover:border-[#3a3a3a] transition-colors"
-                  style={{ borderColor: '#2a2a2a', height: '200px' }}
+                  style={{ borderColor: '#2a2a2a', height: '220px' }}
                   onClick={() =>
                     document.getElementById(`upload-digitals-${fieldKey}`)?.click()
                   }
@@ -302,7 +303,7 @@ export function UploadDigitalSet() {
         })}
         </div>
 
-        <div>
+        <div style={{ maxWidth: '500px' }}>
           <label className="block mb-[8px]" style={formFieldLabelStyle}>
             NOTES
           </label>
