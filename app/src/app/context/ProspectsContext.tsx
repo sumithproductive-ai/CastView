@@ -485,6 +485,14 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       const digitalSets = mapDigitalSetRows(freshSets ?? [], evalsBySetId);
       const newProspect = mapProspect(data, digitalSets);
       setProspects(prev => [newProspect, ...prev]);
+
+      try {
+        await supabase.from('events').insert({
+          agency_id: agencyId,
+          event_type: 'prospect_added',
+          metadata: { prospectId: data.id, name: data.name },
+        });
+      } catch { /* non-critical, ignore */ }
     } catch (err) {
       console.error('[ProspectsContext] addProspect error:', err);
     }

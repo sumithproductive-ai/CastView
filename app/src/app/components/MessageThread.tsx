@@ -58,6 +58,13 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
       });
       if (res.ok) {
         setSent(true);
+        try {
+          await supabase.from('events').insert({
+            agency_id: agencyId,
+            event_type: 'message_sent',
+            metadata: { prospectId, toEmail },
+          });
+        } catch { /* non-critical */ }
         setBody('');
         setSubject('');
         setTimeout(() => setSent(false), 3000);

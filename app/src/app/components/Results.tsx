@@ -5,6 +5,7 @@ import { jsPDF } from 'jspdf';
 import { ChevronDown } from 'lucide-react';
 import { getContextData } from '../constants/contextMockData';
 import { isSumithProspect, SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
+import { useAuth } from '../context/AuthContext';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
@@ -58,6 +59,7 @@ function ContextArrowList({ items }: { items: string[] }) {
 export function Results() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { agencyId } = useAuth();
   const { prospects, updateProspect } = useProspects();
   const { models, updateModel } = useRoster();
   const [realEvalData, setRealEvalData] = useState<any>(null);
@@ -1080,9 +1082,23 @@ export function Results() {
               </div>
               <div className="flex gap-[8px]">
                 <button
-                  onClick={() => { 
-                    setShowOverride(false); 
-                    setAgreed(true); 
+                  onClick={async () => {
+                    if (!evaluationId) return;
+                    await supabase
+                      .from('evaluations')
+                      .update({
+                        booker_feedback: 'confirmed',
+                        booker_feedback_at: new Date().toISOString(),
+                      })
+                      .eq('id', evaluationId);
+                    // track event
+                    await supabase.from('events').insert({
+                      agency_id: agencyId,
+                      event_type: 'evaluation_confirmed',
+                      metadata: { evaluationId, prospectId },
+                    });
+                    setShowOverride(false);
+                    setAgreed(true);
                   }}
                   className="px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
                   style={{ 
@@ -1098,9 +1114,22 @@ export function Results() {
                   {agreed ? '✓ Confirmed' : 'Confirm Alignment'}
                 </button>
                 <button
-                  onClick={() => { 
-                    setShowOverride(true); 
-                    setAgreed(false); 
+                  onClick={async () => {
+                    if (!evaluationId) return;
+                    await supabase
+                      .from('evaluations')
+                      .update({
+                        booker_feedback: 'overridden',
+                        booker_feedback_at: new Date().toISOString(),
+                      })
+                      .eq('id', evaluationId);
+                    await supabase.from('events').insert({
+                      agency_id: agencyId,
+                      event_type: 'evaluation_overridden',
+                      metadata: { evaluationId, prospectId },
+                    });
+                    setShowOverride(true);
+                    setAgreed(false);
                   }}
                   className="px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
                   style={{ 

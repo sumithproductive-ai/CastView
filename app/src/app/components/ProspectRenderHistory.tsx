@@ -8,6 +8,8 @@ import { getRosterModelById } from './Roster';
 import type { DigitalSet, Evaluation } from '../types/talent';
 import { TutorialOverlay, uploadTutorialSteps } from './TutorialOverlay';
 import { MessageThread } from './MessageThread';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 type ProfileType = 'prospect' | 'model';
 
@@ -169,6 +171,7 @@ export function ProspectRenderHistory({
 }: ProspectRenderHistoryProps) {
   const { prospectId, modelId } = useParams();
   const [searchParams] = useSearchParams();
+  const { agencyId } = useAuth();
   const { getProspectById, updateProspect } = useProspects();
   const { updateModel, models } = useRoster();
   const isProspect = profileType === 'prospect';
@@ -560,6 +563,61 @@ export function ProspectRenderHistory({
           </p>
         </div>
       </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                color: '#a0a09a',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                marginBottom: '10px',
+              }}
+            >
+              Signed Status
+            </div>
+            <select
+              value={activeProfile?.signed_status ?? 'pending'}
+              onChange={async (e) => {
+                const newStatus = e.target.value;
+                if (isProspect && prospectId) {
+                  await updateProspect(prospectId, { 
+                    signed_status: newStatus 
+                  } as any);
+                } else if (isModel && modelId) {
+                  await updateModel(modelId, { 
+                    signed_status: newStatus 
+                  } as any);
+                }
+                await supabase.from('events').insert({
+                  agency_id: agencyId,
+                  event_type: 'signed_status_updated',
+                  metadata: { 
+                    entityId: prospectId ?? modelId, 
+                    status: newStatus 
+                  },
+                });
+              }}
+              style={{
+                background: '#111111',
+                border: '1px solid #2a2a2a',
+                borderRadius: '4px',
+                padding: '8px 12px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: '#F0F0EC',
+                letterSpacing: '0.05em',
+                cursor: 'pointer',
+                width: '100%',
+                maxWidth: '200px',
+              }}
+            >
+              <option value="pending">PENDING</option>
+              <option value="signed">SIGNED</option>
+              <option value="passed">PASSED</option>
+            </select>
+          </div>
 
       {isModel && modelId && (
         <MessageThread

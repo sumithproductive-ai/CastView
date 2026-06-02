@@ -21,7 +21,7 @@ export function Profile() {
     : 'Prospect';
   const prospectId = searchParams.get('prospectId') || '';
   const profileType = searchParams.get('profileType') || 'prospect';
-  const { getProspectById, prospects, loading: prospectsLoading } = useProspects();
+  const { getProspectById, prospects, updateProspect, loading: prospectsLoading } = useProspects();
   const { models, loading: rosterLoading } = useRoster();
 
   const isLoading = (prospectsLoading || rosterLoading) && prospectId !== '';
@@ -254,6 +254,48 @@ export function Profile() {
               style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
               placeholder="Strong runway presence, versatile look..."
             />
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <label
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                color: '#a0a09a',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                display: 'block',
+                marginBottom: '10px',
+              }}
+            >
+              Signed Status
+            </label>
+            <select
+              value={entity?.signed_status ?? 'pending'}
+              onChange={async (e) => {
+                const newStatus = e.target.value;
+                await updateProspect(prospectId, { 
+                  signed_status: newStatus 
+                } as any);
+              }}
+              style={{
+                background: '#111111',
+                border: '1px solid #2a2a2a',
+                borderRadius: '4px',
+                padding: '8px 12px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: '#F0F0EC',
+                letterSpacing: '0.05em',
+                cursor: 'pointer',
+                width: '100%',
+                maxWidth: '200px',
+              }}
+            >
+              <option value="pending">PENDING</option>
+              <option value="signed">SIGNED</option>
+              <option value="passed">PASSED</option>
+            </select>
           </div>
 
           <MessageThread
