@@ -113,6 +113,9 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
               display: 'flex',
               flexDirection: 'column',
               gap: '12px',
+              maxHeight: '320px',
+              overflowY: 'auto',
+              paddingRight: '4px',
             }}>
               {messages.map((msg) => (
                 <div
