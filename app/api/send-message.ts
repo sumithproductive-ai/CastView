@@ -30,13 +30,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f7f4;padding:48px 24px;">
     <tr><td align="center">
       <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:4px;overflow:hidden;">
-        
         <tr>
           <td style="background:#080808;padding:24px 32px;">
             <span style="font-family:'Courier New',monospace;font-size:11px;color:#C8A96E;letter-spacing:0.15em;text-transform:uppercase;">CastView</span>
           </td>
         </tr>
-        
         <tr>
           <td style="padding:40px 32px 32px;">
             <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:10px;color:#888880;letter-spacing:0.1em;text-transform:uppercase;">
@@ -50,29 +48,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             </div>
           </td>
         </tr>
-        
         <tr>
           <td style="padding:0 32px 40px;">
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="border-top:1px solid #eeede9;padding-top:24px;">
-                  <p style="margin:0;font-family:'Courier New',monospace;font-size:10px;color:#aaa;letter-spacing:0.05em;">
-                    Reply directly to this email — your response will appear in CastView.
-                  </p>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        
-        <tr>
-          <td style="background:#f4f3ef;padding:16px 32px;">
-            <p style="margin:0;font-family:'Courier New',monospace;font-size:9px;color:#aaa;letter-spacing:0.05em;">
-              Sent via CastView · castview.org
+            <p style="margin:0;font-family:'Courier New',monospace;font-size:10px;color:#aaa;letter-spacing:0.05em;border-top:1px solid #eeede9;padding-top:24px;">
+              Reply directly to this email — your response will appear in CastView.
             </p>
           </td>
         </tr>
-        
+        <tr>
+          <td style="background:#f4f3ef;padding:16px 32px;">
+            <p style="margin:0;font-family:'Courier New',monospace;font-size:9px;color:#aaa;">Sent via CastView · castview.org</p>
+          </td>
+        </tr>
       </table>
     </td></tr>
   </table>
@@ -80,22 +67,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </html>`,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[send-message] Resend error:', error);
+      return res.status(500).json({ error: 'Email send failed' });
+    }
 
-    await supabase.from('messages').insert({
+    // Save to Supabase with explicit error logging
+    const { error: dbError } = await supabase.from('messages').insert({
       prospect_id: prospectId,
       agency_id: agencyId,
       direction: 'outbound',
       subject,
       body,
-      from_email: process.env.RESEND_FROM_EMAIL,
+      from_email: process.env.RESEND_FROM_EMAIL ?? 'team@castview.org',
       to_email: toEmail,
-      resend_id: data?.id ?? null,
+      sent_at: new Date().toISOString(),
     });
+
+    if (dbError) {
+      console.error('[send-message] Supabase insert error:', JSON.stringify(dbError));
+      // Still return success since email sent — but log the DB failure
+    } else {
+      console.log('[send-message] Message saved to Supabase successfully');
+    }
 
     return res.status(200).json({ success: true });
   } catch (err: any) {
-    console.error('[send-message] error:', err);
-    return res.status(500).json({ error: err.message });
+    console.error('[send-message] unexpected error:', JSON.stringify(err));
+    return res.status(500).json({ error: err.message ?? 'Unknown error' });
   }
 }
