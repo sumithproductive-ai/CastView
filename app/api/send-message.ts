@@ -23,23 +23,61 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       to: [toEmail],
       subject,
       replyTo: `reply+${prospectId}@castview.org`,
-      html: `
-        <div style="font-family: monospace; max-width: 600px; margin: 0 auto; 
-             padding: 40px 24px; background: #ffffff; color: #080808;">
-          <div style="font-size: 10px; letter-spacing: 0.1em; color: #888880; 
-               text-transform: uppercase; margin-bottom: 32px;">
-            Message from ${agencyName ?? 'Your Agency'} via CastView
-          </div>
-          <div style="font-size: 14px; line-height: 1.7; color: #080808; 
-               white-space: pre-wrap;">${body}</div>
-          <div style="margin-top: 48px; padding-top: 24px; 
-               border-top: 1px solid #e0e0e0; font-size: 10px; 
-               color: #888880; letter-spacing: 0.05em;">
-            Reply directly to this email to respond. 
-            Your reply will appear in CastView.
-          </div>
-        </div>
-      `,
+      html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<body style="margin:0;padding:0;background:#f8f7f4;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f7f4;padding:48px 24px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:4px;overflow:hidden;">
+        
+        <tr>
+          <td style="background:#080808;padding:24px 32px;">
+            <span style="font-family:'Courier New',monospace;font-size:11px;color:#C8A96E;letter-spacing:0.15em;text-transform:uppercase;">CastView</span>
+          </td>
+        </tr>
+        
+        <tr>
+          <td style="padding:40px 32px 32px;">
+            <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:10px;color:#888880;letter-spacing:0.1em;text-transform:uppercase;">
+              Message from ${agencyName ?? 'Your Agency'}
+            </p>
+            <p style="margin:0 0 32px;font-family:'Georgia',serif;font-size:22px;font-weight:400;color:#080808;line-height:1.3;">
+              ${subject}
+            </p>
+            <div style="border-top:1px solid #eeede9;padding-top:24px;">
+              <p style="margin:0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;color:#333330;line-height:1.7;white-space:pre-wrap;">${body}</p>
+            </div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td style="padding:0 32px 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="border-top:1px solid #eeede9;padding-top:24px;">
+                  <p style="margin:0;font-family:'Courier New',monospace;font-size:10px;color:#aaa;letter-spacing:0.05em;">
+                    Reply directly to this email — your response will appear in CastView.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        
+        <tr>
+          <td style="background:#f4f3ef;padding:16px 32px;">
+            <p style="margin:0;font-family:'Courier New',monospace;font-size:9px;color:#aaa;letter-spacing:0.05em;">
+              Sent via CastView · castview.org
+            </p>
+          </td>
+        </tr>
+        
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
     });
 
     if (error) throw error;
