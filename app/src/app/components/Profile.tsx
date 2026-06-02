@@ -5,6 +5,7 @@ import { ChevronRight, Lock } from 'lucide-react';
 
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
+import { MessageThread } from './MessageThread';
 
 const contexts = [
   'Fragrance', 'Editorial', 'Runway', 
@@ -254,6 +255,12 @@ export function Profile() {
               placeholder="Strong runway presence, versatile look..."
             />
           </div>
+
+          <MessageThread
+            prospectId={prospectId}
+            prospectName={prospectName}
+            prospectEmail={entity?.email ?? ''}
+          />
           
           <div className="mb-[32px]">
             <label 

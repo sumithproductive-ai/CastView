@@ -21,6 +21,7 @@ export type Prospect = {
   evaluations: number;
   submissionDate: string;
   source?: string;
+  email?: string;
   image: string | null;
   contexts: string[];
   renderedContexts: string[];
@@ -120,6 +121,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     status_color?: string;
     created_at: string;
     source?: string;
+    email?: string;
     image?: string | null;
     markets?: string[];
     height?: string;
@@ -131,6 +133,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     evaluations: digitalSets.reduce((sum, ds) => sum + (ds.evaluations?.length ?? 0), 0),
     submissionDate: new Date(row.created_at).toLocaleDateString(),
     source: row.source ?? '',
+    email: row.email ?? '',
     image: row.image ?? null,
     contexts: row.markets ?? [],
     renderedContexts: [],
@@ -446,6 +449,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
           source: prospect.source ?? '',
           height: prospect.height ?? '',
           markets: prospect.markets ?? [],
+          email: prospect.email ?? '',
           image: profileImageUrl ?? null,
         })
         .select()
