@@ -172,7 +172,7 @@ export function ProspectRenderHistory({
   const { prospectId, modelId } = useParams();
   const [searchParams] = useSearchParams();
   const { agencyId } = useAuth();
-  const { getProspectById, updateProspect } = useProspects();
+  const { getProspectById, updateProspect, loading: prospectsLoading } = useProspects();
   const { updateModel, models } = useRoster();
   const isProspect = profileType === 'prospect';
   const isModel = profileType === 'model';
@@ -186,7 +186,7 @@ export function ProspectRenderHistory({
     models,
     searchParams,
   );
-  const showProspectNotFound = isProspect && !resolvedProfile;
+  const showProspectNotFound = isProspect && !resolvedProfile && !prospectsLoading;
   const activeProfile: ProfileData = resolvedProfile ?? {
     name: '',
     status: '',

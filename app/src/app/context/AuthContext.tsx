@@ -33,13 +33,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [planStatus, setPlanStatus] = useState<string>('trialing');
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchAgencyId(session.user.id);
+        await fetchAgencyId(session.user.id);
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -59,22 +60,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchAgencyId = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('agency_id')
-      .eq('id', userId)
-      .single();
-    if (data?.agency_id) {
-      setAgencyId(data.agency_id);
-      const { data: agency } = await supabase
-        .from('agencies')
-        .select('plan, plan_status')
-        .eq('id', data.agency_id)
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('agency_id')
+        .eq('id', userId)
         .single();
-      if (agency) {
-        setPlan(agency.plan ?? 'trial');
-        setPlanStatus(agency.plan_status ?? 'trialing');
+      if (data?.agency_id) {
+        setAgencyId(data.agency_id);
+        const { data: agency } = await supabase
+          .from('agencies')
+          .select('plan, plan_status')
+          .eq('id', data.agency_id)
+          .single();
+        if (agency) {
+          setPlan(agency.plan ?? 'trial');
+          setPlanStatus(agency.plan_status ?? 'trialing');
+        }
       }
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -69,6 +69,7 @@ export function NewProspectBasicInfo() {
       name: name.trim(),
       markets: markets.join(','),
       source: source || '',
+      email: formData.email ?? '',
       height: measurements.height,
       bust: measurements.bust,
       waist: measurements.waist,

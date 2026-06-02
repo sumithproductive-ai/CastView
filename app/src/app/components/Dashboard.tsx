@@ -6,18 +6,6 @@ import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 
-type ClientResponseStatus = 'SENT' | 'VIEWED' | 'RESPONDED';
-
-interface ClientResponse {
-  id: string;
-  prospectName: string;
-  contexts: string;
-  sentTime: string;
-  status: ClientResponseStatus;
-  openedTime?: string;
-  responseTime?: string;
-}
-
 function submissionDateRank(submissionDate: string): number {
   const value = submissionDate.toLowerCase().trim();
   if (value === 'today') return 0;
@@ -80,8 +68,6 @@ export function Dashboard() {
         setRecentMessages(withNames);
       });
   }, [agencyId, prospects, models]);
-
-  const clientResponses: ClientResponse[] = [];
 
   const activeModelsCount = models.filter(
     (m) => m.status === 'ACTIVE'

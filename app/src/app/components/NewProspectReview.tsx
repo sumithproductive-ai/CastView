@@ -8,6 +8,7 @@ export function NewProspectReview() {
   const [searchParams] = useSearchParams();
   const { addProspect } = useProspects();
   const prospectName = searchParams.get('name')?.trim() || 'Prospect';
+  const email = searchParams.get('email') || '';
 
   const front = searchParams.get('front') || '';
   const profile = searchParams.get('profile') || '';
@@ -59,6 +60,7 @@ export function NewProspectReview() {
       evaluations: 0,
       submissionDate: 'Just now',
       source: source || undefined,
+      email,
       image: front || null,
       contexts: [],
       renderedContexts: [],
