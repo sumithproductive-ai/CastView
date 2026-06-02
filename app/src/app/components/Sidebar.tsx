@@ -1,7 +1,9 @@
 import React from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { LayoutDashboard, Users, Image, Share2, Settings, Bell, type LucideIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import { NotificationsPanel } from './NotificationsPanel';
 
 type NavItem = { name: string; icon: LucideIcon; path: string };
@@ -46,8 +48,49 @@ export function Sidebar() {
   };
   
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(2); // Number of unread notifications
-  
+  const [unreadCount, setUnreadCount] = useState(0);
+  const { agencyId } = useAuth();
+
+  useEffect(() => {
+    if (!agencyId) return;
+
+    const loadUnread = async () => {
+      const { count: eventCount } = await supabase
+        .from('events')
+        .select('*', { count: 'exact', head: true })
+        .eq('agency_id', agencyId)
+        .is('read_at', null);
+
+      const { count: messageCount } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('agency_id', agencyId)
+        .eq('direction', 'inbound');
+
+      setUnreadCount((eventCount ?? 0) + (messageCount ?? 0));
+    };
+
+    loadUnread();
+
+    const channel = supabase
+      .channel('sidebar-unread')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'events',
+        filter: `agency_id=eq.${agencyId}`,
+      }, () => loadUnread())
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `agency_id=eq.${agencyId}`,
+      }, () => loadUnread())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [agencyId]);
+
   useEffect(() => {
     const handleClear = () => setUnreadCount(0);
     window.addEventListener(
