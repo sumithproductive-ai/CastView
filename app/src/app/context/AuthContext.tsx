@@ -9,6 +9,8 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   agencyId: string | null;
+  plan: string;
+  planStatus: string;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -18,6 +20,8 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => ({ error: null }),
   signOut: async () => {},
   agencyId: null,
+  plan: 'trial',
+  planStatus: 'trialing',
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -25,6 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [agencyId, setAgencyId] = useState<string | null>(null);
+  const [plan, setPlan] = useState<string>('trial');
+  const [planStatus, setPlanStatus] = useState<string>('trialing');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -58,7 +64,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .select('agency_id')
       .eq('id', userId)
       .single();
-    if (data?.agency_id) setAgencyId(data.agency_id);
+    if (data?.agency_id) {
+      setAgencyId(data.agency_id);
+      const { data: agency } = await supabase
+        .from('agencies')
+        .select('plan, plan_status')
+        .eq('id', data.agency_id)
+        .single();
+      if (agency) {
+        setPlan(agency.plan ?? 'trial');
+        setPlanStatus(agency.plan_status ?? 'trialing');
+      }
+    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -75,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signOut, agencyId }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signOut, agencyId, plan, planStatus }}>
       {children}
     </AuthContext.Provider>
   );

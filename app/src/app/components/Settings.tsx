@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useTutorial } from '../context/TutorialContext';
 
 type TeamMemberStatus = 'ACTIVE' | 'INACTIVE';
@@ -32,9 +33,26 @@ const teamMembers: TeamMember[] = [
   }
 ];
 
+const BILLING_TIERS = [
+  { id: 'solo' as const, name: 'SOLO', price: '$129', description: 'For independent agents' },
+  { id: 'studio' as const, name: 'STUDIO', price: '$349', description: 'For growing agencies', recommended: true },
+  { id: 'agency' as const, name: 'AGENCY', price: '$699', description: 'For established agencies' },
+];
+
 export function Settings() {
   const [quality, setQuality] = useState<'standard' | 'high' | 'ultra'>('high');
   const { openTutorial } = useTutorial();
+  const { agencyId, user, plan, planStatus } = useAuth();
+  const handleSubscribe = async (tier: string) => {
+    if (!agencyId || !user?.email) return;
+    const res = await fetch('/api/stripe-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tier, agencyId, email: user.email }),
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+  };
 
   return (
     <div className="p-[48px]">
@@ -46,6 +64,122 @@ export function Settings() {
       </h1>
 
       <div className="space-y-[16px]">
+        {/* Billing / Subscribe */}
+        <div>
+          <div
+            className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
+            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+          >
+            BILLING
+          </div>
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] p-[24px]">
+            <div className="flex items-center justify-between mb-[24px] pb-[24px] border-b border-[#2a2a2a]">
+              <div>
+                <div
+                  className="text-[9px] uppercase tracking-[0.1em] mb-[8px]"
+                  style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                >
+                  CURRENT PLAN
+                </div>
+                <div
+                  className="text-[28px]"
+                  style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                >
+                  {plan.toUpperCase()}
+                </div>
+              </div>
+              <div
+                className="px-[12px] py-[6px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
+                style={{ fontFamily: 'var(--font-mono)', color: '#c8a96e' }}
+              >
+                {planStatus.replace(/_/g, ' ')}
+              </div>
+            </div>
+
+            <div
+              className="text-[11px] uppercase tracking-[0.12em] mb-[16px]"
+              style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+            >
+              CHOOSE A PLAN
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-[16px]">
+              {BILLING_TIERS.map((tier) => {
+                const isCurrent = plan === tier.id;
+                const isRecommended = tier.recommended === true;
+
+                return (
+                  <div
+                    key={tier.id}
+                    className="rounded-[4px] p-[24px] flex flex-col"
+                    style={{
+                      backgroundColor: '#1a1a1a',
+                      border: `1px solid ${isRecommended ? '#c8a96e' : '#2a2a2a'}`,
+                    }}
+                  >
+                    {isRecommended && (
+                      <div
+                        className="text-[9px] uppercase tracking-[0.12em] mb-[12px]"
+                        style={{ fontFamily: 'var(--font-label)', color: '#c8a96e' }}
+                      >
+                        RECOMMENDED
+                      </div>
+                    )}
+                    <div
+                      className="text-[11px] uppercase tracking-[0.12em] mb-[12px]"
+                      style={{
+                        fontFamily: 'var(--font-label)',
+                        color: isRecommended ? '#c8a96e' : '#888880',
+                      }}
+                    >
+                      {tier.name}
+                    </div>
+                    <div
+                      className="text-[40px] mb-[4px]"
+                      style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                    >
+                      {tier.price}
+                    </div>
+                    <div
+                      className="text-[13px] mb-[20px]"
+                      style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                    >
+                      per month
+                    </div>
+                    <div
+                      className="text-[13px] mb-[24px] flex-1"
+                      style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a', lineHeight: 1.5 }}
+                    >
+                      {tier.description}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSubscribe(tier.id)}
+                      disabled={isCurrent}
+                      className="w-full px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        backgroundColor: isRecommended ? '#c8a96e' : 'transparent',
+                        color: isRecommended ? '#080808' : '#f0f0ec',
+                        border: isRecommended ? '1px solid #c8a96e' : '1px solid #2a2a2a',
+                        cursor: isCurrent ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {isCurrent ? 'CURRENT PLAN' : 'SUBSCRIBE'}
+                    </button>
+                    <div
+                      className="text-[11px] text-center mt-[12px]"
+                      style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+                    >
+                      14-day free trial
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         {/* Your Plan Block */}
         <div>
           <div 
