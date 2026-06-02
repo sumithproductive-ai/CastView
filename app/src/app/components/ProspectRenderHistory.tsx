@@ -568,6 +568,13 @@ export function ProspectRenderHistory({
           prospectEmail={(rosterModelForImage as { email?: string } | undefined)?.email ?? ''}
         />
       )}
+      {isProspect && prospectId && (
+        <MessageThread
+          prospectId={prospectId}
+          prospectName={activeProfile?.name ?? ''}
+          prospectEmail={(activeProfile as { email?: string } | undefined)?.email ?? ''}
+        />
+      )}
 
       <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[48px]">
         <div

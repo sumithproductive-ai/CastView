@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 type ClientResponseStatus = 'SENT' | 'VIEWED' | 'RESPONDED';
 
@@ -43,6 +45,42 @@ type RosterActivityItem = {
 export function Dashboard() {
   const { prospects } = useProspects();
   const { models } = useRoster();
+  const [recentMessages, setRecentMessages] = useState<Array<{
+    id: string;
+    prospect_id: string;
+    direction: string;
+    subject: string;
+    body: string;
+    to_email: string;
+    from_email: string;
+    sent_at: string;
+    prospectName?: string;
+  }>>([]);
+
+  const { agencyId } = useAuth();
+
+  useEffect(() => {
+    if (!agencyId) return;
+    supabase
+      .from('messages')
+      .select('*')
+      .eq('agency_id', agencyId)
+      .order('sent_at', { ascending: false })
+      .limit(10)
+      .then(({ data }) => {
+        if (!data) return;
+        const withNames = data.map(msg => {
+          const prospect = prospects.find(p => p.id === msg.prospect_id);
+          const model = models.find(m => m.id === msg.prospect_id);
+          return {
+            ...msg,
+            prospectName: prospect?.name ?? model?.name ?? msg.to_email,
+          };
+        });
+        setRecentMessages(withNames);
+      });
+  }, [agencyId, prospects, models]);
+
   const clientResponses: ClientResponse[] = [];
 
   const activeModelsCount = models.filter(
@@ -290,116 +328,79 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Client Responses Panel */}
       <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[48px]">
-        {/* Header with count */}
-        <div 
+        <div
           className="text-[10px] uppercase tracking-[0.12em] mb-[24px] flex items-center"
           style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
         >
-          AWAITING CLIENT RESPONSE ({clientResponses.length})
-          {clientResponses.length > 0 && (
+          RECENT MESSAGES ({recentMessages.length})
+          {recentMessages.some(m => m.direction === 'inbound') && (
             <span
               className="w-[6px] h-[6px] rounded-full inline-block ml-[8px] mb-[1px]"
-              style={{ backgroundColor: '#f0f0ec' }}
+              style={{ backgroundColor: '#C8A96E' }}
             />
           )}
         </div>
 
-        {/* Response list or empty state */}
-        {clientResponses.length === 0 ? (
-          <div 
+        {recentMessages.length === 0 ? (
+          <div
             className="text-center py-[32px] text-[12px]"
             style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
           >
-            No packages sent yet.
+            No messages yet. Send your first message from a prospect profile.
           </div>
         ) : (
-          <div 
-            className="space-y-[12px]"
-            style={{ maxHeight: '200px', overflowY: 'auto' }}
+          <div
+            style={{ maxHeight: '240px', overflowY: 'auto' }}
+            className="space-y-[4px]"
           >
-            {clientResponses.map((response) => {
-              // Determine status pill styling
-              const getStatusStyle = (status: ClientResponseStatus) => {
-                switch (status) {
-                  case 'SENT':
-                    return { borderColor: '#555550', color: '#888880' };
-                  case 'VIEWED':
-                    return { borderColor: '#888880', color: '#c8c8c2' };
-                  case 'RESPONDED':
-                    return { borderColor: '#f0f0ec', color: '#f0f0ec' };
-                }
-              };
-
-              const statusStyle = getStatusStyle(response.status);
-
-              return (
-                <div key={response.id}>
-                  <Link
-                    to={`/share/${response.id}`}
-                    className="flex items-center gap-[16px] py-[12px] px-[16px] hover:bg-[#1a1a1a] rounded-[4px] transition-colors cursor-pointer"
-                  >
-                    {/* Prospect name */}
-                    <div 
-                      className="text-[13px] min-w-[160px]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-                    >
-                      {response.prospectName}
-                    </div>
-
-                    {/* Contexts shared */}
-                    <div 
-                      className="flex-1 text-[11px]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
-                    >
-                      {response.contexts}
-                    </div>
-
-                    {/* Sent time */}
-                    <div 
-                      className="text-[11px] min-w-[100px] text-right"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
-                    >
-                      {response.sentTime}
-                    </div>
-
-                    {/* Status pill */}
-                    <div 
-                      className="px-[10px] py-[4px] rounded-full text-[9px] uppercase tracking-[0.1em] border"
-                      style={{ 
-                        fontFamily: 'var(--font-label)', 
-                        borderColor: statusStyle.borderColor,
-                        color: statusStyle.color,
-                        backgroundColor: 'transparent'
-                      }}
-                    >
-                      {response.status}
-                    </div>
-                  </Link>
-                  
-                  {/* Read receipt sub-line for VIEWED status */}
-                  {response.status === 'VIEWED' && response.openedTime && (
-                    <div 
-                      className="px-[16px] pb-[8px] text-[11px] italic"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
-                    >
-                      Opened {response.openedTime} · No response yet
-                    </div>
-                  )}
-                  
-                  {/* Read receipt sub-line for RESPONDED status */}
-                  {response.status === 'RESPONDED' && response.responseTime && (
-                    <div 
-                      className="px-[16px] pb-[8px] text-[11px] italic"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
-                    >
-                      Responded {response.responseTime} · ✓ Acknowledged
-                    </div>
-                  )}
+            {recentMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className="flex items-center gap-[16px] py-[10px] px-[16px] hover:bg-[#1a1a1a] rounded-[4px] transition-colors cursor-pointer"
+                style={{
+                  borderLeft: msg.direction === 'inbound'
+                    ? '2px solid #C8A96E' : '1px solid transparent',
+                }}
+                onClick={() => {
+                  const prospect = prospects.find(p => p.id === msg.prospect_id);
+                  const model = models.find(m => m.id === msg.prospect_id);
+                  if (prospect) window.location.href = `/prospects/${prospect.id}`;
+                  else if (model) window.location.href = `/roster/${model.id}`;
+                }}
+              >
+                <div
+                  className="text-[13px] min-w-[160px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                >
+                  {msg.prospectName}
                 </div>
-              );
-            })}
+                <div
+                  className="flex-1 text-[11px] truncate"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+                >
+                  {msg.subject}
+                </div>
+                <div
+                  className="text-[11px] min-w-[80px] text-right"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+                >
+                  {new Date(msg.sent_at).toLocaleDateString('en-US', {
+                    month: 'short', day: 'numeric'
+                  })}
+                </div>
+                <div
+                  className="px-[8px] py-[3px] rounded-full text-[9px] uppercase tracking-[0.1em] border"
+                  style={{
+                    fontFamily: 'var(--font-label)',
+                    borderColor: msg.direction === 'inbound' ? '#C8A96E' : '#555550',
+                    color: msg.direction === 'inbound' ? '#C8A96E' : '#888880',
+                  }}
+                >
+                  {msg.direction === 'inbound' ? 'REPLY' : 'SENT'}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

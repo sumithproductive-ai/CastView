@@ -249,26 +249,40 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
               }}
             />
 
-            <button
-              onClick={handleSend}
-              disabled={sending || !toEmail || !subject || !body}
-              style={{
+            {sent && (
+              <div style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
+                color: '#4a7a4a',
                 letterSpacing: '0.08em',
+                padding: '10px 0',
                 textTransform: 'uppercase',
-                padding: '10px 24px',
-                background: sent ? '#4a7a4a' : '#C8A96E',
-                color: '#080808',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: sending ? 'not-allowed' : 'pointer',
-                opacity: (!toEmail || !subject || !body) ? 0.5 : 1,
-                transition: 'background 0.2s',
-              }}
-            >
-              {sending ? 'SENDING...' : sent ? 'SENT ✓' : 'SEND MESSAGE →'}
-            </button>
+              }}>
+                ✓ Message sent successfully
+              </div>
+            )}
+            {!sent && (
+              <button
+                onClick={handleSend}
+                disabled={sending || !toEmail || !subject || !body}
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  padding: '10px 24px',
+                  background: '#C8A96E',
+                  color: '#080808',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: (sending || !toEmail || !subject || !body) ? 'not-allowed' : 'pointer',
+                  opacity: (!toEmail || !subject || !body) ? 0.5 : 1,
+                  transition: 'background 0.2s',
+                }}
+              >
+                {sending ? 'SENDING...' : 'SEND MESSAGE →'}
+              </button>
+            )}
           </div>
         </div>
       )}
