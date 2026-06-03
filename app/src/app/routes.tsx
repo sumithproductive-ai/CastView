@@ -1,7 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
-import { ProgressBar } from './components/ProgressBar';
-import { Sidebar } from './components/Sidebar';
+import { Layout } from './layouts/Layout';
 import { Dashboard } from './components/Dashboard';
 import { Profile } from './components/Profile';
 import { Rendering } from './components/Rendering';
@@ -33,26 +32,6 @@ import { AuthLayout } from './layouts/AuthLayout';
 import { Login } from './components/Login';
 import { Signup } from './components/Signup';
 import { useAuth } from './context/AuthContext';
-import { TutorialOverlay } from './components/TutorialOverlay';
-import { useTutorial } from './context/TutorialContext';
-
-function Layout({ children }: { children: React.ReactNode }) {
-  const { isTutorialOpen, closeTutorial } = useTutorial();
-
-  return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#080808', fontFamily: 'var(--font-mono)' }}>
-      <ProgressBar />
-      <div className="flex flex-1 items-stretch">
-        <Sidebar />
-        <main className="flex-1 pb-[64px] md:pb-0">
-          {children}
-        </main>
-      </div>
-      {isTutorialOpen && <TutorialOverlay onClose={closeTutorial} />}
-    </div>
-  );
-}
-
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return (
