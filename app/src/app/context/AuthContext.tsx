@@ -7,6 +7,7 @@ type AuthContextType = {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, agencyName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   agencyId: string | null;
   plan: string;
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signIn: async () => ({ error: null }),
+  signUp: async () => ({ error: null }),
   signOut: async () => {},
   agencyId: null,
   plan: 'trial',
@@ -44,15 +46,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchAgencyId(session.user.id);
-        } else {
+        if (!session?.user) {
           setAgencyId(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
@@ -84,11 +84,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error?.message ?? null };
+  };
+
+  const signUp = async (email: string, password: string, agencyName: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) return { error: error.message };
+      if (!data.user) return { error: 'Signup failed' };
+
+      const userId = data.user.id;
+
+      const { data: agency, error: agencyError } = await supabase
+        .from('agencies')
+        .insert({
+          name: agencyName,
+          plan: 'trial',
+          plan_status: 'trialing',
+          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+        .select()
+        .single();
+
+      if (agencyError || !agency) return { error: 'Could not create agency' };
+
+      await supabase.from('profiles').insert({
+        id: userId,
+        email,
+        agency_id: agency.id,
+        role: 'owner',
+      });
+
+      return { error: null };
+    } catch (err: any) {
+      return { error: err.message ?? 'Unknown error' };
+    }
   };
 
   const signOut = async () => {
@@ -97,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signOut, agencyId, plan, planStatus }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, agencyId, plan, planStatus }}>
       {children}
     </AuthContext.Provider>
   );
