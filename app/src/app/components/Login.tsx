@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 
 export function Login() {
@@ -100,7 +100,10 @@ export function Login() {
           className="mt-[32px] text-center text-[11px]"
           style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
         >
-          Request access at castview.org
+          No account yet?{' '}
+          <Link to="/signup" style={{ color: '#f0f0ec', textDecoration: 'none' }}>
+            Start free trial →
+          </Link>
         </p>
       </div>
     </div>
