@@ -12,6 +12,7 @@ type AuthContextType = {
   agencyId: string | null;
   plan: string;
   planStatus: string;
+  trialEndsAt: string | null;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   agencyId: null,
   plan: 'trial',
   planStatus: 'trialing',
+  trialEndsAt: null,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -33,6 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [agencyId, setAgencyId] = useState<string | null>(null);
   const [plan, setPlan] = useState<string>('trial');
   const [planStatus, setPlanStatus] = useState<string>('trialing');
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -70,12 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAgencyId(data.agency_id);
         const { data: agency } = await supabase
           .from('agencies')
-          .select('plan, plan_status')
+          .select('plan, plan_status, trial_ends_at')
           .eq('id', data.agency_id)
           .single();
         if (agency) {
           setPlan(agency.plan ?? 'trial');
           setPlanStatus(agency.plan_status ?? 'trialing');
+          if (agency?.trial_ends_at) {
+            setTrialEndsAt(agency.trial_ends_at);
+          }
         }
       }
     } finally {
@@ -128,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, agencyId, plan, planStatus }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, agencyId, plan, planStatus, trialEndsAt }}>
       {children}
     </AuthContext.Provider>
   );
