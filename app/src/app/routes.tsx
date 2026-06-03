@@ -31,6 +31,7 @@ import { OnboardingFirstProspect } from './components/OnboardingFirstProspect';
 import { Notifications } from './components/Notifications';
 import { AuthLayout } from './layouts/AuthLayout';
 import { Login } from './components/Login';
+import { Signup } from './components/Signup';
 import { useAuth } from './context/AuthContext';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { useTutorial } from './context/TutorialContext';
@@ -376,6 +377,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/signup',
+    element: <Signup />,
   },
   {
     path: '*',
