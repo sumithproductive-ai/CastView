@@ -7,6 +7,22 @@ import { DigitalImage } from './DigitalImage';
 
 type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL' | 'DIRECT';
 
+function submissionDateRank(submissionDate: string): number {
+  const value = submissionDate.toLowerCase().trim();
+  if (value === 'today') return 0;
+
+  const hoursMatch = value.match(/(\d+)\s*hours?\s*ago/);
+  if (hoursMatch) return Number(hoursMatch[1]) / 24;
+
+  const daysMatch = value.match(/(\d+)\s*days?\s*ago/);
+  if (daysMatch) return Number(daysMatch[1]);
+
+  const weeksMatch = value.match(/(\d+)\s*weeks?\s*ago/);
+  if (weeksMatch) return Number(weeksMatch[1]) * 7;
+
+  return Number.MAX_SAFE_INTEGER;
+}
+
 interface DropdownProps {
   value: string;
   onChange: (value: string) => void;
@@ -110,9 +126,9 @@ export function ProspectsIndex() {
   ];
 
   const sortOptions = [
-    { value: 'submission-date', label: 'Sort: Submission Date' },
-    { value: 'top-score', label: 'Sort: Top Alignment Score' },
-    { value: 'name', label: 'Sort: Name' }
+    { value: 'submission-date', label: 'Sort: Newest' },
+    { value: 'name', label: 'Sort: Name' },
+    { value: 'evaluations', label: 'Sort: Evaluations' },
   ];
 
   const draftCount = prospects.filter(p => p.status === 'DRAFT').length;
@@ -234,12 +250,19 @@ export function ProspectsIndex() {
       if (sortBy === 'name') {
         return a.name.localeCompare(b.name);
       }
-      if (sortBy === 'top-score') {
+      if (sortBy === 'evaluations') {
         return (b.evaluations || 0) - (a.evaluations || 0);
       }
-      // Default: submission-date — keep original order
-      return 0;
+      return (
+        submissionDateRank(a.submissionDate) - submissionDateRank(b.submissionDate)
+      );
     });
+
+  const hasActiveFilters =
+    search.trim() !== '' ||
+    statusFilter !== 'all' ||
+    contextFilter !== 'all' ||
+    sourceFilters.size > 0;
 
   const handleExportCSV = () => {
     const headers = ['Name', 'Status', 'Source', 'Evaluations', 'Submitted', 'Contexts'];
@@ -332,7 +355,7 @@ export function ProspectsIndex() {
 
       {/* Controls Row */}
       <div 
-        className="flex flex-col md:flex-row items-stretch md:items-center gap-[12px] md:gap-[24px] mb-[32px] md:mb-[48px] sticky top-0 z-20 py-[16px] -mx-[48px] px-[48px] bg-[#080808]"
+        className="flex flex-col md:flex-row items-stretch md:items-center gap-[12px] md:gap-[24px] mb-[32px] md:mb-[48px] sticky top-0 z-20 py-[16px] -mx-[20px] px-[20px] md:-mx-[48px] md:px-[48px] bg-[#080808]"
         style={{ boxShadow: '0 1px 0 #1e1e1e' }}
       >
         {/* Search Input */}
@@ -692,7 +715,11 @@ export function ProspectsIndex() {
             color: '#666660' 
           }}
         >
-          No prospects match "{search}"
+          {search.trim()
+            ? `No prospects match "${search}"`
+            : hasActiveFilters
+              ? 'No prospects match your filters'
+              : 'No prospects yet'}
         </div>
       )}
 

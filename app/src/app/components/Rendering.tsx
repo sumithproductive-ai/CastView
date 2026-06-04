@@ -720,7 +720,7 @@ export function Rendering() {
   
   return (
     <div
-      className="flex items-center justify-center min-h-screen p-[48px]"
+      className="flex items-center justify-center min-h-screen p-[20px] md:p-[48px] overflow-x-hidden"
       style={{ position: 'relative' }}
     >
       <button
@@ -728,8 +728,8 @@ export function Rendering() {
         onClick={() => navigate(-1)}
         style={{
           position: 'absolute',
-          top: '32px',
-          left: '32px',
+          top: '20px',
+          left: '20px',
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
           color: '#888880',
@@ -742,9 +742,9 @@ export function Rendering() {
       >
         ← BACK
       </button>
-      <div className="w-full max-w-[500px]">
+      <div className="w-full max-w-[500px] mx-auto min-w-0">
         <h1 
-          className="text-[48px] text-center mb-[80px]" 
+          className="text-[32px] md:text-[48px] text-center mb-[48px] md:mb-[80px]" 
           style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
         >
           {prospectName}
@@ -757,7 +757,7 @@ export function Rendering() {
             const isPending = index > currentStep;
             
             return (
-              <div key={step.name} className="flex items-center gap-[24px]">
+              <div key={step.name} className="flex items-center gap-[16px] md:gap-[24px] min-w-0">
                 <div 
                   className="w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center"
                   style={{ 
@@ -774,7 +774,7 @@ export function Rendering() {
                   )}
                 </div>
                 
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div 
                     style={{ 
                       fontFamily: 'var(--font-mono)', 
@@ -849,7 +849,7 @@ export function Rendering() {
 
         {/* Queue Status Block */}
         <div 
-          className="border rounded-[4px] p-[20px] max-w-[400px] mx-auto mt-[32px]"
+          className="border rounded-[4px] p-[20px] w-full max-w-[400px] mx-auto mt-[32px]"
           style={{ backgroundColor: '#111111', borderColor: '#2a2a2a' }}
         >
           {/* Queue Position */}

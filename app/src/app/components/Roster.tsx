@@ -135,6 +135,7 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
 export function Roster() {
   const { models, removeModel } = useRoster();
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [contextFilter, setContextFilter] = useState('all');
   const [divisionFilter, setDivisionFilter] = useState('all');
   const [sortBy, setSortBy] = useState('last-rendered');
@@ -178,11 +179,30 @@ export function Roster() {
     { value: 'men', label: 'Men' }
   ];
 
+  const statusOptions = [
+    { value: 'all', label: 'All Statuses' },
+    { value: 'active', label: 'ACTIVE' },
+    { value: 'on-hold', label: 'ON HOLD' },
+  ];
+
   const sortOptions = [
     { value: 'last-rendered', label: 'Sort: Last Rendered' },
     { value: 'top-score', label: 'Sort: Top Score' },
-    { value: 'name', label: 'Sort: Name' }
+    { value: 'evaluations', label: 'Sort: Evaluations' },
+    { value: 'name', label: 'Sort: Name' },
   ];
+
+  const modelEvaluationCount = (model: RosterModel) =>
+    model.digitalSets.reduce((sum, ds) => sum + ds.evaluations.length, 0);
+
+  const lastEvaluationRank = (value: string) => {
+    const order = [
+      '3 days ago', '5 days ago', '1 week ago',
+      '2 weeks ago', '3 weeks ago', '1 month ago',
+    ];
+    const index = order.indexOf(value);
+    return index >= 0 ? index : order.length;
+  };
 
   const handleExportCSV = () => {
     const headers = ['Name', 'Status', 'Top Score', 'Contexts Evaluated', 'Last Evaluated', 'Date Signed'];
@@ -210,6 +230,9 @@ export function Roster() {
     const matchesSearch = search.trim() === ''
       || model.name.toLowerCase()
           .includes(search.trim().toLowerCase());
+
+    const normalizedStatus = model.status.toLowerCase().replace(/\s+/g, '-');
+    const matchesStatus = statusFilter === 'all' || normalizedStatus === statusFilter;
     
     const matchesContext = contextFilter === 'all'
       || model.primaryContext?.toLowerCase() 
@@ -218,7 +241,7 @@ export function Roster() {
     const matchesDivision = divisionFilter === 'all'
       || model.division?.toLowerCase() 
           === divisionFilter;
-    return matchesSearch && matchesContext 
+    return matchesSearch && matchesStatus && matchesContext 
       && matchesDivision;
   })
   .sort((a, b) => {
@@ -228,16 +251,20 @@ export function Roster() {
     if (sortBy === 'top-score') {
       return (b.topScore || 0) - (a.topScore || 0);
     }
+    if (sortBy === 'evaluations') {
+      return modelEvaluationCount(b) - modelEvaluationCount(a);
+    }
     if (sortBy === 'last-rendered') {
-      const order = [
-        '3 days ago', '5 days ago', '1 week ago',
-        '2 weeks ago', '3 weeks ago', '1 month ago'
-      ];
-      return order.indexOf(a.lastEvaluation) - 
-             order.indexOf(b.lastEvaluation);
+      return lastEvaluationRank(a.lastEvaluation) - lastEvaluationRank(b.lastEvaluation);
     }
     return 0;
   });
+
+  const hasActiveFilters =
+    search.trim() !== '' ||
+    statusFilter !== 'all' ||
+    contextFilter !== 'all' ||
+    divisionFilter !== 'all';
 
   return (
     <div className="p-[20px] md:p-[48px]">
@@ -268,7 +295,7 @@ export function Roster() {
 
       {/* Controls Row */}
       <div 
-        className="flex flex-col md:flex-row items-stretch md:items-center gap-[12px] md:gap-[24px] mb-[32px] md:mb-[48px] sticky top-0 z-20 py-[16px] -mx-[48px] px-[48px] bg-[#080808]"
+        className="flex flex-col md:flex-row items-stretch md:items-center gap-[12px] md:gap-[24px] mb-[32px] md:mb-[48px] sticky top-0 z-20 py-[16px] -mx-[20px] px-[20px] md:-mx-[48px] md:px-[48px] bg-[#080808]"
         style={{ boxShadow: '0 1px 0 #1e1e1e' }}
       >
         {!briefMatchActive ? (
@@ -293,6 +320,14 @@ export function Roster() {
                 }}
               />
             </div>
+
+            {/* Status Filter */}
+            <Dropdown
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(value)}
+              options={statusOptions}
+              currentLabel={statusOptions.find(opt => opt.value === statusFilter)?.label || 'All Statuses'}
+            />
 
             {/* Context Filter */}
             <Dropdown
@@ -492,7 +527,9 @@ export function Roster() {
               color: '#666660',
             }}
           >
-            No models match your filters
+            {search.trim()
+              ? `No models match "${search}"`
+              : 'No models match your filters'}
           </div>
         ) : (
           <div 

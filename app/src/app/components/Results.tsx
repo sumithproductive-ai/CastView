@@ -545,8 +545,8 @@ export function Results() {
   };
   
   return (
-    <div className="p-[48px]">
-      <div className="flex justify-between items-center mb-[24px]">
+    <div className="p-[20px] md:p-[48px] overflow-x-hidden">
+      <div className="flex flex-col gap-[16px] sm:flex-row sm:justify-between sm:items-center mb-[24px]">
         <div>
           <button
             type="button"
@@ -735,10 +735,10 @@ export function Results() {
         </div>
       )}
       
-      <div className="grid grid-cols-[1fr_320px] gap-[48px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-[32px] lg:gap-[48px]">
         {/* Digitals strip + context dropdowns */}
         <div>
-          <div className="flex flex-row gap-[12px] w-full mb-[32px]">
+          <div className="flex flex-row gap-[12px] w-full mb-[32px] overflow-x-auto pb-[4px]">
             {DIGITAL_STRIP.map(({ key, label }) => {
               const src = digitalSet?.[key] ?? null;
               return (
@@ -861,7 +861,7 @@ export function Results() {
                       </p>
                     ) : (
                     <>
-                    <div className="grid grid-cols-2 gap-[32px]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-[32px]">
                       <div>
                         <div
                           className="uppercase mb-[8px]"
