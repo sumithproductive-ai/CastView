@@ -17,6 +17,10 @@ import {
   loadEvaluationReport,
   updateEvaluationNotes,
 } from '../utils/evaluationStorage';
+import {
+  isEvaluationPersisted,
+  persistEvaluationToSupabase,
+} from '../utils/evaluationPersist';
 
 const DIGITAL_STRIP = [
   { key: 'front' as const, label: 'FRONT' },
@@ -62,7 +66,8 @@ export function Results() {
   const [searchParams] = useSearchParams();
   const { agencyId } = useAuth();
   const { prospects, updateProspect } = useProspects();
-  const { models, updateModel } = useRoster();
+  const { models, updateModel, getModelById } = useRoster();
+  const { getProspectById } = useProspects();
   const [realEvalData, setRealEvalData] = useState<any>(null);
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
   const [devSumithDigitalSet, setDevSumithDigitalSet] = useState<DigitalSet | null>(null);
@@ -93,6 +98,21 @@ export function Results() {
       clearHandoffStorage();
     }
   }, [evaluationId]);
+
+  useEffect(() => {
+    if (!evaluationId || !prospectId) return;
+    if (profileType === 'model') {
+      const model = getModelById(prospectId) ?? models.find((m) => m.id === prospectId);
+      if (isEvaluationPersisted(model?.digitalSets, evaluationId)) {
+        setEvalSaved(true);
+      }
+    } else {
+      const prospect = getProspectById(prospectId) ?? prospects.find((p) => p.id === prospectId);
+      if (isEvaluationPersisted(prospect?.digitalSets, evaluationId)) {
+        setEvalSaved(true);
+      }
+    }
+  }, [evaluationId, prospectId, profileType, prospects, models, getProspectById, getModelById]);
 
   useEffect(() => {
     if (!import.meta.env.DEV || !isSumithProspect(prospectId, prospectName)) {
@@ -553,77 +573,27 @@ export function Results() {
           type="button"
           onClick={async () => {
             if (evalSaved || savingEval || !hasRealEvaluation || !prospectId || !evaluationId) return;
-            const prospect = prospects.find((p) => p.id === prospectId);
-            if (!prospect) {
-              setSaveError('Prospect not found in session');
-              return;
-            }
 
             setSavingEval(true);
             setSaveError(null);
 
             try {
-              let digitalSets = prospect.digitalSets ?? [];
-              if (digitalSets.length === 0) {
-                const { data: freshSets, error: setsError } = await supabase
-                  .from('digital_sets')
-                  .select('*')
-                  .eq('entity_id', prospectId)
-                  .order('created_at', { ascending: false });
+              const synced = await persistEvaluationToSupabase({
+                profileType,
+                entityId: prospectId,
+                evaluationId,
+                contextEvaluations: realEvalData?.contextEvaluations ?? [],
+                targetDigitalSetId: digitalSetId || undefined,
+                agentNotes: agentNotes ?? '',
+                getProspectById,
+                updateProspect,
+                getModelById,
+                updateModel,
+              });
 
-                if (setsError) throw setsError;
-                digitalSets = (freshSets ?? []).map((ds) => ({
-                  id: ds.id,
-                  title: ds.title ?? '',
-                  uploadedAt: ds.uploaded_at ?? '',
-                  front: ds.front ?? null,
-                  profile: ds.profile ?? null,
-                  threeQuarter: ds.three_quarter ?? null,
-                  fullBody: ds.full_body ?? null,
-                  additionalImages: [],
-                  notes: ds.notes ?? '',
-                  tags: ds.tags ?? [],
-                  evaluations: [],
-                }));
-              }
-
-              if (digitalSets.length === 0) {
+              if (!synced) {
                 throw new Error('No digital set found for this prospect');
               }
-
-              const targetSetId = digitalSetId || digitalSets[0].id;
-              const newEvaluation = {
-                id: evaluationId,
-                completedAt: new Date().toLocaleDateString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
-                }),
-                agentNotes: agentNotes ?? '',
-                contexts: (realEvalData.contextEvaluations ?? []).map((ce: any) => ({
-                  context: ce.context,
-                  alignmentScore: ce.alignmentScore ?? ce.alignment_score ?? 0,
-                  fitLabel: ce.fitLabel ?? ce.fit_label ?? '',
-                  reasoning: ce.reasoning ?? '',
-                  strengths: ce.strengths ?? [],
-                  risks: ce.risks ?? [],
-                  marketSignals: ce.marketSignals ?? ce.market_signals ?? [],
-                  suggestedNextSteps: ce.suggestedNextSteps ?? ce.suggested_next_steps ?? [],
-                })),
-              };
-              const updatedSets = digitalSets.map((ds) =>
-                ds.id === targetSetId
-                  ? {
-                      ...ds,
-                      evaluations: [
-                        newEvaluation,
-                        ...(ds.evaluations ?? []).filter((e) => e.id !== evaluationId),
-                      ],
-                    }
-                  : ds,
-              );
-
-              await updateProspect(prospectId, { digitalSets: updatedSets });
               setEvalSaved(true);
             } catch (err) {
               const message =

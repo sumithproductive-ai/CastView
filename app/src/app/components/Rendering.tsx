@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { getContextData } from '../constants/contextMockData';
 import { useProspects } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
 import {
   compressImageUrlForEvaluation,
   EVALUATION_REQUEST_TIMEOUT_MS,
@@ -19,6 +20,10 @@ import {
   type StoredContextEvaluation,
   type StoredEvaluationReport,
 } from '../utils/evaluationStorage';
+import {
+  EVALUATION_SYNC_FAILED_MSG,
+  persistEvaluationToSupabase,
+} from '../utils/evaluationPersist';
 
 const EVALUATION_UNAVAILABLE_MSG = 'Evaluation temporarily unavailable.';
 
@@ -117,6 +122,7 @@ export function Rendering() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { getProspectById, updateProspect } = useProspects();
+  const { getModelById, updateModel } = useRoster();
   const prospectName = searchParams.get('name')
     ? decodeURIComponent(searchParams.get('name')!)
     : 'Prospect';
@@ -252,21 +258,65 @@ export function Rendering() {
         persistPartialReport();
 
         if (successfulContexts > 0) {
-          if (unavailableContexts.length > 0) {
-            setEvaluationError(
-              `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
+          void (async () => {
+            let synced = false;
+            try {
+              synced = await persistEvaluationToSupabase({
+                profileType,
+                entityId: prospectId,
+                evaluationId,
+                contextEvaluations: combinedEvaluations,
+                targetDigitalSetId: evaluatedDigitalSetId,
+                agentNotes: '',
+                getProspectById,
+                updateProspect,
+                getModelById,
+                updateModel,
+              });
+              if (!synced) {
+                synced = await persistEvaluationToSupabase({
+                  profileType,
+                  entityId: prospectId,
+                  evaluationId,
+                  contextEvaluations: combinedEvaluations,
+                  targetDigitalSetId: evaluatedDigitalSetId,
+                  agentNotes: '',
+                  getProspectById,
+                  updateProspect,
+                  getModelById,
+                  updateModel,
+                });
+              }
+            } catch (err) {
+              console.error('[CastView] auto-save evaluation error:', err);
+            }
+
+            if (!synced) {
+              setEvaluationError((prev) =>
+                prev
+                  ? `${prev} ${EVALUATION_SYNC_FAILED_MSG}`
+                  : EVALUATION_SYNC_FAILED_MSG,
+              );
+            } else if (unavailableContexts.length > 0) {
+              setEvaluationError(
+                `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
+              );
+            }
+
+            showEvaluationReadyNotification(
+              prospectName,
+              evaluationId,
+              resultsPath,
+              navigate,
             );
-          }
 
-          showEvaluationReadyNotification(
-            prospectName,
-            evaluationId,
-            resultsPath,
-            navigate,
-          );
-
-          logEvaluation('navigation_triggered', { evaluationId, resultsUrl });
-          navigate(resultsUrl, { replace: true });
+            logEvaluation('navigation_triggered', {
+              evaluationId,
+              resultsUrl,
+              supabaseSynced: synced,
+            });
+            navigate(resultsUrl, { replace: true });
+          })();
           return;
         }
 
@@ -612,6 +662,8 @@ export function Rendering() {
     resultsPath,
     getProspectById,
     updateProspect,
+    getModelById,
+    updateModel,
     navigate,
   ]);
 
