@@ -1,359 +1,409 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
 import { Layout } from './layouts/Layout';
-import { Dashboard } from './components/Dashboard';
-import { Profile } from './components/Profile';
-import { Rendering } from './components/Rendering';
-import { Results } from './components/Results';
-import { Share } from './components/Share';
-import { MassSend } from './components/MassSend';
-import { Roster } from './components/Roster';
-import { ProspectsIndex } from './components/ProspectsIndex';
-import { ProspectRenderHistory } from './components/ProspectRenderHistory';
-import { Settings } from './components/Settings';
-import { RenderLab } from './components/RenderLab';
-import { NewProspectBasicInfo } from './components/NewProspectBasicInfo';
-import { NewProspectDigitals } from './components/NewProspectDigitals';
-import { NewProspectReview } from './components/NewProspectReview';
-import { NewModelBasicInfo } from './components/NewModelBasicInfo';
-import { NewModelDigitals } from './components/NewModelDigitals';
-import { NewModelReview } from './components/NewModelReview';
-import { ProspectConsent } from './components/ProspectConsent';
-import { CompareMode } from './components/CompareMode';
-import { CompareResults } from './components/CompareResults';
-import { UploadDigitalSet } from './components/UploadDigitalSet';
-import { ClientLayout } from './components/ClientLayout';
-import { ClientPortal } from './components/ClientPortal';
-import { OnboardingAgencySetup } from './components/OnboardingAgencySetup';
-import { OnboardingInviteTeam } from './components/OnboardingInviteTeam';
-import { OnboardingFirstProspect } from './components/OnboardingFirstProspect';
-import { Notifications } from './components/Notifications';
-import { AuthLayout } from './layouts/AuthLayout';
 import { Login } from './components/Login';
 import { Signup } from './components/Signup';
 import { ResetPassword } from './components/ResetPassword';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { Terms } from './components/Terms';
 import { useAuth } from './context/AuthContext';
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  if (loading) return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      backgroundColor: '#080808',
-      fontFamily: 'var(--font-mono)',
-      fontSize: '11px',
-      color: '#888880'
-    }}>
+
+const Dashboard = lazy(() =>
+  import('./components/Dashboard').then((m) => ({ default: m.Dashboard })),
+);
+const Profile = lazy(() =>
+  import('./components/Profile').then((m) => ({ default: m.Profile })),
+);
+const Rendering = lazy(() =>
+  import('./components/Rendering').then((m) => ({ default: m.Rendering })),
+);
+const Results = lazy(() =>
+  import('./components/Results').then((m) => ({ default: m.Results })),
+);
+const Share = lazy(() =>
+  import('./components/Share').then((m) => ({ default: m.Share })),
+);
+const MassSend = lazy(() =>
+  import('./components/MassSend').then((m) => ({ default: m.MassSend })),
+);
+const Roster = lazy(() =>
+  import('./components/Roster').then((m) => ({ default: m.Roster })),
+);
+const ProspectsIndex = lazy(() =>
+  import('./components/ProspectsIndex').then((m) => ({ default: m.ProspectsIndex })),
+);
+const ProspectRenderHistory = lazy(() =>
+  import('./components/ProspectRenderHistory').then((m) => ({
+    default: m.ProspectRenderHistory,
+  })),
+);
+const Settings = lazy(() =>
+  import('./components/Settings').then((m) => ({ default: m.Settings })),
+);
+const RenderLab = lazy(() =>
+  import('./components/RenderLab').then((m) => ({ default: m.RenderLab })),
+);
+const NewProspectBasicInfo = lazy(() =>
+  import('./components/NewProspectBasicInfo').then((m) => ({
+    default: m.NewProspectBasicInfo,
+  })),
+);
+const NewProspectDigitals = lazy(() =>
+  import('./components/NewProspectDigitals').then((m) => ({
+    default: m.NewProspectDigitals,
+  })),
+);
+const NewProspectReview = lazy(() =>
+  import('./components/NewProspectReview').then((m) => ({
+    default: m.NewProspectReview,
+  })),
+);
+const NewModelBasicInfo = lazy(() =>
+  import('./components/NewModelBasicInfo').then((m) => ({
+    default: m.NewModelBasicInfo,
+  })),
+);
+const NewModelDigitals = lazy(() =>
+  import('./components/NewModelDigitals').then((m) => ({
+    default: m.NewModelDigitals,
+  })),
+);
+const NewModelReview = lazy(() =>
+  import('./components/NewModelReview').then((m) => ({
+    default: m.NewModelReview,
+  })),
+);
+const ProspectConsent = lazy(() =>
+  import('./components/ProspectConsent').then((m) => ({
+    default: m.ProspectConsent,
+  })),
+);
+const CompareMode = lazy(() =>
+  import('./components/CompareMode').then((m) => ({ default: m.CompareMode })),
+);
+const CompareResults = lazy(() =>
+  import('./components/CompareResults').then((m) => ({ default: m.CompareResults })),
+);
+const UploadDigitalSet = lazy(() =>
+  import('./components/UploadDigitalSet').then((m) => ({
+    default: m.UploadDigitalSet,
+  })),
+);
+const ClientLayout = lazy(() =>
+  import('./components/ClientLayout').then((m) => ({ default: m.ClientLayout })),
+);
+const ClientPortal = lazy(() =>
+  import('./components/ClientPortal').then((m) => ({ default: m.ClientPortal })),
+);
+const OnboardingAgencySetup = lazy(() =>
+  import('./components/OnboardingAgencySetup').then((m) => ({
+    default: m.OnboardingAgencySetup,
+  })),
+);
+const OnboardingInviteTeam = lazy(() =>
+  import('./components/OnboardingInviteTeam').then((m) => ({
+    default: m.OnboardingInviteTeam,
+  })),
+);
+const OnboardingFirstProspect = lazy(() =>
+  import('./components/OnboardingFirstProspect').then((m) => ({
+    default: m.OnboardingFirstProspect,
+  })),
+);
+const Notifications = lazy(() =>
+  import('./components/Notifications').then((m) => ({ default: m.Notifications })),
+);
+const AuthLayout = lazy(() =>
+  import('./layouts/AuthLayout').then((m) => ({ default: m.AuthLayout })),
+);
+
+function RouteLoadingFallback() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#080808',
+        fontFamily: 'var(--font-mono)',
+        fontSize: '11px',
+        color: '#888880',
+      }}
+    >
       Loading...
     </div>
   );
+}
+
+function LazySuspense({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<RouteLoadingFallback />}>{children}</Suspense>;
+}
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <RouteLoadingFallback />;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
+}
+
+function ProtectedLayoutRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <LazySuspense>
+        <Layout>{children}</Layout>
+      </LazySuspense>
+    </ProtectedRoute>
+  );
 }
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <Dashboard />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/profile',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <Profile />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/rendering',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <Rendering />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/results',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <Results />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/share',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <Share />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/mass-send',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <MassSend />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/roster',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <Roster />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/roster/new',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <NewModelBasicInfo />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/roster/new/digitals',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <NewModelDigitals />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/roster/new/review',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <NewModelReview />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/roster/:modelId',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <ProspectRenderHistory profileType="model" />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/roster/:modelId/history',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <ProspectRenderHistory profileType="model" />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/prospects',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <ProspectsIndex />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/prospects/new',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <NewProspectBasicInfo />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/prospects/new/consent',
     element: (
       <ProtectedRoute>
-        <AuthLayout>
-        <ProspectConsent />
-      </AuthLayout>
+        <LazySuspense>
+          <AuthLayout>
+            <ProspectConsent />
+          </AuthLayout>
+        </LazySuspense>
       </ProtectedRoute>
     ),
   },
   {
     path: '/prospects/new/digitals',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <NewProspectDigitals />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/prospects/new/review',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <NewProspectReview />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/compare',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <CompareMode />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/compare/results',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <CompareResults />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/prospects/:prospectId',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <ProspectRenderHistory profileType="prospect" />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/prospects/:prospectId/draft',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <ProspectRenderHistory profileType="prospect" />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/prospects/:prospectId/upload-digitals',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <UploadDigitalSet />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/roster/:prospectId/upload-digitals',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <UploadDigitalSet />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/settings',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <Settings />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/render-lab',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <RenderLab />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/notifications',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <Notifications />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/client-portal',
     element: (
       <ProtectedRoute>
-        <ClientLayout>
-        <ClientPortal />
-      </ClientLayout>
+        <LazySuspense>
+          <ClientLayout>
+            <ClientPortal />
+          </ClientLayout>
+        </LazySuspense>
       </ProtectedRoute>
     ),
   },
   {
     path: '/onboarding',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <OnboardingAgencySetup />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/onboarding/invite',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <OnboardingInviteTeam />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {
     path: '/onboarding/first-prospect',
     element: (
-      <ProtectedRoute>
-        <Layout>
+      <ProtectedLayoutRoute>
         <OnboardingFirstProspect />
-      </Layout>
-      </ProtectedRoute>
+      </ProtectedLayoutRoute>
     ),
   },
   {

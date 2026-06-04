@@ -38,6 +38,8 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         }
       `}</style>
       <div
+        role="presentation"
+        onClick={() => onComplete?.()}
         style={{
           backgroundColor: '#080808',
           display: 'flex',
