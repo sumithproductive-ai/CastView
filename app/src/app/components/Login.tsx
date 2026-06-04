@@ -1,13 +1,28 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
+import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail) return;
+    setForgotLoading(true);
+    await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: 'https://app.castview.org/reset-password',
+    });
+    setForgotLoading(false);
+    setForgotSent(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +109,57 @@ export function Login() {
           >
             Sign In
           </button>
+
+        {!showForgot ? (
+          <button
+            type="button"
+            onClick={() => setShowForgot(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '12px',
+              color: '#888880',
+              padding: 0,
+              marginTop: '12px',
+            }}
+          >
+            Forgot password?
+          </button>
+        ) : forgotSent ? (
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#4a7a4a', marginTop: '12px' }}>
+            ✓ Check your email for a reset link.
+          </p>
+        ) : (
+          <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={forgotEmail}
+              onChange={e => setForgotEmail(e.target.value)}
+              className="w-full px-[12px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#f0f0ec', outline: 'none' }}
+            />
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              disabled={forgotLoading || !forgotEmail}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color: '#C8A96E',
+                padding: 0,
+                textAlign: 'left',
+              }}
+            >
+              {forgotLoading ? 'Sending...' : 'Send reset link →'}
+            </button>
+          </div>
+        )}
         </form>
 
         <p
