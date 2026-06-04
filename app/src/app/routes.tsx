@@ -31,6 +31,8 @@ import { Notifications } from './components/Notifications';
 import { AuthLayout } from './layouts/AuthLayout';
 import { Login } from './components/Login';
 import { Signup } from './components/Signup';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { Terms } from './components/Terms';
 import { useAuth } from './context/AuthContext';
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -360,6 +362,14 @@ export const router = createBrowserRouter([
   {
     path: '/signup',
     element: <Signup />,
+  },
+  {
+    path: '/privacy',
+    element: <PrivacyPolicy />,
+  },
+  {
+    path: '/terms',
+    element: <Terms />,
   },
   {
     path: '*',
