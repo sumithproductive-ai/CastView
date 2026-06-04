@@ -171,6 +171,39 @@ export function Login() {
             Start free trial →
           </Link>
         </p>
+
+        <div style={{
+          marginTop: '32px',
+          textAlign: 'center',
+          display: 'flex',
+          gap: '16px',
+          justifyContent: 'center',
+        }}>
+          <a
+            href="/privacy"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: '#555550',
+              textDecoration: 'none',
+              letterSpacing: '0.05em',
+            }}
+          >
+            Privacy Policy
+          </a>
+          <a
+            href="/terms"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: '#555550',
+              textDecoration: 'none',
+              letterSpacing: '0.05em',
+            }}
+          >
+            Terms of Service
+          </a>
+        </div>
       </div>
     </div>
   );
