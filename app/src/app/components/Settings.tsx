@@ -1,7 +1,8 @@
 import React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { authFetch } from '../../lib/apiAuth';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 import { useTutorial } from '../context/TutorialContext';
 
 type TeamMemberStatus = 'ACTIVE' | 'INACTIVE';
@@ -42,8 +43,30 @@ const BILLING_TIERS = [
 
 export function Settings() {
   const [quality, setQuality] = useState<'standard' | 'high' | 'ultra'>('high');
+  const [stripeCustomerId, setStripeCustomerId] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
   const { openTutorial } = useTutorial();
   const { agencyId, user, plan, planStatus } = useAuth();
+
+  const isOnPaidPlan = planStatus === 'active' && plan !== 'trial';
+  const canManageBilling = Boolean(stripeCustomerId) || isOnPaidPlan;
+
+  useEffect(() => {
+    if (!agencyId) {
+      setStripeCustomerId(null);
+      return;
+    }
+    supabase
+      .from('agencies')
+      .select('stripe_customer_id')
+      .eq('id', agencyId)
+      .single()
+      .then(({ data }) => {
+        setStripeCustomerId(data?.stripe_customer_id ?? null);
+      });
+  }, [agencyId]);
+
   const handleSubscribe = async (tier: string) => {
     if (!agencyId || !user?.email) return;
     const res = await authFetch('/api/stripe-checkout', {
@@ -52,6 +75,33 @@ export function Settings() {
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
+  };
+
+  const handleManageBilling = async () => {
+    setPortalError(null);
+    setPortalLoading(true);
+    try {
+      const res = await authFetch('/api/stripe-portal', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 400) {
+        setPortalError(
+          data.error ?? 'No active billing account — start a subscription first.',
+        );
+        return;
+      }
+      if (!res.ok || !data.url) {
+        setPortalError(data.error ?? 'Unable to open billing portal. Try again.');
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setPortalError('Unable to open billing portal. Try again.');
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   return (
@@ -96,6 +146,40 @@ export function Settings() {
               </div>
             </div>
 
+            {canManageBilling ? (
+              <div className="mb-[24px]">
+                <p
+                  className="text-[13px] mb-[16px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a', lineHeight: 1.6 }}
+                >
+                  Update your payment method, view invoices, or cancel your subscription anytime.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleManageBilling}
+                  disabled={portalLoading}
+                  className="px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    backgroundColor: '#f0f0ec',
+                    color: '#080808',
+                    border: 'none',
+                    cursor: portalLoading ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {portalLoading ? 'OPENING…' : 'MANAGE BILLING →'}
+                </button>
+                {portalError && (
+                  <p
+                    className="mt-[12px] text-[12px]"
+                    style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a' }}
+                  >
+                    {portalError}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
             <div
               className="text-[11px] uppercase tracking-[0.12em] mb-[16px]"
               style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
@@ -177,6 +261,8 @@ export function Settings() {
                 );
               })}
             </div>
+              </>
+            )}
           </div>
         </div>
 
