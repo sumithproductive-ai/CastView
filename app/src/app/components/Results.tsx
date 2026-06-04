@@ -682,11 +682,22 @@ export function Results() {
       </div>
 
       <h1 
-        className="text-[48px] mb-[48px]" 
+        className="text-[48px] mb-[12px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
         {prospectName} — Context Alignment Report
       </h1>
+      <p
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: '#888880',
+          letterSpacing: '0.05em',
+          marginBottom: '36px',
+        }}
+      >
+        AI-generated context alignment. Decision-support only — not a casting decision or a judgment of the individual.
+      </p>
 
       {evaluationError && (
         <div
@@ -1167,7 +1178,7 @@ export function Results() {
               marginTop: '8px',
               fontStyle: 'italic'
             }}>
-              Your input trains the evaluation model for your agency's standards.
+              Your feedback helps us improve recommendations.
             </p>
             
             {showOverride && (
