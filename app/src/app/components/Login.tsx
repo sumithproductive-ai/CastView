@@ -37,6 +37,21 @@ export function Login() {
       className="min-h-screen flex items-center justify-center px-[20px]"
       style={{ backgroundColor: '#080808' }}
     >
+        <a
+          href="https://castview.org"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            color: '#888880',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            textDecoration: 'none',
+            display: 'block',
+            marginBottom: '32px',
+          }}
+        >
+          ← Back to castview.org
+        </a>
       <div className="w-full max-w-[400px]">
         <h1
           className="text-[32px] mb-[8px] text-center"
