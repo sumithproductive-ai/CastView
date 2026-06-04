@@ -115,6 +115,54 @@ export function Results() {
   }, [evaluationId, prospectId, profileType, prospects, models, getProspectById, getModelById]);
 
   useEffect(() => {
+    if (!evaluationId) return;
+
+    let cancelled = false;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from('evaluations')
+        .select('booker_override, booker_feedback')
+        .eq('id', evaluationId)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error('[Results] failed to load booker override:', error.message);
+        if (
+          error.message.includes('booker_override') ||
+          error.code === '42703'
+        ) {
+          setOverrideSaveError(
+            'Override column missing — apply Manual Task 4 migration',
+          );
+        }
+        return;
+      }
+
+      if (data?.booker_feedback === 'confirmed') {
+        setAgreed(true);
+        setShowOverride(false);
+      } else if (data?.booker_feedback === 'overridden') {
+        setAgreed(false);
+        setShowOverride(true);
+      }
+
+      if (data?.booker_override) {
+        setOverrideText(data.booker_override);
+        setShowOverride(true);
+        setAgreed(false);
+        setOverrideSaved(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [evaluationId]);
+
+  useEffect(() => {
     if (!import.meta.env.DEV || !isSumithProspect(prospectId, prospectName)) {
       setDevSumithDigitalSet(null);
       return;
@@ -183,6 +231,9 @@ export function Results() {
   const [devPathwayError, setDevPathwayError] = useState<string | null>(null);
   const [showOverride, setShowOverride] = useState(false);
   const [overrideText, setOverrideText] = useState('');
+  const [overrideSaved, setOverrideSaved] = useState(false);
+  const [savingOverride, setSavingOverride] = useState(false);
+  const [overrideSaveError, setOverrideSaveError] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [agentNotes, setAgentNotes] = useState('');
   const [notesSaved, setNotesSaved] = useState(false);
@@ -1096,6 +1147,8 @@ export function Results() {
                     });
                     setShowOverride(false);
                     setAgreed(true);
+                    setOverrideSaved(false);
+                    setOverrideSaveError(null);
                   }}
                   className="px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
                   style={{ 
@@ -1127,6 +1180,7 @@ export function Results() {
                     });
                     setShowOverride(true);
                     setAgreed(false);
+                    setOverrideSaved(false);
                   }}
                   className="px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
                   style={{ 
@@ -1156,21 +1210,83 @@ export function Results() {
               <div className="mt-[16px]">
                 <textarea
                   value={overrideText}
-                  onChange={(e) => setOverrideText(e.target.value)}
+                  onChange={(e) => {
+                    setOverrideText(e.target.value);
+                    setOverrideSaved(false);
+                    setOverrideSaveError(null);
+                  }}
                   placeholder="Add your assessment..."
                   className="w-full h-[80px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] p-[12px] resize-none mb-[8px]"
                   style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#f0f0ec' }}
                 />
                 <button
-                  className="px-[16px] py-[6px] rounded-[4px] text-[10px] uppercase transition-opacity hover:opacity-80"
-                  style={{ 
+                  type="button"
+                  disabled={
+                    !evaluationId ||
+                    !overrideText.trim() ||
+                    savingOverride ||
+                    overrideSaved
+                  }
+                  onClick={async () => {
+                    if (!evaluationId || !overrideText.trim()) return;
+                    setSavingOverride(true);
+                    setOverrideSaveError(null);
+                    const { error } = await supabase
+                      .from('evaluations')
+                      .update({
+                        booker_override: overrideText.trim(),
+                        booker_feedback: 'overridden',
+                        booker_feedback_at: new Date().toISOString(),
+                      })
+                      .eq('id', evaluationId);
+                    setSavingOverride(false);
+                    if (error) {
+                      console.error('[Results] override save failed:', error.message);
+                      setOverrideSaveError(
+                        error.message.includes('booker_override') || error.code === '42703'
+                          ? 'Override column missing — apply Manual Task 4 migration'
+                          : 'Save failed — try again',
+                      );
+                      return;
+                    }
+                    setOverrideSaved(true);
+                  }}
+                  className="px-[16px] py-[6px] rounded-[4px] text-[10px] uppercase transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
                     fontFamily: 'var(--font-label)',
-                    backgroundColor: '#f0f0ec',
-                    color: '#080808'
+                    backgroundColor: overrideSaved
+                      ? 'transparent'
+                      : overrideSaveError
+                        ? 'transparent'
+                        : '#f0f0ec',
+                    color: overrideSaved
+                      ? '#4a7a4a'
+                      : overrideSaveError
+                        ? '#c87a7a'
+                        : '#080808',
+                    border: overrideSaved
+                      ? '1px solid #4a7a4a'
+                      : overrideSaveError
+                        ? '1px solid #c87a7a'
+                        : 'none',
                   }}
                 >
-                  Save
+                  {overrideSaved
+                    ? '✓ Saved'
+                    : savingOverride
+                      ? 'Saving…'
+                      : overrideSaveError
+                        ? 'Save failed'
+                        : 'Save'}
                 </button>
+                {overrideSaveError && (
+                  <p
+                    className="mt-[8px] text-[10px]"
+                    style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a' }}
+                  >
+                    {overrideSaveError}
+                  </p>
+                )}
               </div>
             )}
           </div>
