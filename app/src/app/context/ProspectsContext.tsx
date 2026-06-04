@@ -8,7 +8,7 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import type { DigitalSet } from '../types/talent';
-import { supabase, uploadDigitalImage } from '../../lib/supabase';
+import { supabase, storagePathForPersist, uploadDigitalImage } from '../../lib/supabase';
 import { useAuth } from './AuthContext';
 
 export type Prospect = {
@@ -237,10 +237,9 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     const uploadIfBase64 = async (value: string | null | undefined, path: string): Promise<string | null> => {
       if (!value) return null;
       if (value.startsWith('data:')) {
-        const url = await uploadDigitalImage(value, path);
-        return url;
+        return uploadDigitalImage(value, path);
       }
-      return value;
+      return storagePathForPersist(value);
     };
 
     for (const ds of digitalSets) {
@@ -434,6 +433,8 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
           profileImageUrl,
           `prospects/${prospect.id}/profile_image`
         );
+      } else if (profileImageUrl) {
+        profileImageUrl = storagePathForPersist(profileImageUrl) ?? profileImageUrl;
       }
 
       const { data, error } = await supabase
@@ -513,6 +514,8 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
         let imageToSave = prospectFields.image;
         if (imageToSave && imageToSave.startsWith('data:')) {
           imageToSave = await uploadDigitalImage(imageToSave, `prospects/${id}/profile_image`) ?? imageToSave;
+        } else if (imageToSave) {
+          imageToSave = storagePathForPersist(imageToSave) ?? imageToSave;
         }
         prospectUpdate.image = imageToSave;
       }

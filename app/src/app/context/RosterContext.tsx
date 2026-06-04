@@ -8,7 +8,7 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import type { DigitalSet } from '../types/talent';
-import { supabase } from '../../lib/supabase';
+import { supabase, storagePathForPersist } from '../../lib/supabase';
 import { useAuth } from './AuthContext';
 
 export type RosterModel = {
@@ -134,7 +134,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
     const uploadIfBase64 = async (value: string | null | undefined, path: string): Promise<string | null> => {
       if (!value) return null;
       if (value.startsWith('data:')) return uploadDigitalImage(value, path);
-      return value;
+      return storagePathForPersist(value);
     };
 
     for (const ds of digitalSets) {
@@ -349,6 +349,14 @@ export function RosterProvider({ children }: { children: ReactNode }) {
       const { digitalSets, ...modelFields } = updates;
 
       if (Object.keys(modelFields).length > 0) {
+        let imageToSave = modelFields.image;
+        if (imageToSave?.startsWith('data:')) {
+          const { uploadDigitalImage } = await import('../../lib/supabase');
+          imageToSave = await uploadDigitalImage(imageToSave, `models/${id}/profile_image`);
+        } else if (imageToSave) {
+          imageToSave = storagePathForPersist(imageToSave) ?? imageToSave;
+        }
+
         const { error } = await supabase
           .from('models')
           .update({
@@ -356,7 +364,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
             status: modelFields.status,
             contexts: modelFields.contexts,
             markets: modelFields.contexts,
-            image: modelFields.image,
+            image: imageToSave,
           })
           .eq('id', id);
 

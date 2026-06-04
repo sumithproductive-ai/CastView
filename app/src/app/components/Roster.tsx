@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { Search, ChevronDown, Sparkles, X } from 'lucide-react';
 import { useRoster, type RosterModel } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
+import { DigitalImage } from './DigitalImage';
 
 const ROSTER_STORAGE_KEY = 'castview_roster';
 const ROSTER_VERSION_KEY = 'castview_roster_version';
@@ -435,8 +436,8 @@ export function Roster() {
                 >
                   <div className="flex items-center gap-[12px]">
                     <div className="w-[40px] h-[40px] bg-[#1a1a1a] rounded-[4px] overflow-hidden flex-shrink-0">
-                      <img
-                        src={model.image}
+                      <DigitalImage
+                        storageRef={model.image}
                         alt={model.name}
                         className="w-full h-full object-cover"
                         style={{ objectPosition: 'center 15%' }}
@@ -530,8 +531,8 @@ export function Roster() {
             >
               {/* Image with Badge */}
               <div className="relative bg-[#1a1a1a] h-[160px] md:h-[220px]">
-                <img 
-                  src={model.image} 
+                <DigitalImage
+                  storageRef={model.image}
                   alt={model.name}
                   className="w-full h-full object-cover"
                   style={{ objectPosition: 'center 15%' }}

@@ -6,6 +6,7 @@ import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { TutorialOverlay, compareTutorialSteps } from './TutorialOverlay';
 import { getRosterModelById } from './Roster';
+import { DigitalImage } from './DigitalImage';
 import {
   compressImageUrlForEvaluation,
   fetchEvaluateContext,
@@ -535,17 +536,14 @@ export function CompareMode() {
                   }}
                 >
                   {set.front && (
-                    <img
-                      src={set.front}
+                    <DigitalImage
+                      storageRef={set.front}
                       alt=""
                       style={{
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
                         objectPosition: 'center 15%',
-                      }}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
                   )}

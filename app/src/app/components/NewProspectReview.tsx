@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
+import { DigitalImage } from './DigitalImage';
 
 export function NewProspectReview() {
   const navigate = useNavigate();
@@ -233,8 +234,8 @@ export function NewProspectReview() {
             <div key={digital.label} className="flex flex-col gap-[8px]">
               {digital.url ? (
                 <div className="aspect-square bg-[#1a1a1a] rounded-[4px] overflow-hidden">
-                  <img 
-                    src={digital.url} 
+                  <DigitalImage
+                    storageRef={digital.url}
                     alt={digital.label}
                     className="w-full h-full object-cover"
                   />

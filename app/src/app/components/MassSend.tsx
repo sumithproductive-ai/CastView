@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useProspects } from '../context/ProspectsContext';
+import { DigitalImage } from './DigitalImage';
 import { useRoster } from '../context/RosterContext';
 
 type MassSendEntry = {
@@ -166,8 +167,8 @@ export function MassSend() {
               className="bg-[#111111] border-b border-[#2a2a2a] px-[24px] py-[16px] flex items-center gap-[16px]"
             >
               {entry.image ? (
-                <img
-                  src={entry.image}
+                <DigitalImage
+                  storageRef={entry.image}
                   alt={entry.name}
                   className="w-[36px] h-[48px] object-cover rounded-[2px] flex-shrink-0"
                 />

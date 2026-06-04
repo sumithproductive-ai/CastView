@@ -4,6 +4,7 @@ import { Upload, X } from 'lucide-react';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
+import { DigitalImage } from './DigitalImage';
 
 type UploadFormImageKey = 'front' | 'profile' | 'threeQuarter' | 'fullBody';
 
@@ -208,8 +209,8 @@ export function UploadDigitalSet() {
                   className="relative bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden"
                   style={{ height: '220px' }}
                 >
-                  <img
-                    src={imageUrl}
+                  <DigitalImage
+                    storageRef={imageUrl}
                     alt={field.label}
                     style={{
                       width: '100%',

@@ -372,15 +372,24 @@ export function Rendering() {
       const digitalSet = prospect?.digitalSets?.[0];
       evaluatedDigitalSetId = digitalSet?.id;
 
-      const imageUrls = [
+      const imageRefs = [
         digitalSet?.front,
         digitalSet?.profile,
         digitalSet?.threeQuarter,
         digitalSet?.fullBody,
       ].filter(Boolean) as string[];
 
+      const { resolveDigitalImageForDisplay } = await import('../../lib/supabase');
+      const resolvedUrls = await Promise.all(
+        imageRefs.map((ref) => resolveDigitalImageForDisplay(ref)),
+      );
+
       const images = (
-        await Promise.all(imageUrls.map((url) => compressImageUrlForEvaluation(url)))
+        await Promise.all(
+          resolvedUrls.map((url) =>
+            url ? compressImageUrlForEvaluation(url) : Promise.resolve(null),
+          ),
+        )
       ).filter((img): img is NonNullable<typeof img> => Boolean(img));
 
       logCompressedImageSizesInDev(images, 'digitals');

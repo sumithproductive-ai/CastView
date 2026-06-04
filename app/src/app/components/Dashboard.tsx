@@ -5,6 +5,7 @@ import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { DigitalImage } from './DigitalImage';
 
 function submissionDateRank(submissionDate: string): number {
   const value = submissionDate.toLowerCase().trim();
@@ -438,8 +439,8 @@ export function Dashboard() {
               >
                 {/* Thumbnail */}
                 <div className="w-[32px] h-[32px] rounded-[4px] bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden flex-shrink-0">
-                  <img 
-                    src={prospect.image} 
+                  <DigitalImage
+                    storageRef={prospect.image}
                     alt={prospect.name}
                     className="w-full h-full object-cover"
                     style={{ objectPosition: 'center 15%' }}
@@ -514,8 +515,8 @@ export function Dashboard() {
                   >
                     {/* Thumbnail */}
                     <div className="w-[32px] h-[32px] rounded-[4px] bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden flex-shrink-0">
-                      <img
-                        src={item.image}
+                      <DigitalImage
+                        storageRef={item.image}
                         alt={item.name}
                         className="w-full h-full object-cover"
                         style={{ objectPosition: 'center 15%' }}

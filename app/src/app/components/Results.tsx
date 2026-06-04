@@ -10,6 +10,7 @@ import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
 import { supabase } from '../../lib/supabase';
+import { DigitalImage } from './DigitalImage';
 import {
   clearHandoffStorage,
   EVALUATION_ERROR_KEY,
@@ -722,8 +723,8 @@ export function Results() {
                 <div key={key} className="flex-1">
                   <div className="aspect-[3/4] overflow-hidden rounded-[4px] bg-[#111111]">
                     {src ? (
-                      <img
-                        src={src}
+                      <DigitalImage
+                        storageRef={src}
                         alt={label}
                         className="w-full h-full object-cover object-top"
                       />

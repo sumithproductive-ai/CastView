@@ -6,6 +6,7 @@ import { ChevronRight, Lock } from 'lucide-react';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { MessageThread } from './MessageThread';
+import { DigitalImage } from './DigitalImage';
 
 const contexts = [
   'Fragrance', 'Editorial', 'Runway', 
@@ -157,7 +158,7 @@ export function Profile() {
               {digitals.map((digital) => (
                 <div key={digital.label}>
                   <div className="aspect-square bg-[#111111] border border-[#2a2a2a] rounded-[4px] mb-[12px] overflow-hidden">
-                    <img src={digital.image} alt={digital.label} className="w-full h-full object-cover" />
+                    <DigitalImage storageRef={digital.image} alt={digital.label} className="w-full h-full object-cover" />
                   </div>
                   <div 
                     className="text-[11px] uppercase tracking-[0.1em]"

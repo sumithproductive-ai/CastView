@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Search, ChevronDown, Plus, X } from 'lucide-react';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
+import { DigitalImage } from './DigitalImage';
 
 type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL' | 'DIRECT';
 
@@ -474,8 +475,8 @@ export function ProspectsIndex() {
               {/* Image with Status Badge */}
               <div className="relative bg-[#1a1a1a]" style={{ height: '220px' }}>
                 {prospect.image ? (
-                  <img 
-                    src={prospect.image} 
+                  <DigitalImage
+                    storageRef={prospect.image}
                     alt={prospect.name}
                     className="w-full h-full object-cover"
                     style={{ objectPosition: 'center 15%' }}

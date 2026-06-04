@@ -10,6 +10,7 @@ import { TutorialOverlay, uploadTutorialSteps } from './TutorialOverlay';
 import { MessageThread } from './MessageThread';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { DigitalImage } from './DigitalImage';
 
 type ProfileType = 'prospect' | 'model';
 
@@ -494,8 +495,8 @@ export function ProspectRenderHistory({
             }}
           >
             {(contextProspect?.image || (models.find(m => m.id === resolvedEntityId)?.image)) ? (
-              <img
-                src={contextProspect?.image || models.find(m => m.id === resolvedEntityId)?.image}
+              <DigitalImage
+                storageRef={contextProspect?.image || models.find(m => m.id === resolvedEntityId)?.image}
                 alt={activeProfile.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%' }}
               />
@@ -1023,8 +1024,8 @@ export function ProspectRenderHistory({
                         {digitalGridSlots(ds).map((digital) => (
                           <div key={digital.label} style={{ position: 'relative' }}>
                             {digital.url && (
-                              <img
-                                src={digital.url}
+                              <DigitalImage
+                                storageRef={digital.url}
                                 alt={digital.label}
                                 style={{
                                   width: '100%',
