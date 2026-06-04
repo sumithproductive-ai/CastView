@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
+import { requireEntitledAgency } from "./_auth";
 
 type PathwayRequestBody = {
   prospectName?: string;
@@ -150,6 +151,12 @@ export default async function handler(
 
   if (!anthropicApiKey) {
     finish(requestStartMs, { error: "Missing ANTHROPIC_API_KEY" }, 500, res);
+    return;
+  }
+
+  const entitlement = await requireEntitledAgency(req);
+  if (!entitlement.ok) {
+    finish(requestStartMs, { error: entitlement.error }, entitlement.status, res);
     return;
   }
 

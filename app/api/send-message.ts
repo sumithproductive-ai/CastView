@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
-import { getAuthedAgency, isAuthFailure } from './_auth';
+import { ENTITLEMENT_ERROR, getAuthedAgency, isAuthFailure, isEntitled } from './_auth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -42,6 +42,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   if (isAuthFailure(auth)) {
     return res.status(403).json({ error: 'No agency associated with this account' });
+  }
+
+  if (!isEntitled(auth)) {
+    return res.status(402).json({ error: ENTITLEMENT_ERROR });
   }
 
   const { agencyId } = auth;

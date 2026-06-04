@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { authFetch } from '../../lib/apiAuth';
+import { authFetch, UPGRADE_REQUIRED_KEY } from '../../lib/apiAuth';
 import { supabase } from '../../lib/supabase';
 import { ProgressBar } from '../components/ProgressBar';
 import { Sidebar } from '../components/Sidebar';
@@ -13,9 +13,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [daysLeft, setDaysLeft] = useState<number | null>(null);
   const [trialExpired, setTrialExpired] = useState(false);
 
+  const isOnActivePaidPlan = planStatus === 'active' && plan !== 'trial';
+
   useEffect(() => {
     if (!agencyId) return;
-    if (plan !== 'trial' && planStatus === 'active') return;
+    if (isOnActivePaidPlan) {
+      setDaysLeft(null);
+      setTrialExpired(false);
+      return;
+    }
 
     const fetchTrial = async () => {
       const { data } = await supabase
@@ -23,15 +29,39 @@ export function Layout({ children }: { children: React.ReactNode }) {
         .select('trial_ends_at, plan_status')
         .eq('id', agencyId)
         .single();
+
+      const status = data?.plan_status ?? planStatus;
+      const isTrialing = plan === 'trial' || status === 'trialing';
+
       if (data?.trial_ends_at) {
         const diff = new Date(data.trial_ends_at).getTime() - Date.now();
         const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
         setDaysLeft(Math.max(0, days));
         setTrialExpired(days <= 0);
+      } else if (isTrialing) {
+        setDaysLeft(0);
+        setTrialExpired(true);
       }
     };
     fetchTrial();
-  }, [agencyId, plan, planStatus]);
+  }, [agencyId, plan, planStatus, isOnActivePaidPlan]);
+
+  useEffect(() => {
+    const showUpgradeOverlay = () => {
+      setTrialExpired(true);
+      setDaysLeft(0);
+    };
+
+    if (sessionStorage.getItem(UPGRADE_REQUIRED_KEY)) {
+      sessionStorage.removeItem(UPGRADE_REQUIRED_KEY);
+      showUpgradeOverlay();
+    }
+
+    window.addEventListener('castview:upgrade-required', showUpgradeOverlay);
+    return () => {
+      window.removeEventListener('castview:upgrade-required', showUpgradeOverlay);
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -53,8 +83,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     const data = await res.json();
     if (data.url) window.location.href = data.url;
   };
-
-  const isOnActivePaidPlan = planStatus === 'active' && plan !== 'trial';
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#080808', fontFamily: 'var(--font-mono)' }}>

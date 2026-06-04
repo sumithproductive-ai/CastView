@@ -1,4 +1,5 @@
 import React from 'react';
+import { authFetch } from '../../lib/apiAuth';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Search, ChevronDown, Sparkles, X } from 'lucide-react';
@@ -357,9 +358,8 @@ export function Roster() {
                 setBriefMatchLoading(true);
                 setShowMatchResults(false);
                 try {
-                  const response = await fetch('/api/brief-match', {
+                  const response = await authFetch('/api/brief-match', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       brief: briefQuery,
                       models: models.map((m) => ({
@@ -371,6 +371,7 @@ export function Roster() {
                       })),
                     }),
                   });
+                  if (response.status === 402) return;
                   const data = await response.json();
                   if (response.ok && data.matches) {
                     setBriefMatchResults(data.matches);

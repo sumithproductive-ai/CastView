@@ -1,3 +1,5 @@
+import { getSessionAccessToken, handlePaymentRequired } from '../../lib/apiAuth';
+
 export type CompressedEvaluationImage = {
   data: string;
   mediaType: string;
@@ -149,9 +151,15 @@ export async function fetchEvaluateContext(
   const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    const token = await getSessionAccessToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch('/api/evaluate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         prospectName: requestBody.prospectName,
         selectedContexts: requestBody.selectedContexts,
@@ -171,6 +179,11 @@ export async function fetchEvaluateContext(
       responseTimestamp: responseAt.toISOString(),
       totalDurationMs: durationMs,
     });
+
+    if (response.status === 402) {
+      handlePaymentRequired();
+      return { ok: false, status: 402, errorBody: 'payment_required' };
+    }
 
     if (!response.ok) {
       let errorBody = '';

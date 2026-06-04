@@ -569,7 +569,9 @@ export function Rendering() {
             }
           } else {
             const failReason =
-              result.status === 504
+              result.status === 402
+                ? 'payment_required'
+                : result.status === 504
                 ? 'gateway_timeout'
                 : result.status === 502
                   ? 'anthropic_error'

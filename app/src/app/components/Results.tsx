@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
+import { authFetch } from '../../lib/apiAuth';
 import { supabase } from '../../lib/supabase';
 import { DigitalImage } from './DigitalImage';
 import {
@@ -1005,9 +1006,8 @@ export function Results() {
                             const contextData = realEvalData?.contextEvaluations?.find(
                               (e: any) => e.context === result.context
                             );
-                            const response = await fetch('/api/pathway', {
+                            const response = await authFetch('/api/pathway', {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
                                 prospectName,
                                 context: result.context,
@@ -1015,6 +1015,12 @@ export function Results() {
                                 agentNote: devPathwayNote || 'No additional notes provided.',
                               }),
                             });
+                            if (response.status === 402) {
+                              setDevPathwayError(
+                                'Trial ended — choose a plan to continue.',
+                              );
+                              return;
+                            }
                             const data = await response.json();
                             if (response.ok && data.sections) {
                               setDevPathwayData(data);
