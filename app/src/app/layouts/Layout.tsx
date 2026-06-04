@@ -32,6 +32,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
     fetchTrial();
   }, [agencyId, plan, planStatus]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const upgradePlan = params.get('upgrade');
+    if (upgradePlan && agencyId && user?.email) {
+      // Remove the param from URL without reload
+      window.history.replaceState({}, '', window.location.pathname);
+      // Trigger upgrade flow
+      handleUpgrade(upgradePlan);
+    }
+  }, [agencyId, user]);
+
   const handleUpgrade = async (tier = 'studio') => {
     if (!agencyId || !user?.email) return;
     const res = await fetch('/api/stripe-checkout', {
