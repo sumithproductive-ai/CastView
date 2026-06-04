@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useMemo, useState, useEffect } from 'react';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
@@ -32,8 +32,9 @@ type RosterActivityItem = {
 };
 
 export function Dashboard() {
-  const { prospects } = useProspects();
-  const { models } = useRoster();
+  const navigate = useNavigate();
+  const { prospects, loading: prospectsLoading } = useProspects();
+  const { models, loading: rosterLoading } = useRoster();
   const [recentMessages, setRecentMessages] = useState<Array<{
     id: string;
     prospect_id: string;
@@ -46,7 +47,22 @@ export function Dashboard() {
     prospectName?: string;
   }>>([]);
 
-  const { agencyId } = useAuth();
+  const { agencyId, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (authLoading || !agencyId || prospectsLoading || rosterLoading) return;
+    if (prospects.length === 0 && models.length === 0) {
+      navigate('/onboarding', { replace: true });
+    }
+  }, [
+    agencyId,
+    authLoading,
+    prospectsLoading,
+    rosterLoading,
+    prospects.length,
+    models.length,
+    navigate,
+  ]);
 
   useEffect(() => {
     if (!agencyId) return;

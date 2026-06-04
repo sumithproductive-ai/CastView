@@ -8,6 +8,7 @@ export function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
@@ -15,13 +16,20 @@ export function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setNeedsConfirmation(false);
     if (password.length < 8) { setErrorMsg('Password must be at least 8 characters'); return; }
     if (password !== confirmPassword) { setErrorMsg('Passwords do not match'); return; }
     if (!agencyName.trim()) { setErrorMsg('Agency name is required'); return; }
     setLoading(true);
-    const { error } = await signUp(email, password, agencyName.trim());
+    const result = await signUp(email, password, agencyName.trim());
     setLoading(false);
-    if (error) { setErrorMsg(error); } else { navigate('/'); }
+    if (result.error) {
+      setErrorMsg(result.error);
+    } else if (result.needsConfirmation) {
+      setNeedsConfirmation(true);
+    } else {
+      navigate('/');
+    }
   };
 
   return (
@@ -51,6 +59,28 @@ export function Signup() {
         <p className="text-[11px] mb-[32px] text-center uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}>
           Start your 14-day free trial
         </p>
+        {needsConfirmation ? (
+          <div className="text-center">
+            <p
+              className="mb-[24px] text-[13px] leading-relaxed"
+              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+            >
+              Check your email to confirm your account, then log in.
+            </p>
+            <Link
+              to="/login"
+              className="inline-block py-[14px] px-[24px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                backgroundColor: '#f0f0ec',
+                color: '#080808',
+                textDecoration: 'none',
+              }}
+            >
+              Go to Sign In →
+            </Link>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit}>
           <div className="mb-[16px]">
             <input type="text" value={agencyName} onChange={e => setAgencyName(e.target.value)} placeholder="Agency name" required className="w-full px-[12px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec', outline: 'none' }} />
@@ -69,6 +99,7 @@ export function Signup() {
             {loading ? 'Creating account...' : 'Start Free Trial →'}
           </button>
         </form>
+        )}
         <p className="mt-[24px] text-center text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}>
           Already have an account?{' '}
           <Link to="/login" style={{ color: '#f0f0ec', textDecoration: 'none' }}>Sign in</Link>
