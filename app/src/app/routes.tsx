@@ -31,6 +31,7 @@ import { Notifications } from './components/Notifications';
 import { AuthLayout } from './layouts/AuthLayout';
 import { Login } from './components/Login';
 import { Signup } from './components/Signup';
+import { ResetPassword } from './components/ResetPassword';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { Terms } from './components/Terms';
 import { useAuth } from './context/AuthContext';
@@ -362,6 +363,10 @@ export const router = createBrowserRouter([
   {
     path: '/signup',
     element: <Signup />,
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPassword />,
   },
   {
     path: '/privacy',
