@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getAuthedAgency, isAuthFailure } from './_auth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20' as any,
@@ -14,11 +15,24 @@ const PRICE_MAP: Record<string, string | undefined> = {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { tier, agencyId, email } = req.body;
+  const auth = await getAuthedAgency(req);
+  if (auth === null) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  if (isAuthFailure(auth)) {
+    return res.status(403).json({ error: 'No agency associated with this account' });
+  }
+
+  const { agencyId, email } = auth;
+  const { tier } = req.body;
   const priceId = PRICE_MAP[tier];
 
-  if (!priceId || !agencyId || !email) {
+  if (!priceId || !tier) {
     return res.status(400).json({ error: 'Missing or invalid fields' });
+  }
+
+  if (!email) {
+    return res.status(400).json({ error: 'Verified user has no email' });
   }
 
   try {
@@ -36,8 +50,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     });
     return res.status(200).json({ url: session.url });
-  } catch (err: any) {
-    console.error('[Stripe] checkout error:', err);
-    return res.status(500).json({ error: err.message });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[Stripe] checkout error:', message);
+    return res.status(500).json({ error: message });
   }
 }

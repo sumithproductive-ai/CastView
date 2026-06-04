@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { authFetch } from '../../lib/apiAuth';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -43,12 +44,10 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
     if (!toEmail || !subject || !body || !agencyId) return;
     setSending(true);
     try {
-      const res = await fetch('/api/send-message', {
+      const res = await authFetch('/api/send-message', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prospectId,
-          agencyId,
           toEmail,
           toName: prospectName,
           subject,

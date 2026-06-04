@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { authFetch } from '../../lib/apiAuth';
 import { supabase } from '../../lib/supabase';
 import { ProgressBar } from '../components/ProgressBar';
 import { Sidebar } from '../components/Sidebar';
@@ -45,10 +46,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const handleUpgrade = async (tier = 'studio') => {
     if (!agencyId || !user?.email) return;
-    const res = await fetch('/api/stripe-checkout', {
+    const res = await authFetch('/api/stripe-checkout', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tier, agencyId, email: user.email }),
+      body: JSON.stringify({ tier }),
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;

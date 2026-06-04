@@ -1,24 +1,63 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthedAgency, isAuthFailure } from './_auth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const supabase = createClient(
+
+const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
+async function entityBelongsToAgency(
+  entityId: string,
+  agencyId: string,
+): Promise<boolean> {
+  const { data: prospect } = await supabaseAdmin
+    .from('prospects')
+    .select('id')
+    .eq('id', entityId)
+    .eq('agency_id', agencyId)
+    .maybeSingle();
+
+  if (prospect) return true;
+
+  const { data: model } = await supabaseAdmin
+    .from('models')
+    .select('id')
+    .eq('id', entityId)
+    .eq('agency_id', agencyId)
+    .maybeSingle();
+
+  return Boolean(model);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { prospectId, agencyId, toEmail, toName, subject, body, agencyName } = req.body;
+  const auth = await getAuthedAgency(req);
+  if (auth === null) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  if (isAuthFailure(auth)) {
+    return res.status(403).json({ error: 'No agency associated with this account' });
+  }
 
-  if (!prospectId || !agencyId || !toEmail || !subject || !body) {
+  const { agencyId } = auth;
+  const { prospectId, toEmail, toName, subject, body, agencyName } = req.body;
+
+  if (!prospectId || !toEmail || !subject || !body) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  const allowed = await entityBelongsToAgency(prospectId, agencyId);
+  if (!allowed) {
+    return res.status(403).json({ error: 'Prospect not found for this agency' });
+  }
+
   try {
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: `${agencyName ?? 'CastView'} <${process.env.RESEND_FROM_EMAIL}>`,
       to: [toEmail],
       subject,
@@ -72,8 +111,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Email send failed' });
     }
 
-    // Save to Supabase with explicit error logging
-    const { error: dbError } = await supabase.from('messages').insert({
+    const { error: dbError } = await supabaseAdmin.from('messages').insert({
       prospect_id: prospectId,
       agency_id: agencyId,
       direction: 'outbound',
@@ -86,14 +124,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (dbError) {
       console.error('[send-message] Supabase insert error:', JSON.stringify(dbError));
-      // Still return success since email sent — but log the DB failure
     } else {
       console.log('[send-message] Message saved to Supabase successfully');
     }
 
     return res.status(200).json({ success: true });
-  } catch (err: any) {
-    console.error('[send-message] unexpected error:', JSON.stringify(err));
-    return res.status(500).json({ error: err.message ?? 'Unknown error' });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[send-message] unexpected error:', message);
+    return res.status(500).json({ error: message });
   }
 }

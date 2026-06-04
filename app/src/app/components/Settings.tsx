@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
+import { authFetch } from '../../lib/apiAuth';
 import { useAuth } from '../context/AuthContext';
 import { useTutorial } from '../context/TutorialContext';
 
@@ -45,10 +46,9 @@ export function Settings() {
   const { agencyId, user, plan, planStatus } = useAuth();
   const handleSubscribe = async (tier: string) => {
     if (!agencyId || !user?.email) return;
-    const res = await fetch('/api/stripe-checkout', {
+    const res = await authFetch('/api/stripe-checkout', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tier, agencyId, email: user.email }),
+      body: JSON.stringify({ tier }),
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;

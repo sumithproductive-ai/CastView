@@ -5,6 +5,7 @@ import { Copy, Check } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
+import { authFetch } from '../../lib/apiAuth';
 import { useAuth } from '../context/AuthContext';
 
 const deliveryMethods = [
@@ -637,12 +638,10 @@ export function Share() {
                       if (!emailTo || !agencyId || !prospectId) return;
                       setEmailSending(true);
                       try {
-                        const res = await fetch('/api/send-message', {
+                        const res = await authFetch('/api/send-message', {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
                             prospectId,
-                            agencyId,
                             toEmail: emailTo,
                             toName: prospectName,
                             subject: emailSubject,
