@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { jsPDF } from 'jspdf';
 import { ChevronDown } from 'lucide-react';
 import { getContextData } from '../constants/contextMockData';
-import { isSumithProspect, SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
+import { getSumithDigitalSetV1, isSumithProspect } from '../constants/sumithProspect';
 import { useAuth } from '../context/AuthContext';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
@@ -64,6 +64,7 @@ export function Results() {
   const { models, updateModel } = useRoster();
   const [realEvalData, setRealEvalData] = useState<any>(null);
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
+  const [devSumithDigitalSet, setDevSumithDigitalSet] = useState<DigitalSet | null>(null);
   const prospectName = searchParams.get('name')
     ? decodeURIComponent(searchParams.get('name')!)
     : 'Prospect';
@@ -92,6 +93,20 @@ export function Results() {
     }
   }, [evaluationId]);
 
+  useEffect(() => {
+    if (!import.meta.env.DEV || !isSumithProspect(prospectId, prospectName)) {
+      setDevSumithDigitalSet(null);
+      return;
+    }
+    let cancelled = false;
+    getSumithDigitalSetV1().then((set) => {
+      if (!cancelled) setDevSumithDigitalSet(set);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [prospectId, prospectName]);
+
   const hasRealEvaluation = Boolean(realEvalData?.contextEvaluations?.length);
   const allowDevMock = import.meta.env.DEV && !hasRealEvaluation && !evaluationError;
   const unavailableContexts: string[] = realEvalData?.unavailableContexts ?? [];
@@ -110,11 +125,11 @@ export function Results() {
     if (prospect?.digitalSets?.length) {
       return prospect.digitalSets[0];
     }
-    if (isSumithProspect(prospectId, prospectName)) {
-      return SUMITH_DIGITAL_SET_V1;
+    if (import.meta.env.DEV && isSumithProspect(prospectId, prospectName)) {
+      return devSumithDigitalSet;
     }
     return null;
-  }, [prospects, prospectId, prospectName]);
+  }, [prospects, prospectId, prospectName, devSumithDigitalSet]);
 
   const contextResults = useMemo(() => {
     const mockScores = [94, 91, 88, 88, 87, 85, 82, 86, 89];

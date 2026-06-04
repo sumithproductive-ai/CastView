@@ -7,8 +7,6 @@ import {
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
-import sumithThumbnail from '@/assets/sumith-thumbnail.jpg';
-import { SUMITH_DIGITAL_SET_V1 } from '../constants/sumithProspect';
 import type { DigitalSet } from '../types/talent';
 import { supabase, uploadDigitalImage } from '../../lib/supabase';
 import { useAuth } from './AuthContext';
