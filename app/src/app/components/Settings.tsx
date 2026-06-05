@@ -134,6 +134,13 @@ export function Settings() {
   const [renewalDate, setRenewalDate] = useState('—');
   const [teamProfiles, setTeamProfiles] = useState<TeamProfileRow[]>([]);
 
+  const [supportCategory, setSupportCategory] = useState<'bug' | 'feedback' | 'other'>('bug');
+  const [supportSubject, setSupportSubject] = useState('');
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportSending, setSupportSending] = useState(false);
+  const [supportSuccess, setSupportSuccess] = useState(false);
+  const [supportError, setSupportError] = useState<string | null>(null);
+
   const { openTutorial } = useTutorial();
   const { agencyId, user, plan, planStatus } = useAuth();
 
@@ -327,6 +334,48 @@ export function Settings() {
   };
 
   const billingPlanKey = (agencyPlanRaw || plan).toLowerCase();
+
+  const supportMessageTooLong = supportMessage.length > 2000;
+  const canSubmitSupport =
+    supportMessage.trim().length > 0 && !supportMessageTooLong && !supportSending;
+
+  useEffect(() => {
+    if (!supportSuccess) return;
+    const timer = window.setTimeout(() => {
+      setSupportSuccess(false);
+      setSupportSubject('');
+      setSupportMessage('');
+      setSupportCategory('bug');
+      setSupportError(null);
+    }, 5000);
+    return () => window.clearTimeout(timer);
+  }, [supportSuccess]);
+
+  const handleSupportSubmit = async () => {
+    if (!canSubmitSupport) return;
+    setSupportSending(true);
+    setSupportError(null);
+    try {
+      const res = await authFetch('/api/support', {
+        method: 'POST',
+        body: JSON.stringify({
+          subject: supportSubject.trim(),
+          message: supportMessage.trim(),
+          category: supportCategory,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSupportError(data.error ?? 'Failed to send message');
+        return;
+      }
+      setSupportSuccess(true);
+    } catch (err) {
+      setSupportError(err instanceof Error ? err.message : 'Failed to send message');
+    } finally {
+      setSupportSending(false);
+    }
+  };
 
   return (
     <div className="p-[48px]">
@@ -892,6 +941,114 @@ export function Settings() {
                 LAUNCH TUTORIAL
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Support Block */}
+        <div>
+          <div
+            className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
+            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+          >
+            SUPPORT
+          </div>
+          <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
+            {supportSuccess ? (
+              <p
+                className="text-center py-[24px]"
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#4a7a4a' }}
+              >
+                ✓ Message sent. We&apos;ll get back to you at {user?.email ?? 'your email'}.
+              </p>
+            ) : (
+              <div className="space-y-[16px]">
+                <p
+                  className="text-[13px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                >
+                  Report a bug, request a feature, or ask a question.
+                </p>
+                <select
+                  value={supportCategory}
+                  onChange={(e) =>
+                    setSupportCategory(e.target.value as 'bug' | 'feedback' | 'other')
+                  }
+                  className="w-full px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '13px',
+                    color: '#f0f0ec',
+                  }}
+                >
+                  <option value="bug">Bug Report</option>
+                  <option value="feedback">Feature Request</option>
+                  <option value="other">General Question</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="Brief description"
+                  value={supportSubject}
+                  onChange={(e) => setSupportSubject(e.target.value)}
+                  className="w-full px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '13px',
+                    color: '#f0f0ec',
+                  }}
+                />
+                <div>
+                  <textarea
+                    placeholder="Describe the issue or feedback in detail..."
+                    value={supportMessage}
+                    onChange={(e) => setSupportMessage(e.target.value)}
+                    rows={4}
+                    className="w-full px-[16px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] resize-none"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '13px',
+                      color: '#f0f0ec',
+                      minHeight: '100px',
+                    }}
+                  />
+                  {(supportMessage.length > 0 || supportMessageTooLong) && (
+                    <p
+                      className="mt-[8px] text-[11px]"
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        color: supportMessageTooLong ? '#c87a7a' : '#888880',
+                      }}
+                    >
+                      {supportMessage.length} / 2000
+                    </p>
+                  )}
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleSupportSubmit}
+                    disabled={!canSubmitSupport}
+                    className="px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      backgroundColor: '#f0f0ec',
+                      color: '#080808',
+                      border: 'none',
+                      cursor: !canSubmitSupport ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {supportSending ? 'SENDING...' : 'SEND MESSAGE'}
+                  </button>
+                </div>
+                {supportError && (
+                  <p
+                    className="text-[12px]"
+                    style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a' }}
+                  >
+                    {supportError}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
