@@ -107,11 +107,6 @@ export function Sidebar() {
     );
   }, []);
   
-  const handleMarkAllRead = () => {
-    // In a real app, this would update the state
-    console.log('Mark all read');
-  };
-  
   return (
     <>
       {/* Desktop Sidebar */}
@@ -302,7 +297,6 @@ export function Sidebar() {
       <NotificationsPanel
         isOpen={notificationsOpen}
         onClose={() => setNotificationsOpen(false)}
-        onMarkAllRead={handleMarkAllRead}
       />
     </>
   );

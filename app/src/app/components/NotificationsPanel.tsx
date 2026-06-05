@@ -7,7 +7,6 @@ import { useAuth } from '../context/AuthContext';
 interface NotificationsPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onMarkAllRead: () => void;
 }
 
 interface PanelNotification {
@@ -18,6 +17,93 @@ interface PanelNotification {
   badge: { text: string; color: string };
   path: string;
   type: string;
+  sortAt: string;
+}
+
+function formatEventType(eventType: string): string {
+  const spaced = eventType.replace(/_/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+function mapEventToPanelItem(ev: {
+  id: string;
+  event_type: string;
+  created_at: string;
+  read_at: string | null;
+  metadata: unknown;
+}): PanelNotification {
+  const metadata = (ev.metadata ?? {}) as Record<string, unknown>;
+  const entityId = (metadata.prospectId ?? metadata.entityId) as string | undefined;
+  const path = entityId ? `/prospects/${entityId}` : '/prospects';
+
+  switch (ev.event_type) {
+    case 'evaluation_confirmed':
+      return {
+        id: ev.id,
+        unread: !ev.read_at,
+        title: 'Evaluation confirmed',
+        time: timeAgo(ev.created_at),
+        badge: { text: 'CONFIRMED', color: 'green' },
+        path,
+        type: 'eval',
+        sortAt: ev.created_at,
+      };
+    case 'evaluation_overridden':
+      return {
+        id: ev.id,
+        unread: !ev.read_at,
+        title: 'Evaluation override saved',
+        time: timeAgo(ev.created_at),
+        badge: { text: 'OVERRIDE', color: 'amber' },
+        path,
+        type: 'eval',
+        sortAt: ev.created_at,
+      };
+    case 'signed_status_updated':
+      return {
+        id: ev.id,
+        unread: !ev.read_at,
+        title: `Status updated to ${(metadata.status as string) ?? ''}`,
+        time: timeAgo(ev.created_at),
+        badge: { text: 'STATUS', color: 'amber' },
+        path,
+        type: 'status',
+        sortAt: ev.created_at,
+      };
+    case 'prospect_added':
+      return {
+        id: ev.id,
+        unread: !ev.read_at,
+        title: 'New prospect added',
+        time: timeAgo(ev.created_at),
+        badge: { text: 'NEW', color: 'teal' },
+        path,
+        type: 'prospect',
+        sortAt: ev.created_at,
+      };
+    case 'message_sent':
+      return {
+        id: ev.id,
+        unread: !ev.read_at,
+        title: 'Message sent',
+        time: timeAgo(ev.created_at),
+        badge: { text: 'SENT', color: 'teal' },
+        path,
+        type: 'message',
+        sortAt: ev.created_at,
+      };
+    default:
+      return {
+        id: ev.id,
+        unread: !ev.read_at,
+        title: formatEventType(ev.event_type),
+        time: timeAgo(ev.created_at),
+        badge: { text: 'EVENT', color: 'teal' },
+        path: '/notifications',
+        type: 'event',
+        sortAt: ev.created_at,
+      };
+  }
 }
 
 function timeAgo(dateStr: string): string {
@@ -31,7 +117,7 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
-export function NotificationsPanel({ isOpen, onClose, onMarkAllRead }: NotificationsPanelProps) {
+export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps) {
   const navigate = useNavigate();
   const { agencyId } = useAuth();
   const [notifications, setNotifications] = useState<PanelNotification[]>([]);
@@ -48,32 +134,35 @@ export function NotificationsPanel({ isOpen, onClose, onMarkAllRead }: Notificat
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
 
-  useEffect(() => {
-    if (!agencyId) return;
-    loadNotifications();
-  }, [agencyId]);
-
-  useEffect(() => {
-    if (!isOpen || !agencyId) return;
-    loadNotifications();
-  }, [isOpen]);
-
   const loadNotifications = async () => {
     if (!agencyId) return;
-    const { data: events } = await supabase
+
+    const { data: events, error: eventsError } = await supabase
       .from('events')
       .select('*')
       .eq('agency_id', agencyId)
       .order('created_at', { ascending: false })
       .limit(10);
 
-    const { data: messages } = await supabase
+    if (eventsError) {
+      console.error('[NotificationsPanel] events query error:', eventsError);
+      setNotifications([]);
+      return;
+    }
+
+    const { data: messages, error: messagesError } = await supabase
       .from('messages')
       .select('*')
       .eq('agency_id', agencyId)
       .eq('direction', 'inbound')
       .order('sent_at', { ascending: false })
       .limit(5);
+
+    if (messagesError) {
+      console.error('[NotificationsPanel] messages query error:', messagesError);
+      setNotifications([]);
+      return;
+    }
 
     const items: PanelNotification[] = [];
 
@@ -86,46 +175,36 @@ export function NotificationsPanel({ isOpen, onClose, onMarkAllRead }: Notificat
         badge: { text: 'REPLY', color: 'green' },
         path: `/prospects/${msg.prospect_id}`,
         type: 'message',
+        sortAt: msg.sent_at,
       });
     }
 
     for (const ev of (events ?? [])) {
-      if (ev.event_type === 'evaluation_confirmed') {
-        items.push({
-          id: ev.id,
-          unread: !ev.read_at,
-          title: 'Evaluation confirmed',
-          time: timeAgo(ev.created_at),
-          badge: { text: 'CONFIRMED', color: 'green' },
-          path: '/prospects',
-          type: 'eval',
-        });
-      }
-      if (ev.event_type === 'signed_status_updated') {
-        items.push({
-          id: ev.id,
-          unread: !ev.read_at,
-          title: `Status updated to ${(ev.metadata as { status?: string })?.status ?? ''}`,
-          time: timeAgo(ev.created_at),
-          badge: { text: 'STATUS', color: 'amber' },
-          path: '/prospects',
-          type: 'status',
-        });
-      }
+      items.push(mapEventToPanelItem(ev));
     }
 
-    items.sort((a, b) => (a.unread === b.unread ? 0 : a.unread ? -1 : 1));
+    items.sort((a, b) => {
+      if (a.unread !== b.unread) return a.unread ? -1 : 1;
+      return new Date(b.sortAt).getTime() - new Date(a.sortAt).getTime();
+    });
     setNotifications(items.slice(0, 8));
   };
 
+  useEffect(() => {
+    if (isOpen && agencyId) {
+      loadNotifications();
+    }
+  }, [isOpen, agencyId]);
+
   const handleMarkAllRead = async () => {
+    if (!agencyId) return;
     await supabase
       .from('events')
       .update({ read_at: new Date().toISOString() })
       .eq('agency_id', agencyId)
       .is('read_at', null);
     setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
-    onMarkAllRead();
+    window.dispatchEvent(new Event('notifications-read'));
   };
 
   const getBadgeStyles = (color: string) => {
