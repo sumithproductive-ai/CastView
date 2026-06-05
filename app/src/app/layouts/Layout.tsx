@@ -96,31 +96,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#080808', fontFamily: 'var(--font-mono)' }}>
       <ProgressBar />
-      <div className="flex flex-1 items-stretch">
+      <div className="flex flex-1 items-stretch min-w-0 w-full">
         <Sidebar />
-        <main className="flex-1 pb-[64px] md:pb-0">
+        <main className="flex-1 min-w-0 w-full pb-[64px] md:pb-0 overflow-x-hidden">
         {!bannerDismissed && !isOnActivePaidPlan && daysLeft !== null && !trialExpired && (
-          <div style={{
-            backgroundColor: daysLeft <= 3 ? '#1a0808' : '#111111',
-            borderBottom: `1px solid ${daysLeft <= 3 ? '#c87a7a' : '#2a2a2a'}`,
-            padding: '10px 48px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexShrink: 0,
-            gap: '12px',
-          }}>
-            <span style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '11px',
-              color: daysLeft <= 3 ? '#c87a7a' : '#888880',
-              letterSpacing: '0.05em',
-            }}>
+          <div
+            className="flex flex-col gap-3 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between md:px-12 flex-shrink-0"
+            style={{
+              backgroundColor: daysLeft <= 3 ? '#1a0808' : '#111111',
+              borderBottom: `1px solid ${daysLeft <= 3 ? '#c87a7a' : '#2a2a2a'}`,
+            }}
+          >
+            <span
+              className="flex-shrink-0"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: daysLeft <= 3 ? '#c87a7a' : '#888880',
+                letterSpacing: '0.05em',
+              }}
+            >
               {daysLeft <= 3
                 ? `⚠ ${daysLeft} DAY${daysLeft === 1 ? '' : 'S'} LEFT — Upgrade before your trial ends.`
                 : `${daysLeft} DAYS LEFT IN YOUR FREE TRIAL`}
             </span>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0 sm:flex-shrink-0 max-w-full">
               <button
                 onClick={() => handleUpgrade('solo')}
                 style={{
@@ -177,6 +177,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               type="button"
               onClick={dismissTrialBanner}
               aria-label="Dismiss trial banner"
+              className="self-end sm:self-center flex-shrink-0"
               style={{
                 background: 'none',
                 border: 'none',
@@ -185,7 +186,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 padding: '4px',
                 display: 'flex',
                 alignItems: 'center',
-                flexShrink: 0,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = '#f0f0ec';

@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { LayoutDashboard, Users, Image, Share2, Settings, Bell, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -234,70 +235,69 @@ export function Sidebar() {
         </div>
       </div>
       
-      {/* Mobile Bottom Tab Bar */}
-      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[#111111] border-t border-[#2a2a2a] flex items-center justify-around h-[64px] z-50">
-        {coreNavItems.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.name);
-          
-          if (isOnboarding) {
-            return (
-              <div key={item.name} className="flex items-center flex-1">
-                <div
-                  className="flex flex-col items-center justify-center gap-[4px] flex-1"
-                  style={{
-                    opacity: 0.5,
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Icon 
-                    size={20} 
-                    style={{ color: '#6a6a64' }}
-                  />
-                  <span 
-                    className="text-[9px] uppercase tracking-[0.05em] flex items-center"
-                    style={{ 
-                      fontFamily: 'var(--font-label)', 
-                      color: '#6a6a64' 
-                    }}
-                  >
-                    {item.name}
-                  </span>
-                </div>
-              </div>
-            );
-          }
-          
-          return (
-            <div key={item.name} className="flex items-center flex-1">
-              <Link
-                to={item.path}
-                className="flex flex-col items-center justify-center gap-[4px] flex-1"
-              >
-                <Icon 
-                  size={20} 
-                  style={{ color: active ? '#f0f0ec' : '#a0a09a' }}
-                />
-                <span 
-                  className="text-[9px] uppercase tracking-[0.05em] flex items-center"
-                  style={{ 
-                    fontFamily: 'var(--font-label)', 
-                    color: active ? '#f0f0ec' : '#a0a09a' 
-                  }}
-                >
-                  {item.name}
-                </span>
-              </Link>
-            </div>
-          );
-        })}
-      </div>
-      
       {/* Notifications Panel */}
       <NotificationsPanel
         isOpen={notificationsOpen}
         onClose={() => setNotificationsOpen(false)}
       />
+
+      {createPortal(
+        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[#111111] border-t border-[#2a2a2a] flex items-center justify-around h-[64px] z-50">
+          {coreNavItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.name);
+
+            if (isOnboarding) {
+              return (
+                <div key={item.name} className="flex items-center flex-1">
+                  <div
+                    className="flex flex-col items-center justify-center gap-[4px] flex-1"
+                    style={{
+                      opacity: 0.5,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Icon size={20} style={{ color: '#6a6a64' }} />
+                    <span
+                      className="text-[9px] uppercase tracking-[0.05em] flex items-center"
+                      style={{
+                        fontFamily: 'var(--font-label)',
+                        color: '#6a6a64',
+                      }}
+                    >
+                      {item.name}
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div key={item.name} className="flex items-center flex-1">
+                <Link
+                  to={item.path}
+                  className="flex flex-col items-center justify-center gap-[4px] flex-1"
+                >
+                  <Icon
+                    size={20}
+                    style={{ color: active ? '#f0f0ec' : '#a0a09a' }}
+                  />
+                  <span
+                    className="text-[9px] uppercase tracking-[0.05em] flex items-center"
+                    style={{
+                      fontFamily: 'var(--font-label)',
+                      color: active ? '#f0f0ec' : '#a0a09a',
+                    }}
+                  >
+                    {item.name}
+                  </span>
+                </Link>
+              </div>
+            );
+          })}
+        </div>,
+        document.body,
+      )}
     </>
   );
 }
