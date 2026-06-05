@@ -3,14 +3,13 @@ import { useLocation } from 'react-router';
 import { useNavigate } from 'react-router';
 
 const evaluationPaths = [
-  '/profile', '/rendering', '/results', '/share'
+  '/profile', '/rendering', '/results',
 ];
 
 const stepLabel: Record<string, string> = {
   '/profile':   'Selecting contexts',
   '/rendering': 'Evaluating',
   '/results':   'Results ready',
-  '/share':     'Sharing'
 };
 
 export function ProgressBar() {

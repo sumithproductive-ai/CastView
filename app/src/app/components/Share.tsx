@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Copy, Check } from 'lucide-react';
@@ -23,8 +23,31 @@ export function Share() {
   const prospectId = searchParams.get('prospectId') || '';
   const profileType = searchParams.get('profileType') || 'prospect';
   const evaluationId = searchParams.get('evaluationId') || '';
-  const { prospects } = useProspects();
-  const { models } = useRoster();
+  const [activeTab, setActiveTab] = useState<'messages' | 'export'>(() =>
+    prospectId ? 'export' : 'messages',
+  );
+  const { prospects, loading: prospectsLoading } = useProspects();
+  const { models, loading: rosterLoading } = useRoster();
+
+  const messageContacts = useMemo(
+    () => [
+      ...prospects.map((prospect) => ({
+        id: prospect.id,
+        name: prospect.name,
+        status: prospect.status,
+        type: 'Prospect' as const,
+        path: `/prospects/${prospect.id}`,
+      })),
+      ...models.map((model) => ({
+        id: model.id,
+        name: model.name,
+        status: model.status,
+        type: 'Model' as const,
+        path: `/roster/${model.id}`,
+      })),
+    ].sort((a, b) => a.name.localeCompare(b.name)),
+    [prospects, models],
+  );
   const slug = prospectName
     .toLowerCase()
     .replace(/\s+/g, '-')
@@ -289,8 +312,92 @@ export function Share() {
     );
   };
   
+  const tabButtonStyle = (isActive: boolean) => ({
+    fontFamily: 'var(--font-mono)',
+    backgroundColor: isActive ? '#f0f0ec' : 'transparent',
+    color: isActive ? '#080808' : '#a0a09a',
+    border: isActive ? 'none' : '1px solid #2a2a2a',
+  });
+
   return (
-    <div className="p-[48px]">
+    <div className="p-[20px] md:p-[48px]">
+      <h1
+        className="text-[48px] mb-[24px]"
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+      >
+        Messages
+      </h1>
+
+      <div className="flex gap-[8px] mb-[32px]">
+        <button
+          type="button"
+          onClick={() => setActiveTab('messages')}
+          className="px-[16px] py-[8px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
+          style={tabButtonStyle(activeTab === 'messages')}
+        >
+          Messages
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('export')}
+          className="px-[16px] py-[8px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
+          style={tabButtonStyle(activeTab === 'export')}
+        >
+          Export
+        </button>
+      </div>
+
+      {activeTab === 'messages' && (
+        <div>
+          {!prospectsLoading && !rosterLoading && messageContacts.length === 0 ? (
+            <p
+              className="py-[48px]"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#888880' }}
+            >
+              No prospects yet. Add your first prospect to get started.
+            </p>
+          ) : (
+            <div className="space-y-[8px] max-w-[720px]">
+              {messageContacts.map((contact) => (
+                <div
+                  key={`${contact.type}-${contact.id}`}
+                  className="flex items-center justify-between gap-[16px] p-[16px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors"
+                >
+                  <div className="min-w-0">
+                    <div
+                      className="text-[13px] mb-[4px] truncate"
+                      style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                    >
+                      {contact.name}
+                    </div>
+                    <div
+                      className="text-[11px]"
+                      style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                    >
+                      {contact.type} · {contact.status}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate(contact.path)}
+                    className="px-[14px] py-[8px] rounded-[4px] text-[11px] uppercase tracking-[0.08em] border border-[#2a2a2a] hover:border-[#f0f0ec] transition-colors flex-shrink-0"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      color: '#f0f0ec',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Message →
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'export' && (
+        <>
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -329,7 +436,7 @@ export function Share() {
         {'MASS SEND ->'}
       </button>
       
-      <div className="grid grid-cols-3 gap-[48px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-[48px]">
         {/* Left: Evaluation Selection */}
         <div>
           <div 
@@ -664,6 +771,8 @@ export function Share() {
           )}
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
