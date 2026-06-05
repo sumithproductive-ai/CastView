@@ -20,12 +20,6 @@ const Rendering = lazy(() =>
 const Results = lazy(() =>
   import('./components/Results').then((m) => ({ default: m.Results })),
 );
-const Share = lazy(() =>
-  import('./components/Share').then((m) => ({ default: m.Share })),
-);
-const MassSend = lazy(() =>
-  import('./components/MassSend').then((m) => ({ default: m.MassSend })),
-);
 const Roster = lazy(() =>
   import('./components/Roster').then((m) => ({ default: m.Roster })),
 );
@@ -190,22 +184,6 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedLayoutRoute>
         <Results />
-      </ProtectedLayoutRoute>
-    ),
-  },
-  {
-    path: '/share',
-    element: (
-      <ProtectedLayoutRoute>
-        <Share />
-      </ProtectedLayoutRoute>
-    ),
-  },
-  {
-    path: '/mass-send',
-    element: (
-      <ProtectedLayoutRoute>
-        <MassSend />
       </ProtectedLayoutRoute>
     ),
   },

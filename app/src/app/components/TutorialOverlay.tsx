@@ -102,7 +102,7 @@ const defaultTutorialSteps: TutorialStep[] = [
     body: 'Generate a clean share link for your client. They see the evaluation package in a dedicated portal — no login required. You\'ll be notified when they view or respond. Track all outstanding packages from your Dashboard.',
     spotlightSelector: '[data-tutorial="share-panel"]',
     tooltipPosition: 'left',
-    requiredPath: '/share'
+    requiredPath: '/results'
   }
 ];
 

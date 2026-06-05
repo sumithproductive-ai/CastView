@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, Link } from 'react-router';
-import { LayoutDashboard, Users, Image, MessageSquare, Settings, Bell, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users, Image, Settings, Bell, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +13,6 @@ const coreNavItems: NavItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
   { name: 'Prospects', icon: Users, path: '/prospects' },
   { name: 'Roster', icon: Image, path: '/roster' },
-  { name: 'Messages', icon: MessageSquare, path: '/share' },
   { name: 'Settings', icon: Settings, path: '/settings' },
 ];
 
@@ -38,9 +37,6 @@ export function Sidebar() {
     }
     if (itemName === 'Roster') {
       return path === '/roster' || path.startsWith('/roster/');
-    }
-    if (itemName === 'Messages') {
-      return path === '/share' || path.startsWith('/share');
     }
     if (itemName === 'Settings') {
       return path === '/settings';

@@ -749,7 +749,13 @@ export function ProspectRenderHistory({
             <div className="flex gap-[12px]">
               <button
                 type="button"
-                onClick={() => navigate('/share')}
+                onClick={() =>
+                  navigate(
+                    isModel && modelId
+                      ? `/roster/${modelId}`
+                      : `/prospects/${prospectId ?? ''}`,
+                  )
+                }
                 className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
                 style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
               >
