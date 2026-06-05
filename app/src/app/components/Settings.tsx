@@ -5,66 +5,270 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useTutorial } from '../context/TutorialContext';
 
-type TeamMemberStatus = 'ACTIVE' | 'INACTIVE';
-
-interface TeamMember {
-  name: string;
-  evaluations: number;
-  lastActive: string;
-  status: TeamMemberStatus;
-}
-
-const teamMembers: TeamMember[] = [
-  {
-    name: 'Maya Rossi',
-    evaluations: 12,
-    lastActive: 'Active now',
-    status: 'ACTIVE'
-  },
-  {
-    name: 'Tom Laurent',
-    evaluations: 7,
-    lastActive: '2 days ago',
-    status: 'ACTIVE'
-  },
-  {
-    name: 'Sara Chen',
-    evaluations: 0,
-    lastActive: '9 days ago',
-    status: 'INACTIVE'
-  }
-];
-
 const BILLING_TIERS = [
   { id: 'solo' as const, name: 'SOLO', price: '$129', description: 'For independent agents' },
   { id: 'studio' as const, name: 'STUDIO', price: '$349', description: 'For growing agencies', recommended: true },
   { id: 'agency' as const, name: 'AGENCY', price: '$699', description: 'For established agencies' },
 ];
 
+type TeamProfileRow = {
+  id: string;
+  email: string;
+  role: string;
+  lastActiveAt: string | null;
+  evaluationsThisMonth: number;
+};
+
+function formatPlanLabel(plan: string): string {
+  const normalized = plan.toLowerCase();
+  if (normalized === 'founding_beta') return 'FOUNDING BETA';
+  return plan.replace(/_/g, ' ').toUpperCase();
+}
+
+function planSeatLimit(plan: string, seatCount: number | null): number | null {
+  if (seatCount != null && seatCount > 0) return seatCount;
+  const normalized = plan.toLowerCase();
+  if (normalized === 'solo') return 1;
+  if (normalized === 'studio') return 4;
+  if (normalized === 'agency') return 10;
+  if (normalized === 'founding_beta') return null;
+  return 1;
+}
+
+function formatSeatLimit(limit: number | null): string {
+  if (limit == null) return '∞';
+  return String(limit);
+}
+
+function getPlanStatusDisplay(plan: string, planStatus: string): { label: string; color: string } {
+  const normalizedPlan = plan.toLowerCase();
+  if (normalizedPlan === 'founding_beta') {
+    return { label: 'ACTIVE', color: '#c8a96e' };
+  }
+  const normalizedStatus = planStatus.toLowerCase();
+  if (normalizedStatus === 'active' || normalizedStatus === 'trialing') {
+    return { label: planStatus.replace(/_/g, ' ').toUpperCase(), color: '#c8a96e' };
+  }
+  return { label: planStatus.replace(/_/g, ' ').toUpperCase(), color: '#888880' };
+}
+
+function formatLastActive(iso: string | null): string {
+  if (!iso) return '—';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  const diffMs = Date.now() - date.getTime();
+  if (diffMs < 24 * 60 * 60 * 1000) return 'Active now';
+  const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  if (days === 1) return '1 day ago';
+  if (days < 7) return `${days} days ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatRenewalDate(
+  plan: string,
+  trialEndsAt: string | null,
+  stripeSubscriptionId: string | null,
+): string {
+  const normalizedPlan = plan.toLowerCase();
+  const trialPlan = normalizedPlan === 'trial' || normalizedPlan === 'founding_beta';
+
+  if (trialEndsAt && trialPlan) {
+    const date = new Date(trialEndsAt);
+    if (!Number.isNaN(date.getTime())) {
+      const formatted = date.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
+      return `Trial ends ${formatted}`;
+    }
+  }
+
+  if (stripeSubscriptionId) {
+    if (trialEndsAt) {
+      const date = new Date(trialEndsAt);
+      if (!Number.isNaN(date.getTime())) {
+        return date.toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        });
+      }
+    }
+    return 'Active subscription';
+  }
+
+  return '—';
+}
+
+function monthStartIso(): string {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+}
+
+function displayValue(loading: boolean, value: string): string {
+  return loading ? '—' : value;
+}
+
 export function Settings() {
   const [quality, setQuality] = useState<'standard' | 'high' | 'ultra'>('high');
+  const [loading, setLoading] = useState(true);
   const [stripeCustomerId, setStripeCustomerId] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState<string | null>(null);
+
+  const [agencyName, setAgencyName] = useState('');
+  const [primaryMarket, setPrimaryMarket] = useState('');
+  const [savingAgency, setSavingAgency] = useState(false);
+  const [agencySaved, setAgencySaved] = useState(false);
+
+  const [planLabel, setPlanLabel] = useState('');
+  const [planStatusLabel, setPlanStatusLabel] = useState('');
+  const [planStatusColor, setPlanStatusColor] = useState('#c8a96e');
+  const [agencyPlanRaw, setAgencyPlanRaw] = useState('');
+  const [seatLimit, setSeatLimit] = useState<number | null>(1);
+  const [activeProfileCount, setActiveProfileCount] = useState(0);
+  const [evaluationsThisMonth, setEvaluationsThisMonth] = useState(0);
+  const [renewalDate, setRenewalDate] = useState('—');
+  const [teamProfiles, setTeamProfiles] = useState<TeamProfileRow[]>([]);
+
   const { openTutorial } = useTutorial();
   const { agencyId, user, plan, planStatus } = useAuth();
 
   const isOnPaidPlan = planStatus === 'active' && plan !== 'trial';
   const canManageBilling = Boolean(stripeCustomerId) || isOnPaidPlan;
 
+  const seatProgress =
+    seatLimit != null && seatLimit > 0
+      ? Math.min(100, (activeProfileCount / seatLimit) * 100)
+      : activeProfileCount > 0
+        ? 100
+        : 0;
+
   useEffect(() => {
     if (!agencyId) {
-      setStripeCustomerId(null);
+      setLoading(false);
+      setTeamProfiles([]);
       return;
     }
-    supabase
-      .from('agencies')
-      .select('stripe_customer_id')
-      .eq('id', agencyId)
-      .single()
-      .then(({ data }) => {
-        setStripeCustomerId(data?.stripe_customer_id ?? null);
-      });
+
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      try {
+        const monthStart = monthStartIso();
+
+        const { data: agency, error: agencyError } = await supabase
+          .from('agencies')
+          .select(
+            'name, primary_market, plan, plan_status, trial_ends_at, stripe_subscription_id, stripe_customer_id, seat_count',
+          )
+          .eq('id', agencyId)
+          .single();
+
+        if (agencyError) {
+          console.error('[Settings] agency fetch failed:', agencyError.message);
+        }
+
+        if (!cancelled && agency) {
+          setAgencyName(agency.name ?? '');
+          setPrimaryMarket(agency.primary_market ?? '');
+          setStripeCustomerId(agency.stripe_customer_id ?? null);
+
+          const rawPlan = agency.plan ?? 'trial';
+          setAgencyPlanRaw(rawPlan);
+          setPlanLabel(formatPlanLabel(rawPlan));
+
+          const statusDisplay = getPlanStatusDisplay(rawPlan, agency.plan_status ?? 'trialing');
+          setPlanStatusLabel(statusDisplay.label);
+          setPlanStatusColor(statusDisplay.color);
+          setSeatLimit(planSeatLimit(rawPlan, agency.seat_count ?? null));
+          setRenewalDate(
+            formatRenewalDate(
+              rawPlan,
+              agency.trial_ends_at ?? null,
+              agency.stripe_subscription_id ?? null,
+            ),
+          );
+        }
+
+        let profileList: Array<{
+          id: string;
+          email: string | null;
+          role: string | null;
+          created_at: string | null;
+          updated_at?: string | null;
+        }> = [];
+
+        const { data: profilesWithUpdated, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, email, role, created_at, updated_at')
+          .eq('agency_id', agencyId);
+
+        if (profilesError?.message?.includes('updated_at')) {
+          const { data: profilesBasic, error: basicError } = await supabase
+            .from('profiles')
+            .select('id, email, role, created_at')
+            .eq('agency_id', agencyId);
+          if (basicError) {
+            console.error('[Settings] profiles fetch failed:', basicError.message);
+          } else {
+            profileList = profilesBasic ?? [];
+          }
+        } else if (profilesError) {
+          console.error('[Settings] profiles fetch failed:', profilesError.message);
+        } else {
+          profileList = profilesWithUpdated ?? [];
+        }
+        if (!cancelled) {
+          setActiveProfileCount(profileList.length);
+        }
+
+        const { count: agencyEvalCount, error: evalError } = await supabase
+          .from('evaluations')
+          .select('id', { count: 'exact', head: true })
+          .eq('agency_id', agencyId)
+          .gte('created_at', monthStart);
+
+        if (evalError) {
+          console.error('[Settings] evaluations count failed:', evalError.message);
+        }
+
+        const totalEvals = agencyEvalCount ?? 0;
+        if (!cancelled) {
+          setEvaluationsThisMonth(totalEvals);
+        }
+
+        const ownerProfile =
+          profileList.find((p) => p.role === 'owner') ?? profileList[0] ?? null;
+
+        const teamRows: TeamProfileRow[] = profileList.map((profile) => ({
+          id: profile.id,
+          email: profile.email ?? '—',
+          role: profile.role ?? 'member',
+          lastActiveAt: profile.updated_at ?? profile.created_at ?? null,
+          evaluationsThisMonth:
+            profileList.length === 1 || profile.id === ownerProfile?.id
+              ? totalEvals
+              : 0,
+        }));
+
+        if (!cancelled) {
+          setTeamProfiles(teamRows);
+        }
+      } catch (err) {
+        console.error('[Settings] load error:', err);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [agencyId]);
 
   const handleSubscribe = async (tier: string) => {
@@ -104,10 +308,28 @@ export function Settings() {
     }
   };
 
+  const handleSaveAgency = async () => {
+    if (!agencyId || savingAgency) return;
+    setSavingAgency(true);
+    const { error } = await supabase
+      .from('agencies')
+      .update({ name: agencyName.trim(), primary_market: primaryMarket.trim() })
+      .eq('id', agencyId);
+    setSavingAgency(false);
+    if (error) {
+      console.error('[Settings] agency save failed:', error.message);
+      return;
+    }
+    setAgencySaved(true);
+    setTimeout(() => setAgencySaved(false), 2000);
+  };
+
+  const billingPlanKey = (agencyPlanRaw || plan).toLowerCase();
+
   return (
     <div className="p-[48px]">
-      <h1 
-        className="text-[48px] mb-[48px]" 
+      <h1
+        className="text-[48px] mb-[48px]"
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
       >
         Settings
@@ -135,14 +357,14 @@ export function Settings() {
                   className="text-[28px]"
                   style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
                 >
-                  {plan.toUpperCase()}
+                  {displayValue(loading, planLabel || formatPlanLabel(plan))}
                 </div>
               </div>
               <div
                 className="px-[12px] py-[6px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#c8a96e' }}
+                style={{ fontFamily: 'var(--font-mono)', color: planStatusColor }}
               >
-                {planStatus.replace(/_/g, ' ')}
+                {displayValue(loading, planStatusLabel || planStatus.replace(/_/g, ' '))}
               </div>
             </div>
 
@@ -180,87 +402,87 @@ export function Settings() {
               </div>
             ) : (
               <>
-            <div
-              className="text-[11px] uppercase tracking-[0.12em] mb-[16px]"
-              style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-            >
-              CHOOSE A PLAN
-            </div>
+                <div
+                  className="text-[11px] uppercase tracking-[0.12em] mb-[16px]"
+                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                >
+                  CHOOSE A PLAN
+                </div>
 
-            <div className="grid md:grid-cols-3 gap-[16px]">
-              {BILLING_TIERS.map((tier) => {
-                const isCurrent = plan === tier.id;
-                const isRecommended = tier.recommended === true;
+                <div className="grid md:grid-cols-3 gap-[16px]">
+                  {BILLING_TIERS.map((tier) => {
+                    const isCurrent = billingPlanKey === tier.id;
+                    const isRecommended = tier.recommended === true;
 
-                return (
-                  <div
-                    key={tier.id}
-                    className="rounded-[4px] p-[24px] flex flex-col"
-                    style={{
-                      backgroundColor: '#1a1a1a',
-                      border: `1px solid ${isRecommended ? '#c8a96e' : '#2a2a2a'}`,
-                    }}
-                  >
-                    {isRecommended && (
+                    return (
                       <div
-                        className="text-[9px] uppercase tracking-[0.12em] mb-[12px]"
-                        style={{ fontFamily: 'var(--font-label)', color: '#c8a96e' }}
+                        key={tier.id}
+                        className="rounded-[4px] p-[24px] flex flex-col"
+                        style={{
+                          backgroundColor: '#1a1a1a',
+                          border: `1px solid ${isRecommended ? '#c8a96e' : '#2a2a2a'}`,
+                        }}
                       >
-                        RECOMMENDED
+                        {isRecommended && (
+                          <div
+                            className="text-[9px] uppercase tracking-[0.12em] mb-[12px]"
+                            style={{ fontFamily: 'var(--font-label)', color: '#c8a96e' }}
+                          >
+                            RECOMMENDED
+                          </div>
+                        )}
+                        <div
+                          className="text-[11px] uppercase tracking-[0.12em] mb-[12px]"
+                          style={{
+                            fontFamily: 'var(--font-label)',
+                            color: isRecommended ? '#c8a96e' : '#888880',
+                          }}
+                        >
+                          {tier.name}
+                        </div>
+                        <div
+                          className="text-[40px] mb-[4px]"
+                          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                        >
+                          {tier.price}
+                        </div>
+                        <div
+                          className="text-[13px] mb-[20px]"
+                          style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                        >
+                          per month
+                        </div>
+                        <div
+                          className="text-[13px] mb-[24px] flex-1"
+                          style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a', lineHeight: 1.5 }}
+                        >
+                          {tier.description}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleSubscribe(tier.id)}
+                          disabled={isCurrent}
+                          className="w-full px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            backgroundColor: isRecommended ? '#c8a96e' : 'transparent',
+                            color: isRecommended ? '#080808' : '#f0f0ec',
+                            border: isRecommended ? '1px solid #c8a96e' : '1px solid #2a2a2a',
+                            cursor: isCurrent ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          {isCurrent ? 'CURRENT PLAN' : 'SUBSCRIBE'}
+                        </button>
+                        <div
+                          className="text-[11px] text-center mt-[12px]"
+                          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+                        >
+                          14-day free trial
+                        </div>
                       </div>
-                    )}
-                    <div
-                      className="text-[11px] uppercase tracking-[0.12em] mb-[12px]"
-                      style={{
-                        fontFamily: 'var(--font-label)',
-                        color: isRecommended ? '#c8a96e' : '#888880',
-                      }}
-                    >
-                      {tier.name}
-                    </div>
-                    <div
-                      className="text-[40px] mb-[4px]"
-                      style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
-                    >
-                      {tier.price}
-                    </div>
-                    <div
-                      className="text-[13px] mb-[20px]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
-                    >
-                      per month
-                    </div>
-                    <div
-                      className="text-[13px] mb-[24px] flex-1"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a', lineHeight: 1.5 }}
-                    >
-                      {tier.description}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleSubscribe(tier.id)}
-                      disabled={isCurrent}
-                      className="w-full px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        backgroundColor: isRecommended ? '#c8a96e' : 'transparent',
-                        color: isRecommended ? '#080808' : '#f0f0ec',
-                        border: isRecommended ? '1px solid #c8a96e' : '1px solid #2a2a2a',
-                        cursor: isCurrent ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      {isCurrent ? 'CURRENT PLAN' : 'SUBSCRIBE'}
-                    </button>
-                    <div
-                      className="text-[11px] text-center mt-[12px]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
-                    >
-                      14-day free trial
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
               </>
             )}
           </div>
@@ -268,105 +490,106 @@ export function Settings() {
 
         {/* Your Plan Block */}
         <div>
-          <div 
+          <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
           >
             YOUR PLAN
           </div>
           <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
-            {/* Header Row */}
             <div className="flex items-center justify-between mb-[24px]">
-              <div 
+              <div
                 className="text-[9px] uppercase tracking-[0.1em]"
                 style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
               >
                 YOUR PLAN
               </div>
-              <div 
+              <div
                 className="px-[12px] py-[6px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] text-[11px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
               >
-                STUDIO
+                {displayValue(loading, planLabel || '—')}
               </div>
             </div>
 
-            {/* Row 1: Agent Seats */}
             <div className="border-b border-[#2a2a2a] py-[14px]">
               <div className="flex items-center justify-between mb-[12px]">
-                <label 
+                <label
                   className="text-[13px]"
                   style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
                 >
                   Agent seats
                 </label>
-                <div 
+                <div
                   className="text-[13px]"
                   style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
                 >
-                  3 of 12 active
+                  {loading
+                    ? '—'
+                    : `${activeProfileCount} of ${formatSeatLimit(seatLimit)} active`}
                 </div>
               </div>
               <div className="w-full h-[4px] bg-[#2a2a2a] rounded-[4px] overflow-hidden">
-                <div 
+                <div
                   className="h-full rounded-[4px]"
-                  style={{ width: '25%', backgroundColor: '#f0f0ec' }}
+                  style={{ width: `${seatProgress}%`, backgroundColor: '#f0f0ec' }}
                 />
               </div>
             </div>
 
-            {/* Row 2: Evaluations */}
             <div className="flex items-center justify-between border-b border-[#2a2a2a] py-[14px]">
-              <label 
+              <label
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
               >
                 Evaluations this month
               </label>
-              <div 
+              <div
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
               >
-                Unlimited
+                {loading ? '—' : String(evaluationsThisMonth)}
               </div>
             </div>
 
-            {/* Row 3: Renewal Date */}
             <div className="flex items-center justify-between border-b border-[#2a2a2a] py-[14px]">
-              <label 
+              <label
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
               >
                 Renewal date
               </label>
-              <div 
+              <div
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
               >
-                April 10, 2026
+                {displayValue(loading, renewalDate)}
               </div>
             </div>
 
-            {/* Buttons */}
             <div className="flex justify-end gap-[12px] mt-[24px]">
-              <button
-                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec]"
-                style={{ 
+              <a
+                href="mailto:hello@castview.org?subject=Seat%20Management%20Request"
+                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec] no-underline inline-block"
+                style={{
                   fontFamily: 'var(--font-label)',
                   borderColor: '#2a2a2a',
                   color: '#a0a09a',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
                 }}
               >
                 MANAGE SEATS
-              </button>
+              </a>
               <button
+                type="button"
+                onClick={() => handleSubscribe('studio')}
                 className="px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-                style={{ 
+                style={{
                   fontFamily: 'var(--font-label)',
                   backgroundColor: '#f0f0ec',
                   color: '#080808',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  border: 'none',
                 }}
               >
                 UPGRADE PLAN
@@ -377,36 +600,34 @@ export function Settings() {
 
         {/* Team Activity Block */}
         <div>
-          <div 
+          <div
             className="text-[11px] uppercase tracking-[0.12em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
           >
             TEAM ACTIVITY
           </div>
           <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
-            {/* Table */}
             <div>
-              {/* Table Header */}
               <div className="flex items-center gap-[24px] pb-[12px] border-b border-[#1e1e1e]">
-                <div 
+                <div
                   className="flex-1 text-[10px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
                 >
                   AGENT
                 </div>
-                <div 
+                <div
                   className="w-[180px] text-[10px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
                 >
                   EVALUATIONS THIS MONTH
                 </div>
-                <div 
+                <div
                   className="w-[140px] text-[10px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
                 >
                   LAST ACTIVE
                 </div>
-                <div 
+                <div
                   className="w-[100px] text-[10px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
                 >
@@ -414,69 +635,70 @@ export function Settings() {
                 </div>
               </div>
 
-              {/* Table Rows */}
-              {teamMembers.map((member) => {
-                const getStatusStyle = (status: TeamMemberStatus) => {
-                  if (status === 'ACTIVE') {
-                    return { borderColor: '#c8c8c2', color: '#c8c8c2' };
-                  } else {
-                    return { borderColor: '#444440', color: '#666660' };
-                  }
-                };
-
-                const statusStyle = getStatusStyle(member.status);
-
-                return (
-                  <div 
-                    key={member.name}
+              {loading ? (
+                <div
+                  className="py-[24px] text-[13px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#666660' }}
+                >
+                  —
+                </div>
+              ) : teamProfiles.length === 0 ? (
+                <div
+                  className="py-[24px] text-[13px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#666660' }}
+                >
+                  No team members found
+                </div>
+              ) : (
+                teamProfiles.map((member) => (
+                  <div
+                    key={member.id}
                     className="flex items-center gap-[24px] border-b border-[#1e1e1e]"
                     style={{ height: '48px' }}
                   >
-                    {/* Agent name */}
-                    <div 
-                      className="flex-1 text-[13px]"
+                    <div
+                      className="flex-1 text-[13px] min-w-0 truncate"
                       style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                      title={member.email}
                     >
-                      {member.name}
+                      {member.email}
+                      {member.role === 'owner' ? (
+                        <span style={{ color: '#888880', marginLeft: '8px' }}>
+                          ({member.role})
+                        </span>
+                      ) : null}
                     </div>
-
-                    {/* Evaluations count */}
-                    <div 
+                    <div
                       className="w-[180px] text-[13px]"
                       style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
                     >
-                      {member.evaluations}
+                      {member.evaluationsThisMonth}
                     </div>
-
-                    {/* Last active */}
-                    <div 
+                    <div
                       className="w-[140px] text-[13px]"
                       style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
                     >
-                      {member.lastActive}
+                      {formatLastActive(member.lastActiveAt)}
                     </div>
-
-                    {/* Status pill */}
                     <div className="w-[100px]">
-                      <div 
+                      <div
                         className="inline-block px-[10px] py-[4px] rounded-full text-[9px] uppercase tracking-[0.1em] border"
-                        style={{ 
-                          fontFamily: 'var(--font-label)', 
-                          borderColor: statusStyle.borderColor,
-                          color: statusStyle.color,
-                          backgroundColor: 'transparent'
+                        style={{
+                          fontFamily: 'var(--font-label)',
+                          borderColor: '#c8c8c2',
+                          color: '#c8c8c2',
+                          backgroundColor: 'transparent',
                         }}
                       >
-                        {member.status}
+                        ACTIVE
                       </div>
                     </div>
                   </div>
-                );
-              })}
+                ))
+              )}
             </div>
 
-            {/* Footer Note */}
-            <div 
+            <div
               className="mt-[16px] text-[11px] italic"
               style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
             >
@@ -487,16 +709,15 @@ export function Settings() {
 
         {/* Agency Block */}
         <div>
-          <div 
+          <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
           >
             AGENCY
           </div>
           <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] space-y-[16px]">
-            {/* Agency Name Row */}
             <div className="flex items-center justify-between">
-              <label 
+              <label
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
               >
@@ -505,18 +726,22 @@ export function Settings() {
               <input
                 type="text"
                 placeholder="Your Agency Name"
+                value={agencyName}
+                onChange={(e) => {
+                  setAgencyName(e.target.value);
+                  setAgencySaved(false);
+                }}
                 className="px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] w-[320px]"
-                style={{ 
-                  fontFamily: 'var(--font-mono)', 
-                  fontSize: '13px', 
-                  color: '#f0f0ec'
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '13px',
+                  color: '#f0f0ec',
                 }}
               />
             </div>
 
-            {/* Primary Market Row */}
             <div className="flex items-center justify-between">
-              <label 
+              <label
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
               >
@@ -525,29 +750,51 @@ export function Settings() {
               <input
                 type="text"
                 placeholder="e.g. New York"
+                value={primaryMarket}
+                onChange={(e) => {
+                  setPrimaryMarket(e.target.value);
+                  setAgencySaved(false);
+                }}
                 className="px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] w-[320px]"
-                style={{ 
-                  fontFamily: 'var(--font-mono)', 
-                  fontSize: '13px', 
-                  color: '#f0f0ec'
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '13px',
+                  color: '#f0f0ec',
                 }}
               />
+            </div>
+
+            <div className="flex justify-end pt-[8px]">
+              <button
+                type="button"
+                onClick={handleSaveAgency}
+                disabled={savingAgency || !agencyId}
+                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec] disabled:opacity-50"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  borderColor: agencySaved ? '#4a7a4a' : '#2a2a2a',
+                  color: agencySaved ? '#4a7a4a' : '#f0f0ec',
+                  cursor: savingAgency ? 'not-allowed' : 'pointer',
+                  background: 'transparent',
+                }}
+              >
+                {agencySaved ? '✓ SAVED' : savingAgency ? 'SAVING…' : 'SAVE CHANGES'}
+              </button>
             </div>
           </div>
         </div>
 
         {/* Rendering Block */}
         <div>
-          <div 
+          <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
           >
             RENDERING
           </div>
           <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] space-y-[16px]">
-            {/* Default Evaluation Quality Row */}
             <div className="flex items-center justify-between">
-              <label 
+              <label
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
               >
@@ -562,7 +809,7 @@ export function Settings() {
                     backgroundColor: quality === 'standard' ? '#f0f0ec' : 'transparent',
                     color: quality === 'standard' ? '#080808' : '#a0a09a',
                     border: `1px solid ${quality === 'standard' ? '#f0f0ec' : '#2a2a2a'}`,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
                   }}
                 >
                   STANDARD
@@ -575,7 +822,7 @@ export function Settings() {
                     backgroundColor: quality === 'high' ? '#f0f0ec' : 'transparent',
                     color: quality === 'high' ? '#080808' : '#a0a09a',
                     border: `1px solid ${quality === 'high' ? '#f0f0ec' : '#2a2a2a'}`,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
                   }}
                 >
                   HIGH
@@ -588,7 +835,7 @@ export function Settings() {
                     backgroundColor: quality === 'ultra' ? '#f0f0ec' : 'transparent',
                     color: quality === 'ultra' ? '#080808' : '#a0a09a',
                     border: `1px solid ${quality === 'ultra' ? '#f0f0ec' : '#2a2a2a'}`,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
                   }}
                 >
                   ULTRA
@@ -596,15 +843,14 @@ export function Settings() {
               </div>
             </div>
 
-            {/* Default Contexts Row */}
             <div className="flex items-center justify-between">
-              <label 
+              <label
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
               >
                 Default Contexts
               </label>
-              <div 
+              <div
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
               >
@@ -616,7 +862,7 @@ export function Settings() {
 
         {/* Help Block */}
         <div>
-          <div 
+          <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
           >
@@ -624,7 +870,7 @@ export function Settings() {
           </div>
           <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
             <div className="flex items-center justify-between">
-              <label 
+              <label
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
               >
@@ -633,11 +879,12 @@ export function Settings() {
               <button
                 onClick={openTutorial}
                 className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec]"
-                style={{ 
+                style={{
                   fontFamily: 'var(--font-mono)',
                   borderColor: '#2a2a2a',
                   color: '#f0f0ec',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  background: 'transparent',
                 }}
               >
                 LAUNCH TUTORIAL
