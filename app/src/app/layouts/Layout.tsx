@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authFetch, UPGRADE_REQUIRED_KEY } from '../../lib/apiAuth';
 import { supabase } from '../../lib/supabase';
@@ -12,6 +13,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { plan, planStatus, agencyId, user } = useAuth();
   const [daysLeft, setDaysLeft] = useState<number | null>(null);
   const [trialExpired, setTrialExpired] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(
+    () => sessionStorage.getItem('trial-banner-dismissed') === '1',
+  );
 
   const isOnActivePaidPlan = planStatus === 'active' && plan !== 'trial';
 
@@ -74,6 +78,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
     }
   }, [agencyId, user]);
 
+  const dismissTrialBanner = () => {
+    sessionStorage.setItem('trial-banner-dismissed', '1');
+    setBannerDismissed(true);
+  };
+
   const handleUpgrade = async (tier = 'studio') => {
     if (!agencyId || !user?.email) return;
     const res = await authFetch('/api/stripe-checkout', {
@@ -90,7 +99,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 items-stretch">
         <Sidebar />
         <main className="flex-1 pb-[64px] md:pb-0">
-        {!isOnActivePaidPlan && daysLeft !== null && !trialExpired && (
+        {!bannerDismissed && !isOnActivePaidPlan && daysLeft !== null && !trialExpired && (
           <div style={{
             backgroundColor: daysLeft <= 3 ? '#1a0808' : '#111111',
             borderBottom: `1px solid ${daysLeft <= 3 ? '#c87a7a' : '#2a2a2a'}`,
@@ -99,6 +108,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             alignItems: 'center',
             justifyContent: 'space-between',
             flexShrink: 0,
+            gap: '12px',
           }}>
             <span style={{
               fontFamily: 'var(--font-mono)',
@@ -163,6 +173,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 AGENCY $699
               </button>
             </div>
+            <button
+              type="button"
+              onClick={dismissTrialBanner}
+              aria-label="Dismiss trial banner"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#888880',
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#f0f0ec';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#888880';
+              }}
+            >
+              <X size={16} />
+            </button>
           </div>
         )}
 

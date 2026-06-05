@@ -49,7 +49,13 @@ export function Sidebar() {
   
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { agencyId } = useAuth();
+  const { agencyId, user } = useAuth();
+
+  const accountLabel = user?.email
+    ? user.email.length > 22
+      ? `${user.email.slice(0, 19)}...`
+      : user.email
+    : 'Account';
 
   useEffect(() => {
     if (!agencyId) return;
@@ -217,12 +223,19 @@ export function Sidebar() {
             <span>Notifications</span>
           </button>
           
-          <div className="flex items-center gap-[12px]">
-            <div className="w-[32px] h-[32px] rounded-full bg-[#1a1a1a] border border-[#2a2a2a]" />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}>
-              Admin
+          <Link
+            to="/settings"
+            className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px] transition-colors hover:bg-[#1a1a1a] cursor-pointer"
+            title={user?.email ?? 'Account settings'}
+          >
+            <div className="w-[32px] h-[32px] rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex-shrink-0" />
+            <span
+              className="truncate"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}
+            >
+              {accountLabel}
             </span>
-          </div>
+          </Link>
         </div>
       </div>
       
