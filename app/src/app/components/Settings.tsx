@@ -1,6 +1,8 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { authFetch } from '../../lib/apiAuth';
+import { isAdminUser } from '../../lib/admin';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useTutorial } from '../context/TutorialContext';
@@ -892,6 +894,18 @@ export function Settings() {
             </div>
           </div>
         </div>
+
+        {isAdminUser(user?.email) && (
+          <div className="pt-[8px]">
+            <Link
+              to="/admin/requests"
+              className="text-[12px] hover:opacity-80 transition-opacity"
+              style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+            >
+              ADMIN: View Requests →
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

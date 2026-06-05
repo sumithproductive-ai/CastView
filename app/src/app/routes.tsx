@@ -113,6 +113,9 @@ const OnboardingFirstProspect = lazy(() =>
 const Notifications = lazy(() =>
   import('./components/Notifications').then((m) => ({ default: m.Notifications })),
 );
+const AdminRequests = lazy(() =>
+  import('./components/AdminRequests').then((m) => ({ default: m.AdminRequests })),
+);
 const AuthLayout = lazy(() =>
   import('./layouts/AuthLayout').then((m) => ({ default: m.AuthLayout })),
 );
@@ -351,6 +354,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedLayoutRoute>
         <Settings />
+      </ProtectedLayoutRoute>
+    ),
+  },
+  {
+    path: '/admin/requests',
+    element: (
+      <ProtectedLayoutRoute>
+        <AdminRequests />
       </ProtectedLayoutRoute>
     ),
   },
