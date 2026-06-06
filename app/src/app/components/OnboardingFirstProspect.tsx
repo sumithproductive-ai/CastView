@@ -2,18 +2,22 @@ import React from 'react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { UserPlus, Compass } from 'lucide-react';
+import { useProspects } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
 import { needsOnboarding, skipOnboarding } from '../../lib/onboarding';
 
 export function OnboardingFirstProspect() {
   const navigate = useNavigate();
-  const { agencyName } = useAuth();
+  const { agencyId, agencyName, setAgencyName } = useAuth();
+  const { prospects } = useProspects();
+  const { models } = useRoster();
 
   useEffect(() => {
-    if (!needsOnboarding(agencyName)) {
+    if (!needsOnboarding(agencyName, prospects.length, models.length)) {
       navigate('/', { replace: true });
     }
-  }, [agencyName, navigate]);
+  }, [agencyName, prospects.length, models.length, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-[24px]">
@@ -182,7 +186,7 @@ export function OnboardingFirstProspect() {
 
             {/* Button */}
             <button
-              onClick={() => skipOnboarding(navigate)}
+              onClick={() => void skipOnboarding(navigate, agencyId, agencyName, setAgencyName)}
               className="w-full py-[14px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#1a1a1a] cursor-pointer"
               style={{ 
                 fontFamily: 'var(--font-label)',
@@ -198,7 +202,7 @@ export function OnboardingFirstProspect() {
         {/* Skip Link */}
         <div className="mb-[12px]">
           <button
-            onClick={() => skipOnboarding(navigate)}
+            onClick={() => void skipOnboarding(navigate, agencyId, agencyName, setAgencyName)}
             className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity"
             style={{ 
               fontFamily: 'var(--font-mono)', 

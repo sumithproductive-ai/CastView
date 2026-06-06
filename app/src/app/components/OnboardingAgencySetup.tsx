@@ -1,12 +1,16 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useProspects } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
 import { needsOnboarding, skipOnboarding } from '../../lib/onboarding';
 import { supabase } from '../../lib/supabase';
 
 export function OnboardingAgencySetup() {
   const navigate = useNavigate();
+  const { prospects } = useProspects();
+  const { models } = useRoster();
   const { agencyId, agencyName: savedAgencyName, setAgencyName: setSavedAgencyName } = useAuth();
   const [agencyName, setAgencyName] = useState('');
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
@@ -24,10 +28,10 @@ export function OnboardingAgencySetup() {
   };
 
   useEffect(() => {
-    if (!needsOnboarding(savedAgencyName)) {
+    if (!needsOnboarding(savedAgencyName, prospects.length, models.length)) {
       navigate('/', { replace: true });
     }
-  }, [savedAgencyName, navigate]);
+  }, [savedAgencyName, prospects.length, models.length, navigate]);
 
   const handleContinue = async () => {
     const trimmedName = agencyName.trim();
@@ -240,7 +244,7 @@ export function OnboardingAgencySetup() {
 
           {/* Skip Link */}
           <button
-            onClick={() => skipOnboarding(navigate)}
+            onClick={() => void skipOnboarding(navigate, agencyId, savedAgencyName, setSavedAgencyName)}
             className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity mt-[16px]"
             style={{ 
               fontFamily: 'var(--font-mono)', 

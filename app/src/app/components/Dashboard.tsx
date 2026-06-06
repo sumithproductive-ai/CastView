@@ -51,11 +51,20 @@ export function Dashboard() {
   const { agencyId, agencyName, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (authLoading || !agencyId) return;
-    if (needsOnboarding(agencyName)) {
+    if (authLoading || !agencyId || prospectsLoading || rosterLoading) return;
+    if (needsOnboarding(agencyName, prospects.length, models.length)) {
       navigate('/onboarding', { replace: true });
     }
-  }, [agencyId, agencyName, authLoading, navigate]);
+  }, [
+    agencyId,
+    agencyName,
+    authLoading,
+    prospectsLoading,
+    rosterLoading,
+    prospects.length,
+    models.length,
+    navigate,
+  ]);
 
   useEffect(() => {
     if (!agencyId) return;
