@@ -56,7 +56,7 @@ export function ProgressBar() {
           color: '#f0f0ec',
           letterSpacing: '0.05em'
         }}>
-          Sumith Chittimalla — {currentLabel}
+          {currentLabel}
         </span>
 
         {/* Step indicators */}
