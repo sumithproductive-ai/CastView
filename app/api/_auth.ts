@@ -49,11 +49,11 @@ export async function getAuthedAgency(
   const token = bearerTokenFromHeaders(req.headers as Record<string, string | string[] | undefined>);
   if (!token) return null;
 
-  const url = process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return null;
+  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
 
-  const supabase = createClient(url, anonKey, {
+  const supabase = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
