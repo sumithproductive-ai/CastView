@@ -113,7 +113,6 @@ function displayValue(loading: boolean, value: string): string {
 }
 
 export function Settings() {
-  const [quality, setQuality] = useState<'standard' | 'high' | 'ultra'>('high');
   const [loading, setLoading] = useState(true);
   const [stripeCustomerId, setStripeCustomerId] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -831,82 +830,6 @@ export function Settings() {
               >
                 {agencySaved ? '✓ SAVED' : savingAgency ? 'SAVING…' : 'SAVE CHANGES'}
               </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Rendering Block */}
-        <div>
-          <div
-            className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-          >
-            RENDERING
-          </div>
-          <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] space-y-[16px]">
-            <div className="flex items-center justify-between">
-              <label
-                className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
-              >
-                Default Evaluation Quality
-              </label>
-              <div className="flex gap-[8px]">
-                <button
-                  onClick={() => setQuality('standard')}
-                  className="px-[16px] py-[8px] rounded-[4px] text-[9px] uppercase tracking-[0.1em] transition-colors"
-                  style={{
-                    fontFamily: 'var(--font-label)',
-                    backgroundColor: quality === 'standard' ? '#f0f0ec' : 'transparent',
-                    color: quality === 'standard' ? '#080808' : '#a0a09a',
-                    border: `1px solid ${quality === 'standard' ? '#f0f0ec' : '#2a2a2a'}`,
-                    cursor: 'pointer',
-                  }}
-                >
-                  STANDARD
-                </button>
-                <button
-                  onClick={() => setQuality('high')}
-                  className="px-[16px] py-[8px] rounded-[4px] text-[9px] uppercase tracking-[0.1em] transition-colors"
-                  style={{
-                    fontFamily: 'var(--font-label)',
-                    backgroundColor: quality === 'high' ? '#f0f0ec' : 'transparent',
-                    color: quality === 'high' ? '#080808' : '#a0a09a',
-                    border: `1px solid ${quality === 'high' ? '#f0f0ec' : '#2a2a2a'}`,
-                    cursor: 'pointer',
-                  }}
-                >
-                  HIGH
-                </button>
-                <button
-                  onClick={() => setQuality('ultra')}
-                  className="px-[16px] py-[8px] rounded-[4px] text-[9px] uppercase tracking-[0.1em] transition-colors"
-                  style={{
-                    fontFamily: 'var(--font-label)',
-                    backgroundColor: quality === 'ultra' ? '#f0f0ec' : 'transparent',
-                    color: quality === 'ultra' ? '#080808' : '#a0a09a',
-                    border: `1px solid ${quality === 'ultra' ? '#f0f0ec' : '#2a2a2a'}`,
-                    cursor: 'pointer',
-                  }}
-                >
-                  ULTRA
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label
-                className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
-              >
-                Default Contexts
-              </label>
-              <div
-                className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
-              >
-                Configure in each prospect profile
-              </div>
             </div>
           </div>
         </div>
