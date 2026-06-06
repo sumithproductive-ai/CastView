@@ -155,8 +155,9 @@ export default async function handler(
   }
 
   const entitlement = await requireEntitledAgency(req);
-  if (!entitlement.ok) {
-    finish(requestStartMs, { error: entitlement.error }, entitlement.status, res);
+  if (entitlement.ok === false) {
+    const { status, error } = entitlement;
+    finish(requestStartMs, { error }, status, res);
     return;
   }
 
