@@ -116,7 +116,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const fetchAgencyId = async (authUser: User) => {
+  const fetchAgencyId = async (authUser: User | null | undefined) => {
+    if (!authUser) {
+      setLoading(false);
+      return;
+    }
+
     try {
       let resolvedAgencyId = await getProfileAgencyId(authUser.id);
 
@@ -132,29 +137,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (resolvedAgencyId) {
         await applyAgencyPlan(resolvedAgencyId);
       }
+    } catch (err) {
+      console.error('[AuthContext] fetchAgencyId failed:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      if (initialSession?.user) {
-        await fetchAgencyId(initialSession.user);
-      } else {
+    const safetyTimeout = setTimeout(() => setLoading(false), 5000);
+
+    void supabase.auth
+      .getSession()
+      .then(async ({ data: { session: initialSession } }) => {
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+        if (initialSession?.user) {
+          await fetchAgencyId(initialSession.user);
+        } else {
+          setLoading(false);
+        }
+        clearTimeout(safetyTimeout);
+      })
+      .catch((err) => {
+        console.error('[AuthContext] getSession failed:', err);
         setLoading(false);
-      }
-    });
+        clearTimeout(safetyTimeout);
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, nextSession) => {
+      (_event, nextSession) => {
         setSession(nextSession);
         setUser(nextSession?.user ?? null);
         if (nextSession?.user) {
           setLoading(true);
-          await fetchAgencyId(nextSession.user);
+          const loginSafety = setTimeout(() => setLoading(false), 5000);
+          // Defer Supabase queries to avoid onAuthStateChange deadlock after sign-in.
+          setTimeout(() => {
+            void fetchAgencyId(nextSession.user).finally(() => {
+              clearTimeout(loginSafety);
+            });
+          }, 0);
         } else {
           setAgencyId(null);
           setPlan('trial');
@@ -162,10 +185,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setTrialEndsAt(null);
           setLoading(false);
         }
-      }
+      },
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(safetyTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -201,6 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await fetchAgencyId(data.user);
       return { error: null };
     } catch (err: unknown) {
+      setLoading(false);
       const message = err instanceof Error ? err.message : 'Unknown error';
       return { error: message };
     }
