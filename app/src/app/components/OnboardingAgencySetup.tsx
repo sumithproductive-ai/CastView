@@ -1,9 +1,13 @@
 import React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../context/AuthContext';
+import { needsOnboarding, skipOnboarding } from '../../lib/onboarding';
+import { supabase } from '../../lib/supabase';
 
 export function OnboardingAgencySetup() {
   const navigate = useNavigate();
+  const { agencyId, agencyName: savedAgencyName, setAgencyName: setSavedAgencyName } = useAuth();
   const [agencyName, setAgencyName] = useState('');
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [selectedRole, setSelectedRole] = useState<string>('');
@@ -19,7 +23,21 @@ export function OnboardingAgencySetup() {
     );
   };
 
-  const handleContinue = () => {
+  useEffect(() => {
+    if (!needsOnboarding(savedAgencyName)) {
+      navigate('/', { replace: true });
+    }
+  }, [savedAgencyName, navigate]);
+
+  const handleContinue = async () => {
+    const trimmedName = agencyName.trim();
+    if (trimmedName && agencyId) {
+      await supabase
+        .from('agencies')
+        .update({ name: trimmedName })
+        .eq('id', agencyId);
+      setSavedAgencyName(trimmedName);
+    }
     navigate('/onboarding/invite');
   };
 
@@ -222,7 +240,7 @@ export function OnboardingAgencySetup() {
 
           {/* Skip Link */}
           <button
-            onClick={() => navigate('/')}
+            onClick={() => skipOnboarding(navigate)}
             className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity mt-[16px]"
             style={{ 
               fontFamily: 'var(--font-mono)', 

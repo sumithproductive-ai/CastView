@@ -1,9 +1,19 @@
 import React from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { UserPlus, Compass } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { needsOnboarding, skipOnboarding } from '../../lib/onboarding';
 
 export function OnboardingFirstProspect() {
   const navigate = useNavigate();
+  const { agencyName } = useAuth();
+
+  useEffect(() => {
+    if (!needsOnboarding(agencyName)) {
+      navigate('/', { replace: true });
+    }
+  }, [agencyName, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-[24px]">
@@ -172,7 +182,7 @@ export function OnboardingFirstProspect() {
 
             {/* Button */}
             <button
-              onClick={() => navigate('/')}
+              onClick={() => skipOnboarding(navigate)}
               className="w-full py-[14px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#1a1a1a] cursor-pointer"
               style={{ 
                 fontFamily: 'var(--font-label)',
@@ -188,7 +198,7 @@ export function OnboardingFirstProspect() {
         {/* Skip Link */}
         <div className="mb-[12px]">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => skipOnboarding(navigate)}
             className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity"
             style={{ 
               fontFamily: 'var(--font-mono)', 

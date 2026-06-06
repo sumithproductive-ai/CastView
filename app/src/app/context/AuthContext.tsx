@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { clearOnboardingSkipped } from '../../lib/onboarding';
 import { supabase } from '../../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -15,9 +16,11 @@ type AuthContextType = {
   signUp: (email: string, password: string, agencyName: string) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   agencyId: string | null;
+  agencyName: string | null;
   plan: string;
   planStatus: string;
   trialEndsAt: string | null;
+  setAgencyName: (name: string) => void;
 };
 
 const TRIAL_MS = 14 * 24 * 60 * 60 * 1000;
@@ -88,9 +91,11 @@ const AuthContext = createContext<AuthContextType>({
   signUp: async () => ({ error: null }),
   signOut: async () => {},
   agencyId: null,
+  agencyName: null,
   plan: 'trial',
   planStatus: 'trialing',
   trialEndsAt: null,
+  setAgencyName: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -98,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [agencyId, setAgencyId] = useState<string | null>(null);
+  const [agencyName, setAgencyName] = useState<string | null>(null);
   const [plan, setPlan] = useState<string>('trial');
   const [planStatus, setPlanStatus] = useState<string>('trialing');
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
@@ -106,10 +112,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAgencyId(resolvedAgencyId);
     const { data: agency } = await supabase
       .from('agencies')
-      .select('plan, plan_status, trial_ends_at')
+      .select('name, plan, plan_status, trial_ends_at')
       .eq('id', resolvedAgencyId)
       .single();
     if (agency) {
+      setAgencyName(agency.name ?? null);
       setPlan(agency.plan ?? 'trial');
       setPlanStatus(agency.plan_status ?? 'trialing');
       setTrialEndsAt(agency.trial_ends_at ?? null);
@@ -180,9 +187,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }, 0);
         } else {
           setAgencyId(null);
+          setAgencyName(null);
           setPlan('trial');
           setPlanStatus('trialing');
           setTrialEndsAt(null);
+          clearOnboardingSkipped();
           setLoading(false);
         }
       },
@@ -236,7 +245,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setAgencyId(null);
+    setAgencyName(null);
     setTrialEndsAt(null);
+    clearOnboardingSkipped();
   };
 
   return (
@@ -249,9 +260,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUp,
         signOut,
         agencyId,
+        agencyName,
         plan,
         planStatus,
         trialEndsAt,
+        setAgencyName,
       }}
     >
       {children}

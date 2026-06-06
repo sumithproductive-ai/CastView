@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
+import { needsOnboarding } from '../../lib/onboarding';
 import { supabase } from '../../lib/supabase';
 import { DigitalImage } from './DigitalImage';
 
@@ -47,22 +48,14 @@ export function Dashboard() {
     prospectName?: string;
   }>>([]);
 
-  const { agencyId, loading: authLoading } = useAuth();
+  const { agencyId, agencyName, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (authLoading || !agencyId || prospectsLoading || rosterLoading) return;
-    if (prospects.length === 0 && models.length === 0) {
+    if (authLoading || !agencyId) return;
+    if (needsOnboarding(agencyName)) {
       navigate('/onboarding', { replace: true });
     }
-  }, [
-    agencyId,
-    authLoading,
-    prospectsLoading,
-    rosterLoading,
-    prospects.length,
-    models.length,
-    navigate,
-  ]);
+  }, [agencyId, agencyName, authLoading, navigate]);
 
   useEffect(() => {
     if (!agencyId) return;

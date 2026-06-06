@@ -1,7 +1,9 @@
 import React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Plus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { needsOnboarding, skipOnboarding } from '../../lib/onboarding';
 
 interface TeamMember {
   id: string;
@@ -11,6 +13,7 @@ interface TeamMember {
 
 export function OnboardingInviteTeam() {
   const navigate = useNavigate();
+  const { agencyName } = useAuth();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
     { id: '1', email: '', role: 'Agent' }
   ]);
@@ -38,11 +41,13 @@ export function OnboardingInviteTeam() {
     );
   };
 
-  const handleContinue = () => {
-    navigate('/onboarding/first-prospect');
-  };
+  useEffect(() => {
+    if (!needsOnboarding(agencyName)) {
+      navigate('/', { replace: true });
+    }
+  }, [agencyName, navigate]);
 
-  const handleSkip = () => {
+  const handleContinue = () => {
     navigate('/onboarding/first-prospect');
   };
 
@@ -211,7 +216,7 @@ export function OnboardingInviteTeam() {
 
           {/* Skip Link */}
           <button
-            onClick={() => navigate('/')}
+            onClick={() => skipOnboarding(navigate)}
             className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity mt-[16px]"
             style={{ 
               fontFamily: 'var(--font-mono)', 
