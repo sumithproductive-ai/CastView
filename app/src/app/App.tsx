@@ -15,13 +15,15 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (isLoading) return <SplashScreen onComplete={() => setIsLoading(false)} />;
-
   return (
     <ProspectsProvider>
       <RosterProvider>
         <TutorialProvider>
-          <RouterProvider router={router} />
+          {isLoading ? (
+            <SplashScreen onComplete={() => setIsLoading(false)} />
+          ) : (
+            <RouterProvider router={router} />
+          )}
         </TutorialProvider>
       </RosterProvider>
     </ProspectsProvider>
