@@ -3,7 +3,6 @@ import { X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authFetch, UPGRADE_REQUIRED_KEY } from '../../lib/apiAuth';
 import { supabase } from '../../lib/supabase';
-import { ProgressBar } from '../components/ProgressBar';
 import { Sidebar } from '../components/Sidebar';
 import { TutorialOverlay } from '../components/TutorialOverlay';
 import { useTutorial } from '../context/TutorialContext';
@@ -95,7 +94,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#080808', fontFamily: 'var(--font-mono)' }}>
-      <ProgressBar />
       <div className="flex flex-1 items-stretch min-w-0 w-full">
         <Sidebar />
         <main className="flex-1 min-w-0 w-full pb-[64px] md:pb-0 overflow-x-hidden">
