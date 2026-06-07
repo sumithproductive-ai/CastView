@@ -139,7 +139,10 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex w-[240px] bg-[#111111] border-r border-[#2a2a2a] flex-col p-[24px] self-stretch">
+      <div
+        className="hidden md:flex w-[240px] bg-[#111111] border-r border-[#2a2a2a] flex-col p-[24px] self-stretch"
+        style={{ boxShadow: '1px 0 0 #1a1a1a' }}
+      >
         {/* Logo */}
         <div className="py-[20px] mb-[48px]">
           <span 
@@ -180,16 +183,29 @@ export function Sidebar() {
               <div key={item.name}>
                 <Link
                   to={item.path}
-                  className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px] transition-colors hover:bg-[#1a1a1a]"
+                  className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px] transition-all duration-200 hover:bg-[#1a1a1a]"
                   style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: '13px',
                     color: active ? '#f0f0ec' : '#a0a09a',
-                    backgroundColor: active ? '#1a1a1a' : 'transparent'
+                    backgroundColor: active ? '#1a1a1a' : 'transparent',
+                    boxShadow: active
+                      ? 'inset 2px 0 0 #C8A96E'
+                      : 'inset 2px 0 0 transparent',
+                    transition: 'all 0.2s ease',
                   }}
                 >
-                  <Icon size={16} />
-                  <span>{item.name}</span>
+                  <Icon
+                    size={16}
+                    style={{
+                      filter: active
+                        ? 'drop-shadow(0 0 4px rgba(200, 169, 110, 0.3))'
+                        : 'none',
+                    }}
+                  />
+                  <span style={{ letterSpacing: active ? '0.08em' : '0.05em' }}>
+                    {item.name}
+                  </span>
                 </Link>
               </div>
             );
@@ -304,7 +320,13 @@ export function Sidebar() {
               <div key={item.name} className="flex items-center flex-1">
                 <Link
                   to={item.path}
-                  className="flex flex-col items-center justify-center gap-[4px] flex-1"
+                  className="flex flex-col items-center justify-center gap-[4px] flex-1 transition-all duration-200"
+                  style={{
+                    boxShadow: active
+                      ? 'inset 0 -2px 0 #C8A96E'
+                      : 'inset 0 -2px 0 transparent',
+                    transition: 'all 0.2s ease',
+                  }}
                 >
                   <Icon
                     size={20}
