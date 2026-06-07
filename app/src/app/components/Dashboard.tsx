@@ -24,6 +24,23 @@ function submissionDateRank(submissionDate: string): number {
   return Number.MAX_SAFE_INTEGER;
 }
 
+function statCardStagger(index: number): React.CSSProperties {
+  return {
+    height: '96px',
+    opacity: 0,
+    animation: 'castview-fadein 0.4s ease forwards',
+    animationDelay: `${index * 0.05}s`,
+  };
+}
+
+function rowStagger(index: number, stepMs: number): React.CSSProperties {
+  return {
+    opacity: 0,
+    animation: 'castview-fadein 0.3s ease forwards',
+    animationDelay: `${index * stepMs}s`,
+  };
+}
+
 type RosterActivityItem = {
   id: string;
   name: string;
@@ -207,7 +224,7 @@ export function Dashboard() {
             {/* Card 1: Total Prospects */}
             <div 
               className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={{ height: '96px' }}
+              style={statCardStagger(0)}
             >
               <div 
                 className="text-[36px]" 
@@ -226,7 +243,7 @@ export function Dashboard() {
             {/* Card 2: Shortlisted */}
             <div 
               className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={{ height: '96px' }}
+              style={statCardStagger(1)}
             >
               <div 
                 className="text-[36px]" 
@@ -245,7 +262,7 @@ export function Dashboard() {
             {/* Card 3: Awaiting Review */}
             <div 
               className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={{ height: '96px' }}
+              style={statCardStagger(2)}
             >
               <div 
                 className="text-[36px]" 
@@ -264,7 +281,7 @@ export function Dashboard() {
             {/* Card 4: Evaluations run */}
             <div 
               className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between relative"
-              style={{ height: '96px' }}
+              style={statCardStagger(3)}
             >
               <div 
                 className="text-[36px]" 
@@ -303,7 +320,7 @@ export function Dashboard() {
             {/* Card 5: Active Models */}
             <div 
               className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={{ height: '96px' }}
+              style={statCardStagger(4)}
             >
               <div 
                 className="text-[36px]" 
@@ -322,7 +339,7 @@ export function Dashboard() {
             {/* Card 6: Evaluations */}
             <div 
               className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={{ height: '96px' }}
+              style={statCardStagger(5)}
             >
               <div 
                 className="text-[36px]" 
@@ -341,7 +358,7 @@ export function Dashboard() {
             {/* Card 7: On Hold */}
             <div 
               className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={{ height: '96px' }}
+              style={statCardStagger(6)}
             >
               <div 
                 className="text-[36px]" 
@@ -386,13 +403,14 @@ export function Dashboard() {
             style={{ maxHeight: '240px', overflowY: 'auto' }}
             className="space-y-[4px]"
           >
-            {recentMessages.map((msg) => (
+            {recentMessages.map((msg, index) => (
               <div
                 key={msg.id}
                 className="flex items-center gap-[16px] py-[10px] px-[16px] hover:bg-[#1a1a1a] rounded-[4px] transition-colors cursor-pointer"
                 style={{
                   borderLeft: msg.direction === 'inbound'
                     ? '2px solid #C8A96E' : '1px solid transparent',
+                  ...rowStagger(index, 0.03),
                 }}
                 onClick={() => {
                   const prospect = prospects.find(p => p.id === msg.prospect_id);

@@ -264,6 +264,14 @@ export function ProspectsIndex() {
     contextFilter !== 'all' ||
     sourceFilters.size > 0;
 
+  const listFilterKey = [
+    statusFilter,
+    contextFilter,
+    sortBy,
+    search.trim(),
+    ...Array.from(sourceFilters).sort(),
+  ].join('|');
+
   const handleExportCSV = () => {
     const headers = ['Name', 'Status', 'Source', 'Evaluations', 'Submitted', 'Contexts'];
     const rows = filteredProspects.map(p => [
@@ -461,11 +469,19 @@ export function ProspectsIndex() {
       </div>
 
       {/* Prospect Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-[20px]">
-        {filteredProspects.map((prospect) => (
+      <div
+        key={listFilterKey}
+        className="grid grid-cols-1 md:grid-cols-4 gap-[20px]"
+      >
+        {filteredProspects.map((prospect, index) => (
           <div
             key={prospect.id}
             className="relative"
+            style={{
+              opacity: 0,
+              animation: 'castview-fadein 0.3s ease forwards',
+              animationDelay: `${Math.min(index * 0.03, 0.3)}s`,
+            }}
             onMouseEnter={() => setHoveredRow(prospect.id)}
             onMouseLeave={() => setHoveredRow(null)}
           >
