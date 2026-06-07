@@ -68,7 +68,8 @@ export function Sidebar() {
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('agency_id', agencyId)
-        .eq('direction', 'inbound');
+        .eq('direction', 'inbound')
+        .is('read_at', null);
 
       setUnreadCount((eventCount ?? 0) + (messageCount ?? 0));
     };
@@ -89,20 +90,51 @@ export function Sidebar() {
         table: 'messages',
         filter: `agency_id=eq.${agencyId}`,
       }, () => loadUnread())
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages',
+        filter: `agency_id=eq.${agencyId}`,
+      }, () => loadUnread())
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'events',
+        filter: `agency_id=eq.${agencyId}`,
+      }, () => loadUnread())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [agencyId]);
 
   useEffect(() => {
-    const handleClear = () => setUnreadCount(0);
-    window.addEventListener(
-      'notifications-read', handleClear
-    );
-    return () => window.removeEventListener(
-      'notifications-read', handleClear
-    );
-  }, []);
+    const handleNotificationsChanged = () => {
+      if (!agencyId) return;
+      void (async () => {
+        const { count: eventCount } = await supabase
+          .from('events')
+          .select('*', { count: 'exact', head: true })
+          .eq('agency_id', agencyId)
+          .is('read_at', null);
+
+        const { count: messageCount } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('agency_id', agencyId)
+          .eq('direction', 'inbound')
+          .is('read_at', null);
+
+        setUnreadCount((eventCount ?? 0) + (messageCount ?? 0));
+      })();
+    };
+
+    window.addEventListener('notifications-read', handleNotificationsChanged);
+    window.addEventListener('notifications-updated', handleNotificationsChanged);
+    return () => {
+      window.removeEventListener('notifications-read', handleNotificationsChanged);
+      window.removeEventListener('notifications-updated', handleNotificationsChanged);
+    };
+  }, [agencyId]);
   
   return (
     <>

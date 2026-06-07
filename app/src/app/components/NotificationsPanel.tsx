@@ -13,11 +13,24 @@ interface PanelNotification {
   id: string;
   unread: boolean;
   title: string;
+  body?: string;
   time: string;
   badge: { text: string; color: string };
   path: string;
   type: string;
+  source: 'event' | 'message';
   sortAt: string;
+}
+
+interface InboundMessage {
+  id: string;
+  entity_id?: string | null;
+  prospect_id?: string | null;
+  prospect_name?: string | null;
+  body: string;
+  sent_at: string;
+  from_email: string;
+  read_at?: string | null;
 }
 
 function formatEventType(eventType: string): string {
@@ -46,6 +59,7 @@ function mapEventToPanelItem(ev: {
         badge: { text: 'CONFIRMED', color: 'green' },
         path,
         type: 'eval',
+        source: 'event',
         sortAt: ev.created_at,
       };
     case 'evaluation_overridden':
@@ -57,6 +71,7 @@ function mapEventToPanelItem(ev: {
         badge: { text: 'OVERRIDE', color: 'amber' },
         path,
         type: 'eval',
+        source: 'event',
         sortAt: ev.created_at,
       };
     case 'signed_status_updated':
@@ -68,6 +83,7 @@ function mapEventToPanelItem(ev: {
         badge: { text: 'STATUS', color: 'amber' },
         path,
         type: 'status',
+        source: 'event',
         sortAt: ev.created_at,
       };
     case 'prospect_added':
@@ -79,6 +95,7 @@ function mapEventToPanelItem(ev: {
         badge: { text: 'NEW', color: 'teal' },
         path,
         type: 'prospect',
+        source: 'event',
         sortAt: ev.created_at,
       };
     case 'message_sent':
@@ -90,6 +107,7 @@ function mapEventToPanelItem(ev: {
         badge: { text: 'SENT', color: 'teal' },
         path,
         type: 'message',
+        source: 'event',
         sortAt: ev.created_at,
       };
     default:
@@ -101,9 +119,34 @@ function mapEventToPanelItem(ev: {
         badge: { text: 'EVENT', color: 'teal' },
         path: '/notifications',
         type: 'event',
+        source: 'event',
         sortAt: ev.created_at,
       };
   }
+}
+
+function truncateBody(body: string, maxLength = 80): string {
+  const trimmed = body.trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength)}...`;
+}
+
+function mapInboundMessageToPanelItem(msg: InboundMessage): PanelNotification {
+  const entityId = msg.entity_id ?? msg.prospect_id ?? null;
+  const displayName = msg.prospect_name?.trim() || msg.from_email;
+
+  return {
+    id: msg.id,
+    unread: !msg.read_at,
+    title: `${displayName} replied`,
+    body: truncateBody(msg.body),
+    time: timeAgo(msg.sent_at),
+    badge: { text: 'REPLY', color: 'reply' },
+    path: entityId ? `/prospects/${entityId}?tab=messages` : '/prospects',
+    type: 'message',
+    source: 'message',
+    sortAt: msg.sent_at,
+  };
 }
 
 function timeAgo(dateStr: string): string {
@@ -152,31 +195,20 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
 
     const { data: messages, error: messagesError } = await supabase
       .from('messages')
-      .select('*')
+      .select('id, entity_id, prospect_id, prospect_name, body, sent_at, from_email, read_at')
       .eq('agency_id', agencyId)
       .eq('direction', 'inbound')
       .order('sent_at', { ascending: false })
-      .limit(5);
+      .limit(10);
 
     if (messagesError) {
       console.error('[NotificationsPanel] messages query error:', messagesError);
-      setNotifications([]);
-      return;
     }
 
     const items: PanelNotification[] = [];
 
-    for (const msg of (messages ?? [])) {
-      items.push({
-        id: msg.id,
-        unread: true,
-        title: `Reply from ${msg.from_email}`,
-        time: timeAgo(msg.sent_at),
-        badge: { text: 'REPLY', color: 'green' },
-        path: `/prospects/${msg.prospect_id}`,
-        type: 'message',
-        sortAt: msg.sent_at,
-      });
+    for (const msg of ((messages ?? []) as InboundMessage[])) {
+      items.push(mapInboundMessageToPanelItem(msg));
     }
 
     for (const ev of (events ?? [])) {
@@ -198,17 +230,51 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
 
   const handleMarkAllRead = async () => {
     if (!agencyId) return;
+    const readAt = new Date().toISOString();
     await supabase
       .from('events')
-      .update({ read_at: new Date().toISOString() })
+      .update({ read_at: readAt })
       .eq('agency_id', agencyId)
+      .is('read_at', null);
+    await supabase
+      .from('messages')
+      .update({ read_at: readAt })
+      .eq('agency_id', agencyId)
+      .eq('direction', 'inbound')
       .is('read_at', null);
     setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
     window.dispatchEvent(new Event('notifications-read'));
   };
 
+  const handleNotificationClick = async (notification: PanelNotification) => {
+    if (notification.unread && agencyId) {
+      const readAt = new Date().toISOString();
+      if (notification.source === 'message') {
+        await supabase
+          .from('messages')
+          .update({ read_at: readAt })
+          .eq('id', notification.id);
+      } else {
+        await supabase
+          .from('events')
+          .update({ read_at: readAt })
+          .eq('id', notification.id);
+      }
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.id === notification.id ? { ...item, unread: false } : item,
+        ),
+      );
+      window.dispatchEvent(new Event('notifications-updated'));
+    }
+
+    navigate(notification.path);
+    onClose();
+  };
+
   const getBadgeStyles = (color: string) => {
     switch (color) {
+      case 'reply': return { backgroundColor: '#4a7a4a', color: '#f0f0ec', border: '1px solid #4a7a4a' };
       case 'green': return { backgroundColor: 'rgba(106,186,186,0.15)', color: '#6ababa', border: '1px solid rgba(106,186,186,0.3)' };
       case 'amber': return { backgroundColor: 'rgba(212,165,116,0.15)', color: '#d4a574', border: '1px solid rgba(212,165,116,0.3)' };
       case 'teal': return { backgroundColor: 'rgba(100,200,200,0.15)', color: '#64c8c8', border: '1px solid rgba(100,200,200,0.3)' };
@@ -254,8 +320,8 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
             const Icon = getIcon(notification.type);
             return (
               <div
-                key={notification.id}
-                onClick={() => { navigate(notification.path); onClose(); }}
+                key={`${notification.source}-${notification.id}`}
+                onClick={() => { void handleNotificationClick(notification); }}
                 className="relative px-[16px] py-[16px] border-b hover:bg-[#1a1a1a] transition-colors cursor-pointer"
                 style={{ backgroundColor: notification.unread ? '#161616' : '#111111', borderColor: '#2a2a2a' }}
               >
@@ -268,6 +334,11 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
                     <p className="text-[13px] mb-[4px]" style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', lineHeight: 1.4 }}>
                       {notification.title}
                     </p>
+                    {notification.body && (
+                      <p className="text-[11px] mb-[4px]" style={{ fontFamily: 'var(--font-mono)', color: '#888880', lineHeight: 1.4 }}>
+                        {notification.body}
+                      </p>
+                    )}
                     <p className="text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}>
                       {notification.time}
                     </p>
