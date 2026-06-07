@@ -745,7 +745,12 @@ export function Rendering() {
       <div className="w-full max-w-[500px] mx-auto min-w-0">
         <h1 
           className="text-[32px] md:text-[48px] text-center mb-[48px] md:mb-[80px]" 
-          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 300,
+            color: '#f0f0ec',
+            animation: 'castview-fadein 0.6s ease forwards',
+          }}
         >
           {prospectName}
         </h1>
@@ -757,7 +762,15 @@ export function Rendering() {
             const isPending = index > currentStep;
             
             return (
-              <div key={step.name} className="flex items-center gap-[16px] md:gap-[24px] min-w-0">
+              <div
+                key={step.name}
+                className="flex items-center gap-[16px] md:gap-[24px] min-w-0"
+                style={{
+                  animation: 'castview-slidein 0.4s ease forwards',
+                  animationDelay: `${index * 0.08}s`,
+                  opacity: 0,
+                }}
+              >
                 <div 
                   className="w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center"
                   style={{ 
@@ -765,12 +778,36 @@ export function Rendering() {
                     backgroundColor: isComplete ? '#f0f0ec' : 'transparent'
                   }}
                 >
-                  {isComplete && <Check size={14} style={{ color: '#080808' }} />}
-                  {isActive && (
-                    <div 
-                      className="w-[8px] h-[8px] rounded-full animate-pulse"
-                      style={{ backgroundColor: '#f0f0ec' }}
+                  {isComplete && (
+                    <Check
+                      size={14}
+                      style={{
+                        color: '#080808',
+                        opacity: 0,
+                        animation: 'castview-fadein 0.3s ease forwards',
+                      }}
                     />
+                  )}
+                  {isActive && (
+                    <div
+                      className="relative flex items-center justify-center"
+                      style={{ width: '8px', height: '8px' }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          width: '8px',
+                          height: '8px',
+                          backgroundColor: 'rgba(200, 169, 110, 0.15)',
+                          borderRadius: '50%',
+                          animation: 'castview-ping 1.5s ease-in-out infinite',
+                        }}
+                      />
+                      <div
+                        className="w-[8px] h-[8px] rounded-full animate-pulse relative"
+                        style={{ backgroundColor: '#f0f0ec' }}
+                      />
+                    </div>
                   )}
                 </div>
                 
@@ -786,9 +823,12 @@ export function Rendering() {
                   </div>
                   {isActive && (
                     <div className="mt-[8px] h-[2px] bg-[#2a2a2a] rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-[#f0f0ec] transition-all duration-100"
-                        style={{ width: `${progress}%` }}
+                      <div
+                        className="h-full bg-[#f0f0ec]"
+                        style={{
+                          width: `${progress}%`,
+                          transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                        }}
                       />
                     </div>
                   )}
