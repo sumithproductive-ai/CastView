@@ -49,7 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const { agencyId } = auth;
-  const { prospectId, toEmail, toName, subject, body, agencyName } = req.body;
+  const { prospectId, toEmail, toName, subject, body, agencyName, thread_id } = req.body;
 
   if (!prospectId || !toEmail || !subject || !body) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -124,6 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       from_email: process.env.RESEND_FROM_EMAIL ?? 'team@castview.org',
       to_email: toEmail,
       sent_at: new Date().toISOString(),
+      ...(thread_id ? { thread_id } : {}),
     });
 
     if (dbError) {
