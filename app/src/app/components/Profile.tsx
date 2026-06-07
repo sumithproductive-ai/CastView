@@ -25,6 +25,7 @@ export function Profile() {
   const { getProspectById, prospects, updateProspect, loading: prospectsLoading } = useProspects();
   const { models, loading: rosterLoading } = useRoster();
 
+  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
   const isLoading = (prospectsLoading || rosterLoading) && prospectId !== '';
   const prospect = getProspectById(prospectId);
   const rosterModel = !prospect
@@ -299,12 +300,37 @@ export function Profile() {
             </select>
           </div>
 
-          <MessageThread
-            prospectId={prospectId}
-            prospectName={prospectName}
-            prospectEmail={entity?.email ?? ''}
-          />
-          
+          <div style={{ marginBottom: '24px' }}>
+            <button
+              type="button"
+              onClick={() => setIsMessagesOpen((open) => !open)}
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: '#888880',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: 0,
+              }}
+            >
+              {isMessagesOpen ? '▼' : '▶'} Messages
+            </button>
+
+            {isMessagesOpen && (
+              <MessageThread
+                prospectId={prospectId}
+                prospectName={prospectName}
+                prospectEmail={entity?.email ?? ''}
+              />
+            )}
+          </div>
+
           <div className="mb-[32px]">
             <label 
               className="block mb-[16px] text-[11px] uppercase tracking-[0.1em]"

@@ -22,7 +22,6 @@ export function NewProspectBasicInfo() {
   const { isTutorialOpen } = useTutorial();
   const [searchParams] = useSearchParams();
   const [name, setName] = useState('');
-  const [formData, setFormData] = useState({ email: '' });
   const [markets, setMarkets] = useState<Market[]>([]);
   const [source, setSource] = useState<Source | null>(null);
   const [measurements, setMeasurements] = useState({
@@ -69,7 +68,6 @@ export function NewProspectBasicInfo() {
       name: name.trim(),
       markets: markets.join(','),
       source: source || '',
-      email: formData.email ?? '',
       height: measurements.height,
       bust: measurements.bust,
       waist: measurements.waist,
@@ -181,29 +179,6 @@ export function NewProspectBasicInfo() {
                 fontFamily: 'var(--font-mono)', 
                 fontSize: '13px', 
                 color: '#f0f0ec'
-              }}
-            />
-          </div>
-
-          <div className="mb-[24px]">
-            <label
-              className="block mb-[8px] text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-            >
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={formData.email ?? ''}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="model@email.com"
-              className="w-full bg-[#111111] border border-[#2a2a2a] rounded-[4px] 
-               px-[16px] py-[12px]"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '13px',
-                color: '#f0f0ec',
-                outline: 'none',
               }}
             />
           </div>
