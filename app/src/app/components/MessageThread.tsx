@@ -5,12 +5,13 @@ import { useAuth } from '../context/AuthContext';
 
 interface Message {
   id: string;
-  direction: 'outbound' | 'inbound';
+  direction?: 'outbound' | 'inbound' | null;
   subject: string;
   body: string;
   to_email: string;
   from_email: string;
-  sent_at: string;
+  sent_at: string | null;
+  created_at?: string | null;
   thread_date?: string | null;
   sent_by_agency?: boolean | null;
 }
@@ -21,15 +22,21 @@ interface Props {
   prospectEmail?: string;
 }
 
+const mono = 'var(--font-mono)';
+
 function isOutbound(msg: Message): boolean {
-  return msg.direction === 'outbound' || msg.sent_by_agency === true;
+  if (msg.direction === 'inbound') return false;
+  if (msg.direction === 'outbound' || msg.sent_by_agency === true) return true;
+  return true;
+}
+
+function getMessageTimestamp(msg: Message): string {
+  return msg.sent_at ?? msg.created_at ?? new Date().toISOString();
 }
 
 function getMessageDateKey(msg: Message): string {
-  if (msg.thread_date) {
-    return msg.thread_date.split('T')[0] ?? msg.thread_date;
-  }
-  return msg.sent_at.split('T')[0] ?? msg.sent_at;
+  const timestamp = getMessageTimestamp(msg);
+  return timestamp.split('T')[0] ?? timestamp;
 }
 
 function formatDateSeparator(dateKey: string): string {
@@ -41,11 +48,12 @@ function formatDateSeparator(dateKey: string): string {
       month: 'long',
       day: 'numeric',
     })
-    .toUpperCase();
+    .toUpperCase()
+    .replace(',', ' ·');
 }
 
-function formatMessageTime(sentAt: string): string {
-  return new Date(sentAt).toLocaleTimeString('en-US', {
+function formatMessageTime(timestamp: string): string {
+  return new Date(timestamp).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
   });
@@ -87,38 +95,18 @@ function groupMessagesByDate(messages: Message[]): Array<{ dateKey: string; mess
   }));
 }
 
-function MessageSkeleton({ align }: { align: 'left' | 'right' }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: align === 'right' ? 'flex-end' : 'flex-start',
-        gap: '6px',
-      }}
-    >
-      <div
-        style={{
-          width: align === 'right' ? '58%' : '52%',
-          height: '52px',
-          borderRadius: align === 'right' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-          background: '#1a1a1a',
-          border: '1px solid #2a2a2a',
-          opacity: 0.7,
-        }}
-      />
-      <div
-        style={{
-          width: '48px',
-          height: '8px',
-          borderRadius: '4px',
-          background: '#2a2a2a',
-          opacity: 0.7,
-        }}
-      />
-    </div>
-  );
-}
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: '#111111',
+  border: '1px solid #2a2a2a',
+  borderRadius: '4px',
+  padding: '8px 12px',
+  fontFamily: mono,
+  fontSize: '13px',
+  color: '#f0f0ec',
+  boxSizing: 'border-box',
+  outline: 'none',
+};
 
 export function MessageThread({ prospectId, prospectName, prospectEmail }: Props) {
   const { agencyId } = useAuth();
@@ -128,7 +116,6 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
   const [body, setBody] = useState('');
   const [toEmail, setToEmail] = useState(prospectEmail ?? '');
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const fetchMessages = useCallback(async () => {
@@ -146,7 +133,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
       .eq('agency_id', agencyId)
       .order('sent_at', { ascending: true });
 
-    setMessages(data ?? []);
+    setMessages((data ?? []) as Message[]);
     setLoading(false);
   }, [prospectId, agencyId]);
 
@@ -161,14 +148,17 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
   useEffect(() => {
     if (loading) return;
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading, sending, sent]);
+  }, [messages, loading, sending]);
 
   const groupedMessages = useMemo(() => groupMessagesByDate(messages), [messages]);
   const showSubject = useMemo(() => !hasThreadToday(messages), [messages]);
+  const hasEmail = Boolean(toEmail.trim());
+  const canSend = hasEmail && Boolean(body.trim()) && (!showSubject || Boolean(subject.trim()));
 
   const handleSend = async () => {
+    const messageBody = body.trim();
     const effectiveSubject = showSubject ? subject.trim() : getReplySubject(messages);
-    if (!toEmail || !effectiveSubject || !body || !agencyId) return;
+    if (!toEmail || !effectiveSubject || !messageBody || !agencyId) return;
 
     setSending(true);
     try {
@@ -179,13 +169,29 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
           toEmail,
           toName: prospectName,
           subject: effectiveSubject,
-          body,
+          body: messageBody,
           agencyName: 'CastView Agency',
         }),
       });
 
       if (res.ok) {
-        setSent(true);
+        const sentAt = new Date().toISOString();
+        const optimisticMessage: Message = {
+          id: crypto.randomUUID(),
+          direction: 'outbound',
+          subject: effectiveSubject,
+          body: messageBody,
+          to_email: toEmail,
+          from_email: '',
+          sent_at: sentAt,
+        };
+
+        setMessages((prev) => [...prev, optimisticMessage]);
+        setBody('');
+        if (showSubject) {
+          setSubject('');
+        }
+
         try {
           await supabase.from('events').insert({
             agency_id: agencyId,
@@ -195,38 +201,19 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
         } catch {
           /* non-critical */
         }
-        setBody('');
-        if (showSubject) {
-          setSubject('');
-        }
-        setTimeout(() => setSent(false), 3000);
-        await fetchMessages();
+
+        void fetchMessages();
       }
     } finally {
       setSending(false);
     }
   };
 
-  const canSend = Boolean(toEmail && body && (!showSubject || subject.trim()));
-
   return (
-    <div style={{ marginBottom: '32px' }}>
+    <div style={{ marginBottom: '32px', background: '#080808' }}>
       <div
         style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '10px',
-          color: '#888880',
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          marginBottom: '16px',
-        }}
-      >
-        Messages{messages.length > 0 ? ` (${messages.length})` : ''}
-      </div>
-
-      <div
-        style={{
-          background: '#111111',
+          background: '#1a1a1a',
           border: '1px solid #2a2a2a',
           borderRadius: '4px',
           overflow: 'hidden',
@@ -234,20 +221,29 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
       >
         <div
           style={{
-            height: '400px',
+            height: '320px',
             overflowY: 'auto',
             padding: '20px 16px',
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
+            background: '#080808',
           }}
         >
           {loading && (
-            <>
-              <MessageSkeleton align="right" />
-              <MessageSkeleton align="left" />
-              <MessageSkeleton align="right" />
-            </>
+            <div
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: mono,
+                fontSize: '12px',
+                color: '#555550',
+              }}
+            >
+              Loading...
+            </div>
           )}
 
           {!loading && messages.length === 0 && (
@@ -257,15 +253,12 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                textAlign: 'center',
-                fontFamily: 'var(--font-mono)',
+                fontFamily: mono,
                 fontSize: '12px',
                 color: '#555550',
-                lineHeight: 1.6,
-                padding: '24px',
               }}
             >
-              No messages yet. Send your first message below.
+              No messages yet.
             </div>
           )}
 
@@ -274,20 +267,32 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
               <div key={section.dateKey}>
                 <div
                   style={{
-                    textAlign: 'center',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '11px',
-                    color: '#555550',
-                    letterSpacing: '0.06em',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
                     marginBottom: '16px',
                   }}
                 >
-                  {formatDateSeparator(section.dateKey)}
+                  <div style={{ flex: 1, height: '1px', background: '#2a2a2a' }} />
+                  <span
+                    style={{
+                      fontFamily: mono,
+                      fontSize: '10px',
+                      color: '#555550',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {formatDateSeparator(section.dateKey)}
+                  </span>
+                  <div style={{ flex: 1, height: '1px', background: '#2a2a2a' }} />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   {section.messages.map((msg) => {
                     const outbound = isOutbound(msg);
+                    const timestamp = getMessageTimestamp(msg);
 
                     return (
                       <div
@@ -297,13 +302,14 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                           flexDirection: 'column',
                           alignItems: outbound ? 'flex-end' : 'flex-start',
                           gap: '4px',
+                          width: '100%',
                         }}
                       >
-                        {!outbound && (
+                        {!outbound && msg.from_email && (
                           <span
                             style={{
-                              fontFamily: 'var(--font-mono)',
-                              fontSize: '11px',
+                              fontFamily: mono,
+                              fontSize: '10px',
                               color: '#888880',
                               paddingLeft: '4px',
                             }}
@@ -314,24 +320,28 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
 
                         <div
                           style={{
-                            maxWidth: '70%',
-                            padding: '12px 14px',
-                            fontFamily: 'var(--font-mono)',
+                            maxWidth: '75%',
+                            padding: '10px 14px',
+                            fontFamily: mono,
                             fontSize: '13px',
                             lineHeight: 1.6,
                             whiteSpace: 'pre-wrap',
                             wordBreak: 'break-word',
+                            display: 'inline-block',
                             ...(outbound
                               ? {
-                                  background: '#f0f0ec',
-                                  color: '#080808',
-                                  borderRadius: '12px 12px 2px 12px',
-                                }
-                              : {
                                   background: '#1a1a1a',
                                   color: '#f0f0ec',
                                   border: '1px solid #2a2a2a',
-                                  borderRadius: '12px 12px 12px 2px',
+                                  borderRadius: '18px 18px 4px 18px',
+                                  alignSelf: 'flex-end',
+                                }
+                              : {
+                                  background: '#111111',
+                                  color: '#c8c8c2',
+                                  border: '1px solid #3a3a3a',
+                                  borderRadius: '18px 18px 18px 4px',
+                                  alignSelf: 'flex-start',
                                 }),
                           }}
                         >
@@ -340,14 +350,16 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
 
                         <span
                           style={{
-                            fontFamily: 'var(--font-mono)',
+                            fontFamily: mono,
                             fontSize: '10px',
                             color: '#555550',
+                            textAlign: outbound ? 'right' : 'left',
+                            width: '75%',
                             paddingLeft: outbound ? 0 : '4px',
                             paddingRight: outbound ? '4px' : 0,
                           }}
                         >
-                          {formatMessageTime(msg.sent_at)}
+                          {formatMessageTime(timestamp)}
                         </span>
                       </div>
                     );
@@ -363,30 +375,19 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
           style={{
             borderTop: '1px solid #2a2a2a',
             background: '#1a1a1a',
-            padding: '20px',
+            padding: '16px',
           }}
         >
-          {!prospectEmail && (
-            <input
-              type="email"
-              placeholder="To: model@email.com"
-              value={toEmail}
-              onChange={(e) => setToEmail(e.target.value)}
-              style={{
-                width: '100%',
-                background: '#111111',
-                border: '1px solid #2a2a2a',
-                borderRadius: '4px',
-                padding: '10px 12px',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-                color: '#F0F0EC',
-                marginBottom: '10px',
-                boxSizing: 'border-box',
-                outline: 'none',
-              }}
-            />
-          )}
+          <div
+            style={{
+              fontFamily: mono,
+              fontSize: '12px',
+              color: '#888880',
+              marginBottom: '12px',
+            }}
+          >
+            To: {hasEmail ? toEmail : 'No email on file'}
+          </div>
 
           {showSubject && (
             <input
@@ -394,18 +395,11 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
               placeholder="Subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
+              disabled={!hasEmail || sending}
               style={{
-                width: '100%',
-                background: '#111111',
-                border: '1px solid #2a2a2a',
-                borderRadius: '4px',
-                padding: '10px 12px',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-                color: '#F0F0EC',
+                ...inputStyle,
                 marginBottom: '10px',
-                boxSizing: 'border-box',
-                outline: 'none',
+                opacity: hasEmail ? 1 : 0.5,
               }}
             />
           )}
@@ -414,61 +408,36 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
             placeholder="Write your message..."
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            rows={2}
+            rows={3}
+            disabled={!hasEmail || sending}
             style={{
-              width: '100%',
-              background: '#111111',
-              border: '1px solid #2a2a2a',
-              borderRadius: '4px',
-              padding: '10px 12px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '12px',
-              color: '#F0F0EC',
+              ...inputStyle,
               resize: 'vertical',
               marginBottom: '12px',
-              boxSizing: 'border-box',
-              outline: 'none',
-              minHeight: '56px',
+              minHeight: '72px',
+              opacity: hasEmail ? 1 : 0.5,
             }}
           />
 
-          {sent && (
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                color: '#4a7a4a',
-                letterSpacing: '0.08em',
-                padding: '10px 0',
-                textTransform: 'uppercase',
-              }}
-            >
-              ✓ Message sent successfully
-            </div>
-          )}
-
-          {!sent && (
-            <button
-              onClick={handleSend}
-              disabled={sending || !canSend}
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                padding: '10px 24px',
-                background: '#C8A96E',
-                color: '#080808',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: sending || !canSend ? 'not-allowed' : 'pointer',
-                opacity: !canSend ? 0.5 : 1,
-                transition: 'background 0.2s',
-              }}
-            >
-              {sending ? 'SENDING...' : 'SEND MESSAGE →'}
-            </button>
-          )}
+          <button
+            onClick={handleSend}
+            disabled={sending || !canSend}
+            style={{
+              fontFamily: mono,
+              fontSize: '11px',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              padding: '10px 24px',
+              background: '#f0f0ec',
+              color: '#080808',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: sending || !canSend ? 'not-allowed' : 'pointer',
+              opacity: !canSend ? 0.5 : 1,
+            }}
+          >
+            {sending ? 'SENDING...' : 'SEND MESSAGE →'}
+          </button>
         </div>
       </div>
     </div>
