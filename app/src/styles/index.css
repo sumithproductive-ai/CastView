@@ -22,3 +22,16 @@ input[type="checkbox"],
 input[type="radio"] {
   cursor: pointer !important;
 }
+
+@keyframes castview-fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.castview-fadein {
+  animation: castview-fadein 0.3s ease forwards;
+}

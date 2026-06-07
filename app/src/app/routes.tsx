@@ -117,6 +117,7 @@ const AuthLayout = lazy(() =>
 function RouteLoadingFallback() {
   return (
     <div
+      className="castview-fadein"
       style={{
         display: 'flex',
         alignItems: 'center',

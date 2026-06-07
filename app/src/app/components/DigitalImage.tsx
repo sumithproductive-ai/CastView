@@ -21,6 +21,7 @@ export function DigitalImage({
   ...rest
 }: DigitalImageProps) {
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const retriedRef = useRef(false);
 
   useEffect(() => {
@@ -41,6 +42,10 @@ export function DigitalImage({
     };
   }, [storageRef]);
 
+  useEffect(() => {
+    setIsLoaded(false);
+  }, [displaySrc]);
+
   const handleError = () => {
     if (retriedRef.current || !storageRef) return;
     retriedRef.current = true;
@@ -56,7 +61,7 @@ export function DigitalImage({
   if (!displaySrc) {
     return (
       <div
-        className={className}
+        className={[className, 'animate-pulse'].filter(Boolean).join(' ')}
         style={{
           backgroundColor: '#1a1a1a',
           ...style,
@@ -68,12 +73,20 @@ export function DigitalImage({
 
   return (
     <img
+      {...rest}
       src={displaySrc}
       alt={alt}
       className={className}
-      style={style}
+      style={{
+        ...style,
+        opacity: isLoaded ? 1 : 0,
+        transition: 'opacity 0.4s ease',
+      }}
+      onLoad={(event) => {
+        setIsLoaded(true);
+        rest.onLoad?.(event);
+      }}
       onError={handleError}
-      {...rest}
     />
   );
 }
