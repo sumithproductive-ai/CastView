@@ -62,6 +62,43 @@ function ContextArrowList({ items }: { items: string[] }) {
   );
 }
 
+function ContextScoreBar({
+  isOpen,
+  displayScore,
+}: {
+  isOpen: boolean;
+  displayScore: number | null;
+}) {
+  const [animateScore, setAnimateScore] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setAnimateScore(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setAnimateScore(true), 100);
+    return () => window.clearTimeout(timer);
+  }, [isOpen]);
+
+  return (
+    <div
+      className="h-[2px] bg-[#2a2a2a] rounded-full overflow-hidden"
+      style={{ width: '80px' }}
+    >
+      <div
+        className="h-full rounded-full"
+        style={{
+          width: animateScore ? `${displayScore ?? 0}%` : '0%',
+          backgroundColor: '#C8A96E',
+          transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+          transitionDelay: '0.1s',
+        }}
+      />
+    </div>
+  );
+}
+
 export function Results() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -794,9 +831,10 @@ export function Results() {
                   style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
                   <div
-                    className={`w-full bg-[#111111] border border-[#2a2a2a] px-[24px] py-[16px] mb-[8px] flex justify-between items-center ${
+                    className={`w-full bg-[#111111] border border-[#2a2a2a] px-[24px] py-[16px] mb-[8px] flex justify-between items-center hover:bg-[#1a1a1a] ${
                       isOpen ? 'rounded-t-[4px] rounded-b-none border-b-0' : 'rounded-[4px]'
                     }`}
+                    style={{ transition: 'background-color 0.2s ease' }}
                   >
                     <span
                       style={{
@@ -823,31 +861,26 @@ export function Results() {
                           : '—'}
                     </span>
                     <div className="flex items-center gap-[12px]">
-                      <div
-                        className="h-[2px] bg-[#2a2a2a] rounded-full overflow-hidden"
-                        style={{ width: '80px' }}
-                      >
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${displayScore ?? 0}%`,
-                            backgroundColor: '#C8A96E',
-                          }}
-                        />
-                      </div>
+                      <ContextScoreBar isOpen={isOpen} displayScore={displayScore} />
                       <ChevronDown
                         size={14}
                         style={{
                           color: '#888880',
                           transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s ease',
+                          transition: 'transform 0.3s ease',
                         }}
                       />
                     </div>
                   </div>
                 </button>
 
-                {isOpen && (
+                <div
+                  style={{
+                    overflow: 'hidden',
+                    transition: 'max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                    maxHeight: isOpen ? '600px' : '0',
+                  }}
+                >
                   <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] px-[24px] py-[20px] mb-[8px]">
                     {!data ? (
                       <p
@@ -1118,7 +1151,7 @@ export function Results() {
                     </>
                     )}
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
