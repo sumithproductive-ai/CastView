@@ -623,6 +623,7 @@ export function Results() {
 
         <button
           type="button"
+          className="cv-btn-primary"
           onClick={async () => {
             if (evalSaved || savingEval || !hasRealEvaluation || !prospectId || !evaluationId) return;
 
@@ -677,7 +678,7 @@ export function Results() {
           <button
             type="button"
             onClick={generatePDF}
-            className="border border-[#2a2a2a] bg-transparent rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] hover:text-[#f0f0ec] transition-colors"
+            className="cv-btn-primary border border-[#2a2a2a] bg-transparent rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] hover:text-[#f0f0ec] transition-colors"
             style={{
               fontFamily: 'var(--font-mono)',
               color: '#888880',
@@ -1158,7 +1159,7 @@ export function Results() {
                     setOverrideSaved(false);
                     setOverrideSaveError(null);
                   }}
-                  className="px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
+                  className="cv-btn-primary px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors disabled:transform-none"
                   style={{ 
                     fontFamily: 'var(--font-mono)',
                     borderColor: agreed ? '#4a7a4a' : '#2a2a2a',
@@ -1168,6 +1169,7 @@ export function Results() {
                       : (showOverride ? 'transparent' : '#1a1a1a'),
                     cursor: agreed ? 'default' : 'pointer'
                   }}
+                  disabled={agreed}
                 >
                   {agreed ? '✓ Confirmed' : 'Confirm Alignment'}
                 </button>
@@ -1190,7 +1192,7 @@ export function Results() {
                     setAgreed(false);
                     setOverrideSaved(false);
                   }}
-                  className="px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
+                  className="cv-btn-secondary px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
                   style={{ 
                     fontFamily: 'var(--font-mono)',
                     borderColor: '#2a2a2a',

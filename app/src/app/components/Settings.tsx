@@ -512,7 +512,7 @@ export function Settings() {
                           type="button"
                           onClick={() => handleSubscribe(tier.id)}
                           disabled={isCurrent}
-                          className="w-full px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="cv-btn-primary w-full px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                           style={{
                             fontFamily: 'var(--font-mono)',
                             backgroundColor: isRecommended ? '#c8a96e' : 'transparent',

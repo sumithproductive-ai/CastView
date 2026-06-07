@@ -35,3 +35,36 @@ input[type="radio"] {
 .castview-fadein {
   animation: castview-fadein 0.3s ease forwards;
 }
+
+.cv-btn-primary {
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.cv-btn-primary:hover {
+  transform: scale(1.01);
+}
+
+.cv-btn-primary:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.cv-btn-primary:disabled,
+.cv-btn-primary:disabled:hover,
+.cv-btn-primary:disabled:active {
+  transform: none;
+}
+
+.cv-btn-secondary {
+  transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.cv-btn-secondary:active {
+  transform: scale(0.98);
+}
+
+.cv-btn-secondary:disabled,
+.cv-btn-secondary:disabled:hover,
+.cv-btn-secondary:disabled:active {
+  transform: none;
+}

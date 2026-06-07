@@ -295,7 +295,7 @@ export function NewProspectReview() {
         <div className="space-y-[12px]">
           <button
             onClick={handleSaveDraft}
-            className="w-full py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#1a1a1a]"
+            className="cv-btn-secondary w-full py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#1a1a1a]"
             style={{ 
               fontFamily: 'var(--font-mono)', 
               color: '#f0f0ec'
@@ -305,7 +305,7 @@ export function NewProspectReview() {
           </button>
           <button
             onClick={handleSaveAndRender}
-            className="w-full py-[12px] bg-[#f0f0ec] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+            className="cv-btn-primary w-full py-[12px] bg-[#f0f0ec] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
             style={{ 
               fontFamily: 'var(--font-mono)', 
               color: '#080808'

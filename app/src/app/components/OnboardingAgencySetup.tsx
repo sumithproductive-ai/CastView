@@ -232,7 +232,7 @@ export function OnboardingAgencySetup() {
           {/* Continue Button */}
           <button
             onClick={handleContinue}
-            className="w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 cursor-pointer"
+            className="cv-btn-primary w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 cursor-pointer"
             style={{ 
               fontFamily: 'var(--font-label)',
               backgroundColor: '#f0f0ec',

@@ -386,7 +386,7 @@ export function Profile() {
           
           <button
             onClick={handleGenerate}
-            className="w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-colors mb-[24px]"
+            className="cv-btn-primary w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-colors mb-[24px]"
             style={{ 
               fontFamily: 'var(--font-label)',
               backgroundColor: '#f0f0ec',
