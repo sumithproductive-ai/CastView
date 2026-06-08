@@ -16,11 +16,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const auth = await getAuthedAgency(req);
-  if (auth === null) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
   if (isAuthFailure(auth)) {
-    return res.status(403).json({ error: 'No agency associated with this account' });
+    return res.status(auth.status).json({ error: auth.error });
   }
 
   const { data: agency, error: agencyError } = await supabase

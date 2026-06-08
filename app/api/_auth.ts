@@ -1,6 +1,6 @@
 import type { IncomingMessage } from 'http';
 import type { VercelRequest } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 export const ENTITLEMENT_ERROR =
   'Trial ended or subscription inactive. Please choose a plan to continue.';
@@ -14,9 +14,29 @@ export type AuthedAgency = {
   trial_ends_at: string | null;
 };
 
-export type AuthFailure = { status: 401 | 403 };
+export type AuthFailure = { status: 401 | 403; error: string };
 
 type HeadersCarrier = VercelRequest | IncomingMessage | { headers?: Record<string, string | string[] | undefined> };
+
+type SupabaseEnv = {
+  url: string | undefined;
+  serviceKey: string | undefined;
+  anonKey: string | undefined;
+};
+
+function resolveSupabaseEnv(): SupabaseEnv {
+  return {
+    url:
+      process.env.SUPABASE_URL ??
+      process.env.VITE_SUPABASE_URL ??
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    anonKey:
+      process.env.SUPABASE_ANON_KEY ??
+      process.env.VITE_SUPABASE_ANON_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  };
+}
 
 function bearerTokenFromHeaders(headers?: Record<string, string | string[] | undefined>): string | null {
   const raw = headers?.authorization ?? headers?.Authorization;
@@ -38,67 +58,105 @@ export function isEntitled(
   return false;
 }
 
+function createDbClient(env: SupabaseEnv, token: string): SupabaseClient | null {
+  if (!env.url) return null;
+
+  if (env.serviceKey) {
+    return createClient(env.url, env.serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+
+  if (env.anonKey) {
+    return createClient(env.url, env.anonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+
+  return null;
+}
+
 /**
  * Verifies the Supabase access token and resolves agency + billing fields.
- * Returns null on missing/invalid token (401). Returns { status: 403 } when
- * the user is valid but has no agency_id on their profile.
  */
 export async function getAuthedAgency(
   req: HeadersCarrier,
-): Promise<AuthedAgency | AuthFailure | null> {
+): Promise<AuthedAgency | AuthFailure> {
   const headers = req.headers as Record<string, string | string[] | undefined>;
   const authHeader = headers?.authorization ?? headers?.Authorization;
   console.log('[API auth] authorization header exists:', Boolean(authHeader));
 
   const token = bearerTokenFromHeaders(headers);
-  console.log('[API auth] token extracted:', Boolean(token));
+  console.log('[API auth] token extracted:', Boolean(token), {
+    tokenPrefix: token ? `${token.slice(0, 12)}...` : null,
+  });
   if (!token) {
     console.log('[API auth] 401: missing bearer token');
-    return null;
+    return { status: 401, error: 'Missing authorization token' };
   }
 
-  const url =
-    process.env.SUPABASE_URL ??
-    process.env.VITE_SUPABASE_URL ??
-    process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
+  const env = resolveSupabaseEnv();
+  const verifyKey = env.serviceKey ?? env.anonKey;
+
+  console.log('[API auth] env resolved', {
+    hasSupabaseUrl: Boolean(env.url),
+    hasServiceRoleKey: Boolean(env.serviceKey),
+    hasAnonKey: Boolean(env.anonKey),
+    verifyWith: env.serviceKey ? 'service_role' : env.anonKey ? 'anon' : 'none',
+  });
+
+  if (!env.url || !verifyKey) {
     console.error('[API auth] 401: missing server env', {
-      hasSupabaseUrl: Boolean(url),
-      hasServiceRoleKey: Boolean(serviceKey),
+      hasSupabaseUrl: Boolean(env.url),
+      hasServiceRoleKey: Boolean(env.serviceKey),
+      hasAnonKey: Boolean(env.anonKey),
     });
-    return null;
+    return { status: 401, error: 'Server authentication is not configured' };
   }
 
-  const supabase = createClient(url, serviceKey, {
+  const authClient = createClient(env.url, verifyKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+  const { data: { user }, error: userError } = await authClient.auth.getUser(token);
   console.log('[API auth] user verified:', Boolean(user), {
     error: userError?.message ?? null,
     userId: user?.id ?? null,
   });
   if (userError || !user) {
     console.log('[API auth] 401: invalid or expired token');
-    return null;
+    return { status: 401, error: 'Invalid or expired session' };
   }
 
-  const { data: profile } = await supabase
+  const db = createDbClient(env, token);
+  if (!db) {
+    return { status: 401, error: 'Server authentication is not configured' };
+  }
+
+  const { data: profile, error: profileError } = await db
     .from('profiles')
     .select('agency_id')
     .eq('id', user.id)
     .maybeSingle();
 
-  if (!profile?.agency_id) {
-    return { status: 403 };
+  if (profileError) {
+    console.error('[API auth] profile lookup failed:', profileError.message);
   }
 
-  const { data: agency } = await supabase
+  if (!profile?.agency_id) {
+    return { status: 403, error: 'No agency associated with this account' };
+  }
+
+  const { data: agency, error: agencyError } = await db
     .from('agencies')
     .select('plan, plan_status, trial_ends_at')
     .eq('id', profile.agency_id)
     .maybeSingle();
+
+  if (agencyError) {
+    console.error('[API auth] agency lookup failed:', agencyError.message);
+  }
 
   return {
     userId: user.id,
@@ -111,9 +169,9 @@ export async function getAuthedAgency(
 }
 
 export function isAuthFailure(
-  result: AuthedAgency | AuthFailure | null,
+  result: AuthedAgency | AuthFailure,
 ): result is AuthFailure {
-  return result !== null && 'status' in result;
+  return 'status' in result && 'error' in result;
 }
 
 export type EntitlementResult =
@@ -122,11 +180,8 @@ export type EntitlementResult =
 
 export async function requireEntitledAgency(req: HeadersCarrier): Promise<EntitlementResult> {
   const auth = await getAuthedAgency(req);
-  if (auth === null) {
-    return { ok: false, status: 401, error: 'Unauthorized' };
-  }
   if (isAuthFailure(auth)) {
-    return { ok: false, status: 403, error: 'No agency associated with this account' };
+    return { ok: false, status: auth.status, error: auth.error };
   }
   if (!isEntitled(auth)) {
     return { ok: false, status: 402, error: ENTITLEMENT_ERROR };

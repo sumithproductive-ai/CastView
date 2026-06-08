@@ -24,8 +24,7 @@ import {
   EVALUATION_SYNC_FAILED_MSG,
   persistEvaluationToSupabase,
 } from '../utils/evaluationPersist';
-import { supabase } from '../../lib/supabase';
-import { SESSION_EXPIRED_MESSAGE } from '../../lib/apiAuth';
+import { requireAuthSession, SESSION_EXPIRED_MESSAGE } from '../../lib/apiAuth';
 
 const EVALUATION_UNAVAILABLE_MSG = 'Evaluation temporarily unavailable.';
 
@@ -188,17 +187,16 @@ export function Rendering() {
       return;
     }
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const preflightAuth = await requireAuthSession('evaluation-preflight');
     console.log('[CastView evaluation] pre-flight auth', {
-      sessionExists: Boolean(session),
-      accessTokenExists: Boolean(session?.access_token),
-      userId: session?.user?.id ?? null,
-      sessionError: sessionError?.message ?? null,
+      sessionExists: preflightAuth.ok,
+      accessTokenExists: preflightAuth.ok,
+      userId: preflightAuth.ok ? preflightAuth.userId : null,
       endpoint: '/api/evaluate',
     });
 
-    if (sessionError || !session?.access_token) {
-      setEvaluationError(SESSION_EXPIRED_MESSAGE);
+    if (!preflightAuth.ok) {
+      setEvaluationError(preflightAuth.message);
       setFlowFinished(true);
       setEvaluationReady(true);
       return;
@@ -587,7 +585,23 @@ export function Rendering() {
             }
           } else {
             if (result.status === 401) {
-              setEvaluationError(SESSION_EXPIRED_MESSAGE);
+              let authMessage = SESSION_EXPIRED_MESSAGE;
+              try {
+                const parsed = JSON.parse(result.errorBody ?? '') as { error?: string };
+                if (parsed.error === 'Server authentication is not configured') {
+                  authMessage =
+                    'Evaluation service is temporarily unavailable. Please contact support.';
+                } else if (parsed.error) {
+                  authMessage =
+                    parsed.error === 'Invalid or expired session' ||
+                    parsed.error === 'Missing authorization token'
+                      ? SESSION_EXPIRED_MESSAGE
+                      : parsed.error;
+                }
+              } catch {
+                /* keep default session message */
+              }
+              setEvaluationError(authMessage);
             }
 
             const failReason =
