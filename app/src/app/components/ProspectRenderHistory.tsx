@@ -637,6 +637,41 @@ export function ProspectRenderHistory({
             </select>
           </div>
 
+      {((isProspect && prospectId) || (isModel && modelId)) && (
+        <>
+          <button
+            type="button"
+            onClick={() => setIsMessagesOpen((open) => !open)}
+            className="mt-[32px] mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
+            style={{ cursor: 'pointer' }}
+          >
+            <span style={sectionLabelStyle}>MESSAGES</span>
+            <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
+              {isMessagesOpen ? '▲' : '▼'}
+            </span>
+          </button>
+
+          {isMessagesOpen && (
+            <>
+              {isModel && modelId && (
+                <MessageThread
+                  prospectId={modelId}
+                  prospectName={activeProfile.name}
+                  prospectEmail={(rosterModelForImage as { email?: string } | undefined)?.email ?? ''}
+                />
+              )}
+              {isProspect && prospectId && (
+                <MessageThread
+                  prospectId={prospectId}
+                  prospectName={activeProfile?.name ?? ''}
+                  prospectEmail={(activeProfile as { email?: string } | undefined)?.email ?? ''}
+                />
+              )}
+            </>
+          )}
+        </>
+      )}
+
       <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[48px]">
         <div
           className="text-[10px] uppercase tracking-[0.12em] mb-[16px]"
@@ -798,41 +833,6 @@ export function ProspectRenderHistory({
           </div>
         )}
       </div>
-
-      {((isProspect && prospectId) || (isModel && modelId)) && (
-        <>
-          <button
-            type="button"
-            onClick={() => setIsMessagesOpen((open) => !open)}
-            className="mt-[32px] mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
-            style={{ cursor: 'pointer' }}
-          >
-            <span style={sectionLabelStyle}>MESSAGES</span>
-            <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
-              {isMessagesOpen ? '▲' : '▼'}
-            </span>
-          </button>
-
-          {isMessagesOpen && (
-            <>
-              {isModel && modelId && (
-                <MessageThread
-                  prospectId={modelId}
-                  prospectName={activeProfile.name}
-                  prospectEmail={(rosterModelForImage as { email?: string } | undefined)?.email ?? ''}
-                />
-              )}
-              {isProspect && prospectId && (
-                <MessageThread
-                  prospectId={prospectId}
-                  prospectName={activeProfile?.name ?? ''}
-                  prospectEmail={(activeProfile as { email?: string } | undefined)?.email ?? ''}
-                />
-              )}
-            </>
-          )}
-        </>
-      )}
 
       {!hasDigitalSets ? (
         <div className="text-center py-[80px]">
