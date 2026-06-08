@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseAnonKey, supabaseUrl } from './supabase';
 
 export const UPGRADE_REQUIRED_KEY = 'castview_upgrade_required';
 export const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please log in again.';
@@ -83,6 +83,16 @@ export function handlePaymentRequired(): void {
   }
 }
 
+/** Headers every protected API route needs to verify the Supabase session. */
+export function buildApiAuthHeaders(accessToken: string): Record<string, string> {
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${accessToken}`,
+    apikey: supabaseAnonKey,
+    'X-Supabase-Url': supabaseUrl,
+  };
+}
+
 /** JSON fetch to a protected API route with the current Supabase session token. */
 export async function authFetch(
   url: string,
@@ -92,11 +102,11 @@ export async function authFetch(
   if (!auth.ok) {
     throw new Error(auth.message);
   }
-  const token = auth.accessToken;
 
   const headers = new Headers(init.headers);
-  headers.set('Content-Type', 'application/json');
-  headers.set('Authorization', `Bearer ${token}`);
+  for (const [key, value] of Object.entries(buildApiAuthHeaders(auth.accessToken))) {
+    headers.set(key, value);
+  }
 
   const response = await fetch(url, { ...init, headers });
   if (response.status === 402) {

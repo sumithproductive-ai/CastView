@@ -1,4 +1,5 @@
 import {
+  buildApiAuthHeaders,
   handlePaymentRequired,
   requireAuthSession,
   SESSION_EXPIRED_MESSAGE,
@@ -172,10 +173,7 @@ export async function fetchEvaluateContext(
 
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${auth.accessToken}`,
-      },
+      headers: buildApiAuthHeaders(auth.accessToken),
       body: JSON.stringify({
         prospectName: requestBody.prospectName,
         selectedContexts: requestBody.selectedContexts,

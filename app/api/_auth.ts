@@ -14,7 +14,7 @@ export type AuthedAgency = {
   trial_ends_at: string | null;
 };
 
-export type AuthFailure = { status: 401 | 403; error: string };
+export type AuthFailure = { status: 401 | 403; error: string; reason?: string };
 
 type HeadersCarrier = VercelRequest | IncomingMessage | { headers?: Record<string, string | string[] | undefined> };
 
@@ -22,19 +22,73 @@ type SupabaseEnv = {
   url: string | undefined;
   serviceKey: string | undefined;
   anonKey: string | undefined;
+  urlSource: string;
+  anonKeySource: string;
 };
 
-function resolveSupabaseEnv(): SupabaseEnv {
+function getRequestHeaders(
+  req: HeadersCarrier,
+): Record<string, string | string[] | undefined> {
+  return (req.headers ?? {}) as Record<string, string | string[] | undefined>;
+}
+
+function headerValue(
+  headers: Record<string, string | string[] | undefined>,
+  name: string,
+): string | undefined {
+  const target = name.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === target) {
+      return Array.isArray(value) ? value[0] : value;
+    }
+  }
+  return undefined;
+}
+
+function resolveSupabaseEnv(req: HeadersCarrier): SupabaseEnv {
+  const headers = getRequestHeaders(req);
+  const clientUrl = headerValue(headers, 'x-supabase-url');
+  const clientAnonKey =
+    headerValue(headers, 'apikey') ?? headerValue(headers, 'x-supabase-anon-key');
+
+  let url: string | undefined;
+  let urlSource = 'none';
+  if (process.env.SUPABASE_URL) {
+    url = process.env.SUPABASE_URL;
+    urlSource = 'SUPABASE_URL';
+  } else if (process.env.VITE_SUPABASE_URL) {
+    url = process.env.VITE_SUPABASE_URL;
+    urlSource = 'VITE_SUPABASE_URL';
+  } else if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    urlSource = 'NEXT_PUBLIC_SUPABASE_URL';
+  } else if (clientUrl) {
+    url = clientUrl;
+    urlSource = 'request_header';
+  }
+
+  let anonKey: string | undefined;
+  let anonKeySource = 'none';
+  if (process.env.SUPABASE_ANON_KEY) {
+    anonKey = process.env.SUPABASE_ANON_KEY;
+    anonKeySource = 'SUPABASE_ANON_KEY';
+  } else if (process.env.VITE_SUPABASE_ANON_KEY) {
+    anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+    anonKeySource = 'VITE_SUPABASE_ANON_KEY';
+  } else if (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    anonKeySource = 'NEXT_PUBLIC_SUPABASE_ANON_KEY';
+  } else if (clientAnonKey) {
+    anonKey = clientAnonKey;
+    anonKeySource = 'request_header';
+  }
+
   return {
-    url:
-      process.env.SUPABASE_URL ??
-      process.env.VITE_SUPABASE_URL ??
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
+    url,
     serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    anonKey:
-      process.env.SUPABASE_ANON_KEY ??
-      process.env.VITE_SUPABASE_ANON_KEY ??
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    anonKey,
+    urlSource,
+    anonKeySource,
   };
 }
 
@@ -77,13 +131,62 @@ function createDbClient(env: SupabaseEnv, token: string): SupabaseClient | null 
   return null;
 }
 
+type VerifiedUser = { id: string; email: string };
+
+async function verifyUserToken(
+  env: SupabaseEnv,
+  token: string,
+): Promise<VerifiedUser | null> {
+  const verifyKey = env.serviceKey ?? env.anonKey;
+  if (!env.url || !verifyKey) return null;
+
+  const authClient = createClient(env.url, verifyKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data: { user }, error: userError } = await authClient.auth.getUser(token);
+  if (user && !userError) {
+    return { id: user.id, email: user.email ?? '' };
+  }
+
+  if (userError) {
+    console.log('[API auth] getUser error:', userError.message);
+  }
+
+  const base = env.url.replace(/\/$/, '');
+  try {
+    const response = await fetch(`${base}/auth/v1/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: verifyKey,
+      },
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.log('[API auth] REST /auth/v1/user failed:', {
+        status: response.status,
+        body: body.slice(0, 300),
+      });
+      return null;
+    }
+
+    const data = (await response.json()) as { id?: string; email?: string };
+    if (!data?.id) return null;
+    return { id: data.id, email: data.email ?? '' };
+  } catch (error) {
+    console.error('[API auth] REST verify exception:', error);
+    return null;
+  }
+}
+
 /**
  * Verifies the Supabase access token and resolves agency + billing fields.
  */
 export async function getAuthedAgency(
   req: HeadersCarrier,
 ): Promise<AuthedAgency | AuthFailure> {
-  const headers = req.headers as Record<string, string | string[] | undefined>;
+  const headers = getRequestHeaders(req);
   const authHeader = headers?.authorization ?? headers?.Authorization;
   console.log('[API auth] authorization header exists:', Boolean(authHeader));
 
@@ -93,59 +196,69 @@ export async function getAuthedAgency(
   });
   if (!token) {
     console.log('[API auth] 401: missing bearer token');
-    return { status: 401, error: 'Missing authorization token' };
+    return { status: 401, error: 'Missing authorization token', reason: 'missing_header' };
   }
 
-  const env = resolveSupabaseEnv();
-  const verifyKey = env.serviceKey ?? env.anonKey;
+  const env = resolveSupabaseEnv(req);
 
   console.log('[API auth] env resolved', {
     hasSupabaseUrl: Boolean(env.url),
+    urlSource: env.urlSource,
+    urlHost: env.url ? new URL(env.url).host : null,
     hasServiceRoleKey: Boolean(env.serviceKey),
     hasAnonKey: Boolean(env.anonKey),
+    anonKeySource: env.anonKeySource,
     verifyWith: env.serviceKey ? 'service_role' : env.anonKey ? 'anon' : 'none',
   });
 
-  if (!env.url || !verifyKey) {
+  if (!env.url || (!env.serviceKey && !env.anonKey)) {
     console.error('[API auth] 401: missing server env', {
       hasSupabaseUrl: Boolean(env.url),
       hasServiceRoleKey: Boolean(env.serviceKey),
       hasAnonKey: Boolean(env.anonKey),
     });
-    return { status: 401, error: 'Server authentication is not configured' };
+    return {
+      status: 401,
+      error: 'Server authentication is not configured',
+      reason: 'missing_env',
+    };
   }
 
-  const authClient = createClient(env.url, verifyKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
+  const verifiedUser = await verifyUserToken(env, token);
+  console.log('[API auth] user verified:', Boolean(verifiedUser), {
+    userId: verifiedUser?.id ?? null,
   });
-
-  const { data: { user }, error: userError } = await authClient.auth.getUser(token);
-  console.log('[API auth] user verified:', Boolean(user), {
-    error: userError?.message ?? null,
-    userId: user?.id ?? null,
-  });
-  if (userError || !user) {
+  if (!verifiedUser) {
     console.log('[API auth] 401: invalid or expired token');
-    return { status: 401, error: 'Invalid or expired session' };
+    return { status: 401, error: 'Invalid or expired session', reason: 'invalid_token' };
   }
 
   const db = createDbClient(env, token);
   if (!db) {
-    return { status: 401, error: 'Server authentication is not configured' };
+    return {
+      status: 401,
+      error: 'Server authentication is not configured',
+      reason: 'missing_env',
+    };
   }
 
   const { data: profile, error: profileError } = await db
     .from('profiles')
     .select('agency_id')
-    .eq('id', user.id)
+    .eq('id', verifiedUser.id)
     .maybeSingle();
 
   if (profileError) {
     console.error('[API auth] profile lookup failed:', profileError.message);
+    return {
+      status: 401,
+      error: 'Could not load user profile',
+      reason: 'profile_lookup_failed',
+    };
   }
 
   if (!profile?.agency_id) {
-    return { status: 403, error: 'No agency associated with this account' };
+    return { status: 403, error: 'No agency associated with this account', reason: 'no_agency' };
   }
 
   const { data: agency, error: agencyError } = await db
@@ -159,9 +272,9 @@ export async function getAuthedAgency(
   }
 
   return {
-    userId: user.id,
+    userId: verifiedUser.id,
     agencyId: profile.agency_id,
-    email: user.email ?? '',
+    email: verifiedUser.email,
     plan: agency?.plan ?? 'trial',
     plan_status: agency?.plan_status ?? 'trialing',
     trial_ends_at: agency?.trial_ends_at ?? null,
@@ -176,15 +289,15 @@ export function isAuthFailure(
 
 export type EntitlementResult =
   | { ok: true; auth: AuthedAgency }
-  | { ok: false; status: 401 | 403 | 402; error: string };
+  | { ok: false; status: 401 | 403 | 402; error: string; reason?: string };
 
 export async function requireEntitledAgency(req: HeadersCarrier): Promise<EntitlementResult> {
   const auth = await getAuthedAgency(req);
   if (isAuthFailure(auth)) {
-    return { ok: false, status: auth.status, error: auth.error };
+    return { ok: false, status: auth.status, error: auth.error, reason: auth.reason };
   }
   if (!isEntitled(auth)) {
-    return { ok: false, status: 402, error: ENTITLEMENT_ERROR };
+    return { ok: false, status: 402, error: ENTITLEMENT_ERROR, reason: 'not_entitled' };
   }
   return { ok: true, auth };
 }

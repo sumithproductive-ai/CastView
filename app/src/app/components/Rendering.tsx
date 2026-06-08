@@ -587,10 +587,19 @@ export function Rendering() {
             if (result.status === 401) {
               let authMessage = SESSION_EXPIRED_MESSAGE;
               try {
-                const parsed = JSON.parse(result.errorBody ?? '') as { error?: string };
-                if (parsed.error === 'Server authentication is not configured') {
+                const parsed = JSON.parse(result.errorBody ?? '') as {
+                  error?: string;
+                  reason?: string;
+                };
+                if (
+                  parsed.reason === 'missing_env' ||
+                  parsed.error === 'Server authentication is not configured'
+                ) {
                   authMessage =
                     'Evaluation service is temporarily unavailable. Please contact support.';
+                } else if (parsed.reason === 'profile_lookup_failed') {
+                  authMessage =
+                    'Your account profile could not be loaded. Try logging out and back in.';
                 } else if (parsed.error) {
                   authMessage =
                     parsed.error === 'Invalid or expired session' ||
