@@ -4,6 +4,7 @@ import {
   requireAuthSession,
   SESSION_EXPIRED_MESSAGE,
 } from '../../lib/apiAuth';
+import { resolveDigitalImageForDisplay } from '../../lib/supabase';
 
 export type CompressedEvaluationImage = {
   data: string;
@@ -119,18 +120,37 @@ async function compressRemoteImage(url: string): Promise<CompressedEvaluationIma
   }
 }
 
+async function resolveImageSourceForCompression(
+  stored: string,
+): Promise<string | null> {
+  if (stored.startsWith('data:') || stored.startsWith('blob:')) {
+    return stored;
+  }
+
+  if (stored.startsWith('http://') || stored.startsWith('https://')) {
+    return stored;
+  }
+
+  // Storage paths like models/{id}/{setId}/front.jpeg are not fetchable as site URLs.
+  const resolved = await resolveDigitalImageForDisplay(stored);
+  return resolved;
+}
+
 export async function compressImageUrlForEvaluation(
   url: string,
 ): Promise<CompressedEvaluationImage | null> {
   if (!url) return null;
 
   try {
-    if (url.startsWith('data:') || url.startsWith('blob:')) {
-      const img = await loadImage(url);
+    const src = await resolveImageSourceForCompression(url);
+    if (!src) return null;
+
+    if (src.startsWith('data:') || src.startsWith('blob:')) {
+      const img = await loadImage(src);
       return compressLoadedImage(img);
     }
 
-    return await compressRemoteImage(url);
+    return await compressRemoteImage(src);
   } catch {
     return null;
   }
