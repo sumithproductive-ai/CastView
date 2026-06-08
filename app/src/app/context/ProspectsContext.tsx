@@ -27,6 +27,7 @@ export type Prospect = {
   primaryContext?: string;
   markets?: string[];
   height?: string;
+  signed_status?: string;
   measurements?: {
     chest: string;
     waist: string;
@@ -123,6 +124,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     image?: string | null;
     markets?: string[];
     height?: string;
+    signed_status?: string;
   }, digitalSets: DigitalSet[]): Prospect => ({
     id: row.id,
     name: row.name,
@@ -139,12 +141,13 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     primaryContext: '',
     markets: row.markets ?? [],
     height: row.height ?? '',
+    signed_status: row.signed_status ?? 'pending',
     measurements: { chest: '', waist: '', hips: '', shoe: '' },
     digitalSets,
   });
 
   const PROSPECT_LIST_COLUMNS =
-    'id, name, status, status_color, created_at, source, markets, height';
+    'id, name, status, status_color, created_at, source, markets, height, signed_status';
 
   const fetchEvaluationsForSetIds = async (setIds: string[]) => {
     if (setIds.length === 0) return [];
@@ -509,6 +512,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       if (prospectFields.statusColor !== undefined) prospectUpdate.status_color = prospectFields.statusColor;
       if (prospectFields.source !== undefined) prospectUpdate.source = prospectFields.source;
       if (prospectFields.height !== undefined) prospectUpdate.height = prospectFields.height;
+      if (prospectFields.signed_status !== undefined) prospectUpdate.signed_status = prospectFields.signed_status;
       if (prospectFields.markets !== undefined) prospectUpdate.markets = prospectFields.markets;
       if (prospectFields.image !== undefined) {
         let imageToSave = prospectFields.image;

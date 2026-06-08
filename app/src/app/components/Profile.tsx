@@ -34,6 +34,7 @@ export function Profile() {
   const { models, loading: rosterLoading } = useRoster();
 
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [signedStatusSaveConfirmed, setSignedStatusSaveConfirmed] = useState(false);
   const isLoading = (prospectsLoading || rosterLoading) && prospectId !== '';
   const prospect = getProspectById(prospectId);
   const rosterModel = !prospect
@@ -284,13 +285,13 @@ export function Profile() {
               value={entity?.signed_status ?? 'pending'}
               onChange={async (e) => {
                 const newStatus = e.target.value;
-                await updateProspect(prospectId, { 
-                  signed_status: newStatus 
-                } as any);
+                await updateProspect(prospectId, { signed_status: newStatus });
+                setSignedStatusSaveConfirmed(true);
+                setTimeout(() => setSignedStatusSaveConfirmed(false), 1500);
               }}
               style={{
                 background: '#111111',
-                border: '1px solid #2a2a2a',
+                border: `1px solid ${signedStatusSaveConfirmed ? '#4a7a4a' : '#2a2a2a'}`,
                 borderRadius: '4px',
                 padding: '8px 12px',
                 fontFamily: 'var(--font-mono)',

@@ -18,6 +18,7 @@ type ProfileData = {
   name: string;
   status: string;
   statusColor: string;
+  signed_status?: string;
   signedDate?: string;
   evaluations?: number;
   digitalSets: DigitalSet[];
@@ -155,13 +156,14 @@ function resolveProfileData(
   }
 
   if (contextProspect) {
-    return {
-      name: contextProspect.name,
-      status: contextProspect.status,
-      statusColor: contextProspect.statusColor,
-      evaluations: contextProspect.evaluations,
-      digitalSets: contextProspect.digitalSets,
-    };
+      return {
+        name: contextProspect.name,
+        status: contextProspect.status,
+        statusColor: contextProspect.statusColor,
+        signed_status: contextProspect.signed_status,
+        evaluations: contextProspect.evaluations,
+        digitalSets: contextProspect.digitalSets,
+      };
   }
 
   return null;
@@ -218,6 +220,7 @@ export function ProspectRenderHistory({
   } | null>(null);
   const [openEvalId, setOpenEvalId] = useState<string | null>(null);
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [signedStatusSaveConfirmed, setSignedStatusSaveConfirmed] = useState(false);
   const [digitalSetsExpanded, setDigitalSetsExpanded] = useState(false);
   const [evaluationsExpanded, setEvaluationsExpanded] = useState(false);
   const [compareSelectMode, setCompareSelectMode] = useState(false);
@@ -387,7 +390,7 @@ export function ProspectRenderHistory({
     });
   };
 
-  const handleStatusChange = (newStatus: string, newColor: string) => {
+  const handleStatusChange = async (newStatus: string, newColor: string) => {
     setPendingStatusChange({
       previousStatus: status,
       previousColor: statusColor,
@@ -397,13 +400,26 @@ export function ProspectRenderHistory({
     setStatus(newStatus);
     setStatusColor(newColor);
     setTimeout(() => setPendingStatusChange(null), 5000);
+
+    if (isProspect && prospectId) {
+      await updateProspect(prospectId, { status: newStatus, statusColor: newColor });
+    } else if (isModel && modelId) {
+      await updateModel(modelId, { status: newStatus });
+    }
   };
 
-  const handleUndoStatusChange = () => {
+  const handleUndoStatusChange = async () => {
     if (!pendingStatusChange) return;
-    setStatus(pendingStatusChange.previousStatus);
-    setStatusColor(pendingStatusChange.previousColor);
+    const { previousStatus, previousColor } = pendingStatusChange;
+    setStatus(previousStatus);
+    setStatusColor(previousColor);
     setPendingStatusChange(null);
+
+    if (isProspect && prospectId) {
+      await updateProspect(prospectId, { status: previousStatus, statusColor: previousColor });
+    } else if (isModel && modelId) {
+      await updateModel(modelId, { status: previousStatus });
+    }
   };
 
   const toggleOpenSet = (setId: string) => {
@@ -584,13 +600,11 @@ export function ProspectRenderHistory({
               onChange={async (e) => {
                 const newStatus = e.target.value;
                 if (isProspect && prospectId) {
-                  await updateProspect(prospectId, { 
-                    signed_status: newStatus 
-                  } as any);
+                  await updateProspect(prospectId, { signed_status: newStatus });
                 } else if (isModel && modelId) {
                   await updateModel(modelId, { 
                     signed_status: newStatus 
-                  } as any);
+                  } as Parameters<typeof updateModel>[1]);
                 }
                 await supabase.from('events').insert({
                   agency_id: agencyId,
@@ -600,10 +614,12 @@ export function ProspectRenderHistory({
                     status: newStatus 
                   },
                 });
+                setSignedStatusSaveConfirmed(true);
+                setTimeout(() => setSignedStatusSaveConfirmed(false), 1500);
               }}
               style={{
                 background: '#111111',
-                border: '1px solid #2a2a2a',
+                border: `1px solid ${signedStatusSaveConfirmed ? '#4a7a4a' : '#2a2a2a'}`,
                 borderRadius: '4px',
                 padding: '8px 12px',
                 fontFamily: 'var(--font-mono)',
