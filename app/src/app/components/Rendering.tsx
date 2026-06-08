@@ -588,10 +588,7 @@ export function Rendering() {
             if (result.status === 401) {
               const parsed = parseEvaluateApiError(result.errorBody ?? '');
               let authMessage = SESSION_EXPIRED_MESSAGE;
-              if (parsed.reason === 'project_mismatch') {
-                authMessage =
-                  'Your login session does not match this deployment. Log out, then sign in again on this site.';
-              } else if (
+              if (
                 parsed.reason === 'missing_env' ||
                 parsed.error === 'Server authentication is not configured'
               ) {
