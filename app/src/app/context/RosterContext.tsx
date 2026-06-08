@@ -201,6 +201,12 @@ export function RosterProvider({ children }: { children: ReactNode }) {
             });
         }
       }
+
+      const { pruneOrphanedEvaluations } = await import('../../lib/supabase');
+      await pruneOrphanedEvaluations(
+        savedSet.id,
+        (ds.evaluations ?? []).map((evaluation) => evaluation.id),
+      );
     }
   };
 

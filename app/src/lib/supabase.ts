@@ -151,6 +151,49 @@ export async function resolveDigitalImageForDisplay(
   return null;
 }
 
+/** Remove evaluations in Supabase that are no longer present on a digital set. */
+export async function pruneOrphanedEvaluations(
+  digitalSetId: string,
+  keptEvaluationIds: string[],
+): Promise<void> {
+  const { data: existing, error } = await supabase
+    .from('evaluations')
+    .select('id')
+    .eq('digital_set_id', digitalSetId);
+
+  if (error) {
+    console.error('[CastView] pruneOrphanedEvaluations lookup error:', error);
+    throw error;
+  }
+
+  const kept = new Set(keptEvaluationIds);
+  const orphaned = (existing ?? [])
+    .map((row) => row.id)
+    .filter((id) => !kept.has(id));
+
+  if (orphaned.length === 0) return;
+
+  const { error: contextDeleteError } = await supabase
+    .from('context_evaluations')
+    .delete()
+    .in('evaluation_id', orphaned);
+
+  if (contextDeleteError) {
+    console.error('[CastView] pruneOrphanedEvaluations context delete error:', contextDeleteError);
+    throw contextDeleteError;
+  }
+
+  const { error: evalDeleteError } = await supabase
+    .from('evaluations')
+    .delete()
+    .in('id', orphaned);
+
+  if (evalDeleteError) {
+    console.error('[CastView] pruneOrphanedEvaluations evaluation delete error:', evalDeleteError);
+    throw evalDeleteError;
+  }
+}
+
 export async function resolveDigitalSetForDisplay(ds: DigitalSet): Promise<DigitalSet> {
   const refs = [ds.front, ds.profile, ds.threeQuarter, ds.fullBody].filter(
     (v): v is string => Boolean(v),

@@ -316,31 +316,41 @@ export function ProspectRenderHistory({
     handleCompare(digitalSets[digitalSets.length - 1]?.id ?? digitalSets[0].id);
   };
 
-  const handleConfirmDeleteEvaluation = () => {
-    if (!deleteEvalTarget) return;
-    const { setId, evalId } = deleteEvalTarget;
+  const removeEvaluationFromProfile = async (evalId: string) => {
     const sourceSets = isProspect
       ? (contextProspect?.digitalSets ?? profileDigitalSets)
       : digitalSets;
-    const updatedSets = sourceSets.map((set) =>
-      set.id === setId
-        ? {
-            ...set,
-            evaluations: (set.evaluations ?? []).filter(
-              (evaluation) => evaluation.id !== evalId,
-            ),
-          }
-        : set,
-    );
 
-    if (isProspect && prospectId && contextProspect) {
-      updateProspect(prospectId, { digitalSets: updatedSets });
-    } else if (isModel && modelId) {
-      updateModel(modelId, { digitalSets: updatedSets });
-      setDigitalSets(updatedSets);
+    const updatedSets = sourceSets.map((set) => ({
+      ...set,
+      evaluations: (set.evaluations ?? []).filter(
+        (evaluation) => evaluation.id !== evalId,
+      ),
+    }));
+
+    try {
+      if (isProspect && prospectId) {
+        await updateProspect(prospectId, { digitalSets: updatedSets });
+      } else if (isModel && modelId) {
+        await updateModel(modelId, { digitalSets: updatedSets });
+        setDigitalSets(updatedSets);
+      }
+
+      localStorage.removeItem(`castview_eval_${evalId}`);
+      if (openEvalId === evalId) {
+        setOpenEvalId(null);
+      }
+    } catch (error) {
+      console.error('[ProspectRenderHistory] delete evaluation failed:', error);
+      window.alert('Could not delete evaluation. Please try again.');
     }
+  };
 
+  const handleConfirmDeleteEvaluation = async () => {
+    if (!deleteEvalTarget) return;
+    const { evalId } = deleteEvalTarget;
     setDeleteEvalTarget(null);
+    await removeEvaluationFromProfile(evalId);
   };
 
   const handleSaveDigitalSet = () => {
@@ -1470,18 +1480,9 @@ export function ProspectRenderHistory({
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={async () => {
                             if (!window.confirm('Delete this evaluation? This cannot be undone.')) return;
-                            const updatedSets = activeProfile.digitalSets.map((digitalSet) => ({
-                              ...digitalSet,
-                              evaluations: (digitalSet.evaluations ?? []).filter((e) => e.id !== ev.id),
-                            }));
-                            if (profileType === 'prospect') {
-                              updateProspect(resolvedEntityId, { digitalSets: updatedSets });
-                            } else {
-                              updateModel(resolvedEntityId, { digitalSets: updatedSets });
-                            }
-                            localStorage.removeItem(`castview_eval_${ev.id}`);
+                            await removeEvaluationFromProfile(ev.id);
                           }}
                           style={{
                             fontFamily: 'var(--font-mono)',
