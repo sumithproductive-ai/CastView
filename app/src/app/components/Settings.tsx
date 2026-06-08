@@ -169,16 +169,45 @@ export function Settings() {
       try {
         const monthStart = monthStartIso();
 
-        const { data: agency, error: agencyError } = await supabase
+        const agencySelectWithSeats =
+          'name, primary_market, plan, plan_status, trial_ends_at, stripe_subscription_id, stripe_customer_id, seat_count';
+        const agencySelectBasic =
+          'name, primary_market, plan, plan_status, trial_ends_at, stripe_subscription_id, stripe_customer_id';
+
+        let agency:
+          | {
+              name: string | null;
+              primary_market: string | null;
+              plan: string | null;
+              plan_status: string | null;
+              trial_ends_at: string | null;
+              stripe_subscription_id: string | null;
+              stripe_customer_id: string | null;
+              seat_count?: number | null;
+            }
+          | null = null;
+
+        const { data: agencyWithSeats, error: agencyWithSeatsError } = await supabase
           .from('agencies')
-          .select(
-            'name, primary_market, plan, plan_status, trial_ends_at, stripe_subscription_id, stripe_customer_id, seat_count',
-          )
+          .select(agencySelectWithSeats)
           .eq('id', agencyId)
           .single();
 
-        if (agencyError) {
-          console.error('[Settings] agency fetch failed:', agencyError.message);
+        if (agencyWithSeatsError?.message?.includes('seat_count')) {
+          const { data: agencyBasic, error: agencyBasicError } = await supabase
+            .from('agencies')
+            .select(agencySelectBasic)
+            .eq('id', agencyId)
+            .single();
+          if (agencyBasicError) {
+            console.error('[Settings] agency fetch failed:', agencyBasicError.message);
+          } else {
+            agency = agencyBasic;
+          }
+        } else if (agencyWithSeatsError) {
+          console.error('[Settings] agency fetch failed:', agencyWithSeatsError.message);
+        } else {
+          agency = agencyWithSeats;
         }
 
         if (!cancelled && agency) {
