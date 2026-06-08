@@ -34,10 +34,10 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="relative">
+    <div className="relative w-full md:w-auto">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between gap-[12px] px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+        className="flex w-full md:w-auto items-center justify-between gap-[12px] px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors cursor-pointer"
         style={{ 
           fontFamily: 'var(--font-mono)', 
           fontSize: '13px', 

@@ -218,12 +218,12 @@ export function Dashboard() {
         </div>
 
         {/* Cards Row */}
-        <div className="flex items-stretch gap-[12px]">
+        <div className="flex flex-wrap items-stretch gap-[12px]">
           {/* Prospect Cards */}
-          <div className="flex items-stretch gap-[12px]" style={{ width: 'calc((100% - 1px) * 4 / 7)' }}>
+          <div className="flex flex-wrap items-stretch gap-[12px]" style={{ width: 'calc((100% - 1px) * 4 / 7)' }}>
             {/* Card 1: Total Prospects */}
             <div 
-              className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
               style={statCardStagger(0)}
             >
               <div 
@@ -242,7 +242,7 @@ export function Dashboard() {
 
             {/* Card 2: Shortlisted */}
             <div 
-              className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
               style={statCardStagger(1)}
             >
               <div 
@@ -261,7 +261,7 @@ export function Dashboard() {
 
             {/* Card 3: Awaiting Review */}
             <div 
-              className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
               style={statCardStagger(2)}
             >
               <div 
@@ -280,7 +280,7 @@ export function Dashboard() {
 
             {/* Card 4: Evaluations run */}
             <div 
-              className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between relative"
+              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between relative"
               style={statCardStagger(3)}
             >
               <div 
@@ -316,10 +316,10 @@ export function Dashboard() {
           />
 
           {/* Roster Cards */}
-          <div className="flex items-stretch gap-[12px]" style={{ width: 'calc((100% - 1px) * 3 / 7)' }}>
+          <div className="flex flex-wrap items-stretch gap-[12px]" style={{ width: 'calc((100% - 1px) * 3 / 7)' }}>
             {/* Card 5: Active Models */}
             <div 
-              className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
               style={statCardStagger(4)}
             >
               <div 
@@ -338,7 +338,7 @@ export function Dashboard() {
 
             {/* Card 6: Evaluations */}
             <div 
-              className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
               style={statCardStagger(5)}
             >
               <div 
@@ -357,7 +357,7 @@ export function Dashboard() {
 
             {/* Card 7: On Hold */}
             <div 
-              className="flex-1 bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
               style={statCardStagger(6)}
             >
               <div 

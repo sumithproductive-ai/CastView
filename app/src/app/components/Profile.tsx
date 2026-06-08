@@ -88,7 +88,7 @@ export function Profile() {
   };
   
   return (
-    <div className="p-[48px]">
+    <div className="p-[20px] md:p-[48px]">
       {isLoading && (
         <div style={{
           fontFamily: 'var(--font-mono)',
@@ -142,7 +142,7 @@ export function Profile() {
         </span>
       </div>
       
-      <div className="grid grid-cols-2 gap-[48px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px] md:gap-[48px]">
         {/* Left Column */}
         <div>
           {isLoading ? (
@@ -338,7 +338,7 @@ export function Profile() {
             >
               Select Alignment Contexts
             </label>
-            <div className="grid grid-cols-3 gap-[12px]" data-tutorial="context-grid">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-[8px] md:gap-[12px]" data-tutorial="context-grid">
               {contexts.map((context) => {
                 const isSelected = selectedContexts.includes(context);
                 return (

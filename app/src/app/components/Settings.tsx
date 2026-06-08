@@ -377,7 +377,7 @@ export function Settings() {
   };
 
   return (
-    <div className="p-[48px]">
+    <div className="p-[20px] md:p-[48px]">
       <h1
         className="text-[48px] mb-[48px]"
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
