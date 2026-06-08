@@ -1,7 +1,8 @@
 import React from 'react';
 import { useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { Upload, X, Check, Lock } from 'lucide-react';
+import { Upload, Check, Lock } from 'lucide-react';
+import { saveNewModelDigitals } from '../utils/newModelDigitalsStorage';
 
 type DigitalImageKey = 'front' | 'profile' | 'three_quarter' | 'full_body';
 
@@ -82,11 +83,18 @@ export function NewModelDigitals() {
 
     setShowDigitalsError(false);
 
+    saveNewModelDigitals({
+      front: front || '',
+      profile: profile || '',
+      threeQuarter: threeQuarter || '',
+      fullBody: fullBody || '',
+    });
+
     const params = new URLSearchParams(searchParams.toString());
-    params.set('front', front || '');
-    params.set('profile', profile || '');
-    params.set('threeQuarter', threeQuarter || '');
-    params.set('fullBody', fullBody || '');
+    params.delete('front');
+    params.delete('profile');
+    params.delete('threeQuarter');
+    params.delete('fullBody');
     navigate(`/roster/new/review?${params.toString()}`);
   };
 

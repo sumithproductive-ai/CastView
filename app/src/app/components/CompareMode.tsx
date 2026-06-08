@@ -5,7 +5,6 @@ import type { DigitalSet } from '../types/talent';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { TutorialOverlay, compareTutorialSteps } from './TutorialOverlay';
-import { getRosterModelById } from './Roster';
 import { DigitalImage } from './DigitalImage';
 import { saveComparisonResults } from '../../lib/comparisonStorage';
 import {
@@ -53,22 +52,9 @@ function digitalSetToOption(set: DigitalSet): DigitalSetOption {
   };
 }
 
-function navDigitalSetToOption(navSet: {
-  id: string;
-  title: string;
-  date: string;
-  thumbnail: string;
-}): DigitalSetOption {
-  return {
-    id: navSet.id,
-    title: navSet.title,
-    date: navSet.date,
-    thumbnail: navSet.thumbnail,
-    front: navSet.thumbnail || null,
-    profile: null,
-    threeQuarter: null,
-    fullBody: null,
-  };
+function countImageUrls(set: DigitalSetOption): number {
+  return [set.front, set.profile, set.threeQuarter, set.fullBody].filter(Boolean)
+    .length;
 }
 
 const contexts = [
@@ -99,60 +85,39 @@ export function CompareMode() {
   const modelId = searchParams.get('modelId');
   const prospectIdFromQuery = searchParams.get('prospectId');
   const navigationState = (location.state ?? null) as CompareNavigationState | null;
-  const { prospects, getProspectById } = useProspects();
-  const { models } = useRoster();
+  const { getProspectById } = useProspects();
+  const { getModelById } = useRoster();
 
   const resolvedProspectId =
     prospectIdFromQuery ?? navigationState?.prospectId ?? null;
 
   const sourceDigitalSets = useMemo((): DigitalSet[] => {
     if (modelId) {
-      const model = getRosterModelById(modelId);
-      return model?.digitalSets ?? [];
+      return getModelById(modelId)?.digitalSets ?? [];
     }
 
     if (resolvedProspectId) {
+      if (searchParams.get('profileType') === 'model') {
+        return getModelById(resolvedProspectId)?.digitalSets ?? [];
+      }
+
       const prospect = getProspectById(resolvedProspectId);
-      if (prospect?.digitalSets.length) {
-        return prospect.digitalSets;
-      }
-      if (
-        resolvedProspectId.endsWith('-roster') ||
-        searchParams.get('profileType') === 'model'
-      ) {
-        const rosterModel =
-          getRosterModelById(resolvedProspectId) ??
-          models.find((m) => m.id === resolvedProspectId);
-        return rosterModel?.digitalSets ?? [];
-      }
+      return prospect?.digitalSets ?? [];
     }
 
     return [];
-  }, [modelId, resolvedProspectId, prospects, getProspectById, models, searchParams]);
+  }, [modelId, resolvedProspectId, getModelById, getProspectById, searchParams]);
 
-  const prospectDigitalSets = useMemo(() => {
-    const fromSource = sourceDigitalSets.map(digitalSetToOption);
-
-    if (navigationState?.digitalSets?.length) {
-      if (fromSource.length) {
-        return navigationState.digitalSets.map((navSet) => {
-          const full = fromSource.find((set) => set.id === navSet.id);
-          return full ?? navDigitalSetToOption(navSet);
-        });
-      }
-      return navigationState.digitalSets.map(navDigitalSetToOption);
-    }
-
-    return fromSource;
-  }, [navigationState, sourceDigitalSets]);
+  const prospectDigitalSets = useMemo(
+    () => sourceDigitalSets.map(digitalSetToOption),
+    [sourceDigitalSets],
+  );
 
   const rosterModelFromQuery =
     modelId && !prospectIdFromQuery
-      ? getRosterModelById(modelId)
-      : resolvedProspectId?.endsWith('-roster') ||
-          searchParams.get('profileType') === 'model'
-        ? (getRosterModelById(resolvedProspectId ?? '') ??
-            models.find((m) => m.id === resolvedProspectId))
+      ? getModelById(modelId)
+      : searchParams.get('profileType') === 'model'
+        ? getModelById(resolvedProspectId ?? '')
         : null;
   const prospectFromContext = resolvedProspectId
     ? getProspectById(resolvedProspectId)
@@ -275,26 +240,55 @@ export function CompareMode() {
 
     try {
       // Compress images for both sets
-      const compressSet = async (set: DigitalSetOption) => {
+      const compressSet = async (set: DigitalSetOption, label: string) => {
         const urls = [set.front, set.profile, set.threeQuarter, set.fullBody]
           .filter((u): u is string => Boolean(u));
+
+        console.log('[CompareMode] compressing set', {
+          label,
+          setId: set.id,
+          urlCount: urls.length,
+        });
+
         const compressed = await Promise.all(
-          urls.map((url) => compressImageUrlForEvaluation(url)),
+          urls.map(async (url) => {
+            const result = await compressImageUrlForEvaluation(url);
+            if (!result) {
+              console.warn('[CompareMode] failed to compress image', {
+                label,
+                setId: set.id,
+                url: url.slice(0, 120),
+              });
+            }
+            return result;
+          }),
         );
         return compressed.filter((img): img is NonNullable<typeof img> => Boolean(img));
       };
 
       setComparingStatus('Preparing digital sets...');
       const [prevImages, currImages] = await Promise.all([
-        compressSet(previousSet),
-        compressSet(currentSet),
+        compressSet(previousSet, 'before'),
+        compressSet(currentSet, 'after'),
       ]);
 
       if (prevImages.length === 0 || currImages.length === 0) {
         setIsComparing(false);
         setComparingStatus('');
+        console.error('[CompareMode] image preparation failed', {
+          beforeSetId: previousSet.id,
+          afterSetId: currentSet.id,
+          beforeUrlCount: countImageUrls(previousSet),
+          afterUrlCount: countImageUrls(currentSet),
+          beforeCompressed: prevImages.length,
+          afterCompressed: currImages.length,
+        });
         alert(
-          'Could not load images from one or both digital sets. Make sure both sets have uploaded digitals.',
+          prevImages.length === 0 && currImages.length === 0
+            ? 'Could not load images from either digital set. Re-upload digitals for both sets, then try again.'
+            : prevImages.length === 0
+              ? 'Could not load images from the BEFORE digital set. Re-upload digitals for that set, then try again.'
+              : 'Could not load images from the AFTER digital set. Re-upload digitals for that set, then try again.',
         );
         return;
       }
