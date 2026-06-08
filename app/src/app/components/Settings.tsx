@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { authFetch } from '../../lib/apiAuth';
 import { isAdminUser } from '../../lib/admin';
 import { useAuth } from '../context/AuthContext';
@@ -114,6 +114,7 @@ function displayValue(loading: boolean, value: string): string {
 }
 
 export function Settings() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stripeCustomerId, setStripeCustomerId] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -142,7 +143,7 @@ export function Settings() {
   const [supportError, setSupportError] = useState<string | null>(null);
 
   const { openTutorial } = useTutorial();
-  const { agencyId, user, plan, planStatus } = useAuth();
+  const { agencyId, user, plan, planStatus, signOut } = useAuth();
 
   const isOnPaidPlan = planStatus === 'active' && plan !== 'trial';
   const canManageBilling = Boolean(stripeCustomerId) || isOnPaidPlan;
@@ -1012,6 +1013,27 @@ export function Settings() {
             </Link>
           </div>
         )}
+
+        <div className="pt-[48px]">
+          <button
+            type="button"
+            onClick={async () => {
+              await signOut();
+              navigate('/login', { replace: true });
+            }}
+            className="text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              color: '#c87a7a',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            Log Out
+          </button>
+        </div>
       </div>
     </div>
   );
