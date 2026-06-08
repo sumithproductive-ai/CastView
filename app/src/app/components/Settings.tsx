@@ -109,8 +109,32 @@ function monthStartIso(): string {
   return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 }
 
-function displayValue(loading: boolean, value: string): string {
-  return loading ? '—' : value;
+function sectionFade(index: number): React.CSSProperties {
+  return {
+    opacity: 0,
+    animation: 'castview-fadein 0.4s ease forwards',
+    animationDelay: `${index * 0.06}s`,
+  };
+}
+
+function PulseBar({
+  width,
+  height = 14,
+  className = '',
+  rounded = '4px',
+}: {
+  width: number | string;
+  height?: number;
+  className?: string;
+  rounded?: string;
+}) {
+  return (
+    <div
+      className={`animate-pulse bg-[#1a1a1a] ${className}`}
+      style={{ width, height, borderRadius: rounded }}
+      aria-hidden
+    />
+  );
 }
 
 export function Settings() {
@@ -143,8 +167,9 @@ export function Settings() {
   const [supportError, setSupportError] = useState<string | null>(null);
 
   const { openTutorial } = useTutorial();
-  const { agencyId, user, plan, planStatus, signOut } = useAuth();
+  const { agencyId, user, plan, planStatus, signOut, loading: authLoading } = useAuth();
 
+  const isPageLoading = authLoading || loading;
   const isOnPaidPlan = planStatus === 'active' && plan !== 'trial';
   const canManageBilling = Boolean(stripeCustomerId) || isOnPaidPlan;
 
@@ -156,6 +181,8 @@ export function Settings() {
         : 0;
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!agencyId) {
       setLoading(false);
       setTeamProfiles([]);
@@ -308,7 +335,7 @@ export function Settings() {
     return () => {
       cancelled = true;
     };
-  }, [agencyId]);
+  }, [agencyId, authLoading]);
 
   const handleSubscribe = async (tier: string) => {
     if (!agencyId || !user?.email) return;
@@ -411,14 +438,19 @@ export function Settings() {
     <div className="p-[20px] md:p-[48px]">
       <h1
         className="text-[48px] mb-[48px]"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontWeight: 300,
+          color: '#f0f0ec',
+          ...(!isPageLoading ? sectionFade(0) : {}),
+        }}
       >
         Settings
       </h1>
 
       <div className="space-y-[16px]">
         {/* Billing / Subscribe */}
-        <div>
+        <div style={!isPageLoading ? sectionFade(1) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
@@ -434,22 +466,35 @@ export function Settings() {
                 >
                   CURRENT PLAN
                 </div>
+                {isPageLoading ? (
+                  <PulseBar width={200} height={32} />
+                ) : (
+                  <div
+                    className="text-[28px]"
+                    style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                  >
+                    {planLabel || formatPlanLabel(plan)}
+                  </div>
+                )}
+              </div>
+              {isPageLoading ? (
+                <PulseBar width={88} height={30} />
+              ) : (
                 <div
-                  className="text-[28px]"
-                  style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                  className="px-[12px] py-[6px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
+                  style={{ fontFamily: 'var(--font-mono)', color: planStatusColor }}
                 >
-                  {displayValue(loading, planLabel || formatPlanLabel(plan))}
+                  {planStatusLabel || planStatus.replace(/_/g, ' ')}
                 </div>
-              </div>
-              <div
-                className="px-[12px] py-[6px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-mono)', color: planStatusColor }}
-              >
-                {displayValue(loading, planStatusLabel || planStatus.replace(/_/g, ' '))}
-              </div>
+              )}
             </div>
 
-            {canManageBilling ? (
+            {isPageLoading ? (
+              <div className="space-y-[16px]">
+                <PulseBar width="85%" height={13} />
+                <PulseBar width={168} height={38} />
+              </div>
+            ) : canManageBilling ? (
               <div className="mb-[24px]">
                 <p
                   className="text-[13px] mb-[16px]"
@@ -570,7 +615,7 @@ export function Settings() {
         </div>
 
         {/* Your Plan Block */}
-        <div>
+        <div style={!isPageLoading ? sectionFade(2) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
@@ -585,12 +630,16 @@ export function Settings() {
               >
                 YOUR PLAN
               </div>
-              <div
-                className="px-[12px] py-[6px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] text-[11px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-              >
-                {displayValue(loading, planLabel || '—')}
-              </div>
+              {isPageLoading ? (
+                <PulseBar width={120} height={30} />
+              ) : (
+                <div
+                  className="px-[12px] py-[6px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] text-[11px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                >
+                  {planLabel || '—'}
+                </div>
+              )}
             </div>
 
             <div className="border-b border-[#2a2a2a] py-[14px]">
@@ -601,20 +650,26 @@ export function Settings() {
                 >
                   Agent seats
                 </label>
-                <div
-                  className="text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-                >
-                  {loading
-                    ? '—'
-                    : `${activeProfileCount} of ${formatSeatLimit(seatLimit)} active`}
-                </div>
+                {isPageLoading ? (
+                  <PulseBar width={120} height={13} />
+                ) : (
+                  <div
+                    className="text-[13px]"
+                    style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                  >
+                    {`${activeProfileCount} of ${formatSeatLimit(seatLimit)} active`}
+                  </div>
+                )}
               </div>
               <div className="w-full h-[4px] bg-[#2a2a2a] rounded-[4px] overflow-hidden">
-                <div
-                  className="h-full rounded-[4px]"
-                  style={{ width: `${seatProgress}%`, backgroundColor: '#f0f0ec' }}
-                />
+                {isPageLoading ? (
+                  <PulseBar width="100%" height={4} />
+                ) : (
+                  <div
+                    className="h-full rounded-[4px]"
+                    style={{ width: `${seatProgress}%`, backgroundColor: '#f0f0ec' }}
+                  />
+                )}
               </div>
             </div>
 
@@ -625,12 +680,16 @@ export function Settings() {
               >
                 Evaluations this month
               </label>
-              <div
-                className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-              >
-                {loading ? '—' : String(evaluationsThisMonth)}
-              </div>
+              {isPageLoading ? (
+                <PulseBar width={32} height={13} />
+              ) : (
+                <div
+                  className="text-[13px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                >
+                  {String(evaluationsThisMonth)}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between border-b border-[#2a2a2a] py-[14px]">
@@ -640,12 +699,16 @@ export function Settings() {
               >
                 Renewal date
               </label>
-              <div
-                className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
-              >
-                {displayValue(loading, renewalDate)}
-              </div>
+              {isPageLoading ? (
+                <PulseBar width={180} height={13} />
+              ) : (
+                <div
+                  className="text-[13px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                >
+                  {renewalDate}
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-[12px] mt-[24px]">
@@ -680,7 +743,7 @@ export function Settings() {
         </div>
 
         {/* Team Activity Block */}
-        <div>
+        <div style={!isPageLoading ? sectionFade(3) : undefined}>
           <div
             className="text-[11px] uppercase tracking-[0.12em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
@@ -716,12 +779,15 @@ export function Settings() {
                 </div>
               </div>
 
-              {loading ? (
+              {isPageLoading ? (
                 <div
-                  className="py-[24px] text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#666660' }}
+                  className="flex items-center gap-[24px] border-b border-[#1e1e1e]"
+                  style={{ height: '48px' }}
                 >
-                  —
+                  <PulseBar width="55%" height={13} className="flex-1 min-w-0" />
+                  <PulseBar width={48} height={13} className="w-[180px] shrink-0" />
+                  <PulseBar width={88} height={13} className="w-[140px] shrink-0" />
+                  <PulseBar width={64} height={24} className="w-[100px] shrink-0" rounded="9999px" />
                 </div>
               ) : teamProfiles.length === 0 ? (
                 <div
@@ -789,7 +855,7 @@ export function Settings() {
         </div>
 
         {/* Agency Block */}
-        <div>
+        <div style={!isPageLoading ? sectionFade(4) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
@@ -804,21 +870,25 @@ export function Settings() {
               >
                 Agency Name
               </label>
-              <input
-                type="text"
-                placeholder="Your Agency Name"
-                value={agencyName}
-                onChange={(e) => {
-                  setAgencyName(e.target.value);
-                  setAgencySaved(false);
-                }}
-                className="px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] w-[320px]"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '13px',
-                  color: '#f0f0ec',
-                }}
-              />
+              {isPageLoading ? (
+                <PulseBar width={320} height={40} />
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Your Agency Name"
+                  value={agencyName}
+                  onChange={(e) => {
+                    setAgencyName(e.target.value);
+                    setAgencySaved(false);
+                  }}
+                  className="px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] w-[320px]"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '13px',
+                    color: '#f0f0ec',
+                  }}
+                />
+              )}
             </div>
 
             <div>
@@ -829,25 +899,33 @@ export function Settings() {
                 >
                   Primary Market
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Dallas, Atlanta, New York..."
-                  value={primaryMarket}
-                  onChange={(e) => {
-                    setPrimaryMarket(e.target.value);
-                    setAgencySaved(false);
-                  }}
-                  className="px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] w-[320px]"
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '13px',
-                    color: '#f0f0ec',
-                  }}
-                />
+                {isPageLoading ? (
+                  <PulseBar width={320} height={40} />
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="e.g. Dallas, Atlanta, New York..."
+                    value={primaryMarket}
+                    onChange={(e) => {
+                      setPrimaryMarket(e.target.value);
+                      setAgencySaved(false);
+                    }}
+                    className="px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] w-[320px]"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '13px',
+                      color: '#f0f0ec',
+                    }}
+                  />
+                )}
               </div>
               <div className="flex justify-end mt-[10px]">
                 <div className="w-[320px] flex flex-wrap gap-[8px]">
-                  {MARKET_SUGGESTIONS.map((suggestion) => (
+                  {isPageLoading
+                    ? Array.from({ length: 8 }).map((_, index) => (
+                        <PulseBar key={index} width={index % 2 === 0 ? 72 : 88} height={28} />
+                      ))
+                    : MARKET_SUGGESTIONS.map((suggestion) => (
                     <button
                       key={suggestion}
                       type="button"
@@ -871,6 +949,9 @@ export function Settings() {
             </div>
 
             <div className="flex justify-end pt-[8px]">
+              {isPageLoading ? (
+                <PulseBar width={132} height={38} />
+              ) : (
               <button
                 type="button"
                 onClick={handleSaveAgency}
@@ -886,12 +967,13 @@ export function Settings() {
               >
                 {agencySaved ? '✓ SAVED' : savingAgency ? 'SAVING…' : 'SAVE CHANGES'}
               </button>
+              )}
             </div>
           </div>
         </div>
 
         {/* Help Block */}
-        <div>
+        <div style={!isPageLoading ? sectionFade(5) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
@@ -924,7 +1006,7 @@ export function Settings() {
         </div>
 
         {/* Support Block */}
-        <div>
+        <div style={!isPageLoading ? sectionFade(6) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
@@ -1043,7 +1125,7 @@ export function Settings() {
           </div>
         )}
 
-        <div className="pt-[48px]">
+        <div className="pt-[48px]" style={!isPageLoading ? sectionFade(7) : undefined}>
           <button
             type="button"
             onClick={async () => {
