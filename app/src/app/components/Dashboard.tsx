@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
+import { useTutorial } from '../context/TutorialContext';
 import { needsOnboarding } from '../../lib/onboarding';
 import { supabase } from '../../lib/supabase';
 import { DigitalImage } from './DigitalImage';
@@ -66,6 +67,7 @@ export function Dashboard() {
   }>>([]);
 
   const { agencyId, agencyName, loading: authLoading } = useAuth();
+  const { openTutorial } = useTutorial();
 
   useEffect(() => {
     if (authLoading || !agencyId || prospectsLoading || rosterLoading) return;
@@ -82,6 +84,17 @@ export function Dashboard() {
     models.length,
     navigate,
   ]);
+
+  useEffect(() => {
+    if (!agencyId || !agencyName?.trim()) return;
+    const key = `castview-tutorial-shown-${agencyId}`;
+    const alreadyShown = localStorage.getItem(key);
+    if (!alreadyShown && prospects.length === 0 && !prospectsLoading) {
+      localStorage.setItem(key, '1');
+      const timer = setTimeout(() => openTutorial(), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [agencyId, agencyName, prospects.length, prospectsLoading, openTutorial]);
 
   useEffect(() => {
     if (!agencyId) return;
