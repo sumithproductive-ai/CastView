@@ -211,168 +211,132 @@ export function Dashboard() {
         Briefing
       </h1>
 
-      {/* Unified Stats Row */}
+      {/* Stats Sections */}
       <div className="mb-[48px]" data-tutorial="stats-row">
-        {/* Section Labels */}
-        <div className="flex items-start mb-[8px]">
-          <div 
-            className="text-[9px] uppercase tracking-[0.1em]"
-            style={{ fontFamily: 'var(--font-label)', color: '#888880', width: 'calc((100% - 1px) * 4 / 7)' }}
-          >
-            PROSPECTS
-          </div>
-          <div style={{ width: '1px' }} />
-          <div 
-            className="text-[9px] uppercase tracking-[0.1em] pl-[24px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#888880', width: 'calc((100% - 1px) * 3 / 7)' }}
-          >
-            ROSTER
-          </div>
-        </div>
-
-        {/* Cards Row */}
-        <div className="flex flex-wrap items-stretch gap-[12px]">
-          {/* Prospect Cards */}
-          <div className="flex flex-wrap items-stretch gap-[12px]" style={{ width: 'calc((100% - 1px) * 4 / 7)' }}>
-            {/* Card 1: Total Prospects */}
-            <div 
-              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={statCardStagger(0)}
+        <div className="flex flex-col md:flex-row md:items-start gap-[32px] md:gap-[48px]">
+          {/* Prospects Section */}
+          <div className="flex-[4] min-w-0">
+            <div
+              className="mb-[12px] uppercase tracking-[0.1em]"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
             >
-              <div 
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
-              >
-                {totalProspects}
-              </div>
-              <div 
-                className="text-[10px] uppercase tracking-[0.12em]" 
-                style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-              >
-                TOTAL PROSPECTS
-              </div>
+              PROSPECTS
             </div>
+            <div className="flex flex-wrap items-stretch gap-[12px]">
+              <div
+                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                style={statCardStagger(0)}
+              >
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                  {totalProspects}
+                </div>
+                <div
+                  className="text-[10px] uppercase tracking-[0.12em]"
+                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                >
+                  TOTAL PROSPECTS
+                </div>
+              </div>
 
-            {/* Card 2: Shortlisted */}
-            <div 
-              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={statCardStagger(1)}
-            >
-              <div 
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
+              <div
+                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                style={statCardStagger(1)}
               >
-                {shortlistedCount}
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                  {shortlistedCount}
+                </div>
+                <div
+                  className="text-[10px] uppercase tracking-[0.12em]"
+                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                >
+                  SHORTLISTED
+                </div>
               </div>
-              <div 
-                className="text-[10px] uppercase tracking-[0.12em]" 
-                style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-              >
-                SHORTLISTED
-              </div>
-            </div>
 
-            {/* Card 3: Awaiting Review */}
-            <div 
-              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={statCardStagger(2)}
-            >
-              <div 
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
+              <div
+                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                style={statCardStagger(2)}
               >
-                {awaitingReviewCount}
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                  {awaitingReviewCount}
+                </div>
+                <div
+                  className="text-[10px] uppercase tracking-[0.12em]"
+                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                >
+                  AWAITING REVIEW
+                </div>
               </div>
-              <div 
-                className="text-[10px] uppercase tracking-[0.12em]" 
-                style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-              >
-                AWAITING REVIEW
-              </div>
-            </div>
 
-            {/* Card 4: Evaluations run */}
-            <div 
-              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between relative"
-              style={statCardStagger(3)}
-            >
-              <div 
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
+              <div
+                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                style={statCardStagger(3)}
               >
-                {totalEvaluations}
-              </div>
-              <div 
-                className="text-[10px] uppercase tracking-[0.12em]" 
-                style={{ 
-                  fontFamily: 'var(--font-label)', 
-                  color: '#888880' 
-                }}
-              >
-                EVALUATIONS RUN
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                  {totalEvaluations}
+                </div>
+                <div
+                  className="text-[10px] uppercase tracking-[0.12em]"
+                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                >
+                  EVALUATIONS RUN
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Divider */}
-          <div 
-            className="self-center"
-            style={{ 
-              width: '1px', 
-              height: '48px', 
-              backgroundColor: '#2a2a2a' 
-            }}
-          />
-
-          {/* Roster Cards */}
-          <div className="flex flex-wrap items-stretch gap-[12px]" style={{ width: 'calc((100% - 1px) * 3 / 7)' }}>
-            {/* Card 5: Active Models */}
-            <div 
-              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={statCardStagger(4)}
+          {/* Roster Section */}
+          <div className="flex-[3] min-w-0">
+            <div
+              className="mb-[12px] uppercase tracking-[0.1em]"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
             >
-              <div 
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
-              >
-                {activeModelsCount}
-              </div>
-              <div 
-                className="text-[10px] uppercase tracking-[0.12em]" 
-                style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-              >
-                ACTIVE MODELS
-              </div>
+              ROSTER
             </div>
+            <div className="flex flex-wrap items-stretch gap-[12px]">
+              <div
+                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                style={statCardStagger(4)}
+              >
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                  {activeModelsCount}
+                </div>
+                <div
+                  className="text-[10px] uppercase tracking-[0.12em]"
+                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                >
+                  ACTIVE MODELS
+                </div>
+              </div>
 
-            {/* Card 6: Evaluations */}
-            <div 
-              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={statCardStagger(5)}
-            >
-              <div 
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
+              <div
+                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                style={statCardStagger(5)}
               >
-                {totalRosterEvaluations}
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                  {totalRosterEvaluations}
+                </div>
+                <div
+                  className="text-[10px] uppercase tracking-[0.12em]"
+                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                >
+                  EVALUATIONS
+                </div>
               </div>
-              <div 
-                className="text-[10px] uppercase tracking-[0.12em]" 
-                style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-              >
-                EVALUATIONS
-              </div>
-            </div>
 
-            {/* Card 7: On Hold */}
-            <div 
-              className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
-              style={statCardStagger(6)}
-            >
-              <div 
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
+              <div
+                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                style={statCardStagger(6)}
               >
-                {onHoldCount}
-              </div>
-              <div 
-                className="text-[10px] uppercase tracking-[0.12em]" 
-                style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
-              >
-                ON HOLD
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                  {onHoldCount}
+                </div>
+                <div
+                  className="text-[10px] uppercase tracking-[0.12em]"
+                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                >
+                  ON HOLD
+                </div>
               </div>
             </div>
           </div>
