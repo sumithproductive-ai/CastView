@@ -1,4 +1,5 @@
-import { supabase } from './supabase';
+import { buildApiAuthHeaders, requireAuthSession } from './apiAuth';
+import { supabase, supabaseUrl } from './supabase';
 
 export async function castviewDiagnose() {
   const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
@@ -172,6 +173,7 @@ export async function castviewDiagnose() {
 declare global {
   interface Window {
     castviewDiagnose?: typeof castviewDiagnose;
+    castviewAuthDebug?: typeof castviewAuthDebug;
   }
 }
 
@@ -195,10 +197,10 @@ export async function castviewAuthDebug() {
 }
 
 export function attachCastviewDebug() {
+  window.castviewAuthDebug = castviewAuthDebug;
   if (import.meta.env.DEV) {
     window.castviewDiagnose = castviewDiagnose;
-    window.castviewAuthDebug = castviewAuthDebug;
     console.info('[CastView] Dev debug ready — run: await castviewDiagnose()');
-    console.info('[CastView] Auth debug — run: await castviewAuthDebug()');
   }
+  console.info('[CastView] Auth debug — run: await castviewAuthDebug()');
 }

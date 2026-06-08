@@ -125,7 +125,20 @@ export type EvaluateFetchResult = {
   status: number;
   data?: { contextEvaluations?: Array<{ context: string; alignmentScore: number; fitLabel: string; reasoning: string; strengths: string[]; risks: string[]; marketSignals: string[]; suggestedNextSteps: string[] }> };
   errorBody?: string;
+  errorReason?: string;
+  errorMessage?: string;
 };
+
+export function parseEvaluateApiError(errorBody: string): {
+  error?: string;
+  reason?: string;
+} {
+  try {
+    return JSON.parse(errorBody) as { error?: string; reason?: string };
+  } catch {
+    return { error: errorBody || undefined };
+  }
+}
 
 /**
  * POST /api/evaluate with AbortController so timeouts cancel the underlying fetch.
@@ -206,16 +219,28 @@ export async function fetchEvaluateContext(
       } catch {
         errorBody = '';
       }
-      console.error('[CastView] /api/evaluate failed:', {
+      const parsed = parseEvaluateApiError(errorBody);
+      console.error(
+        `[CastView] /api/evaluate FAILED — status ${response.status}, reason: ${parsed.reason ?? 'unknown'}, error: ${parsed.error ?? (errorBody.slice(0, 200) || 'none')}`,
+      );
+      console.error('[CastView] /api/evaluate failed details:', {
         status: response.status,
         context,
+        reason: parsed.reason ?? null,
+        error: parsed.error ?? null,
         body: errorBody.slice(0, 1500),
         timeoutMs,
         requestStartTimestamp: requestStartedAt.toISOString(),
         responseTimestamp: responseAt.toISOString(),
         totalDurationMs: durationMs,
       });
-      return { ok: false, status: response.status, errorBody };
+      return {
+        ok: false,
+        status: response.status,
+        errorBody,
+        errorReason: parsed.reason,
+        errorMessage: parsed.error,
+      };
     }
 
     let data: EvaluateFetchResult['data'];
