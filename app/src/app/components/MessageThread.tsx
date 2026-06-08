@@ -274,7 +274,8 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
     setOpenThreadIds(new Set([threads[0].threadId]));
   }, [loading, threads]);
 
-  const hasEmail = Boolean(toEmail.trim());
+  const trimmedToEmail = toEmail.trim();
+  const hasEmail = Boolean(trimmedToEmail);
 
   const toggleThread = (threadId: string) => {
     setOpenThreadIds((prev) => {
@@ -302,7 +303,8 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
     setSending: (value: boolean) => void;
   }) => {
     const messageBody = body.trim();
-    if (!toEmail || !subject.trim() || !messageBody || !agencyId) return;
+    const recipientEmail = toEmail.trim();
+    if (!recipientEmail || !subject.trim() || !messageBody || !agencyId) return;
 
     setSending(true);
     try {
@@ -310,7 +312,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
         method: 'POST',
         body: JSON.stringify({
           prospectId,
-          toEmail,
+          toEmail: recipientEmail,
           toName: prospectName,
           subject: subject.trim(),
           body: messageBody,
@@ -327,7 +329,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
           direction: 'outbound',
           subject: subject.trim(),
           body: messageBody,
-          to_email: toEmail,
+          to_email: recipientEmail,
           from_email: '',
           sent_at: sentAt,
         };
@@ -338,7 +340,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
           await supabase.from('events').insert({
             agency_id: agencyId,
             event_type: 'message_sent',
-            metadata: { prospectId, toEmail, threadId },
+            metadata: { prospectId, toEmail: recipientEmail, threadId },
           });
         } catch {
           /* non-critical */
@@ -395,6 +397,37 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
           overflow: 'hidden',
         }}
       >
+        <div
+          style={{
+            padding: '16px',
+            borderBottom: '1px solid #2a2a2a',
+            background: '#080808',
+          }}
+        >
+          <label
+            htmlFor={`message-to-${prospectId}`}
+            style={{
+              display: 'block',
+              fontFamily: mono,
+              fontSize: '10px',
+              color: '#888880',
+              marginBottom: '6px',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            To
+          </label>
+          <input
+            id={`message-to-${prospectId}`}
+            type="email"
+            placeholder="name@example.com"
+            value={toEmail}
+            onChange={(e) => setToEmail(e.target.value)}
+            style={inputStyle}
+          />
+        </div>
+
         <div
           style={{
             maxHeight: '500px',
@@ -537,13 +570,12 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                             }))
                           }
                           rows={2}
-                          disabled={!hasEmail || isSendingReply}
+                          disabled={isSendingReply}
                           style={{
                             ...inputStyle,
                             resize: 'vertical',
                             marginBottom: '10px',
                             minHeight: '56px',
-                            opacity: hasEmail ? 1 : 0.5,
                           }}
                         />
                         <button
@@ -605,27 +637,15 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
 
           {showNewConversation && (
             <div>
-              <div
-                style={{
-                  fontFamily: mono,
-                  fontSize: '12px',
-                  color: '#888880',
-                  marginBottom: '12px',
-                }}
-              >
-                To: {hasEmail ? toEmail : 'No email on file'}
-              </div>
-
               <input
                 type="text"
                 placeholder="Subject"
                 value={newSubject}
                 onChange={(e) => setNewSubject(e.target.value)}
-                disabled={!hasEmail || sendingNew}
+                disabled={sendingNew}
                 style={{
                   ...inputStyle,
                   marginBottom: '10px',
-                  opacity: hasEmail ? 1 : 0.5,
                 }}
               />
 
@@ -634,13 +654,12 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                 value={newBody}
                 onChange={(e) => setNewBody(e.target.value)}
                 rows={3}
-                disabled={!hasEmail || sendingNew}
+                disabled={sendingNew}
                 style={{
                   ...inputStyle,
                   resize: 'vertical',
                   marginBottom: '12px',
                   minHeight: '72px',
-                  opacity: hasEmail ? 1 : 0.5,
                 }}
               />
 
