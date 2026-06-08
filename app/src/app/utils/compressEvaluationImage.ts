@@ -29,9 +29,12 @@ function parseDataUrl(dataUrl: string): { data: string; mediaType: string } | nu
   return { data: stripBase64Payload(parts[1]), mediaType };
 }
 
-function loadImage(src: string): Promise<HTMLImageElement> {
+function loadImage(src: string, useCors = false): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    if (useCors) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('Failed to load image'));
     img.src = src;
@@ -87,27 +90,40 @@ export function getEvaluationPayloadByteSize(body: unknown): number {
   return new TextEncoder().encode(JSON.stringify(body)).length;
 }
 
+async function compressRemoteImage(url: string): Promise<CompressedEvaluationImage | null> {
+  try {
+    const img = await loadImage(url, true);
+    return compressLoadedImage(img);
+  } catch {
+    // Fall back to fetch when canvas CORS is unavailable.
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) return null;
+
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+
+  try {
+    const img = await loadImage(objectUrl);
+    return compressLoadedImage(img);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 export async function compressImageUrlForEvaluation(
   url: string,
 ): Promise<CompressedEvaluationImage | null> {
   if (!url) return null;
 
   try {
-    if (url.startsWith('data:')) {
+    if (url.startsWith('data:') || url.startsWith('blob:')) {
       const img = await loadImage(url);
       return compressLoadedImage(img);
     }
 
-    const response = await fetch(url);
-    const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob);
-
-    try {
-      const img = await loadImage(objectUrl);
-      return compressLoadedImage(img);
-    } finally {
-      URL.revokeObjectURL(objectUrl);
-    }
+    return await compressRemoteImage(url);
   } catch {
     return null;
   }

@@ -1,18 +1,26 @@
 import React from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { useRoster, type RosterModel } from '../context/RosterContext';
+import {
+  clearNewModelDigitals,
+  loadNewModelDigitals,
+} from '../utils/newModelDigitalsStorage';
 
 export function NewModelReview() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addModel } = useRoster();
+  const [saving, setSaving] = useState(false);
 
   const modelName = searchParams.get('name')?.trim() || 'New Model';
-  const front = searchParams.get('front') || '';
-  const profile = searchParams.get('profile') || '';
-  const threeQuarter = searchParams.get('threeQuarter') || '';
-  const fullBody = searchParams.get('fullBody') || '';
+  const storedDigitals = useMemo(() => loadNewModelDigitals(), []);
+  const front = storedDigitals?.front || searchParams.get('front') || '';
+  const profile = storedDigitals?.profile || searchParams.get('profile') || '';
+  const threeQuarter =
+    storedDigitals?.threeQuarter || searchParams.get('threeQuarter') || '';
+  const fullBody = storedDigitals?.fullBody || searchParams.get('fullBody') || '';
   const marketsFromParams =
     searchParams.get('markets')?.split(',').filter(Boolean) ?? [];
   const height = searchParams.get('height') || '';
@@ -44,9 +52,11 @@ export function NewModelReview() {
   };
 
   const handleAddToRoster = async () => {
+    if (saving) return;
+    setSaving(true);
+
     const name = searchParams.get('name')?.trim() || modelName;
     const notes = searchParams.get('notes') || '';
-    const now = Date.now();
 
     const newModel: RosterModel = {
       id: crypto.randomUUID(),
@@ -80,8 +90,14 @@ export function NewModelReview() {
       ],
     };
 
-    await addModel(newModel);
-    navigate('/roster');
+    try {
+      await addModel(newModel);
+      clearNewModelDigitals();
+      navigate('/roster');
+    } catch (err) {
+      console.error('[NewModelReview] addModel failed:', err);
+      setSaving(false);
+    }
   };
 
   return (
@@ -277,13 +293,14 @@ export function NewModelReview() {
           <button
             type="button"
             onClick={handleAddToRoster}
-            className="w-full py-[12px] bg-[#f0f0ec] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+            disabled={saving}
+            className="w-full py-[12px] bg-[#f0f0ec] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               fontFamily: 'var(--font-mono)',
               color: '#080808',
             }}
           >
-            ADD TO ROSTER
+            {saving ? 'ADDING TO ROSTER...' : 'ADD TO ROSTER'}
           </button>
           <button
             type="button"
