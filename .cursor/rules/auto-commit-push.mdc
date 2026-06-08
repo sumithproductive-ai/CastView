@@ -1,0 +1,13 @@
+---
+description: Auto-commit and push completed changes without asking
+alwaysApply: true
+---
+
+# Auto commit and push
+
+After completing code changes for the user, commit and push automatically without asking for confirmation.
+
+- Push to `cursor/auth-context-signup-3bf1` (the Vercel deploy branch), not `main` or `clean-base`.
+- Follow the git safety protocol: never commit secrets, never force-push, never skip hooks unless the user explicitly requests it.
+- Use concise commit messages that explain why the change was made.
+- Only skip commit/push when there are no changes, or when the user explicitly says not to commit.
