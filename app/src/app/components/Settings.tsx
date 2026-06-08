@@ -6,6 +6,7 @@ import { isAdminUser } from '../../lib/admin';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useTutorial } from '../context/TutorialContext';
+import { MARKET_SUGGESTIONS } from './LocationMarketField';
 
 const BILLING_TIERS = [
   { id: 'solo' as const, name: 'SOLO', price: '$129', description: 'For independent agents' },
@@ -790,28 +791,53 @@ export function Settings() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <label
-                className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
-              >
-                Primary Market
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. New York"
-                value={primaryMarket}
-                onChange={(e) => {
-                  setPrimaryMarket(e.target.value);
-                  setAgencySaved(false);
-                }}
-                className="px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] w-[320px]"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '13px',
-                  color: '#f0f0ec',
-                }}
-              />
+            <div>
+              <div className="flex items-center justify-between">
+                <label
+                  className="text-[13px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                >
+                  Primary Market
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Dallas, Atlanta, New York..."
+                  value={primaryMarket}
+                  onChange={(e) => {
+                    setPrimaryMarket(e.target.value);
+                    setAgencySaved(false);
+                  }}
+                  className="px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] w-[320px]"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '13px',
+                    color: '#f0f0ec',
+                  }}
+                />
+              </div>
+              <div className="flex justify-end mt-[10px]">
+                <div className="w-[320px] flex flex-wrap gap-[8px]">
+                  {MARKET_SUGGESTIONS.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => {
+                        setPrimaryMarket(suggestion);
+                        setAgencySaved(false);
+                      }}
+                      className="border border-[#2a2a2a] text-[#888880] hover:border-[#f0f0ec] hover:text-[#f0f0ec] rounded-[4px] cursor-pointer transition-colors"
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '11px',
+                        padding: '4px 10px',
+                        background: 'transparent',
+                      }}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end pt-[8px]">

@@ -3,18 +3,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { useTutorial } from '../context/TutorialContext';
+import { LocationMarketField } from './LocationMarketField';
 
-type Market =
-  | 'NEW YORK'
-  | 'LONDON'
-  | 'PARIS'
-  | 'MILAN'
-  | 'LOS ANGELES'
-  | 'TOKYO'
-  | 'SYDNEY'
-  | 'DUBAI'
-  | 'BERLIN'
-  | 'OTHER';
 type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL';
 
 export function NewProspectBasicInfo() {
@@ -22,7 +12,7 @@ export function NewProspectBasicInfo() {
   const { isTutorialOpen } = useTutorial();
   const [searchParams] = useSearchParams();
   const [name, setName] = useState('');
-  const [markets, setMarkets] = useState<Market[]>([]);
+  const [location, setLocation] = useState('');
   const [source, setSource] = useState<Source | null>(null);
   const [measurements, setMeasurements] = useState({
     height: '',
@@ -39,8 +29,7 @@ export function NewProspectBasicInfo() {
     const m = searchParams.get('markets');
     const s = searchParams.get('source');
     if (n) setName(n);
-    if (m && m.length > 0) 
-      setMarkets(m.split(',').filter(Boolean) as Market[]);
+    if (m) setLocation(m);
     if (s) setSource(s as Source);
     setMeasurements({
       height: searchParams.get('height') || '',
@@ -58,7 +47,7 @@ export function NewProspectBasicInfo() {
     if (isTutorialOpen) {
       const tutorialParams = new URLSearchParams({
         name: name.trim() || 'Demo Prospect',
-        markets: markets.join(',') || 'NEW YORK',
+        markets: location.trim() || 'NEW YORK',
         source: source || 'SCOUT',
       });
       navigate(`/prospects/new/digitals?${tutorialParams.toString()}`);
@@ -66,7 +55,7 @@ export function NewProspectBasicInfo() {
     }
     const params = new URLSearchParams({
       name: name.trim(),
-      markets: markets.join(','),
+      markets: location.trim(),
       source: source || '',
       height: measurements.height,
       bust: measurements.bust,
@@ -183,60 +172,15 @@ export function NewProspectBasicInfo() {
             />
           </div>
 
-          {/* Primary Market Field */}
+          {/* Location Field */}
           <div>
-            <label 
-              className="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-            >
-              PRIMARY MARKET
-            </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {(
-                [
-                  'NEW YORK',
-                  'LONDON',
-                  'PARIS',
-                  'MILAN',
-                  'LOS ANGELES',
-                  'TOKYO',
-                  'SYDNEY',
-                  'DUBAI',
-                  'BERLIN',
-                  'OTHER',
-                ] as Market[]
-              ).map((m) => {
-                const isSelected = markets.includes(m);
-                return (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => {
-                      setMarkets(prev =>
-                        prev.includes(m)
-                          ? prev.filter(x => x !== m)
-                          : [...prev, m]
-                      );
-                    }}
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '10px',
-                      letterSpacing: '0.08em',
-                      padding: '8px 14px',
-                      borderRadius: '4px',
-                      border: `1px solid ${isSelected ? '#f0f0ec' : '#2a2a2a'}`,
-                      backgroundColor: isSelected ? '#f0f0ec' : 'transparent',
-                      color: isSelected ? '#080808' : '#888880',
-                      cursor: 'pointer',
-                      textTransform: 'uppercase',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    {m}
-                  </button>
-                );
-              })}
-            </div>
+            <LocationMarketField
+              label="LOCATION"
+              value={location}
+              onChange={setLocation}
+              placeholder="e.g. Dallas, TX"
+              labelClassName="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
+            />
           </div>
 
           {/* Source Field */}

@@ -6,6 +6,7 @@ import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
 import { needsOnboarding, skipOnboarding } from '../../lib/onboarding';
 import { supabase } from '../../lib/supabase';
+import { LocationMarketField } from './LocationMarketField';
 
 export function OnboardingAgencySetup() {
   const navigate = useNavigate();
@@ -13,19 +14,10 @@ export function OnboardingAgencySetup() {
   const { models } = useRoster();
   const { agencyId, agencyName: savedAgencyName, setAgencyName: setSavedAgencyName } = useAuth();
   const [agencyName, setAgencyName] = useState('');
-  const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
+  const [primaryMarket, setPrimaryMarket] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('');
 
-  const markets = ['NEW YORK', 'LONDON', 'PARIS', 'MILAN', 'SYDNEY'];
   const roles = ['AGENT', 'BOOKER', 'DIRECTOR'];
-
-  const toggleMarket = (market: string) => {
-    setSelectedMarkets(prev =>
-      prev.includes(market)
-        ? prev.filter(m => m !== market)
-        : [...prev, market]
-    );
-  };
 
   useEffect(() => {
     if (!needsOnboarding(savedAgencyName, prospects.length, models.length)) {
@@ -33,14 +25,34 @@ export function OnboardingAgencySetup() {
     }
   }, [savedAgencyName, prospects.length, models.length, navigate]);
 
+  useEffect(() => {
+    if (!agencyId) return;
+    void supabase
+      .from('agencies')
+      .select('primary_market')
+      .eq('id', agencyId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.primary_market) {
+          setPrimaryMarket(data.primary_market);
+        }
+      });
+  }, [agencyId]);
+
   const handleContinue = async () => {
     const trimmedName = agencyName.trim();
-    if (trimmedName && agencyId) {
+    const trimmedMarket = primaryMarket.trim();
+    if (agencyId && (trimmedName || trimmedMarket)) {
       await supabase
         .from('agencies')
-        .update({ name: trimmedName })
+        .update({
+          ...(trimmedName ? { name: trimmedName } : {}),
+          ...(trimmedMarket ? { primary_market: trimmedMarket } : {}),
+        })
         .eq('id', agencyId);
-      setSavedAgencyName(trimmedName);
+      if (trimmedName) {
+        setSavedAgencyName(trimmedName);
+      }
     }
     navigate('/onboarding/invite');
   };
@@ -171,32 +183,12 @@ export function OnboardingAgencySetup() {
 
           {/* Primary Market Field */}
           <div className="mb-[24px]">
-            <label 
-              className="block mb-[12px] text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
-            >
-              PRIMARY MARKET
-            </label>
-            <div className="flex flex-wrap gap-[8px]">
-              {markets.map((market) => {
-                const isSelected = selectedMarkets.includes(market);
-                return (
-                  <button
-                    key={market}
-                    onClick={() => toggleMarket(market)}
-                    className="px-[16px] py-[8px] rounded-full text-[11px] uppercase tracking-[0.1em] transition-colors cursor-pointer"
-                    style={{ 
-                      fontFamily: 'var(--font-label)',
-                      border: isSelected ? '1px solid #f0f0ec' : '1px solid #2a2a2a',
-                      backgroundColor: isSelected ? '#f0f0ec' : 'transparent',
-                      color: isSelected ? '#080808' : '#a0a09a'
-                    }}
-                  >
-                    {market}
-                  </button>
-                );
-              })}
-            </div>
+            <LocationMarketField
+              label="PRIMARY MARKET"
+              value={primaryMarket}
+              onChange={setPrimaryMarket}
+              labelClassName="block mb-[12px] text-[11px] uppercase tracking-[0.1em]"
+            />
           </div>
 
           {/* Your Role Field */}
