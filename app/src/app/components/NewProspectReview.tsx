@@ -20,6 +20,7 @@ export function NewProspectReview() {
   const waist = searchParams.get('waist') || '';
   const hips = searchParams.get('hips') || '';
   const shoe = searchParams.get('shoe') || '';
+  const hair = searchParams.get('hair') || '';
   const notesFromParams = searchParams.get('notes') || '';
 
   const prospectData = {
@@ -67,6 +68,8 @@ export function NewProspectReview() {
       primaryContext: undefined,
       markets: markets.length > 0 ? markets : undefined,
       height: height || undefined,
+      hair: hair || undefined,
+      notes: notes || undefined,
       measurements: {
         chest: bust,
         waist,

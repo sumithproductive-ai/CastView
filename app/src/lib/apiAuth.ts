@@ -7,10 +7,12 @@ export type AuthSessionResult =
   | { ok: true; accessToken: string; userId: string }
   | { ok: false; message: string };
 
+const SESSION_REFRESH_BUFFER_SEC = 300;
+
 function isSessionExpired(session: { expires_at?: number } | null | undefined): boolean {
   if (!session?.expires_at) return false;
   const now = Math.floor(Date.now() / 1000);
-  return session.expires_at <= now + 30;
+  return session.expires_at <= now + SESSION_REFRESH_BUFFER_SEC;
 }
 
 /** Resolve a fresh Supabase session and access token for protected API routes. */

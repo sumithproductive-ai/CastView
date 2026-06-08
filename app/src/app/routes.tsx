@@ -34,9 +34,6 @@ const ProspectRenderHistory = lazy(() =>
 const Settings = lazy(() =>
   import('./components/Settings').then((m) => ({ default: m.Settings })),
 );
-const RenderLab = lazy(() =>
-  import('./components/RenderLab').then((m) => ({ default: m.RenderLab })),
-);
 const NewProspectBasicInfo = lazy(() =>
   import('./components/NewProspectBasicInfo').then((m) => ({
     default: m.NewProspectBasicInfo,
@@ -341,14 +338,6 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedLayoutRoute>
         <AdminRequests />
-      </ProtectedLayoutRoute>
-    ),
-  },
-  {
-    path: '/render-lab',
-    element: (
-      <ProtectedLayoutRoute>
-        <RenderLab />
       </ProtectedLayoutRoute>
     ),
   },

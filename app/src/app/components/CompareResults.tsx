@@ -1,31 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { jsPDF } from 'jspdf';
 import { ChevronDown } from 'lucide-react';
-
-const COMPARISON_STORAGE_KEY = 'castview_comparison_results';
-
-type ComparisonDirection = 'improved' | 'declined' | 'stable';
-
-type ComparisonResultItem = {
-  context: string;
-  oldScore: number;
-  newScore: number;
-  direction: ComparisonDirection;
-  reasoning: string;
-  nextStep: string;
-  strengths?: string[];
-  risks?: string[];
-};
-
-type ComparisonStorageData = {
-  results: ComparisonResultItem[];
-  previousSet: { title: string; date: string };
-  currentSet: { title: string; date: string };
-  improvedCount: number;
-  stableCount: number;
-  declinedCount: number;
-};
+import {
+  loadComparisonResults,
+  type ComparisonDirection,
+  type ComparisonResultItem,
+  type ComparisonStorageData,
+} from '../../lib/comparisonStorage';
 
 function getDigitalSetDisplayTitle(title: string | null | undefined): string {
   const trimmed = title?.trim();
@@ -59,6 +41,7 @@ function getCompareChangeTag(direction: ComparisonDirection) {
 
 export function CompareResults() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const prospectName = searchParams.get('name')
     ? decodeURIComponent(searchParams.get('name')!)
@@ -67,14 +50,12 @@ export function CompareResults() {
   const prospectId = searchParams.get('prospectId') || '';
 
   const comparisonData = useMemo((): ComparisonStorageData | null => {
-    try {
-      const stored = sessionStorage.getItem(COMPARISON_STORAGE_KEY);
-      if (!stored) return null;
-      return JSON.parse(stored) as ComparisonStorageData;
-    } catch {
-      return null;
+    const routeState = location.state as { comparisonData?: ComparisonStorageData } | null;
+    if (routeState?.comparisonData) {
+      return routeState.comparisonData;
     }
-  }, []);
+    return loadComparisonResults(prospectId);
+  }, [location.state, prospectId]);
 
   const [openContext, setOpenContext] = useState<string | null>(null);
   const [agentNotes, setAgentNotes] = useState<Record<string, string>>({});

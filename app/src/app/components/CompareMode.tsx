@@ -7,6 +7,7 @@ import { useRoster } from '../context/RosterContext';
 import { TutorialOverlay, compareTutorialSteps } from './TutorialOverlay';
 import { getRosterModelById } from './Roster';
 import { DigitalImage } from './DigitalImage';
+import { saveComparisonResults } from '../../lib/comparisonStorage';
 import {
   compressImageUrlForEvaluation,
   fetchEvaluateContext,
@@ -364,29 +365,29 @@ export function CompareMode() {
 
       setComparingStatus('Building report...');
 
-      sessionStorage.setItem(
-        'castview_comparison_results',
-        JSON.stringify({
-          results: comparisonResults,
-          previousSet: {
-            title: previousSet.title,
-            date: previousSet.date,
-          },
-          currentSet: {
-            title: currentSet.title,
-            date: currentSet.date,
-          },
-          improvedCount: comparisonResults.filter((r) => r.direction === 'improved')
-            .length,
-          stableCount: comparisonResults.filter((r) => r.direction === 'stable')
-            .length,
-          declinedCount: comparisonResults.filter((r) => r.direction === 'declined')
-            .length,
-        }),
-      );
+      const comparisonPayload = {
+        results: comparisonResults,
+        previousSet: {
+          title: previousSet.title,
+          date: previousSet.date,
+        },
+        currentSet: {
+          title: currentSet.title,
+          date: currentSet.date,
+        },
+        improvedCount: comparisonResults.filter((r) => r.direction === 'improved')
+          .length,
+        stableCount: comparisonResults.filter((r) => r.direction === 'stable')
+          .length,
+        declinedCount: comparisonResults.filter((r) => r.direction === 'declined')
+          .length,
+      };
+
+      saveComparisonResults(resolvedProspectId ?? '', comparisonPayload);
 
       navigate(
         `/compare/results?name=${encodeURIComponent(prospectName)}&prospectId=${resolvedProspectId ?? ''}&profileType=${profileType}`,
+        { state: { comparisonData: comparisonPayload } },
       );
     } catch (err) {
       console.error('[CompareMode] comparison error:', err);
