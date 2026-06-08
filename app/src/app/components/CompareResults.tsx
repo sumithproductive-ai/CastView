@@ -1,6 +1,22 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
-import { jsPDF } from 'jspdf';
+import {
+  createCastviewPdf,
+  pdfBody,
+  pdfBullet,
+  pdfCheckBreak,
+  pdfDrawContextBar,
+  pdfDrawDisclaimer,
+  pdfDrawHeader,
+  pdfDrawPreparedBy,
+  pdfDrawProspectSection,
+  pdfDrawSectionTitle,
+  pdfDrawSubtitle,
+  pdfHr,
+  pdfLabel,
+  pdfSave,
+  pdfSafeText,
+} from '../../lib/castviewPdf';
 import { ChevronDown } from 'lucide-react';
 import {
   loadComparisonResults,
@@ -70,200 +86,48 @@ export function CompareResults() {
   const generatePDF = () => {
     if (!comparisonData) return;
 
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
+    const pdf = createCastviewPdf();
+    pdfDrawHeader(pdf);
+    pdfDrawProspectSection(pdf, prospectName);
+    pdfHr(pdf);
 
-    const pageW = 210;
-    const pageH = 297;
-    const margin = 16;
-    const fullW = pageW - margin * 2;
-    let y = margin;
-
-    const checkBreak = (need: number) => {
-      if (y + need > pageH - margin) {
-        doc.addPage();
-        y = margin;
-        doc.setFillColor(180, 145, 90);
-        doc.rect(0, 0, pageW, 3, 'F');
-        y = 10;
-      }
-    };
-
-    const label = (
-      text: string,
-      x: number,
-      yPos: number,
-      color: [number, number, number] = [120, 120, 116],
-    ) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.setTextColor(...color);
-      doc.text(text.toUpperCase(), x, yPos);
-    };
-
-    const body = (
-      text: string,
-      x: number,
-      yPos: number,
-      maxW: number,
-      color: [number, number, number] = [80, 80, 76],
-    ): number => {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(...color);
-      const lines = doc.splitTextToSize(text, maxW);
-      doc.text(lines, x, yPos);
-      return lines.length * 4.2;
-    };
-
-    // ── HEADER ──────────────────────────────
-    doc.setFillColor(180, 145, 90);
-    doc.rect(0, 0, pageW, 3, 'F');
-    y = 10;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(180, 145, 90);
-    doc.text('CASTVIEW', margin, y);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(140, 140, 136);
-    doc.text('castview.org  ·  hello@castview.org', pageW - margin, y, {
-      align: 'right',
-    });
-    y += 8;
-
-    doc.setDrawColor(200, 200, 196);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, pageW - margin, y);
-    y += 8;
-
-    // ── PROSPECT INFO ────────────────────────
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(140, 140, 136);
-    doc.text('PROSPECT', margin, y);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.text(
-      `Generated: ${new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })}`,
-      pageW - margin,
-      y,
-      { align: 'right' },
+    pdfDrawSectionTitle(pdf, 'Progression Report');
+    pdfDrawSubtitle(
+      pdf,
+      `${getDigitalSetDisplayTitle(comparisonData.previousSet.title)} (${comparisonData.previousSet.date}) -> ${getDigitalSetDisplayTitle(comparisonData.currentSet.title)} (${comparisonData.currentSet.date})`,
     );
-    y += 5;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
-    doc.setTextColor(20, 20, 20);
-    doc.text(prospectName, margin, y);
-    y += 10;
-
-    doc.setDrawColor(200, 200, 196);
-    doc.line(margin, y, pageW - margin, y);
-    y += 8;
-
-    // ── REPORT TITLE ─────────────────────────
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor(20, 20, 20);
-    doc.text('Progression Report', margin, y);
-    y += 6;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(80, 80, 76);
-    doc.text(
-      `${getDigitalSetDisplayTitle(comparisonData.previousSet.title)} (${comparisonData.previousSet.date}) → ${getDigitalSetDisplayTitle(comparisonData.currentSet.title)} (${comparisonData.currentSet.date})`,
-      margin,
-      y,
-      { maxWidth: fullW },
-    );
-    y += 10;
 
     comparisonData.results.forEach((result) => {
-      checkBreak(45);
+      pdfCheckBreak(pdf, 45);
+      pdfDrawContextBar(
+        pdf,
+        result.context,
+        `${result.oldScore} (${previousScoreLabel}) -> ${result.newScore} (${currentScoreLabel})`,
+      );
 
-      doc.setFillColor(248, 248, 244);
-      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'F');
-      doc.setDrawColor(220, 210, 190);
-      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'S');
+      pdfLabel(pdf, 'Analysis', pdf.margin, pdf.y);
+      pdf.y += 4;
+      pdf.y += pdfBody(pdf, result.reasoning, pdf.margin, pdf.y, pdf.fullW) + 4;
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(160, 120, 60);
-      doc.text(result.context.toUpperCase(), margin + 5, y + 6);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(20, 20, 20);
-      const arrowX = pageW - margin - 42;
-      doc.text(`${result.oldScore} (${previousScoreLabel})`, arrowX - 2, y + 6, {
-        align: 'right',
-      });
-      doc.text('→', arrowX, y + 6, { align: 'center' });
-      doc.text(`${result.newScore} (${currentScoreLabel})`, arrowX + 2, y + 6, {
-        align: 'left',
-      });
-      y += 14;
-
-      label('Analysis', margin, y);
-      y += 4;
-      y += body(result.reasoning, margin, y, fullW) + 4;
-
-      label('Suggested next step', margin, y);
-      y += 4;
-      y += body(`→ ${result.nextStep}`, margin, y, fullW) + 4;
+      pdfLabel(pdf, 'Suggested next step', pdf.margin, pdf.y);
+      pdf.y += 4;
+      pdf.y += pdfBullet(pdf, result.nextStep, pdf.margin, pdf.y, pdf.fullW) + 4;
 
       const note = agentNotes[result.context]?.trim();
       if (note) {
-        label('Agent note', margin, y, [160, 120, 60]);
-        y += 4;
-        y += body(note, margin, y, fullW) + 4;
+        pdfLabel(pdf, 'Agent note', pdf.margin, pdf.y, [160, 120, 60]);
+        pdf.y += 4;
+        pdf.y += pdfBody(pdf, note, pdf.margin, pdf.y, pdf.fullW) + 4;
       }
 
-      doc.setDrawColor(200, 200, 196);
-      doc.line(margin, y, pageW - margin, y);
-      y += 6;
+      pdf.doc.setDrawColor(200, 200, 196);
+      pdf.doc.line(pdf.margin, pdf.y, pdf.pageW - pdf.margin, pdf.y);
+      pdf.y += 6;
     });
 
-    checkBreak(24);
-    doc.setDrawColor(200, 200, 196);
-    doc.line(margin, y, pageW - margin, y);
-    y += 5;
-
-    const disclaimer =
-      'This report is generated by AI analysis of uploaded digitals and is intended as a decision-support tool only. Context alignment scores do not constitute professional casting advice and should be used alongside agent judgment. CastView does not guarantee casting outcomes.';
-    const dlLines = doc.splitTextToSize(disclaimer, fullW);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(140, 140, 136);
-    doc.text(dlLines, margin, y);
-    y += dlLines.length * 3.8 + 5;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(160, 120, 60);
-    doc.text(
-      'Prepared by CastView  ·  castview.org',
-      pageW / 2,
-      y,
-      { align: 'center' },
-    );
-
-    doc.setFillColor(180, 145, 90);
-    doc.rect(0, pageH - 2, pageW, 2, 'F');
-
-    doc.save(`CastView-${prospectName.replace(/\s+/g, '-')}-Progression.pdf`);
+    pdfDrawDisclaimer(pdf);
+    pdfDrawPreparedBy(pdf);
+    pdfSave(pdf, `CastView-${pdfSafeText(prospectName)}-Progression.pdf`);
   };
 
   if (!comparisonData) {

@@ -1,7 +1,26 @@
 import React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { jsPDF } from 'jspdf';
+import {
+  createCastviewPdf,
+  PDF_COLORS,
+  pdfBody,
+  pdfBullet,
+  pdfCheckBreak,
+  pdfDrawAgentNotesBox,
+  pdfDrawContextBar,
+  pdfDrawDisclaimer,
+  pdfDrawHeader,
+  pdfDrawMetaRow,
+  pdfDrawPageNumbers,
+  pdfDrawPreparedBy,
+  pdfDrawProspectSection,
+  pdfDrawScoreBar,
+  pdfHr,
+  pdfLabel,
+  pdfSave,
+  pdfSafeText,
+} from '../../lib/castviewPdf';
 import { ChevronDown } from 'lucide-react';
 import { getContextData } from '../constants/contextMockData';
 import { getSumithDigitalSetV1, isSumithProspect } from '../constants/sumithProspect';
@@ -303,139 +322,29 @@ export function Results() {
         p.name.trim().toLowerCase() === prospectName.trim().toLowerCase(),
     );
 
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
+    const pdf = createCastviewPdf();
+    pdfDrawHeader(pdf);
+    pdfDrawProspectSection(pdf, prospectName);
 
-    const pageW = 210;
-    const pageH = 297;
-    const margin = 16;
-    const col = (pageW - margin * 2 - 8) / 2;
-    const fullW = pageW - margin * 2;
-    let y = margin;
-
-    const checkBreak = (need: number) => {
-      if (y + need > pageH - margin) {
-        doc.addPage();
-        y = margin;
-        doc.setFillColor(180, 145, 90);
-        doc.rect(0, 0, pageW, 3, 'F');
-        y = 10;
-      }
-    };
-
-    const label = (
-      text: string,
-      x: number,
-      yPos: number,
-      color: [number, number, number] = [120, 120, 116]
-    ) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.setTextColor(...color);
-      doc.text(text.toUpperCase(), x, yPos);
-    };
-
-    const body = (
-      text: string,
-      x: number,
-      yPos: number,
-      maxW: number,
-      color: [number, number, number] = [80, 80, 76]
-    ): number => {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(...color);
-      const lines = doc.splitTextToSize(text, maxW);
-      doc.text(lines, x, yPos);
-      return lines.length * 4.2;
-    };
-
-    // ── HEADER ──────────────────────────────
-    doc.setFillColor(180, 145, 90);
-    doc.rect(0, 0, pageW, 3, 'F');
-    y = 10;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(180, 145, 90);
-    doc.text('CASTVIEW', margin, y);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(140, 140, 136);
-    doc.text('castview.org  ·  hello@castview.org', pageW - margin, y, {
-      align: 'right',
-    });
-    y += 8;
-
-    doc.setDrawColor(200, 200, 196);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, pageW - margin, y);
-    y += 8;
-
-    // ── PROSPECT ROW ────────────────────────
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(140, 140, 136);
-    doc.text('PROSPECT', margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.text(
-      `Generated: ${new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })}`,
-      pageW - margin,
-      y,
-      { align: 'right' }
-    );
-    y += 5;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
-    doc.setTextColor(20, 20, 20);
-    doc.text(prospectName, margin, y);
-    y += 10;
-
-    // ── METADATA ROW ─────────────────────────
     const metaItems: string[] = [];
     if (prospectMeta?.source) metaItems.push(`Source: ${prospectMeta.source}`);
     if (prospectMeta?.division) metaItems.push(`Division: ${prospectMeta.division}`);
     if (prospectMeta?.height) metaItems.push(`Height: ${prospectMeta.height}`);
-    if (prospectMeta?.markets?.length)
+    if (prospectMeta?.markets?.length) {
       metaItems.push(`Markets: ${prospectMeta.markets.join(', ')}`);
+    }
     if (realEvalData?.updatedAt) {
-      const evalDate = new Date(realEvalData.updatedAt).toLocaleDateString(
-        'en-US',
-        {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        },
-      );
+      const evalDate = new Date(realEvalData.updatedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
       metaItems.push(`Evaluated: ${evalDate}`);
     }
     metaItems.push(`Contexts: ${selectedContexts.join(', ')}`);
+    pdfDrawMetaRow(pdf, metaItems);
+    pdfHr(pdf);
 
-    if (metaItems.length > 0) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(120, 120, 116);
-      const metaText = metaItems.join('  ·  ');
-      const metaLines = doc.splitTextToSize(metaText, fullW);
-      doc.text(metaLines, margin, y);
-      y += metaLines.length * 4.5 + 4;
-    }
-
-    doc.setDrawColor(200, 200, 196);
-    doc.line(margin, y, pageW - margin, y);
-    y += 8;
-
-    // ── PER-CONTEXT SECTIONS ─────────────────
     contextResults.forEach((result) => {
       const data = getEvalData(result.context);
       const score =
@@ -443,142 +352,60 @@ export function Results() {
         (typeof result.score === 'number' ? result.score : null);
       if (!data || score == null) return;
 
-      const scoreBarW = fullW * (score / 100);
+      pdfCheckBreak(pdf, 60);
+      pdfDrawContextBar(pdf, result.context, `${score}% ${data.fitLabel}`);
+      pdfDrawScoreBar(pdf, score);
 
-      checkBreak(60);
-
-      // Context header — light ivory bg
-      doc.setFillColor(248, 248, 244);
-      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'F');
-      doc.setDrawColor(220, 210, 190);
-      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'S');
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(160, 120, 60);
-      doc.text(result.context.toUpperCase(), margin + 5, y + 6);
-
-      doc.setTextColor(20, 20, 20);
-      doc.text(`${score}%  ${data.fitLabel}`, pageW - margin - 5, y + 6, {
-        align: 'right',
-      });
-      y += 12;
-
-      // Score bar
-      doc.setFillColor(220, 220, 218);
-      doc.rect(margin, y, fullW, 2, 'F');
-      doc.setFillColor(180, 145, 90);
-      doc.rect(margin, y, scoreBarW, 2, 'F');
-      y += 6;
-
-      let contentY = y;
-
-      // Reasoning — full width
-      label('Reasoning', margin, contentY);
+      let contentY = pdf.y;
+      pdfLabel(pdf, 'Reasoning', pdf.margin, contentY);
       contentY += 4;
-      contentY += body(data.reasoning, margin, contentY, fullW) + 4;
+      contentY += pdfBody(pdf, data.reasoning, pdf.margin, contentY, pdf.fullW) + 4;
 
-      // Two columns below reasoning: left = Strengths + Risks, right = Market Signals + Next Steps
-      const leftX = margin;
-      const rightX = margin + col + 8;
+      const leftX = pdf.margin;
+      const rightX = pdf.margin + pdf.colW + 8;
       let leftY = contentY;
       let rightY = contentY;
 
-      label('Strengths', leftX, leftY, [40, 100, 40]);
+      pdfLabel(pdf, 'Strengths', leftX, leftY, PDF_COLORS.success);
       leftY += 4;
       data.strengths.forEach((s: string) => {
-        leftY += body(`→  ${s}`, leftX, leftY, col) + 1;
+        leftY += pdfBullet(pdf, s, leftX, leftY, pdf.colW) + 1;
       });
       leftY += 4;
 
       if (data.risks?.length > 0) {
-        label('Risks', leftX, leftY, [160, 60, 60]);
+        pdfLabel(pdf, 'Risks', leftX, leftY, PDF_COLORS.risk);
         leftY += 4;
         data.risks.forEach((r: string) => {
-          leftY += body(`→  ${r}`, leftX, leftY, col) + 1;
+          leftY += pdfBullet(pdf, r, leftX, leftY, pdf.colW) + 1;
         });
       }
 
-      label('Market Signals', rightX, rightY);
+      pdfLabel(pdf, 'Market Signals', rightX, rightY);
       rightY += 4;
       data.marketSignals.forEach((m: string) => {
-        rightY += body(`→  ${m}`, rightX, rightY, col) + 1;
+        rightY += pdfBullet(pdf, m, rightX, rightY, pdf.colW) + 1;
       });
       rightY += 4;
 
-      label('Suggested Next Steps', rightX, rightY);
+      pdfLabel(pdf, 'Suggested Next Steps', rightX, rightY);
       rightY += 4;
       data.suggestedNextSteps.forEach((s: string) => {
-        rightY += body(`→  ${s}`, rightX, rightY, col) + 1;
+        rightY += pdfBullet(pdf, s, rightX, rightY, pdf.colW) + 1;
       });
 
-      y = Math.max(leftY, rightY) + 6;
-
-      doc.setDrawColor(200, 200, 196);
-      doc.line(margin, y, pageW - margin, y);
-      y += 6;
+      pdf.y = Math.max(leftY, rightY) + 6;
+      pdf.doc.setDrawColor(...PDF_COLORS.line);
+      pdf.doc.line(pdf.margin, pdf.y, pdf.pageW - pdf.margin, pdf.y);
+      pdf.y += 6;
     });
 
-    // ── AGENT NOTES ─────────────────────────
-    checkBreak(28);
-    const notesText = agentNotes.trim() || 'No agent notes added.';
-    const notesLines = doc.splitTextToSize(notesText, fullW - 12);
-    const notesBoxH = notesLines.length * 4.5 + 14;
-
-    doc.setFillColor(248, 248, 244);
-    doc.roundedRect(margin, y, fullW, notesBoxH, 2, 2, 'F');
-    doc.setDrawColor(220, 210, 190);
-    doc.roundedRect(margin, y, fullW, notesBoxH, 2, 2, 'S');
-    y += 6;
-    label('Agent Notes', margin + 6, y, [160, 120, 60]);
-    y += 5;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(80, 80, 76);
-    doc.text(notesLines, margin + 6, y);
-    y += notesLines.length * 4.5 + 8;
-
-    // ── DISCLAIMER ───────────────────────────
-    checkBreak(24);
-    doc.setDrawColor(200, 200, 196);
-    doc.line(margin, y, pageW - margin, y);
-    y += 5;
-
-    const disclaimer =
-      'This report is generated by AI analysis of uploaded digitals and is intended as a decision-support tool only. Context alignment scores do not constitute professional casting advice and should be used alongside agent judgment. CastView does not guarantee casting outcomes.';
-    const dlLines = doc.splitTextToSize(disclaimer, fullW);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(140, 140, 136);
-    doc.text(dlLines, margin, y);
-    y += dlLines.length * 3.8 + 5;
-
-    // ── FOOTER ───────────────────────────────
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(160, 120, 60);
-    doc.text(
-      'Prepared by CastView  ·  castview.org',
-      pageW / 2,
-      y,
-      { align: 'center' }
-    );
-
-    doc.setFillColor(180, 145, 90);
-    doc.rect(0, pageH - 2, pageW, 2, 'F');
-
-    const totalPages = doc.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.setTextColor(140, 140, 136);
-      doc.text(`${i} / ${totalPages}`, pageW / 2, pageH - 6, { align: 'center' });
-    }
-
-    doc.save(
-      `CastView-${prospectName.replace(/\s+/g, '-')}-Evaluation.pdf`
-    );
+    pdfCheckBreak(pdf, 28);
+    pdfDrawAgentNotesBox(pdf, agentNotes);
+    pdfDrawDisclaimer(pdf);
+    pdfDrawPreparedBy(pdf);
+    pdfDrawPageNumbers(pdf);
+    pdfSave(pdf, `CastView-${pdfSafeText(prospectName)}-Evaluation.pdf`);
   };
   
   return (

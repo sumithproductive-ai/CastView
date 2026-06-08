@@ -2,7 +2,22 @@ import React, { useMemo } from 'react';
 import { useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Copy, Check } from 'lucide-react';
-import { jsPDF } from 'jspdf';
+import {
+  createCastviewPdf,
+  PDF_COLORS,
+  pdfBody,
+  pdfBullet,
+  pdfCheckBreak,
+  pdfDrawContextBar,
+  pdfDrawHeader,
+  pdfDrawMetaRow,
+  pdfDrawPreparedBy,
+  pdfDrawScoreBar,
+  pdfHr,
+  pdfLabel,
+  pdfSave,
+  pdfSafeText,
+} from '../../lib/castviewPdf';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { authFetch } from '../../lib/apiAuth';
@@ -146,154 +161,84 @@ export function Share() {
     const evaluation = allEvals.find(e => e.id === evaluationId) ?? allEvals[0];
     const contexts = evaluation?.contexts ?? [];
 
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageW = 210;
-    const pageH = 297;
-    const margin = 16;
-    const col = (pageW - margin * 2 - 8) / 2;
-    const fullW = pageW - margin * 2;
-    let y = margin;
-
-    const checkBreak = (need: number) => {
-      if (y + need > pageH - margin) {
-        doc.addPage();
-        y = margin;
-        doc.setFillColor(180, 145, 90);
-        doc.rect(0, 0, pageW, 3, 'F');
-        y = 10;
-      }
-    };
-
-    const lbl = (text: string, x: number, yPos: number, color: [number,number,number] = [120,120,116]) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.setTextColor(...color);
-      doc.text(text.toUpperCase(), x, yPos);
-    };
-
-    const bdy = (text: string, x: number, yPos: number, maxW: number, color: [number,number,number] = [80,80,76]): number => {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(...color);
-      const lines = doc.splitTextToSize(text, maxW);
-      doc.text(lines, x, yPos);
-      return lines.length * 4.2;
-    };
-
-    // Header
-    doc.setFillColor(180, 145, 90);
-    doc.rect(0, 0, pageW, 3, 'F');
-    y = 10;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(180, 145, 90);
-    doc.text('CASTVIEW', margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(140, 140, 136);
-    doc.text('castview.org', pageW - margin, y, { align: 'right' });
-    y += 8;
-
-    doc.setDrawColor(200, 200, 196);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, pageW - margin, y);
-    y += 8;
-
-    // Prospect name
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
-    doc.setTextColor(20, 20, 20);
-    doc.text(prospectName, margin, y);
-    y += 10;
+    const pdf = createCastviewPdf();
+    pdfDrawHeader(pdf, false);
+    pdf.doc.setFont('helvetica', 'bold');
+    pdf.doc.setFontSize(22);
+    pdf.doc.setTextColor(...PDF_COLORS.ink);
+    pdf.doc.text(pdfSafeText(prospectName), pdf.margin, pdf.y);
+    pdf.y += 10;
 
     if (entity) {
-      const meta = [];
-      if ((entity as any).source) meta.push(`Source: ${(entity as any).source}`);
-      if ((entity as any).height) meta.push(`Height: ${(entity as any).height}`);
-      if ((entity as any).markets?.length) meta.push(`Markets: ${(entity as any).markets.join(', ')}`);
-      if (evaluation?.completedAt) meta.push(`Evaluated: ${evaluation.completedAt}`);
-      if (meta.length > 0) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(7.5);
-        doc.setTextColor(120, 120, 116);
-        const metaText = meta.join('  ·  ');
-        const metaLines = doc.splitTextToSize(metaText, fullW);
-        doc.text(metaLines, margin, y);
-        y += metaLines.length * 4.5 + 4;
+      const meta: string[] = [];
+      if ((entity as { source?: string }).source) {
+        meta.push(`Source: ${(entity as { source?: string }).source}`);
       }
+      if ((entity as { height?: string }).height) {
+        meta.push(`Height: ${(entity as { height?: string }).height}`);
+      }
+      if ((entity as { markets?: string[] }).markets?.length) {
+        meta.push(`Markets: ${(entity as { markets?: string[] }).markets!.join(', ')}`);
+      }
+      if (evaluation?.completedAt) meta.push(`Evaluated: ${evaluation.completedAt}`);
+      pdfDrawMetaRow(pdf, meta);
     }
 
-    doc.setDrawColor(200, 200, 196);
-    doc.line(margin, y, pageW - margin, y);
-    y += 8;
+    pdfHr(pdf);
 
-    // Context sections
-    contexts.forEach((ctx: any) => {
+    contexts.forEach((ctx) => {
       if (!ctx) return;
       const score = ctx.alignmentScore ?? 0;
-      checkBreak(60);
+      pdfCheckBreak(pdf, 60);
+      pdfDrawContextBar(pdf, ctx.context ?? '', `${score}% ${ctx.fitLabel ?? ''}`);
+      pdfDrawScoreBar(pdf, score);
 
-      doc.setFillColor(248, 248, 244);
-      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'F');
-      doc.setDrawColor(220, 210, 190);
-      doc.roundedRect(margin, y, fullW, 10, 1, 1, 'S');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(160, 120, 60);
-      doc.text(ctx.context?.toUpperCase() ?? '', margin + 5, y + 6);
-      doc.setTextColor(20, 20, 20);
-      doc.text(`${score}%  ${ctx.fitLabel ?? ''}`, pageW - margin - 5, y + 6, { align: 'right' });
-      y += 12;
-
-      doc.setFillColor(220, 220, 218);
-      doc.rect(margin, y, fullW, 2, 'F');
-      doc.setFillColor(180, 145, 90);
-      doc.rect(margin, y, fullW * (score / 100), 2, 'F');
-      y += 6;
-
-      let contentY = y;
-      lbl('Reasoning', margin, contentY);
+      let contentY = pdf.y;
+      pdfLabel(pdf, 'Reasoning', pdf.margin, contentY);
       contentY += 4;
-      contentY += bdy(ctx.reasoning ?? '', margin, contentY, fullW) + 4;
+      contentY += pdfBody(pdf, ctx.reasoning ?? '', pdf.margin, contentY, pdf.fullW) + 4;
 
-      const leftX = margin;
-      const rightX = margin + col + 8;
+      const leftX = pdf.margin;
+      const rightX = pdf.margin + pdf.colW + 8;
       let leftY = contentY;
       let rightY = contentY;
 
-      lbl('Strengths', leftX, leftY, [40, 100, 40]);
+      pdfLabel(pdf, 'Strengths', leftX, leftY, PDF_COLORS.success);
       leftY += 4;
-      (ctx.strengths ?? []).forEach((s: string) => { leftY += bdy(`→  ${s}`, leftX, leftY, col) + 1; });
+      (ctx.strengths ?? []).forEach((s: string) => {
+        leftY += pdfBullet(pdf, s, leftX, leftY, pdf.colW) + 1;
+      });
       leftY += 4;
+
       if ((ctx.risks ?? []).length > 0) {
-        lbl('Risks', leftX, leftY, [160, 60, 60]);
+        pdfLabel(pdf, 'Risks', leftX, leftY, PDF_COLORS.risk);
         leftY += 4;
-        (ctx.risks ?? []).forEach((r: string) => { leftY += bdy(`→  ${r}`, leftX, leftY, col) + 1; });
+        (ctx.risks ?? []).forEach((r: string) => {
+          leftY += pdfBullet(pdf, r, leftX, leftY, pdf.colW) + 1;
+        });
       }
 
-      lbl('Market Signals', rightX, rightY);
+      pdfLabel(pdf, 'Market Signals', rightX, rightY);
       rightY += 4;
-      (ctx.marketSignals ?? []).forEach((m: string) => { rightY += bdy(`→  ${m}`, rightX, rightY, col) + 1; });
+      (ctx.marketSignals ?? []).forEach((m: string) => {
+        rightY += pdfBullet(pdf, m, rightX, rightY, pdf.colW) + 1;
+      });
       rightY += 4;
-      lbl('Suggested Next Steps', rightX, rightY);
-      rightY += 4;
-      (ctx.suggestedNextSteps ?? []).forEach((s: string) => { rightY += bdy(`→  ${s}`, rightX, rightY, col) + 1; });
 
-      y = Math.max(leftY, rightY) + 6;
-      doc.setDrawColor(200, 200, 196);
-      doc.line(margin, y, pageW - margin, y);
-      y += 6;
+      pdfLabel(pdf, 'Suggested Next Steps', rightX, rightY);
+      rightY += 4;
+      (ctx.suggestedNextSteps ?? []).forEach((s: string) => {
+        rightY += pdfBullet(pdf, s, rightX, rightY, pdf.colW) + 1;
+      });
+
+      pdf.y = Math.max(leftY, rightY) + 6;
+      pdf.doc.setDrawColor(...PDF_COLORS.line);
+      pdf.doc.line(pdf.margin, pdf.y, pdf.pageW - pdf.margin, pdf.y);
+      pdf.y += 6;
     });
 
-    // Footer
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(160, 120, 60);
-    doc.text('Prepared by CastView  ·  castview.org', pageW / 2, y + 5, { align: 'center' });
-    doc.setFillColor(180, 145, 90);
-    doc.rect(0, pageH - 2, pageW, 2, 'F');
-
-    doc.save(`CastView-${prospectName.replace(/\s+/g, '-')}-Evaluation.pdf`);
+    pdfDrawPreparedBy(pdf);
+    pdfSave(pdf, `CastView-${pdfSafeText(prospectName)}-Evaluation.pdf`);
   };
 
   const checkedEvaluationContexts = dynamicEvaluations
