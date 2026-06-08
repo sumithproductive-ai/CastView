@@ -46,19 +46,43 @@ export function isEntitled(
 export async function getAuthedAgency(
   req: HeadersCarrier,
 ): Promise<AuthedAgency | AuthFailure | null> {
-  const token = bearerTokenFromHeaders(req.headers as Record<string, string | string[] | undefined>);
-  if (!token) return null;
+  const headers = req.headers as Record<string, string | string[] | undefined>;
+  const authHeader = headers?.authorization ?? headers?.Authorization;
+  console.log('[API auth] authorization header exists:', Boolean(authHeader));
 
-  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  const token = bearerTokenFromHeaders(headers);
+  console.log('[API auth] token extracted:', Boolean(token));
+  if (!token) {
+    console.log('[API auth] 401: missing bearer token');
+    return null;
+  }
+
+  const url =
+    process.env.SUPABASE_URL ??
+    process.env.VITE_SUPABASE_URL ??
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return null;
+  if (!url || !serviceKey) {
+    console.error('[API auth] 401: missing server env', {
+      hasSupabaseUrl: Boolean(url),
+      hasServiceRoleKey: Boolean(serviceKey),
+    });
+    return null;
+  }
 
   const supabase = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
   const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-  if (userError || !user) return null;
+  console.log('[API auth] user verified:', Boolean(user), {
+    error: userError?.message ?? null,
+    userId: user?.id ?? null,
+  });
+  if (userError || !user) {
+    console.log('[API auth] 401: invalid or expired token');
+    return null;
+  }
 
   const { data: profile } = await supabase
     .from('profiles')

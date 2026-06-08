@@ -1,4 +1,8 @@
-import { getSessionAccessToken, handlePaymentRequired } from '../../lib/apiAuth';
+import {
+  handlePaymentRequired,
+  requireAuthSession,
+  SESSION_EXPIRED_MESSAGE,
+} from '../../lib/apiAuth';
 
 export type CompressedEvaluationImage = {
   data: string;
@@ -151,15 +155,27 @@ export async function fetchEvaluateContext(
   const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const token = await getSessionAccessToken();
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
+    const auth = await requireAuthSession('evaluate');
+    const endpoint = '/api/evaluate';
+
+    console.log('[CastView] /api/evaluate auth preflight', {
+      endpoint,
+      sessionExists: auth.ok,
+      accessTokenExists: auth.ok,
+      userId: auth.ok ? auth.userId : null,
+      authorizationAttached: auth.ok,
+    });
+
+    if (!auth.ok) {
+      return { ok: false, status: 401, errorBody: SESSION_EXPIRED_MESSAGE };
     }
 
-    const response = await fetch('/api/evaluate', {
+    const response = await fetch(endpoint, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${auth.accessToken}`,
+      },
       body: JSON.stringify({
         prospectName: requestBody.prospectName,
         selectedContexts: requestBody.selectedContexts,

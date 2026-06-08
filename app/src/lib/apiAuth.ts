@@ -1,11 +1,40 @@
 import { supabase } from './supabase';
 
 export const UPGRADE_REQUIRED_KEY = 'castview_upgrade_required';
+export const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please log in again.';
+
+export type AuthSessionResult =
+  | { ok: true; accessToken: string; userId: string }
+  | { ok: false; message: string };
+
+/** Resolve the current Supabase session and access token for protected API routes. */
+export async function requireAuthSession(
+  debugLabel = 'api',
+): Promise<AuthSessionResult> {
+  const { data: { session }, error } = await supabase.auth.getSession();
+
+  console.log(`[CastView auth:${debugLabel}] session check`, {
+    sessionExists: Boolean(session),
+    accessTokenExists: Boolean(session?.access_token),
+    userId: session?.user?.id ?? null,
+    sessionError: error?.message ?? null,
+  });
+
+  if (error || !session?.access_token || !session.user) {
+    return { ok: false, message: SESSION_EXPIRED_MESSAGE };
+  }
+
+  return {
+    ok: true,
+    accessToken: session.access_token,
+    userId: session.user.id,
+  };
+}
 
 /** Read the current Supabase access token for protected API routes. */
 export async function getSessionAccessToken(): Promise<string | null> {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token ?? null;
+  const auth = await requireAuthSession('token');
+  return auth.ok ? auth.accessToken : null;
 }
 
 /** Show trial/upgrade UI (Layout overlay) after a 402 from a protected API. */
@@ -28,10 +57,11 @@ export async function authFetch(
   url: string,
   init: RequestInit = {},
 ): Promise<Response> {
-  const token = await getSessionAccessToken();
-  if (!token) {
-    throw new Error('Not authenticated');
+  const auth = await requireAuthSession('fetch');
+  if (!auth.ok) {
+    throw new Error(auth.message);
   }
+  const token = auth.accessToken;
 
   const headers = new Headers(init.headers);
   headers.set('Content-Type', 'application/json');

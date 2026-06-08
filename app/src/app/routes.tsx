@@ -139,9 +139,9 @@ function LazySuspense({ children }: { children: React.ReactNode }) {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, session, loading } = useAuth();
   if (loading) return <RouteLoadingFallback />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user || !session?.access_token) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 

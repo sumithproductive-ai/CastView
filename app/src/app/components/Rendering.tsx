@@ -24,6 +24,8 @@ import {
   EVALUATION_SYNC_FAILED_MSG,
   persistEvaluationToSupabase,
 } from '../utils/evaluationPersist';
+import { supabase } from '../../lib/supabase';
+import { SESSION_EXPIRED_MESSAGE } from '../../lib/apiAuth';
 
 const EVALUATION_UNAVAILABLE_MSG = 'Evaluation temporarily unavailable.';
 
@@ -181,6 +183,22 @@ export function Rendering() {
 
     if (totalSelectedContexts === 0) {
       setEvaluationError('Select at least one context to evaluate.');
+      setFlowFinished(true);
+      setEvaluationReady(true);
+      return;
+    }
+
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    console.log('[CastView evaluation] pre-flight auth', {
+      sessionExists: Boolean(session),
+      accessTokenExists: Boolean(session?.access_token),
+      userId: session?.user?.id ?? null,
+      sessionError: sessionError?.message ?? null,
+      endpoint: '/api/evaluate',
+    });
+
+    if (sessionError || !session?.access_token) {
+      setEvaluationError(SESSION_EXPIRED_MESSAGE);
       setFlowFinished(true);
       setEvaluationReady(true);
       return;
@@ -568,8 +586,14 @@ export function Rendering() {
               markContextProcessed(context, 'failed', index);
             }
           } else {
+            if (result.status === 401) {
+              setEvaluationError(SESSION_EXPIRED_MESSAGE);
+            }
+
             const failReason =
-              result.status === 402
+              result.status === 401
+                ? 'session_expired'
+                : result.status === 402
                 ? 'payment_required'
                 : result.status === 504
                 ? 'gateway_timeout'

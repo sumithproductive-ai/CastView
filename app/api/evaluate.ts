@@ -207,6 +207,13 @@ export default async function handler(req: IncomingMessage & { body?: unknown; m
   console.log("[API] request received");
   console.log("[API] provider: Anthropic");
 
+  const authHeader =
+    (req.headers as Record<string, string | string[] | undefined> | undefined)
+      ?.authorization ??
+    (req.headers as Record<string, string | string[] | undefined> | undefined)
+      ?.Authorization;
+  console.log("[API evaluate] authorization header exists:", Boolean(authHeader));
+
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
   console.log("[API] KEY_STATE:", JSON.stringify({ exists: 'ANTHROPIC_API_KEY' in process.env, length: (process.env.ANTHROPIC_API_KEY || '').length, trimmedLength: (process.env.ANTHROPIC_API_KEY || '').trim().length }));
 
