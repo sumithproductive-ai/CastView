@@ -14,6 +14,14 @@ const contexts = [
   'Swimwear', 'Couture', 'Street'
 ];
 
+const sectionLabelStyle = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: '9px',
+  color: '#888880',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+};
+
 export function Profile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -300,26 +308,17 @@ export function Profile() {
             </select>
           </div>
 
-          <div style={{ marginBottom: '24px' }}>
+          <div>
             <button
               type="button"
               onClick={() => setIsMessagesOpen((open) => !open)}
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                color: '#888880',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: 0,
-              }}
+              className="mt-[32px] mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
+              style={{ cursor: 'pointer' }}
             >
-              {isMessagesOpen ? '▼' : '▶'} Messages
+              <span style={sectionLabelStyle}>MESSAGES</span>
+              <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
+                {isMessagesOpen ? '▲' : '▼'}
+              </span>
             </button>
 
             {isMessagesOpen && (
