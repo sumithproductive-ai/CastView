@@ -240,8 +240,7 @@ export function Dashboard() {
               style={statCardStagger(0)}
             >
               <div 
-                className="text-[36px]" 
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
               >
                 {totalProspects}
               </div>
@@ -259,8 +258,7 @@ export function Dashboard() {
               style={statCardStagger(1)}
             >
               <div 
-                className="text-[36px]" 
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
               >
                 {shortlistedCount}
               </div>
@@ -278,8 +276,7 @@ export function Dashboard() {
               style={statCardStagger(2)}
             >
               <div 
-                className="text-[36px]" 
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
               >
                 {awaitingReviewCount}
               </div>
@@ -297,12 +294,7 @@ export function Dashboard() {
               style={statCardStagger(3)}
             >
               <div 
-                className="text-[36px]" 
-                style={{ 
-                  fontFamily: 'var(--font-display)', 
-                  fontWeight: 300, 
-                  color: '#f0f0ec' 
-                }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
               >
                 {totalEvaluations}
               </div>
@@ -336,8 +328,7 @@ export function Dashboard() {
               style={statCardStagger(4)}
             >
               <div 
-                className="text-[36px]" 
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
               >
                 {activeModelsCount}
               </div>
@@ -355,8 +346,7 @@ export function Dashboard() {
               style={statCardStagger(5)}
             >
               <div 
-                className="text-[36px]" 
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
               >
                 {totalRosterEvaluations}
               </div>
@@ -374,8 +364,7 @@ export function Dashboard() {
               style={statCardStagger(6)}
             >
               <div 
-                className="text-[36px]" 
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}
               >
                 {onHoldCount}
               </div>
