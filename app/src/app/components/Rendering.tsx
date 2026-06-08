@@ -21,10 +21,7 @@ import {
   type StoredContextEvaluation,
   type StoredEvaluationReport,
 } from '../utils/evaluationStorage';
-import {
-  EVALUATION_SYNC_FAILED_MSG,
-  persistEvaluationToSupabase,
-} from '../utils/evaluationPersist';
+import { persistEvaluationToSupabase } from '../utils/evaluationPersist';
 import { requireAuthSession, SESSION_EXPIRED_MESSAGE } from '../../lib/apiAuth';
 
 const EVALUATION_UNAVAILABLE_MSG = 'Evaluation temporarily unavailable.';
@@ -243,7 +240,7 @@ export function Rendering() {
       if (finalizeCalledRef.current) return;
       finalizeCalledRef.current = true;
 
-      const MINIMUM_DISPLAY_MS = 3000;
+      const MINIMUM_DISPLAY_MS = 800;
       const elapsedMs = Date.now() - requestStartMs;
       const remainingMs = Math.max(0, MINIMUM_DISPLAY_MS - elapsedMs);
 
@@ -263,7 +260,7 @@ export function Rendering() {
         });
 
         clearPendingTimers();
-        setEvaluatingContextLabel(null);
+        setEvaluatingContextLabel('Opening results...');
         setCurrentStep(steps.length);
         setProgress(100);
         setCompletedContextCount(totalSelectedContexts);
@@ -275,6 +272,26 @@ export function Rendering() {
         persistPartialReport();
 
         if (successfulContexts > 0) {
+          if (unavailableContexts.length > 0) {
+            setEvaluationError(
+              `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
+            );
+          }
+
+          showEvaluationReadyNotification(
+            prospectName,
+            evaluationId,
+            resultsPath,
+            navigate,
+          );
+
+          logEvaluation('navigation_triggered', {
+            evaluationId,
+            resultsUrl,
+            supabaseSynced: 'background',
+          });
+          navigate(resultsUrl, { replace: true });
+
           void (async () => {
             let synced = false;
             try {
@@ -308,31 +325,10 @@ export function Rendering() {
               console.error('[CastView] auto-save evaluation error:', err);
             }
 
-            if (!synced) {
-              setEvaluationError((prev) =>
-                prev
-                  ? `${prev} ${EVALUATION_SYNC_FAILED_MSG}`
-                  : EVALUATION_SYNC_FAILED_MSG,
-              );
-            } else if (unavailableContexts.length > 0) {
-              setEvaluationError(
-                `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
-              );
-            }
-
-            showEvaluationReadyNotification(
-              prospectName,
+            logEvaluation('supabase_sync_complete', {
               evaluationId,
-              resultsPath,
-              navigate,
-            );
-
-            logEvaluation('navigation_triggered', {
-              evaluationId,
-              resultsUrl,
-              supabaseSynced: synced,
+              synced,
             });
-            navigate(resultsUrl, { replace: true });
           })();
           return;
         }
