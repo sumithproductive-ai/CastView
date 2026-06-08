@@ -45,47 +45,113 @@ function headerValue(
   return undefined;
 }
 
+function serverSupabaseUrl(): string | undefined {
+  return (
+    process.env.SUPABASE_URL ??
+    process.env.VITE_SUPABASE_URL ??
+    process.env.NEXT_PUBLIC_SUPABASE_URL
+  );
+}
+
+function serverSupabaseAnonKey(): string | undefined {
+  return (
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.VITE_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+}
+
+function normalizeSupabaseHost(url: string | undefined): string | null {
+  if (!url) return null;
+  try {
+    return new URL(url).host;
+  } catch {
+    return null;
+  }
+}
+
+function hostsMatch(a: string | undefined, b: string | undefined): boolean {
+  const hostA = normalizeSupabaseHost(a);
+  const hostB = normalizeSupabaseHost(b);
+  return Boolean(hostA && hostB && hostA === hostB);
+}
+
+type JwtDebugInfo = {
+  sub: string | null;
+  exp: number | null;
+  expiresInSec: number | null;
+  issHost: string | null;
+  expired: boolean | null;
+};
+
+function decodeJwtDebugInfo(token: string): JwtDebugInfo | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const payload = JSON.parse(
+      Buffer.from(parts[1], 'base64url').toString('utf8'),
+    ) as { sub?: string; exp?: number; iss?: string };
+    const exp = typeof payload.exp === 'number' ? payload.exp : null;
+    const now = Math.floor(Date.now() / 1000);
+    return {
+      sub: payload.sub ?? null,
+      exp,
+      expiresInSec: exp !== null ? exp - now : null,
+      issHost: normalizeSupabaseHost(payload.iss),
+      expired: exp !== null ? exp <= now : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve Supabase project for JWT verification.
+ * Prefer client headers — the token was minted by that project.
+ */
 function resolveSupabaseEnv(req: HeadersCarrier): SupabaseEnv {
   const headers = getRequestHeaders(req);
   const clientUrl = headerValue(headers, 'x-supabase-url');
   const clientAnonKey =
     headerValue(headers, 'apikey') ?? headerValue(headers, 'x-supabase-anon-key');
+  const serverUrl = serverSupabaseUrl();
+  const serverAnonKey = serverSupabaseAnonKey();
+  const serverServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   let url: string | undefined;
   let urlSource = 'none';
-  if (process.env.SUPABASE_URL) {
-    url = process.env.SUPABASE_URL;
-    urlSource = 'SUPABASE_URL';
-  } else if (process.env.VITE_SUPABASE_URL) {
-    url = process.env.VITE_SUPABASE_URL;
-    urlSource = 'VITE_SUPABASE_URL';
-  } else if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    urlSource = 'NEXT_PUBLIC_SUPABASE_URL';
-  } else if (clientUrl) {
+  if (clientUrl) {
     url = clientUrl;
     urlSource = 'request_header';
+  } else if (serverUrl) {
+    url = serverUrl;
+    urlSource = process.env.SUPABASE_URL
+      ? 'SUPABASE_URL'
+      : process.env.VITE_SUPABASE_URL
+        ? 'VITE_SUPABASE_URL'
+        : 'NEXT_PUBLIC_SUPABASE_URL';
   }
 
   let anonKey: string | undefined;
   let anonKeySource = 'none';
-  if (process.env.SUPABASE_ANON_KEY) {
-    anonKey = process.env.SUPABASE_ANON_KEY;
-    anonKeySource = 'SUPABASE_ANON_KEY';
-  } else if (process.env.VITE_SUPABASE_ANON_KEY) {
-    anonKey = process.env.VITE_SUPABASE_ANON_KEY;
-    anonKeySource = 'VITE_SUPABASE_ANON_KEY';
-  } else if (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    anonKeySource = 'NEXT_PUBLIC_SUPABASE_ANON_KEY';
-  } else if (clientAnonKey) {
+  if (clientAnonKey) {
     anonKey = clientAnonKey;
     anonKeySource = 'request_header';
+  } else if (serverAnonKey) {
+    anonKey = serverAnonKey;
+    anonKeySource = process.env.SUPABASE_ANON_KEY
+      ? 'SUPABASE_ANON_KEY'
+      : process.env.VITE_SUPABASE_ANON_KEY
+        ? 'VITE_SUPABASE_ANON_KEY'
+        : 'NEXT_PUBLIC_SUPABASE_ANON_KEY';
   }
+
+  const serviceKey =
+    serverServiceKey && hostsMatch(serverUrl, url) ? serverServiceKey : undefined;
 
   return {
     url,
-    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    serviceKey,
     anonKey,
     urlSource,
     anonKeySource,
@@ -200,15 +266,27 @@ export async function getAuthedAgency(
   }
 
   const env = resolveSupabaseEnv(req);
+  const jwtInfo = decodeJwtDebugInfo(token);
+  const serverUrl = serverSupabaseUrl();
+  const projectMismatch =
+    Boolean(jwtInfo?.issHost) &&
+    Boolean(env.url) &&
+    jwtInfo!.issHost !== normalizeSupabaseHost(env.url);
 
   console.log('[API auth] env resolved', {
     hasSupabaseUrl: Boolean(env.url),
     urlSource: env.urlSource,
     urlHost: env.url ? new URL(env.url).host : null,
+    serverUrlHost: normalizeSupabaseHost(serverUrl),
+    jwtIssHost: jwtInfo?.issHost ?? null,
+    projectMismatch,
     hasServiceRoleKey: Boolean(env.serviceKey),
     hasAnonKey: Boolean(env.anonKey),
     anonKeySource: env.anonKeySource,
     verifyWith: env.serviceKey ? 'service_role' : env.anonKey ? 'anon' : 'none',
+    jwtSub: jwtInfo?.sub ?? null,
+    jwtExpiresInSec: jwtInfo?.expiresInSec ?? null,
+    jwtExpired: jwtInfo?.expired ?? null,
   });
 
   if (!env.url || (!env.serviceKey && !env.anonKey)) {
@@ -229,8 +307,21 @@ export async function getAuthedAgency(
     userId: verifiedUser?.id ?? null,
   });
   if (!verifiedUser) {
-    console.log('[API auth] 401: invalid or expired token');
-    return { status: 401, error: 'Invalid or expired session', reason: 'invalid_token' };
+    const reason = projectMismatch ? 'project_mismatch' : 'invalid_token';
+    console.log('[API auth] 401: invalid or expired token', {
+      reason,
+      jwtIssHost: jwtInfo?.issHost ?? null,
+      verifyUrlHost: normalizeSupabaseHost(env.url),
+      jwtExpired: jwtInfo?.expired ?? null,
+      jwtExpiresInSec: jwtInfo?.expiresInSec ?? null,
+    });
+    return {
+      status: 401,
+      error: projectMismatch
+        ? 'Session was issued by a different Supabase project. Log out and sign in again on this site.'
+        : 'Invalid or expired session',
+      reason,
+    };
   }
 
   const db = createDbClient(env, token);

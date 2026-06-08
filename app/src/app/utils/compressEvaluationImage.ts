@@ -169,7 +169,7 @@ export async function fetchEvaluateContext(
   const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const auth = await requireAuthSession('evaluate');
+    let auth = await requireAuthSession('evaluate');
     const endpoint = '/api/evaluate';
 
     console.log('[CastView] /api/evaluate auth preflight', {
@@ -184,19 +184,22 @@ export async function fetchEvaluateContext(
       return { ok: false, status: 401, errorBody: SESSION_EXPIRED_MESSAGE };
     }
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: buildApiAuthHeaders(auth.accessToken),
-      body: JSON.stringify({
-        prospectName: requestBody.prospectName,
-        selectedContexts: requestBody.selectedContexts,
-        images: requestBody.images.map((img) => ({
-          data: stripBase64Payload(img.data),
-          mediaType: 'image/jpeg',
-        })),
-      }),
-      signal: controller.signal,
-    });
+    const postEvaluate = (accessToken: string) =>
+      fetch(endpoint, {
+        method: 'POST',
+        headers: buildApiAuthHeaders(accessToken),
+        body: JSON.stringify({
+          prospectName: requestBody.prospectName,
+          selectedContexts: requestBody.selectedContexts,
+          images: requestBody.images.map((img) => ({
+            data: stripBase64Payload(img.data),
+            mediaType: 'image/jpeg',
+          })),
+        }),
+        signal: controller.signal,
+      });
+
+    let response = await postEvaluate(auth.accessToken);
 
     window.clearTimeout(timeoutId);
     const responseAt = new Date();
@@ -219,7 +222,37 @@ export async function fetchEvaluateContext(
       } catch {
         errorBody = '';
       }
-      const parsed = parseEvaluateApiError(errorBody);
+      let parsed = parseEvaluateApiError(errorBody);
+
+      if (
+        response.status === 401 &&
+        (parsed.reason === 'invalid_token' || parsed.reason === 'project_mismatch')
+      ) {
+        console.warn('[CastView] /api/evaluate auth retry after 401', {
+          reason: parsed.reason,
+        });
+        const retryAuth = await requireAuthSession('evaluate-retry', {
+          forceRefresh: true,
+        });
+        if (retryAuth.ok) {
+          response = await postEvaluate(retryAuth.accessToken);
+          if (response.ok) {
+            let data: EvaluateFetchResult['data'];
+            try {
+              data = await response.json();
+            } catch {
+              return { ok: false, status: response.status, errorBody: 'invalid_json' };
+            }
+            return { ok: true, status: response.status, data };
+          }
+          try {
+            errorBody = await response.text();
+          } catch {
+            errorBody = '';
+          }
+          parsed = parseEvaluateApiError(errorBody);
+        }
+      }
       console.error(
         `[CastView] /api/evaluate FAILED — status ${response.status}, reason: ${parsed.reason ?? 'unknown'}, error: ${parsed.error ?? (errorBody.slice(0, 200) || 'none')}`,
       );

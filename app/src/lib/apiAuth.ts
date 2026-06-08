@@ -13,27 +13,59 @@ function isSessionExpired(session: { expires_at?: number } | null | undefined): 
   return session.expires_at <= now + 30;
 }
 
+async function verifyAccessTokenWithSupabase(
+  accessToken: string,
+): Promise<{ ok: boolean; status?: number }> {
+  const base = supabaseUrl.replace(/\/$/, '');
+  try {
+    const response = await fetch(`${base}/auth/v1/user`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        apikey: supabaseAnonKey,
+      },
+    });
+    return { ok: response.ok, status: response.status };
+  } catch (error) {
+    console.warn('[CastView auth] client token verify failed:', error);
+    return { ok: false };
+  }
+}
+
+async function refreshStoredSession(
+  debugLabel: string,
+  reason: string,
+): Promise<{ session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']; refreshError?: string }> {
+  console.log(`[CastView auth:${debugLabel}] refreshing session`, { reason });
+  const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+  return {
+    session: refreshed.session ?? null,
+    refreshError: refreshError?.message,
+  };
+}
+
 /** Resolve a fresh Supabase session and access token for protected API routes. */
 export async function requireAuthSession(
   debugLabel = 'api',
+  options: { forceRefresh?: boolean } = {},
 ): Promise<AuthSessionResult> {
   let { data: { session } } = await supabase.auth.getSession();
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  const needsRefresh =
-    Boolean(userError) ||
-    !user ||
-    !session?.access_token ||
-    isSessionExpired(session);
+  if (session?.refresh_token && (options.forceRefresh || session.access_token)) {
+    const refreshed = await refreshStoredSession(
+      debugLabel,
+      options.forceRefresh ? 'forced' : 'pre_request',
+    );
+    if (refreshed.session?.access_token) {
+      session = refreshed.session;
+    } else if (refreshed.refreshError) {
+      console.warn(`[CastView auth:${debugLabel}] refresh error:`, refreshed.refreshError);
+    }
+  }
 
-  if (needsRefresh) {
-    console.log(`[CastView auth:${debugLabel}] refreshing session`, {
-      getUserError: userError?.message ?? null,
-      hasAccessToken: Boolean(session?.access_token),
-      expired: isSessionExpired(session),
-    });
-    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
-    if (!refreshError && refreshed.session?.access_token) {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user || !session?.access_token || isSessionExpired(session)) {
+    const refreshed = await refreshStoredSession(debugLabel, 'getUser_or_expired');
+    if (refreshed.session?.access_token) {
       session = refreshed.session;
     }
   }
@@ -49,9 +81,29 @@ export async function requireAuthSession(
     tokenPrefix: session?.access_token
       ? `${session.access_token.slice(0, 12)}...`
       : null,
+    supabaseHost: supabaseUrl ? new URL(supabaseUrl).host : null,
   });
 
   if (!session?.access_token || !session.user) {
+    return { ok: false, message: SESSION_EXPIRED_MESSAGE };
+  }
+
+  const verified = await verifyAccessTokenWithSupabase(session.access_token);
+  if (!verified.ok) {
+    console.warn(`[CastView auth:${debugLabel}] token rejected by Supabase`, {
+      status: verified.status ?? null,
+    });
+    const retry = await refreshStoredSession(debugLabel, 'client_verify_failed');
+    if (retry.session?.access_token) {
+      const retryVerified = await verifyAccessTokenWithSupabase(retry.session.access_token);
+      if (retryVerified.ok) {
+        return {
+          ok: true,
+          accessToken: retry.session.access_token,
+          userId: retry.session.user!.id,
+        };
+      }
+    }
     return { ok: false, message: SESSION_EXPIRED_MESSAGE };
   }
 
