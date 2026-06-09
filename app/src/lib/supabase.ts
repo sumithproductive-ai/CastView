@@ -151,6 +151,44 @@ export async function resolveDigitalImageForDisplay(
   return null;
 }
 
+/** Delete an evaluation and its context rows (child rows first). */
+export async function deleteEvaluationById(evaluationId: string): Promise<void> {
+  const { error: contextDeleteError } = await supabase
+    .from('context_evaluations')
+    .delete()
+    .eq('evaluation_id', evaluationId);
+
+  if (contextDeleteError) {
+    console.error('[CastView] deleteEvaluationById context error:', contextDeleteError);
+    throw contextDeleteError;
+  }
+
+  const { error: evaluationDeleteError } = await supabase
+    .from('evaluations')
+    .delete()
+    .eq('id', evaluationId);
+
+  if (evaluationDeleteError) {
+    console.error('[CastView] deleteEvaluationById evaluation error:', evaluationDeleteError);
+    throw evaluationDeleteError;
+  }
+}
+
+/** Delete a single context_evaluation row by id. */
+export async function deleteContextEvaluationById(
+  contextEvaluationId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('context_evaluations')
+    .delete()
+    .eq('id', contextEvaluationId);
+
+  if (error) {
+    console.error('[CastView] deleteContextEvaluationById error:', error);
+    throw error;
+  }
+}
+
 /** Remove evaluations in Supabase that are no longer present on a digital set. */
 export async function pruneOrphanedEvaluations(
   digitalSetId: string,

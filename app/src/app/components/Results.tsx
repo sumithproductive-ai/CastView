@@ -29,12 +29,18 @@ import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
 import { authFetch } from '../../lib/apiAuth';
-import { supabase } from '../../lib/supabase';
+import {
+  deleteContextEvaluationById,
+  deleteEvaluationById,
+  supabase,
+} from '../../lib/supabase';
 import { DigitalImage } from './DigitalImage';
 import {
+  clearEvaluationStorage,
   clearHandoffStorage,
   EVALUATION_ERROR_KEY,
   loadEvaluationReport,
+  type StoredEvaluationReport,
   updateEvaluationNotes,
 } from '../utils/evaluationStorage';
 import {
@@ -257,9 +263,57 @@ export function Results() {
     return null;
   }, [prospects, prospectId, prospectName, devSumithDigitalSet]);
 
+  const [displayContexts, setDisplayContexts] = useState<string[]>([]);
+  const [contextEvaluationIds, setContextEvaluationIds] = useState<Record<string, string>>({});
+  const [allContextsRemovedMessage, setAllContextsRemovedMessage] = useState<string | null>(null);
+  const [deletingEvaluation, setDeletingEvaluation] = useState(false);
+  const [deleteEvalError, setDeleteEvalError] = useState<string | null>(null);
+  const [removingContext, setRemovingContext] = useState<string | null>(null);
+  const [contextRemoveError, setContextRemoveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDisplayContexts(selectedContexts);
+    setAllContextsRemovedMessage(null);
+  }, [selectedContexts]);
+
+  useEffect(() => {
+    if (!evaluationId) {
+      setContextEvaluationIds({});
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from('context_evaluations')
+        .select('id, context')
+        .eq('evaluation_id', evaluationId);
+
+      if (cancelled || error) {
+        if (error) {
+          console.error('[Results] failed to load context_evaluation ids:', error.message);
+        }
+        return;
+      }
+
+      const idMap: Record<string, string> = {};
+      for (const row of data ?? []) {
+        if (row.id && row.context) {
+          idMap[row.context.toLowerCase()] = row.id;
+        }
+      }
+      setContextEvaluationIds(idMap);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [evaluationId]);
+
   const contextResults = useMemo(() => {
     const mockScores = [94, 91, 88, 88, 87, 85, 82, 86, 89];
-    return selectedContexts.map((ctx, i) => {
+    return displayContexts.map((ctx, i) => {
       const real = realEvalData?.contextEvaluations?.find(
         (e: any) => e.context.toLowerCase() === ctx.toLowerCase(),
       );
@@ -275,7 +329,7 @@ export function Results() {
         score,
       };
     });
-  }, [selectedContexts, realEvalData, allowDevMock]);
+  }, [displayContexts, realEvalData, allowDevMock]);
 
   const [openContext, setOpenContext] = useState<string | null>(null);
   const [devPathwayContext, setDevPathwayContext] = useState<string | null>(null);
@@ -297,6 +351,183 @@ export function Results() {
   const [evalSaved, setEvalSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savingEval, setSavingEval] = useState(false);
+
+  const removeEvaluationFromEntityState = async () => {
+    if (!evaluationId) return;
+
+    if (profileType === 'model') {
+      const model =
+        models.find(
+          (m) =>
+            m.id === prospectId ||
+            m.name.trim().toLowerCase() === prospectName.trim().toLowerCase(),
+        ) ?? getModelById(prospectId);
+
+      if (!model) return;
+
+      const updatedSets = model.digitalSets.map((ds) => ({
+        ...ds,
+        evaluations: (ds.evaluations ?? []).filter((e) => e.id !== evaluationId),
+      }));
+      await updateModel(model.id, { digitalSets: updatedSets });
+      return;
+    }
+
+    if (!prospectId) return;
+    const prospect = prospects.find((p) => p.id === prospectId) ?? getProspectById(prospectId);
+    if (!prospect) return;
+
+    const updatedSets = prospect.digitalSets.map((ds) => ({
+      ...ds,
+      evaluations: (ds.evaluations ?? []).filter((e) => e.id !== evaluationId),
+    }));
+    await updateProspect(prospectId, { digitalSets: updatedSets });
+  };
+
+  const removeContextFromEntityState = async (context: string) => {
+    if (!evaluationId) return;
+
+    const filterEvaluationContexts = (sets: DigitalSet[]) =>
+      sets.map((ds) => ({
+        ...ds,
+        evaluations: (ds.evaluations ?? []).map((evaluation) =>
+          evaluation.id !== evaluationId
+            ? evaluation
+            : {
+                ...evaluation,
+                contexts: evaluation.contexts.filter(
+                  (ctx) => ctx.context.toLowerCase() !== context.toLowerCase(),
+                ),
+              },
+        ),
+      }));
+
+    if (profileType === 'model') {
+      const model =
+        models.find((m) => m.id === prospectId) ??
+        getModelById(prospectId);
+      if (!model) return;
+      await updateModel(model.id, { digitalSets: filterEvaluationContexts(model.digitalSets) });
+      return;
+    }
+
+    const prospect = prospects.find((p) => p.id === prospectId) ?? getProspectById(prospectId);
+    if (!prospect) return;
+    await updateProspect(prospectId, { digitalSets: filterEvaluationContexts(prospect.digitalSets) });
+  };
+
+  const handleDeleteEvaluation = async () => {
+    if (!evaluationId || deletingEvaluation) return;
+    if (!window.confirm('Delete this evaluation? This cannot be undone.')) return;
+
+    setDeletingEvaluation(true);
+    setDeleteEvalError(null);
+
+    try {
+      await deleteEvaluationById(evaluationId);
+      try {
+        await removeEvaluationFromEntityState();
+      } catch (stateError) {
+        console.warn('[Results] local state cleanup after delete failed:', stateError);
+      }
+      clearEvaluationStorage(evaluationId);
+      if (!prospectId) {
+        throw new Error('Missing prospect reference for navigation');
+      }
+      navigate(
+        profileType === 'model' ? `/roster/${prospectId}` : `/prospects/${prospectId}`,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to delete evaluation';
+      console.error('[Results] delete evaluation error:', error);
+      setDeleteEvalError(message);
+    } finally {
+      setDeletingEvaluation(false);
+    }
+  };
+
+  const handleRemoveContext = async (context: string) => {
+    if (!evaluationId || removingContext) return;
+    if (!window.confirm(`Remove ${context} from this evaluation?`)) return;
+
+    setRemovingContext(context);
+    setContextRemoveError(null);
+    setAllContextsRemovedMessage(null);
+
+    try {
+      const persisted = isEvaluationPersisted(
+        profileType === 'model'
+          ? getModelById(prospectId)?.digitalSets
+          : getProspectById(prospectId)?.digitalSets,
+        evaluationId,
+      );
+
+      const contextEvaluationId = contextEvaluationIds[context.toLowerCase()];
+      if (contextEvaluationId) {
+        await deleteContextEvaluationById(contextEvaluationId);
+      } else if (evalSaved || persisted) {
+        const { error: fallbackDeleteError } = await supabase
+          .from('context_evaluations')
+          .delete()
+          .eq('evaluation_id', evaluationId)
+          .eq('context', context);
+        if (fallbackDeleteError) {
+          throw fallbackDeleteError;
+        }
+      }
+
+      if (evalSaved || persisted) {
+        await removeContextFromEntityState(context);
+      }
+
+      setRealEvalData((prev: StoredEvaluationReport | null) => {
+        if (!prev) return prev;
+        const next = {
+          ...prev,
+          contextEvaluations: prev.contextEvaluations.filter(
+            (entry) => entry.context.toLowerCase() !== context.toLowerCase(),
+          ),
+          updatedAt: new Date().toISOString(),
+        };
+        try {
+          localStorage.setItem(`castview_eval_${evaluationId}`, JSON.stringify(next));
+        } catch {
+          /* ignore */
+        }
+        return next;
+      });
+
+      setDisplayContexts((prev) => {
+        const next = prev.filter(
+          (entry) => entry.toLowerCase() !== context.toLowerCase(),
+        );
+        if (next.length === 0) {
+          setAllContextsRemovedMessage(
+            'All contexts removed. Delete the full evaluation or run a new one.',
+          );
+        }
+        return next;
+      });
+
+      setContextEvaluationIds((prev) => {
+        const next = { ...prev };
+        delete next[context.toLowerCase()];
+        return next;
+      });
+
+      if (openContext === context) {
+        setOpenContext(null);
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to remove context';
+      console.error('[Results] remove context error:', error);
+      setContextRemoveError(message);
+    } finally {
+      setRemovingContext(null);
+    }
+  };
 
   const getEvalData = (context: string) => {
     if (isContextUnavailable(context)) {
@@ -432,57 +663,38 @@ export function Results() {
           <button
             type="button"
             onClick={() => {
-              if (!evaluationId) return;
-              if (!window.confirm('Delete this evaluation? This cannot be undone.')) return;
-
-              if (profileType === 'model') {
-                const model = models.find(
-                  (m) =>
-                    m.id === prospectId ||
-                    m.name.trim().toLowerCase() === prospectName.trim().toLowerCase(),
-                );
-                if (model) {
-                  const updatedSets = model.digitalSets.map((ds) => ({
-                    ...ds,
-                    evaluations: (ds.evaluations ?? []).filter(
-                      (e) => e.id !== evaluationId,
-                    ),
-                  }));
-                  updateModel(model.id, { digitalSets: updatedSets });
-                  localStorage.removeItem(`castview_eval_${evaluationId}`);
-                  navigate(`/roster/${model.id}`);
-                }
-              } else {
-                if (!prospectId) return;
-                const prospect = prospects.find((p) => p.id === prospectId);
-                if (!prospect) return;
-                const updatedSets = prospect.digitalSets.map((ds) => ({
-                  ...ds,
-                  evaluations: (ds.evaluations ?? []).filter(
-                    (e) => e.id !== evaluationId,
-                  ),
-                }));
-                updateProspect(prospectId, { digitalSets: updatedSets });
-                localStorage.removeItem(`castview_eval_${evaluationId}`);
-                navigate(`/prospects/${prospectId}`);
-              }
+              void handleDeleteEvaluation();
             }}
+            disabled={!evaluationId || deletingEvaluation}
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '10px',
               color: '#c87a7a',
               background: 'none',
               border: 'none',
-              cursor: 'pointer',
+              cursor: deletingEvaluation || !evaluationId ? 'default' : 'pointer',
               letterSpacing: '0.05em',
               padding: 0,
               textTransform: 'uppercase' as const,
               display: 'block',
               marginTop: '8px',
+              opacity: deletingEvaluation || !evaluationId ? 0.6 : 1,
             }}
           >
-            DELETE EVALUATION
+            {deletingEvaluation ? 'DELETING...' : 'DELETE EVALUATION'}
           </button>
+          {deleteEvalError && (
+            <p
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                color: '#c87a7a',
+                marginTop: '6px',
+              }}
+            >
+              {deleteEvalError}
+            </p>
+          )}
         </div>
 
         <button
@@ -636,6 +848,32 @@ export function Results() {
             })}
           </div>
 
+          {allContextsRemovedMessage && (
+            <p
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color: '#b9b9b2',
+                marginBottom: '16px',
+              }}
+            >
+              {allContextsRemovedMessage}
+            </p>
+          )}
+
+          {contextRemoveError && (
+            <p
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                color: '#c87a7a',
+                marginBottom: '16px',
+              }}
+            >
+              {contextRemoveError}
+            </p>
+          )}
+
           {contextResults.map((result) => {
             const data = getEvalData(result.context);
             const unavailable = isContextUnavailable(result.context);
@@ -644,24 +882,24 @@ export function Results() {
               (typeof result.score === 'number' ? result.score : null);
             const isOpen = openContext === result.context;
             return (
-              <div key={result.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (openContext !== result.context) {
-                      setDevPathwayNote('');
-                      setDevPathwayContext(null);
-                    }
-                    setOpenContext(isOpen ? null : result.context);
-                  }}
-                  className="w-full text-left"
-                  style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+              <div key={result.context}>
+                <div
+                  className={`w-full bg-[#111111] border border-[#2a2a2a] px-[24px] py-[16px] mb-[8px] flex justify-between items-center ${
+                    isOpen ? 'rounded-t-[4px] rounded-b-none border-b-0' : 'rounded-[4px]'
+                  }`}
+                  style={{ transition: 'background-color 0.2s ease' }}
                 >
-                  <div
-                    className={`w-full bg-[#111111] border border-[#2a2a2a] px-[24px] py-[16px] mb-[8px] flex justify-between items-center hover:bg-[#1a1a1a] ${
-                      isOpen ? 'rounded-t-[4px] rounded-b-none border-b-0' : 'rounded-[4px]'
-                    }`}
-                    style={{ transition: 'background-color 0.2s ease' }}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (openContext !== result.context) {
+                        setDevPathwayNote('');
+                        setDevPathwayContext(null);
+                      }
+                      setOpenContext(isOpen ? null : result.context);
+                    }}
+                    className="flex flex-1 justify-between items-center text-left hover:bg-[#1a1a1a]"
+                    style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
                   >
                     <span
                       style={{
@@ -698,8 +936,38 @@ export function Results() {
                         }}
                       />
                     </div>
-                  </div>
-                </button>
+                  </button>
+                  {isOpen && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void handleRemoveContext(result.context);
+                      }}
+                      disabled={removingContext === result.context}
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '10px',
+                        color: '#888880',
+                        background: 'none',
+                        border: 'none',
+                        cursor: removingContext === result.context ? 'default' : 'pointer',
+                        marginLeft: '12px',
+                        padding: 0,
+                        flexShrink: 0,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (removingContext !== result.context) {
+                          e.currentTarget.style.color = '#c87a7a';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = '#888880';
+                      }}
+                    >
+                      {removingContext === result.context ? 'Removing...' : 'Remove'}
+                    </button>
+                  )}
+                </div>
 
                 <div
                   style={{
