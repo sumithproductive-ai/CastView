@@ -640,7 +640,7 @@ export function Results() {
   };
   
   return (
-    <div className="p-[20px] md:p-[48px] overflow-x-hidden">
+    <div className="p-[20px] md:p-[48px] pb-[96px] md:pb-[120px] overflow-x-hidden">
       <div className="flex flex-col gap-[16px] sm:flex-row sm:justify-between sm:items-center mb-[24px]">
         <div>
           <button
@@ -969,14 +969,8 @@ export function Results() {
                   )}
                 </div>
 
-                <div
-                  style={{
-                    overflow: 'hidden',
-                    transition: 'max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-                    maxHeight: isOpen ? '600px' : '0',
-                  }}
-                >
-                  <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] px-[24px] py-[20px] mb-[8px]">
+                {isOpen && (
+                  <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] px-[24px] py-[20px] pb-[32px] mb-[8px]">
                     {!data ? (
                       <p
                         style={{
@@ -1075,7 +1069,7 @@ export function Results() {
 
                     <div
                       className="mt-[20px] pt-[16px]"
-                      style={{ borderTop: '1px solid #1a1a1a' }}
+                      style={{ borderTop: '1px solid #1a1a1a', scrollMarginBottom: '120px' }}
                     >
                       <div className="flex items-center justify-between mb-[12px]">
                         <div
@@ -1246,7 +1240,7 @@ export function Results() {
                     </>
                     )}
                   </div>
-                </div>
+                )}
               </div>
             );
           })}
