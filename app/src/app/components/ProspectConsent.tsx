@@ -1,7 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
-import { X } from 'lucide-react';
+import { useNavigate, useSearchParams, Link } from 'react-router';
 import { savePendingProspectConsent } from '../../lib/prospectConsent';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,9 +10,6 @@ export function ProspectConsent() {
   const [searchParams] = useSearchParams();
   const [isChecked, setIsChecked] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [showLegalModal, setShowLegalModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'DPA' | 'PRIVACY'>('DPA');
-
   const prospectName = searchParams.get('name') 
     ? decodeURIComponent(searchParams.get('name')!) 
     : 'the prospect';
@@ -150,145 +146,28 @@ export function ProspectConsent() {
         </div>
         <div>
           By continuing you agree to CastView's{' '}
-          <span 
-            className="underline cursor-pointer"
+          <Link
+            to="/privacy#data-processing-agreement"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
             style={{ color: '#c8c8c2' }}
-            onClick={() => {
-              setShowLegalModal(true);
-              setActiveTab('DPA');
-            }}
           >
             Data Processing Agreement
-          </span>
+          </Link>
           {' '}and{' '}
-          <span 
-            className="underline cursor-pointer"
+          <Link
+            to="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
             style={{ color: '#c8c8c2' }}
-            onClick={() => {
-              setShowLegalModal(true);
-              setActiveTab('PRIVACY');
-            }}
           >
             Privacy Policy
-          </span>
+          </Link>
           .
         </div>
       </div>
-
-      {/* Legal Modal */}
-      {showLegalModal && (
-        <div 
-          className="fixed inset-0 flex items-center justify-center px-[24px]"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', zIndex: 50 }}
-          onClick={() => setShowLegalModal(false)}
-        >
-          <div 
-            className="border rounded-[4px] p-[32px] relative"
-            style={{ 
-              backgroundColor: '#111111', 
-              borderColor: '#2a2a2a',
-              maxWidth: '560px',
-              width: '100%'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setShowLegalModal(false)}
-              className="absolute top-[16px] right-[16px]"
-              style={{ color: '#888880' }}
-            >
-              <X size={20} />
-            </button>
-
-            {/* Tabs */}
-            <div className="flex gap-[8px] mb-[24px]">
-              <button
-                onClick={() => setActiveTab('DPA')}
-                className="px-[16px] py-[8px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
-                style={{ 
-                  fontFamily: 'var(--font-label)',
-                  backgroundColor: activeTab === 'DPA' ? '#f0f0ec' : 'transparent',
-                  color: activeTab === 'DPA' ? '#080808' : '#a0a09a',
-                  border: activeTab === 'DPA' ? 'none' : '1px solid #2a2a2a'
-                }}
-              >
-                DPA
-              </button>
-              <button
-                onClick={() => setActiveTab('PRIVACY')}
-                className="px-[16px] py-[8px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
-                style={{ 
-                  fontFamily: 'var(--font-label)',
-                  backgroundColor: activeTab === 'PRIVACY' ? '#f0f0ec' : 'transparent',
-                  color: activeTab === 'PRIVACY' ? '#080808' : '#a0a09a',
-                  border: activeTab === 'PRIVACY' ? 'none' : '1px solid #2a2a2a'
-                }}
-              >
-                PRIVACY POLICY
-              </button>
-            </div>
-
-            {/* Content */}
-            <div 
-              className="overflow-y-auto"
-              style={{ 
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-                color: '#c8c8c2',
-                lineHeight: '1.8',
-                maxHeight: '400px'
-              }}
-            >
-              {activeTab === 'DPA' ? (
-                <div>
-                  <h3 className="mb-[16px]" style={{ color: '#f0f0ec' }}>Data Processing Agreement</h3>
-                  <p className="mb-[12px]">
-                    CastView processes personal data (photographic digitals) on behalf of the Agency as a data processor under GDPR Article 28.
-                  </p>
-                  <p className="mb-[12px]">
-                    Data stored: photographs uploaded as prospect digitals and AI-generated evaluations.
-                  </p>
-                  <p className="mb-[12px]">
-                    Storage location: EU-West (Ireland). No transfer outside EEA without explicit consent.
-                  </p>
-                  <p className="mb-[12px]">
-                    Retention: data is retained until deleted by the Agency or for a maximum of 24 months from last active use, whichever is sooner.
-                  </p>
-                  <p className="mb-[12px]">
-                    Deletion: the Agency may delete all prospect data at any time from the prospect profile page.
-                  </p>
-                  <p style={{ color: '#888880', fontSize: '12px' }}>
-                    Summary for consent purposes. Contact legal@castview.org for the full signed DPA.
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <h3 className="mb-[16px]" style={{ color: '#f0f0ec' }}>Privacy Policy</h3>
-                  <p className="mb-[12px]">
-                    CastView is committed to protecting the privacy and security of personal data processed through our platform.
-                  </p>
-                  <p className="mb-[12px]">
-                    Data collection: We collect photographic digitals and biographical information provided by modeling agencies for the purpose of AI-powered evaluation.
-                  </p>
-                  <p className="mb-[12px]">
-                    Data use: Personal data is used exclusively for internal agency evaluation purposes. AI-generated evaluations are not shared externally without explicit agency action.
-                  </p>
-                  <p className="mb-[12px]">
-                    Data security: All data is encrypted in transit and at rest. Access is restricted to authorized agency personnel only.
-                  </p>
-                  <p className="mb-[12px]">
-                    Data rights: Prospects have the right to access, correct, or request deletion of their data at any time by contacting their representing agency.
-                  </p>
-                  <p style={{ color: '#888880', fontSize: '12px' }}>
-                    Summary for consent purposes. Contact legal@castview.org for the full privacy policy.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
