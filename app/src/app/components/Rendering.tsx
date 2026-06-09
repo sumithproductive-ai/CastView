@@ -293,9 +293,8 @@ export function Rendering() {
           navigate(resultsUrl, { replace: true });
 
           void (async () => {
-            let synced = false;
             try {
-              synced = await persistEvaluationToSupabase({
+              const synced = await persistEvaluationToSupabase({
                 profileType,
                 entityId: prospectId,
                 evaluationId,
@@ -307,28 +306,10 @@ export function Rendering() {
                 getModelById,
                 updateModel,
               });
-              if (!synced) {
-                synced = await persistEvaluationToSupabase({
-                  profileType,
-                  entityId: prospectId,
-                  evaluationId,
-                  contextEvaluations: combinedEvaluations,
-                  targetDigitalSetId: evaluatedDigitalSetId,
-                  agentNotes: '',
-                  getProspectById,
-                  updateProspect,
-                  getModelById,
-                  updateModel,
-                });
-              }
+              logEvaluation('supabase_sync_complete', { evaluationId, synced });
             } catch (err) {
               console.error('[CastView] auto-save evaluation error:', err);
             }
-
-            logEvaluation('supabase_sync_complete', {
-              evaluationId,
-              synced,
-            });
           })();
           return;
         }

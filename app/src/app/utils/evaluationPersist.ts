@@ -106,6 +106,12 @@ export async function persistEvaluationToSupabase(
     updateModel,
   } = params;
 
+  const persistedKey = `castview_persisted_${evaluationId}`;
+  if (localStorage.getItem(persistedKey)) {
+    console.log('[evaluationPersist] already persisted, skipping');
+    return false;
+  }
+
   if (!entityId || contextEvaluations.length === 0) return false;
 
   const evaluation = buildEvaluationFromContextResults(
@@ -128,6 +134,7 @@ export async function persistEvaluationToSupabase(
       evaluation,
     );
     await updateModel(entityId, { digitalSets: updatedSets });
+    localStorage.setItem(persistedKey, '1');
     return true;
   }
 
@@ -144,6 +151,7 @@ export async function persistEvaluationToSupabase(
     evaluation,
   );
   await updateProspect(entityId, { digitalSets: updatedSets });
+  localStorage.setItem(persistedKey, '1');
   return true;
 }
 

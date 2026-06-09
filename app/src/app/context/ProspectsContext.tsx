@@ -345,17 +345,20 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
         for (const ctx of ev.contexts) {
           const { error: ctxError } = await supabase
             .from('context_evaluations')
-            .upsert({
-              evaluation_id: savedEval.id,
-              context: ctx.context,
-              alignment_score: ctx.alignmentScore,
-              fit_label: ctx.fitLabel,
-              reasoning: ctx.reasoning,
-              strengths: ctx.strengths,
-              risks: ctx.risks,
-              market_signals: ctx.marketSignals,
-              suggested_next_steps: ctx.suggestedNextSteps,
-            });
+            .upsert(
+              {
+                evaluation_id: savedEval.id,
+                context: ctx.context,
+                alignment_score: ctx.alignmentScore,
+                fit_label: ctx.fitLabel,
+                reasoning: ctx.reasoning,
+                strengths: ctx.strengths,
+                risks: ctx.risks,
+                market_signals: ctx.marketSignals,
+                suggested_next_steps: ctx.suggestedNextSteps,
+              },
+              { onConflict: 'evaluation_id,context' },
+            );
 
           if (ctxError) {
             console.error('[CastView] context_evaluation upsert error:', ctxError);
