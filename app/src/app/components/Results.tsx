@@ -970,7 +970,8 @@ export function Results() {
                 </div>
 
                 {isOpen && (
-                  <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] px-[24px] py-[20px] pb-[32px] mb-[8px]">
+                  <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] mb-[8px]">
+                    <div className="cv-eval-panel-body px-[24px] py-[20px] pb-[32px]">
                     {!data ? (
                       <p
                         style={{
@@ -1239,6 +1240,7 @@ export function Results() {
                     </div>
                     </>
                     )}
+                    </div>
                   </div>
                 )}
               </div>

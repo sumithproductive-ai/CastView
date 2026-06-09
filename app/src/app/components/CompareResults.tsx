@@ -340,7 +340,8 @@ export function CompareResults() {
               </button>
 
               {isOpen && (
-                <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] px-[24px] py-[20px] mb-[8px]">
+                <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] mb-[8px]">
+                  <div className="cv-eval-panel-body px-[24px] py-[20px] pb-[24px]">
                   <div className="flex items-center gap-[16px]">
                     <div className="flex-1">
                       <div
@@ -489,6 +490,7 @@ export function CompareResults() {
                       color: '#f0f0ec',
                     }}
                   />
+                </div>
                 </div>
               )}
             </div>

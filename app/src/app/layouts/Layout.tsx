@@ -100,9 +100,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#080808', fontFamily: 'var(--font-mono)' }}>
-      <div className="flex flex-1 items-stretch min-w-0 w-full">
+      <div className="flex flex-1 items-stretch min-w-0 w-full min-h-0">
         <Sidebar />
-        <main className="flex-1 min-w-0 w-full pb-[64px] md:pb-0 overflow-x-hidden">
+        <main className="flex-1 min-w-0 min-h-0 w-full pb-[64px] md:pb-0 overflow-x-hidden overflow-y-auto">
         {!authLoading && user && setupError && (
           <div
             className="px-[24px] py-[12px] text-[12px] border-b"

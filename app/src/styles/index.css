@@ -90,3 +90,29 @@ input[type="radio"] {
 .cv-btn-secondary:disabled:active {
   transform: none;
 }
+
+/* Scrollable evaluation context panels (Results, Compare, etc.) */
+.cv-eval-panel-body {
+  max-height: min(72vh, calc(100dvh - 260px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+.cv-eval-panel-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cv-eval-panel-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cv-eval-panel-body::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+.cv-eval-panel-body::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
