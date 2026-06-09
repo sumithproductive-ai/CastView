@@ -230,8 +230,8 @@ export default async function handler(req: IncomingMessage & { body?: unknown; m
 
   const entitlement = await requireEntitledAgency(req);
   if (entitlement.ok === false) {
-    const { status, error } = entitlement;
-    finish(requestStartMs, { error }, status, res);
+    const { status, error, reason } = entitlement;
+    finish(requestStartMs, { error, reason: reason ?? 'auth_failed' }, status, res);
     return;
   }
 

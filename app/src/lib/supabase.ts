@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { DigitalSet } from '../app/types/talent';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+export const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -149,6 +149,87 @@ export async function resolveDigitalImageForDisplay(
   }
 
   return null;
+}
+
+/** Delete an evaluation and its context rows (child rows first). */
+export async function deleteEvaluationById(evaluationId: string): Promise<void> {
+  const { error: contextDeleteError } = await supabase
+    .from('context_evaluations')
+    .delete()
+    .eq('evaluation_id', evaluationId);
+
+  if (contextDeleteError) {
+    console.error('[CastView] deleteEvaluationById context error:', contextDeleteError);
+    throw contextDeleteError;
+  }
+
+  const { error: evaluationDeleteError } = await supabase
+    .from('evaluations')
+    .delete()
+    .eq('id', evaluationId);
+
+  if (evaluationDeleteError) {
+    console.error('[CastView] deleteEvaluationById evaluation error:', evaluationDeleteError);
+    throw evaluationDeleteError;
+  }
+}
+
+/** Delete a single context_evaluation row by id. */
+export async function deleteContextEvaluationById(
+  contextEvaluationId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('context_evaluations')
+    .delete()
+    .eq('id', contextEvaluationId);
+
+  if (error) {
+    console.error('[CastView] deleteContextEvaluationById error:', error);
+    throw error;
+  }
+}
+
+/** Remove evaluations in Supabase that are no longer present on a digital set. */
+export async function pruneOrphanedEvaluations(
+  digitalSetId: string,
+  keptEvaluationIds: string[],
+): Promise<void> {
+  const { data: existing, error } = await supabase
+    .from('evaluations')
+    .select('id')
+    .eq('digital_set_id', digitalSetId);
+
+  if (error) {
+    console.error('[CastView] pruneOrphanedEvaluations lookup error:', error);
+    throw error;
+  }
+
+  const kept = new Set(keptEvaluationIds);
+  const orphaned = (existing ?? [])
+    .map((row) => row.id)
+    .filter((id) => !kept.has(id));
+
+  if (orphaned.length === 0) return;
+
+  const { error: contextDeleteError } = await supabase
+    .from('context_evaluations')
+    .delete()
+    .in('evaluation_id', orphaned);
+
+  if (contextDeleteError) {
+    console.error('[CastView] pruneOrphanedEvaluations context delete error:', contextDeleteError);
+    throw contextDeleteError;
+  }
+
+  const { error: evalDeleteError } = await supabase
+    .from('evaluations')
+    .delete()
+    .in('id', orphaned);
+
+  if (evalDeleteError) {
+    console.error('[CastView] pruneOrphanedEvaluations evaluation delete error:', evalDeleteError);
+    throw evalDeleteError;
+  }
 }
 
 export async function resolveDigitalSetForDisplay(ds: DigitalSet): Promise<DigitalSet> {

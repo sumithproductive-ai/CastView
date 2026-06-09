@@ -2,6 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Search, ChevronDown, Plus, X } from 'lucide-react';
+import { CONTEXT_FILTER_CODE_MAP } from '../../lib/contextCodes';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
 import { DigitalImage } from './DigitalImage';
 
@@ -230,17 +231,9 @@ export function ProspectsIndex() {
         || p.status.toLowerCase().replace(' ', '-') 
             === statusFilter;
       
-      const contextCodeMap: Record<string, string> = {
-        'fragrance': 'FR',
-        'editorial': 'ED',
-        'runway':    'RW',
-        'campaign':  'CA'
-      };
-
       const matchesContext = contextFilter === 'all'
         || p.renderedContexts.includes(
-            contextCodeMap[contextFilter] || 
-            contextFilter.toUpperCase()
+            CONTEXT_FILTER_CODE_MAP[contextFilter] ?? contextFilter.toUpperCase(),
           );
       
       return matchesSource && matchesSearch 

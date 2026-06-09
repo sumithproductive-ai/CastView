@@ -27,7 +27,7 @@ function buildInviteMailto(name: string, email: string): string {
     `Hi ${name},`,
     '',
     'Your CastView access is ready. Click here to create your account:',
-    'https://castview.org/login?tab=signup',
+    'https://app.castview.org/signup',
     '',
     'Reply to this email if you have any questions.',
     '',

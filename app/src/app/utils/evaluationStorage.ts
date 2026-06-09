@@ -80,6 +80,13 @@ export function clearHandoffStorage(): void {
   sessionStorage.removeItem(EVALUATION_ERROR_KEY);
 }
 
+export function clearEvaluationStorage(evaluationId: string): void {
+  localStorage.removeItem(`castview_eval_${evaluationId}`);
+  sessionStorage.removeItem(EVALUATION_RESULTS_KEY);
+  sessionStorage.removeItem(EVALUATION_CURRENT_KEY);
+  localStorage.removeItem(EVALUATION_CURRENT_KEY);
+}
+
 export function updateEvaluationNotes(
   evaluationId: string,
   agentNotes: string,

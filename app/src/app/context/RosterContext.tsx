@@ -8,6 +8,7 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import type { DigitalSet } from '../types/talent';
+import { deriveRenderedContexts } from '../../lib/contextCodes';
 import { supabase, storagePathForPersist } from '../../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -116,7 +117,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
       image: row.image ?? null,
       primaryContext: (row.contexts ?? [])[0] ?? '',
       contexts: row.contexts ?? [],
-      renderedContexts: [],
+      renderedContexts: deriveRenderedContexts(digitalSets),
       topScore,
       lastEvaluation: allEvals.length > 0
         ? allEvals[0].completedAt
@@ -200,6 +201,12 @@ export function RosterProvider({ children }: { children: ReactNode }) {
             });
         }
       }
+
+      const { pruneOrphanedEvaluations } = await import('../../lib/supabase');
+      await pruneOrphanedEvaluations(
+        savedSet.id,
+        (ds.evaluations ?? []).map((evaluation) => evaluation.id),
+      );
     }
   };
 

@@ -10,6 +10,7 @@ import {
   EVALUATION_REQUEST_TIMEOUT_MS,
   fetchEvaluateContext,
   getEvaluationPayloadByteSize,
+  parseEvaluateApiError,
   logCompressedImageSizesInDev,
   MAX_EVALUATION_PAYLOAD_BYTES,
 } from '../utils/compressEvaluationImage';
@@ -20,10 +21,7 @@ import {
   type StoredContextEvaluation,
   type StoredEvaluationReport,
 } from '../utils/evaluationStorage';
-import {
-  EVALUATION_SYNC_FAILED_MSG,
-  persistEvaluationToSupabase,
-} from '../utils/evaluationPersist';
+import { persistEvaluationToSupabase } from '../utils/evaluationPersist';
 import { requireAuthSession, SESSION_EXPIRED_MESSAGE } from '../../lib/apiAuth';
 
 const EVALUATION_UNAVAILABLE_MSG = 'Evaluation temporarily unavailable.';
@@ -242,7 +240,7 @@ export function Rendering() {
       if (finalizeCalledRef.current) return;
       finalizeCalledRef.current = true;
 
-      const MINIMUM_DISPLAY_MS = 3000;
+      const MINIMUM_DISPLAY_MS = 800;
       const elapsedMs = Date.now() - requestStartMs;
       const remainingMs = Math.max(0, MINIMUM_DISPLAY_MS - elapsedMs);
 
@@ -262,7 +260,7 @@ export function Rendering() {
         });
 
         clearPendingTimers();
-        setEvaluatingContextLabel(null);
+        setEvaluatingContextLabel('Opening results...');
         setCurrentStep(steps.length);
         setProgress(100);
         setCompletedContextCount(totalSelectedContexts);
@@ -274,10 +272,29 @@ export function Rendering() {
         persistPartialReport();
 
         if (successfulContexts > 0) {
+          if (unavailableContexts.length > 0) {
+            setEvaluationError(
+              `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
+            );
+          }
+
+          showEvaluationReadyNotification(
+            prospectName,
+            evaluationId,
+            resultsPath,
+            navigate,
+          );
+
+          logEvaluation('navigation_triggered', {
+            evaluationId,
+            resultsUrl,
+            supabaseSynced: 'background',
+          });
+          navigate(resultsUrl, { replace: true });
+
           void (async () => {
-            let synced = false;
             try {
-              synced = await persistEvaluationToSupabase({
+              const synced = await persistEvaluationToSupabase({
                 profileType,
                 entityId: prospectId,
                 evaluationId,
@@ -289,49 +306,10 @@ export function Rendering() {
                 getModelById,
                 updateModel,
               });
-              if (!synced) {
-                synced = await persistEvaluationToSupabase({
-                  profileType,
-                  entityId: prospectId,
-                  evaluationId,
-                  contextEvaluations: combinedEvaluations,
-                  targetDigitalSetId: evaluatedDigitalSetId,
-                  agentNotes: '',
-                  getProspectById,
-                  updateProspect,
-                  getModelById,
-                  updateModel,
-                });
-              }
+              logEvaluation('supabase_sync_complete', { evaluationId, synced });
             } catch (err) {
               console.error('[CastView] auto-save evaluation error:', err);
             }
-
-            if (!synced) {
-              setEvaluationError((prev) =>
-                prev
-                  ? `${prev} ${EVALUATION_SYNC_FAILED_MSG}`
-                  : EVALUATION_SYNC_FAILED_MSG,
-              );
-            } else if (unavailableContexts.length > 0) {
-              setEvaluationError(
-                `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
-              );
-            }
-
-            showEvaluationReadyNotification(
-              prospectName,
-              evaluationId,
-              resultsPath,
-              navigate,
-            );
-
-            logEvaluation('navigation_triggered', {
-              evaluationId,
-              resultsUrl,
-              supabaseSynced: synced,
-            });
-            navigate(resultsUrl, { replace: true });
           })();
           return;
         }
@@ -585,28 +563,33 @@ export function Rendering() {
             }
           } else {
             if (result.status === 401) {
+              const parsed = parseEvaluateApiError(result.errorBody ?? '');
               let authMessage = SESSION_EXPIRED_MESSAGE;
-              try {
-                const parsed = JSON.parse(result.errorBody ?? '') as { error?: string };
-                if (parsed.error === 'Server authentication is not configured') {
-                  authMessage =
-                    'Evaluation service is temporarily unavailable. Please contact support.';
-                } else if (parsed.error) {
-                  authMessage =
-                    parsed.error === 'Invalid or expired session' ||
-                    parsed.error === 'Missing authorization token'
-                      ? SESSION_EXPIRED_MESSAGE
-                      : parsed.error;
-                }
-              } catch {
-                /* keep default session message */
+              if (
+                parsed.reason === 'missing_env' ||
+                parsed.error === 'Server authentication is not configured'
+              ) {
+                authMessage =
+                  'Evaluation service is temporarily unavailable. Please contact support.';
+              } else if (parsed.reason === 'profile_lookup_failed') {
+                authMessage =
+                  'Your account profile could not be loaded. Try logging out and back in.';
+              } else if (parsed.error) {
+                authMessage =
+                  parsed.error === 'Invalid or expired session' ||
+                  parsed.error === 'Missing authorization token'
+                    ? SESSION_EXPIRED_MESSAGE
+                    : parsed.error;
               }
+              console.error(
+                `[CastView] evaluation auth failed — reason: ${parsed.reason ?? result.errorReason ?? 'unknown'}, error: ${parsed.error ?? result.errorMessage ?? 'none'}`,
+              );
               setEvaluationError(authMessage);
             }
 
             const failReason =
               result.status === 401
-                ? 'session_expired'
+                ? (result.errorReason ?? parseEvaluateApiError(result.errorBody ?? '').reason ?? 'session_expired')
                 : result.status === 402
                 ? 'payment_required'
                 : result.status === 504

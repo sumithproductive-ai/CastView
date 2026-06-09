@@ -8,6 +8,8 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import type { DigitalSet } from '../types/talent';
+import { deriveRenderedContexts } from '../../lib/contextCodes';
+import { clearPendingProspectConsent, readPendingProspectConsent } from '../../lib/prospectConsent';
 import { supabase, storagePathForPersist, uploadDigitalImage } from '../../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -27,7 +29,11 @@ export type Prospect = {
   primaryContext?: string;
   markets?: string[];
   height?: string;
+  hair?: string;
+  notes?: string;
   signed_status?: string;
+  consent_at?: string | null;
+  consent_by?: string | null;
   measurements?: {
     chest: string;
     waist: string;
@@ -124,7 +130,15 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     image?: string | null;
     markets?: string[];
     height?: string;
+    bust?: string | null;
+    waist?: string | null;
+    hips?: string | null;
+    shoe?: string | null;
+    hair?: string | null;
+    notes?: string | null;
     signed_status?: string;
+    consent_at?: string | null;
+    consent_by?: string | null;
   }, digitalSets: DigitalSet[]): Prospect => ({
     id: row.id,
     name: row.name,
@@ -136,18 +150,48 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     email: row.email ?? '',
     image: row.image ?? null,
     contexts: row.markets ?? [],
-    renderedContexts: [],
+    renderedContexts: deriveRenderedContexts(digitalSets),
     division: '',
     primaryContext: '',
     markets: row.markets ?? [],
     height: row.height ?? '',
+    hair: row.hair ?? '',
+    notes: row.notes ?? '',
     signed_status: row.signed_status ?? 'pending',
-    measurements: { chest: '', waist: '', hips: '', shoe: '' },
+    consent_at: row.consent_at ?? null,
+    consent_by: row.consent_by ?? null,
+    measurements: {
+      chest: row.bust ?? '',
+      waist: row.waist ?? '',
+      hips: row.hips ?? '',
+      shoe: row.shoe ?? '',
+    },
     digitalSets,
   });
 
-  const PROSPECT_LIST_COLUMNS =
+  const PROSPECT_LIST_COLUMNS_BASIC =
     'id, name, status, status_color, created_at, source, markets, height, signed_status';
+  const PROSPECT_LIST_COLUMNS_FULL = `${PROSPECT_LIST_COLUMNS_BASIC}, bust, waist, hips, shoe, hair, notes, consent_at, consent_by`;
+
+  const fetchProspectRows = async (resolvedAgencyId: string) => {
+    const full = await supabase
+      .from('prospects')
+      .select(PROSPECT_LIST_COLUMNS_FULL)
+      .eq('agency_id', resolvedAgencyId)
+      .order('created_at', { ascending: false });
+
+    if (!full.error) return full;
+
+    if (full.error.message.includes('consent_') || full.error.message.includes('bust')) {
+      return supabase
+        .from('prospects')
+        .select(PROSPECT_LIST_COLUMNS_BASIC)
+        .eq('agency_id', resolvedAgencyId)
+        .order('created_at', { ascending: false });
+    }
+
+    throw full.error;
+  };
 
   const fetchEvaluationsForSetIds = async (setIds: string[]) => {
     if (setIds.length === 0) return [];
@@ -301,17 +345,20 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
         for (const ctx of ev.contexts) {
           const { error: ctxError } = await supabase
             .from('context_evaluations')
-            .upsert({
-              evaluation_id: savedEval.id,
-              context: ctx.context,
-              alignment_score: ctx.alignmentScore,
-              fit_label: ctx.fitLabel,
-              reasoning: ctx.reasoning,
-              strengths: ctx.strengths,
-              risks: ctx.risks,
-              market_signals: ctx.marketSignals,
-              suggested_next_steps: ctx.suggestedNextSteps,
-            });
+            .upsert(
+              {
+                evaluation_id: savedEval.id,
+                context: ctx.context,
+                alignment_score: ctx.alignmentScore,
+                fit_label: ctx.fitLabel,
+                reasoning: ctx.reasoning,
+                strengths: ctx.strengths,
+                risks: ctx.risks,
+                market_signals: ctx.marketSignals,
+                suggested_next_steps: ctx.suggestedNextSteps,
+              },
+              { onConflict: 'evaluation_id,context' },
+            );
 
           if (ctxError) {
             console.error('[CastView] context_evaluation upsert error:', ctxError);
@@ -319,6 +366,12 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
           }
         }
       }
+
+      const { pruneOrphanedEvaluations } = await import('../../lib/supabase');
+      await pruneOrphanedEvaluations(
+        savedSet.id,
+        (ds.evaluations ?? []).map((evaluation) => evaluation.id),
+      );
     }
   };
 
@@ -326,11 +379,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       // 1. Fetch prospects without profile images (avoids timeout from large base64 blobs)
-      const { data: prospectsData, error } = await supabase
-        .from('prospects')
-        .select(PROSPECT_LIST_COLUMNS)
-        .eq('agency_id', agencyId)
-        .order('created_at', { ascending: false });
+      const { data: prospectsData, error } = await fetchProspectRows(agencyId);
 
       if (error) throw error;
       if (!prospectsData || prospectsData.length === 0) {
@@ -440,24 +489,63 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
         profileImageUrl = storagePathForPersist(profileImageUrl) ?? profileImageUrl;
       }
 
-      const { data, error } = await supabase
+      const pendingConsent = readPendingProspectConsent();
+      const insertPayload: Record<string, unknown> = {
+        id: prospect.id,
+        agency_id: agencyId,
+        name: prospect.name,
+        status: prospect.status,
+        status_color: prospect.statusColor,
+        source: prospect.source ?? '',
+        height: prospect.height ?? '',
+        markets: prospect.markets ?? [],
+        email: prospect.email ?? '',
+        image: profileImageUrl ?? null,
+        bust: prospect.measurements?.chest ?? '',
+        waist: prospect.measurements?.waist ?? '',
+        hips: prospect.measurements?.hips ?? '',
+        shoe: prospect.measurements?.shoe ?? '',
+        hair: prospect.hair ?? '',
+        notes: prospect.notes ?? '',
+      };
+
+      if (pendingConsent) {
+        insertPayload.consent_at = pendingConsent.confirmedAt;
+        insertPayload.consent_by = pendingConsent.agentUserId;
+      }
+
+      let insertResult = await supabase
         .from('prospects')
-        .insert({
-          id: prospect.id,
-          agency_id: agencyId,
-          name: prospect.name,
-          status: prospect.status,
-          status_color: prospect.statusColor,
-          source: prospect.source ?? '',
-          height: prospect.height ?? '',
-          markets: prospect.markets ?? [],
-          email: prospect.email ?? '',
-          image: profileImageUrl ?? null,
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
+      if (
+        insertResult.error &&
+        (insertResult.error.message.includes('consent_') ||
+          insertResult.error.message.includes('bust'))
+      ) {
+        const {
+          bust: _bust,
+          waist: _waist,
+          hips: _hips,
+          shoe: _shoe,
+          hair: _hair,
+          notes: _notes,
+          consent_at: _consentAt,
+          consent_by: _consentBy,
+          ...basicPayload
+        } = insertPayload;
+        insertResult = await supabase
+          .from('prospects')
+          .insert(basicPayload)
+          .select()
+          .single();
+      }
+
+      const { data, error } = insertResult;
       if (error) throw error;
+      clearPendingProspectConsent();
 
       if (prospect.digitalSets?.length > 0) {
         await saveDigitalSets(prospect.id, prospect.digitalSets);
@@ -514,6 +602,12 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       if (prospectFields.height !== undefined) prospectUpdate.height = prospectFields.height;
       if (prospectFields.signed_status !== undefined) prospectUpdate.signed_status = prospectFields.signed_status;
       if (prospectFields.markets !== undefined) prospectUpdate.markets = prospectFields.markets;
+      if (prospectFields.hair !== undefined) prospectUpdate.hair = prospectFields.hair;
+      if (prospectFields.notes !== undefined) prospectUpdate.notes = prospectFields.notes;
+      if (prospectFields.measurements?.chest !== undefined) prospectUpdate.bust = prospectFields.measurements.chest;
+      if (prospectFields.measurements?.waist !== undefined) prospectUpdate.waist = prospectFields.measurements.waist;
+      if (prospectFields.measurements?.hips !== undefined) prospectUpdate.hips = prospectFields.measurements.hips;
+      if (prospectFields.measurements?.shoe !== undefined) prospectUpdate.shoe = prospectFields.measurements.shoe;
       if (prospectFields.image !== undefined) {
         let imageToSave = prospectFields.image;
         if (imageToSave && imageToSave.startsWith('data:')) {
@@ -525,24 +619,76 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       }
 
       if (Object.keys(prospectUpdate).length > 0) {
-        const { error } = await supabase
+        let updateResult = await supabase
           .from('prospects')
           .update(prospectUpdate)
           .eq('id', id);
-        if (error) throw error;
+
+        if (
+          updateResult.error &&
+          (updateResult.error.message.includes('consent_') ||
+            updateResult.error.message.includes('bust') ||
+            updateResult.error.message.includes('hair'))
+        ) {
+          const {
+            bust: _bust,
+            waist: _waist,
+            hips: _hips,
+            shoe: _shoe,
+            hair: _hair,
+            notes: _notes,
+            consent_at: _consentAt,
+            consent_by: _consentBy,
+            ...basicUpdate
+          } = prospectUpdate;
+          updateResult = await supabase
+            .from('prospects')
+            .update(basicUpdate)
+            .eq('id', id);
+        }
+
+        if (updateResult.error) throw updateResult.error;
       }
 
       if (digitalSets !== undefined) {
+        setProspects((prev) =>
+          prev.map((p) =>
+            p.id === id
+              ? {
+                  ...p,
+                  digitalSets,
+                  evaluations: digitalSets.reduce(
+                    (sum, ds) => sum + (ds.evaluations?.length ?? 0),
+                    0,
+                  ),
+                  renderedContexts: deriveRenderedContexts(digitalSets),
+                }
+              : p,
+          ),
+        );
         // Instead of delete+reinsert, upsert each digital set and its evaluations
         await saveDigitalSets(id, digitalSets);
       }
 
-      // Reload fresh state from Supabase (single prospect — safe to include image)
-      const { data } = await supabase
+      let reloadResult = await supabase
         .from('prospects')
-        .select(`${PROSPECT_LIST_COLUMNS}, image`)
+        .select(`${PROSPECT_LIST_COLUMNS_FULL}, image`)
         .eq('id', id)
         .single();
+
+      if (
+        reloadResult.error &&
+        (reloadResult.error.message.includes('consent_') ||
+          reloadResult.error.message.includes('bust'))
+      ) {
+        reloadResult = await supabase
+          .from('prospects')
+          .select(`${PROSPECT_LIST_COLUMNS_BASIC}, image`)
+          .eq('id', id)
+          .single();
+      }
+
+      const { data } = reloadResult;
 
       if (data) {
         const { data: freshSets } = await supabase

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { clearOnboardingSkipped } from '../../lib/onboarding';
 import { supabase } from '../../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
@@ -41,6 +41,28 @@ async function getProfileAgencyId(userId: string): Promise<string | null> {
   return data?.agency_id ?? null;
 }
 
+async function resolveInitialPlanForUser(user: User): Promise<{
+  plan: string;
+  planStatus: string;
+}> {
+  const email = user.email?.trim().toLowerCase();
+  if (!email) {
+    return { plan: 'trial', planStatus: 'trialing' };
+  }
+
+  const { data } = await supabase
+    .from('waitlist')
+    .select('approved_at')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (data?.approved_at) {
+    return { plan: 'founding_beta', planStatus: 'trialing' };
+  }
+
+  return { plan: 'trial', planStatus: 'trialing' };
+}
+
 async function provisionAgencyForUser(
   user: User,
   agencyNameOverride?: string,
@@ -49,8 +71,11 @@ async function provisionAgencyForUser(
   if (existingAgencyId) return { error: null };
 
   const agencyName = agencyNameOverride?.trim() || agencyNameFromUser(user);
+  const { plan, planStatus } = await resolveInitialPlanForUser(user);
   const { data: agencyId, error } = await supabase.rpc('provision_agency_for_user', {
     p_agency_name: agencyName,
+    p_plan: plan,
+    p_plan_status: planStatus,
   });
 
   if (error || !agencyId) {
@@ -77,10 +102,25 @@ const AuthContext = createContext<AuthContextType>({
   setAgencyName: () => {},
 });
 
+async function refreshSessionIfExpiringSoon(): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.expires_at || !session.refresh_token) return;
+
+  const now = Math.floor(Date.now() / 1000);
+  const expiresInSec = session.expires_at - now;
+  if (expiresInSec > 300) return;
+
+  const { error } = await supabase.auth.refreshSession();
+  if (error) {
+    console.warn('[AuthContext] background refresh failed:', error.message);
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const refreshInFlightRef = useRef(false);
   const [agencyId, setAgencyId] = useState<string | null>(null);
   const [agencyName, setAgencyName] = useState<string | null>(null);
   const [plan, setPlan] = useState<string>('trial');
@@ -181,6 +221,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
+
+  const runBackgroundRefresh = useCallback(async () => {
+    if (refreshInFlightRef.current) return;
+    refreshInFlightRef.current = true;
+    try {
+      await refreshSessionIfExpiringSoon();
+    } finally {
+      refreshInFlightRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!session?.access_token) return;
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void runBackgroundRefresh();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    const intervalId = window.setInterval(() => {
+      void runBackgroundRefresh();
+    }, 4 * 60 * 1000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.clearInterval(intervalId);
+    };
+  }, [session?.access_token, runBackgroundRefresh]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });

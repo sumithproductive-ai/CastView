@@ -223,6 +223,8 @@ export function ProspectRenderHistory({
   const [signedStatusSaveConfirmed, setSignedStatusSaveConfirmed] = useState(false);
   const [digitalSetsExpanded, setDigitalSetsExpanded] = useState(false);
   const [evaluationsExpanded, setEvaluationsExpanded] = useState(false);
+  const [selectedEvalIds, setSelectedEvalIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [compareSelectMode, setCompareSelectMode] = useState(false);
   const [compareSelectedIds, setCompareSelectedIds] = useState<string[]>([]);
   const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
@@ -264,17 +266,13 @@ export function ProspectRenderHistory({
     searchParams,
   ]);
 
-  const profileDigitalSets = activeProfile.digitalSets;
-  const digitalSetCount = profileDigitalSets.length;
-  const totalEvaluations =
-    typeof activeProfile?.evaluations === 'number'
-      ? activeProfile.evaluations
-      : activeProfile?.digitalSets?.reduce(
-          (sum, ds) => sum + (ds.evaluations?.length || 0),
-          0,
-        ) ?? 0;
+  const digitalSetCount = digitalSets.length;
+  const totalEvaluations = digitalSets.reduce(
+    (sum, ds) => sum + (ds.evaluations?.length || 0),
+    0,
+  );
   const hasDigitalSets = digitalSetCount > 0;
-  const digitalSetsForDisplay = isProspect ? profileDigitalSets : digitalSets;
+  const digitalSetsForDisplay = digitalSets;
   const allEvaluations = digitalSetsForDisplay
     .flatMap((ds) =>
       (ds.evaluations ?? []).map((ev) => ({
@@ -316,31 +314,68 @@ export function ProspectRenderHistory({
     handleCompare(digitalSets[digitalSets.length - 1]?.id ?? digitalSets[0].id);
   };
 
-  const handleConfirmDeleteEvaluation = () => {
-    if (!deleteEvalTarget) return;
-    const { setId, evalId } = deleteEvalTarget;
-    const sourceSets = isProspect
-      ? (contextProspect?.digitalSets ?? profileDigitalSets)
-      : digitalSets;
-    const updatedSets = sourceSets.map((set) =>
-      set.id === setId
-        ? {
-            ...set,
-            evaluations: (set.evaluations ?? []).filter(
-              (evaluation) => evaluation.id !== evalId,
-            ),
-          }
-        : set,
-    );
+  const removeEvaluationFromProfile = async (evalId: string) => {
+    try {
+      const { error: contextError } = await supabase
+        .from('context_evaluations')
+        .delete()
+        .eq('evaluation_id', evalId);
+      if (contextError) throw contextError;
 
-    if (isProspect && prospectId && contextProspect) {
-      updateProspect(prospectId, { digitalSets: updatedSets });
-    } else if (isModel && modelId) {
-      updateModel(modelId, { digitalSets: updatedSets });
+      const { error: evalError } = await supabase
+        .from('evaluations')
+        .delete()
+        .eq('id', evalId);
+      if (evalError) throw evalError;
+
+      localStorage.removeItem(`castview_persisted_${evalId}`);
+      localStorage.removeItem(`castview_eval_${evalId}`);
+
+      const updatedSets = digitalSets.map((set) => ({
+        ...set,
+        evaluations: (set.evaluations ?? []).filter((e) => e.id !== evalId),
+      }));
+
       setDigitalSets(updatedSets);
-    }
+      setSelectedEvalIds((prev) => {
+        if (!prev.has(evalId)) return prev;
+        const next = new Set(prev);
+        next.delete(evalId);
+        return next;
+      });
 
+      if (isProspect && prospectId) {
+        await updateProspect(prospectId, { digitalSets: updatedSets });
+      } else if (isModel && modelId) {
+        await updateModel(modelId, { digitalSets: updatedSets });
+      }
+
+      if (openEvalId === evalId) setOpenEvalId(null);
+    } catch (error) {
+      console.error('[ProspectRenderHistory] delete evaluation failed:', error);
+      window.alert('Could not delete evaluation. Please try again.');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedEvalIds.size === 0) return;
+    const confirmed = window.confirm(
+      `Delete ${selectedEvalIds.size} evaluation${selectedEvalIds.size !== 1 ? 's' : ''}? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+    setBulkDeleting(true);
+    for (const evalId of Array.from(selectedEvalIds)) {
+      await removeEvaluationFromProfile(evalId);
+    }
+    setSelectedEvalIds(new Set());
+    setBulkDeleting(false);
+  };
+
+  const handleConfirmDeleteEvaluation = async () => {
+    if (!deleteEvalTarget) return;
+    const { evalId } = deleteEvalTarget;
     setDeleteEvalTarget(null);
+    await removeEvaluationFromProfile(evalId);
   };
 
   const handleSaveDigitalSet = () => {
@@ -1298,17 +1333,65 @@ export function ProspectRenderHistory({
 
         {allEvaluations.length > 0 && (
           <div className="mt-[48px]">
-            <button
-              type="button"
-              onClick={() => setEvaluationsExpanded(prev => !prev)}
-              className="mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
-              style={{ cursor: 'pointer' }}
-            >
-              <span style={sectionLabelStyle}>EVALUATIONS</span>
-              <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
-                {evaluationsExpanded ? '▲' : '▼'}
-              </span>
-            </button>
+            <div className="mb-[16px] flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setEvaluationsExpanded(prev => !prev)}
+                className="flex items-center gap-[8px] bg-transparent border-none p-0"
+                style={{ cursor: 'pointer' }}
+              >
+                <span style={sectionLabelStyle}>EVALUATIONS</span>
+                <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
+                  {evaluationsExpanded ? '▲' : '▼'}
+                </span>
+              </button>
+              {evaluationsExpanded && allEvaluations.length > 0 && (
+                <div className="flex items-center">
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const allIds = allEvaluations.map((r) => r.id);
+                      if (selectedEvalIds.size === allIds.length) {
+                        setSelectedEvalIds(new Set());
+                      } else {
+                        setSelectedEvalIds(new Set(allIds));
+                      }
+                    }}
+                    style={{
+                      fontFamily: 'DM Mono, monospace',
+                      fontSize: '11px',
+                      color: '#888880',
+                      cursor: 'pointer',
+                      marginRight: '12px',
+                    }}
+                  >
+                    {selectedEvalIds.size > 0 ? 'DESELECT ALL' : 'SELECT ALL'}
+                  </span>
+                  {selectedEvalIds.size > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleBulkDelete();
+                      }}
+                      disabled={bulkDeleting}
+                      style={{
+                        fontFamily: 'DM Mono, monospace',
+                        fontSize: '11px',
+                        color: '#c87a7a',
+                        border: '1px solid #c87a7a',
+                        background: 'transparent',
+                        padding: '3px 10px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {bulkDeleting ? 'DELETING...' : `DELETE (${selectedEvalIds.size})`}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
 
             {evaluationsExpanded && (
             <div>
@@ -1336,6 +1419,31 @@ export function ProspectRenderHistory({
                         cursor: 'pointer',
                       }}
                     >
+                      <input
+                        type="checkbox"
+                        checked={selectedEvalIds.has(ev.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          setSelectedEvalIds((prev) => {
+                            const next = new Set(prev);
+                            if (e.target.checked) {
+                              next.add(ev.id);
+                            } else {
+                              next.delete(ev.id);
+                            }
+                            return next;
+                          });
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          accentColor: '#c8a96e',
+                          width: '14px',
+                          height: '14px',
+                          cursor: 'pointer',
+                          marginRight: '10px',
+                          flexShrink: 0,
+                        }}
+                      />
                       <div className="flex-1 min-w-0">
                         <div
                           style={{
@@ -1470,18 +1578,9 @@ export function ProspectRenderHistory({
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={async () => {
                             if (!window.confirm('Delete this evaluation? This cannot be undone.')) return;
-                            const updatedSets = activeProfile.digitalSets.map((digitalSet) => ({
-                              ...digitalSet,
-                              evaluations: (digitalSet.evaluations ?? []).filter((e) => e.id !== ev.id),
-                            }));
-                            if (profileType === 'prospect') {
-                              updateProspect(resolvedEntityId, { digitalSets: updatedSets });
-                            } else {
-                              updateModel(resolvedEntityId, { digitalSets: updatedSets });
-                            }
-                            localStorage.removeItem(`castview_eval_${ev.id}`);
+                            await removeEvaluationFromProfile(ev.id);
                           }}
                           style={{
                             fontFamily: 'var(--font-mono)',

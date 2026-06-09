@@ -1,8 +1,10 @@
 import {
+  buildApiAuthHeaders,
   handlePaymentRequired,
   requireAuthSession,
   SESSION_EXPIRED_MESSAGE,
 } from '../../lib/apiAuth';
+import { resolveDigitalImageForDisplay } from '../../lib/supabase';
 
 export type CompressedEvaluationImage = {
   data: string;
@@ -35,9 +37,12 @@ function parseDataUrl(dataUrl: string): { data: string; mediaType: string } | nu
   return { data: stripBase64Payload(parts[1]), mediaType };
 }
 
-function loadImage(src: string): Promise<HTMLImageElement> {
+function loadImage(src: string, useCors = false): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    if (useCors) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('Failed to load image'));
     img.src = src;
@@ -93,27 +98,59 @@ export function getEvaluationPayloadByteSize(body: unknown): number {
   return new TextEncoder().encode(JSON.stringify(body)).length;
 }
 
+async function compressRemoteImage(url: string): Promise<CompressedEvaluationImage | null> {
+  try {
+    const img = await loadImage(url, true);
+    return compressLoadedImage(img);
+  } catch {
+    // Fall back to fetch when canvas CORS is unavailable.
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) return null;
+
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+
+  try {
+    const img = await loadImage(objectUrl);
+    return compressLoadedImage(img);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+async function resolveImageSourceForCompression(
+  stored: string,
+): Promise<string | null> {
+  if (stored.startsWith('data:') || stored.startsWith('blob:')) {
+    return stored;
+  }
+
+  if (stored.startsWith('http://') || stored.startsWith('https://')) {
+    return stored;
+  }
+
+  // Storage paths like models/{id}/{setId}/front.jpeg are not fetchable as site URLs.
+  const resolved = await resolveDigitalImageForDisplay(stored);
+  return resolved;
+}
+
 export async function compressImageUrlForEvaluation(
   url: string,
 ): Promise<CompressedEvaluationImage | null> {
   if (!url) return null;
 
   try {
-    if (url.startsWith('data:')) {
-      const img = await loadImage(url);
+    const src = await resolveImageSourceForCompression(url);
+    if (!src) return null;
+
+    if (src.startsWith('data:') || src.startsWith('blob:')) {
+      const img = await loadImage(src);
       return compressLoadedImage(img);
     }
 
-    const response = await fetch(url);
-    const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob);
-
-    try {
-      const img = await loadImage(objectUrl);
-      return compressLoadedImage(img);
-    } finally {
-      URL.revokeObjectURL(objectUrl);
-    }
+    return await compressRemoteImage(src);
   } catch {
     return null;
   }
@@ -124,7 +161,20 @@ export type EvaluateFetchResult = {
   status: number;
   data?: { contextEvaluations?: Array<{ context: string; alignmentScore: number; fitLabel: string; reasoning: string; strengths: string[]; risks: string[]; marketSignals: string[]; suggestedNextSteps: string[] }> };
   errorBody?: string;
+  errorReason?: string;
+  errorMessage?: string;
 };
+
+export function parseEvaluateApiError(errorBody: string): {
+  error?: string;
+  reason?: string;
+} {
+  try {
+    return JSON.parse(errorBody) as { error?: string; reason?: string };
+  } catch {
+    return { error: errorBody || undefined };
+  }
+}
 
 /**
  * POST /api/evaluate with AbortController so timeouts cancel the underlying fetch.
@@ -172,10 +222,7 @@ export async function fetchEvaluateContext(
 
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${auth.accessToken}`,
-      },
+      headers: buildApiAuthHeaders(auth.accessToken),
       body: JSON.stringify({
         prospectName: requestBody.prospectName,
         selectedContexts: requestBody.selectedContexts,
@@ -208,16 +255,28 @@ export async function fetchEvaluateContext(
       } catch {
         errorBody = '';
       }
-      console.error('[CastView] /api/evaluate failed:', {
+      const parsed = parseEvaluateApiError(errorBody);
+      console.error(
+        `[CastView] /api/evaluate FAILED — status ${response.status}, reason: ${parsed.reason ?? 'unknown'}, error: ${parsed.error ?? (errorBody.slice(0, 200) || 'none')}`,
+      );
+      console.error('[CastView] /api/evaluate failed details:', {
         status: response.status,
         context,
+        reason: parsed.reason ?? null,
+        error: parsed.error ?? null,
         body: errorBody.slice(0, 1500),
         timeoutMs,
         requestStartTimestamp: requestStartedAt.toISOString(),
         responseTimestamp: responseAt.toISOString(),
         totalDurationMs: durationMs,
       });
-      return { ok: false, status: response.status, errorBody };
+      return {
+        ok: false,
+        status: response.status,
+        errorBody,
+        errorReason: parsed.reason,
+        errorMessage: parsed.error,
+      };
     }
 
     let data: EvaluateFetchResult['data'];

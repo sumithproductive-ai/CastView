@@ -2,9 +2,12 @@ import React from 'react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { X } from 'lucide-react';
+import { savePendingProspectConsent } from '../../lib/prospectConsent';
+import { useAuth } from '../context/AuthContext';
 
 export function ProspectConsent() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [isChecked, setIsChecked] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -21,8 +24,14 @@ export function ProspectConsent() {
   };
 
   const handleContinue = () => {
-    if (isChecked && !isConfirming) {
+    if (isChecked && !isConfirming && user) {
       setIsConfirming(true);
+      savePendingProspectConsent({
+        confirmedAt: new Date().toISOString(),
+        prospectName,
+        agentUserId: user.id,
+        agentEmail: user.email ?? '',
+      });
       setTimeout(() => {
         navigate(`/prospects/new/digitals${window.location.search}`);
       }, 800);
@@ -137,7 +146,7 @@ export function ProspectConsent() {
           This consent record is stored with the prospect's profile.
         </div>
         <div className="mb-[8px]">
-          Stored: {prospectName} · {new Date().toLocaleDateString()} · Agent: Admin
+          Stored: {prospectName} · {new Date().toLocaleDateString()} · Agent: {user?.email ?? 'Agent'}
         </div>
         <div>
           By continuing you agree to CastView's{' '}

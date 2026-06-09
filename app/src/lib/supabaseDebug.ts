@@ -1,4 +1,5 @@
-import { supabase } from './supabase';
+import { buildApiAuthHeaders, requireAuthSession } from './apiAuth';
+import { supabase, supabaseUrl } from './supabase';
 
 export async function castviewDiagnose() {
   const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
@@ -172,12 +173,34 @@ export async function castviewDiagnose() {
 declare global {
   interface Window {
     castviewDiagnose?: typeof castviewDiagnose;
+    castviewAuthDebug?: typeof castviewAuthDebug;
   }
 }
 
+export async function castviewAuthDebug() {
+  const auth = await requireAuthSession('debug');
+  if (!auth.ok) {
+    console.error('[CastView] auth-debug: no session', auth.message);
+    return { ok: false, message: auth.message };
+  }
+
+  const response = await fetch('/api/auth-debug', {
+    headers: buildApiAuthHeaders(auth.accessToken),
+  });
+  const data = await response.json();
+  console.group('[CastView] auth-debug');
+  console.log('Supabase URL host:', supabaseUrl ? new URL(supabaseUrl).host : 'missing');
+  console.log('Response status:', response.status);
+  console.log('Payload:', data);
+  console.groupEnd();
+  return data;
+}
+
 export function attachCastviewDebug() {
+  window.castviewAuthDebug = castviewAuthDebug;
   if (import.meta.env.DEV) {
     window.castviewDiagnose = castviewDiagnose;
     console.info('[CastView] Dev debug ready — run: await castviewDiagnose()');
   }
+  console.info('[CastView] Auth debug — run: await castviewAuthDebug()');
 }
