@@ -33,6 +33,10 @@ function decodeJwtClaims(token: string | undefined) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (process.env.NODE_ENV === 'production' && process.env.CASTVIEW_ENABLE_DEBUG !== '1') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

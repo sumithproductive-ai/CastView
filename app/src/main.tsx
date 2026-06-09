@@ -9,7 +9,9 @@ import React from 'react';
   import { attachCastviewDebug } from './lib/supabaseDebug';
   import "./styles/index.css";
 
-  attachCastviewDebug();
+  if (import.meta.env.DEV) {
+    attachCastviewDebug();
+  }
 
   createRoot(document.getElementById("root")!).render(
     <AuthProvider>

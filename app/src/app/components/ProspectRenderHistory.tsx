@@ -219,7 +219,9 @@ export function ProspectRenderHistory({
     evalId: string;
   } | null>(null);
   const [openEvalId, setOpenEvalId] = useState<string | null>(null);
-  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [isMessagesOpen, setIsMessagesOpen] = useState(
+    () => searchParams.get('tab') === 'messages',
+  );
   const [signedStatusSaveConfirmed, setSignedStatusSaveConfirmed] = useState(false);
   const [digitalSetsExpanded, setDigitalSetsExpanded] = useState(false);
   const [evaluationsExpanded, setEvaluationsExpanded] = useState(false);
@@ -229,6 +231,12 @@ export function ProspectRenderHistory({
   const [compareSelectedIds, setCompareSelectedIds] = useState<string[]>([]);
   const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (searchParams.get('tab') === 'messages') {
+      setIsMessagesOpen(true);
+    }
+  }, [searchParams]);
 
   const resetUploadFormState = () => {
     setUploadForm((prev) => {

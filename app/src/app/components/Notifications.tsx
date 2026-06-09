@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Image as ImageIcon, UserCheck, MessageSquare, Tag } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,8 +12,10 @@ interface NotificationItem {
   unread: boolean;
   title: string;
   time: string;
+  sortAt: string;
   badge?: { text: string; color: string };
   path?: string;
+  source: 'event' | 'message';
 }
 
 function timeAgo(dateStr: string): string {
@@ -27,6 +30,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export function Notifications() {
+  const navigate = useNavigate();
   const { agencyId } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -57,7 +61,7 @@ export function Notifications() {
 
       const items: NotificationItem[] = [];
 
-      for (const ev of (events ?? [])) {
+      for (const ev of events ?? []) {
         if (ev.event_type === 'evaluation_confirmed' || ev.event_type === 'evaluation_overridden') {
           items.push({
             id: ev.id,
@@ -65,7 +69,12 @@ export function Notifications() {
             unread: !ev.read_at,
             title: `Evaluation ${ev.event_type === 'evaluation_confirmed' ? 'confirmed' : 'overridden'}`,
             time: timeAgo(ev.created_at),
-            badge: { text: ev.event_type === 'evaluation_confirmed' ? 'CONFIRMED' : 'OVERRIDDEN', color: ev.event_type === 'evaluation_confirmed' ? 'green' : 'amber' },
+            sortAt: ev.created_at,
+            badge: {
+              text: ev.event_type === 'evaluation_confirmed' ? 'CONFIRMED' : 'OVERRIDDEN',
+              color: ev.event_type === 'evaluation_confirmed' ? 'green' : 'amber',
+            },
+            source: 'event',
           });
         }
         if (ev.event_type === 'signed_status_updated') {
@@ -75,7 +84,12 @@ export function Notifications() {
             unread: !ev.read_at,
             title: `Prospect status updated to ${(ev.metadata as { status?: string })?.status?.toUpperCase() ?? 'UNKNOWN'}`,
             time: timeAgo(ev.created_at),
-            badge: { text: (ev.metadata as { status?: string })?.status?.toUpperCase() ?? '', color: 'amber' },
+            sortAt: ev.created_at,
+            badge: {
+              text: (ev.metadata as { status?: string })?.status?.toUpperCase() ?? '',
+              color: 'amber',
+            },
+            source: 'event',
           });
         }
         if (ev.event_type === 'message_sent') {
@@ -85,24 +99,30 @@ export function Notifications() {
             unread: !ev.read_at,
             title: `Message sent to ${(ev.metadata as { toEmail?: string })?.toEmail ?? 'model'}`,
             time: timeAgo(ev.created_at),
+            sortAt: ev.created_at,
             badge: { text: 'SENT', color: 'teal' },
+            source: 'event',
           });
         }
       }
 
-      for (const msg of (messages ?? [])) {
+      for (const msg of messages ?? []) {
         items.push({
           id: msg.id,
           type: 'MESSAGES',
           unread: !msg.read_at,
           title: `Reply received from ${msg.from_email}`,
           time: timeAgo(msg.sent_at),
+          sortAt: msg.sent_at,
           badge: { text: 'REPLY', color: 'green' },
-          path: `/prospects/${msg.prospect_id}`,
+          path: msg.prospect_id
+            ? `/prospects/${msg.prospect_id}?tab=messages`
+            : '/prospects',
+          source: 'message',
         });
       }
 
-      items.sort((a, b) => 0);
+      items.sort((a, b) => new Date(b.sortAt).getTime() - new Date(a.sortAt).getTime());
       setNotifications(items);
     } finally {
       setLoading(false);
@@ -110,35 +130,91 @@ export function Notifications() {
   };
 
   const handleMarkAllRead = async () => {
+    if (!agencyId) return;
+    const readAt = new Date().toISOString();
     await supabase
       .from('events')
-      .update({ read_at: new Date().toISOString() })
+      .update({ read_at: readAt })
       .eq('agency_id', agencyId)
       .is('read_at', null);
-    setNotifications(notifications.map(n => ({ ...n, unread: false })));
+    await supabase
+      .from('messages')
+      .update({ read_at: readAt })
+      .eq('agency_id', agencyId)
+      .eq('direction', 'inbound')
+      .is('read_at', null);
+    setNotifications(notifications.map((n) => ({ ...n, unread: false })));
     window.dispatchEvent(new Event('notifications-read'));
   };
 
+  const handleNotificationClick = async (notification: NotificationItem) => {
+    if (notification.unread && agencyId) {
+      const readAt = new Date().toISOString();
+      if (notification.source === 'message') {
+        await supabase
+          .from('messages')
+          .update({ read_at: readAt })
+          .eq('id', notification.id);
+      } else {
+        await supabase
+          .from('events')
+          .update({ read_at: readAt })
+          .eq('id', notification.id);
+      }
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.id === notification.id ? { ...item, unread: false } : item,
+        ),
+      );
+      window.dispatchEvent(new Event('notifications-updated'));
+    }
+
+    if (notification.path) {
+      navigate(notification.path);
+    }
+  };
+
   const filters: FilterType[] = ['ALL', 'EVALUATIONS', 'MESSAGES', 'STATUS UPDATES'];
-  const filtered = activeFilter === 'ALL'
-    ? notifications
-    : notifications.filter(n => n.type === activeFilter);
+  const filtered =
+    activeFilter === 'ALL'
+      ? notifications
+      : notifications.filter((n) => n.type === activeFilter);
 
   const getBadgeStyles = (color: string) => {
     switch (color) {
-      case 'green': return { backgroundColor: 'rgba(106,186,186,0.15)', color: '#6ababa', border: '1px solid rgba(106,186,186,0.3)' };
-      case 'amber': return { backgroundColor: 'rgba(212,165,116,0.15)', color: '#d4a574', border: '1px solid rgba(212,165,116,0.3)' };
-      case 'teal': return { backgroundColor: 'rgba(100,200,200,0.15)', color: '#64c8c8', border: '1px solid rgba(100,200,200,0.3)' };
-      default: return {};
+      case 'green':
+        return {
+          backgroundColor: 'rgba(106,186,186,0.15)',
+          color: '#6ababa',
+          border: '1px solid rgba(106,186,186,0.3)',
+        };
+      case 'amber':
+        return {
+          backgroundColor: 'rgba(212,165,116,0.15)',
+          color: '#d4a574',
+          border: '1px solid rgba(212,165,116,0.3)',
+        };
+      case 'teal':
+        return {
+          backgroundColor: 'rgba(100,200,200,0.15)',
+          color: '#64c8c8',
+          border: '1px solid rgba(100,200,200,0.3)',
+        };
+      default:
+        return {};
     }
   };
 
   const getIcon = (type: FilterType) => {
     switch (type) {
-      case 'EVALUATIONS': return ImageIcon;
-      case 'MESSAGES': return MessageSquare;
-      case 'STATUS UPDATES': return Tag;
-      default: return UserCheck;
+      case 'EVALUATIONS':
+        return ImageIcon;
+      case 'MESSAGES':
+        return MessageSquare;
+      case 'STATUS UPDATES':
+        return Tag;
+      default:
+        return UserCheck;
     }
   };
 
@@ -147,7 +223,10 @@ export function Notifications() {
       <div style={{ maxWidth: '800px' }}>
         <div className="mb-[32px] flex items-center justify-between">
           <div>
-            <h1 className="text-[40px] mb-[8px]" style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}>
+            <h1
+              className="text-[40px] mb-[8px]"
+              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+            >
               Notifications
             </h1>
             <p className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}>
@@ -173,7 +252,7 @@ export function Notifications() {
                 fontFamily: 'var(--font-label)',
                 border: activeFilter === filter ? '1px solid #f0f0ec' : '1px solid #2a2a2a',
                 backgroundColor: activeFilter === filter ? '#f0f0ec' : 'transparent',
-                color: activeFilter === filter ? '#080808' : '#a0a09a'
+                color: activeFilter === filter ? '#080808' : '#a0a09a',
               }}
             >
               {filter}
@@ -181,13 +260,22 @@ export function Notifications() {
           ))}
         </div>
 
-        <div className="rounded-[4px] overflow-hidden" style={{ backgroundColor: '#111111', border: '1px solid #2a2a2a' }}>
+        <div
+          className="rounded-[4px] overflow-hidden"
+          style={{ backgroundColor: '#111111', border: '1px solid #2a2a2a' }}
+        >
           {loading ? (
-            <div className="py-[48px] text-center" style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#888880' }}>
+            <div
+              className="py-[48px] text-center"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#888880' }}
+            >
               Loading...
             </div>
           ) : filtered.length === 0 ? (
-            <div className="py-[48px] text-center" style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#888880' }}>
+            <div
+              className="py-[48px] text-center"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#888880' }}
+            >
               No notifications yet. They will appear here as you use CastView.
             </div>
           ) : (
@@ -195,17 +283,40 @@ export function Notifications() {
               const Icon = getIcon(notification.type);
               return (
                 <div
-                  key={notification.id}
+                  key={`${notification.source}-${notification.id}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => void handleNotificationClick(notification)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      void handleNotificationClick(notification);
+                    }
+                  }}
                   className="relative px-[24px] py-[20px] border-b last:border-b-0 hover:bg-[#1a1a1a] transition-colors cursor-pointer"
-                  style={{ backgroundColor: notification.unread ? '#161616' : '#111111', borderColor: '#2a2a2a' }}
+                  style={{
+                    backgroundColor: notification.unread ? '#161616' : '#111111',
+                    borderColor: '#2a2a2a',
+                  }}
                 >
                   {notification.unread && (
-                    <div className="absolute left-[8px] top-[28px] w-[6px] h-[6px] rounded-full" style={{ backgroundColor: '#f0f0ec' }} />
+                    <div
+                      className="absolute left-[8px] top-[28px] w-[6px] h-[6px] rounded-full"
+                      style={{ backgroundColor: '#f0f0ec' }}
+                    />
                   )}
-                  <div className="flex items-start gap-[16px]" style={{ marginLeft: notification.unread ? '12px' : '0' }}>
-                    <div className="mt-[2px]"><Icon size={16} style={{ color: '#a0a09a' }} /></div>
+                  <div
+                    className="flex items-start gap-[16px]"
+                    style={{ marginLeft: notification.unread ? '12px' : '0' }}
+                  >
+                    <div className="mt-[2px]">
+                      <Icon size={16} style={{ color: '#a0a09a' }} />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] mb-[4px]" style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', lineHeight: 1.4 }}>
+                      <p
+                        className="text-[13px] mb-[4px]"
+                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', lineHeight: 1.4 }}
+                      >
                         {notification.title}
                       </p>
                       <p className="text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}>
@@ -215,7 +326,10 @@ export function Notifications() {
                     {notification.badge && (
                       <div
                         className="px-[10px] py-[6px] rounded-[4px] text-[10px] uppercase tracking-[0.05em] whitespace-nowrap"
-                        style={{ fontFamily: 'var(--font-label)', ...getBadgeStyles(notification.badge.color) }}
+                        style={{
+                          fontFamily: 'var(--font-label)',
+                          ...getBadgeStyles(notification.badge.color),
+                        }}
                       >
                         {notification.badge.text}
                       </div>

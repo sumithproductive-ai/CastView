@@ -165,6 +165,8 @@ export function Settings() {
   const [supportSending, setSupportSending] = useState(false);
   const [supportSuccess, setSupportSuccess] = useState(false);
   const [supportError, setSupportError] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [agencySaveError, setAgencySaveError] = useState<string | null>(null);
 
   const { openTutorial } = useTutorial();
   const { agencyId, user, plan, planStatus, signOut, loading: authLoading } = useAuth();
@@ -339,12 +341,17 @@ export function Settings() {
 
   const handleSubscribe = async (tier: string) => {
     if (!agencyId || !user?.email) return;
+    setCheckoutError(null);
     const res = await authFetch('/api/stripe-checkout', {
       method: 'POST',
       body: JSON.stringify({ tier }),
     });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.url) {
+      setCheckoutError(data.error ?? 'Unable to start checkout. Please try again.');
+      return;
+    }
+    window.location.href = data.url;
   };
 
   const handleManageBilling = async () => {
@@ -377,6 +384,7 @@ export function Settings() {
   const handleSaveAgency = async () => {
     if (!agencyId || savingAgency) return;
     setSavingAgency(true);
+    setAgencySaveError(null);
     const { error } = await supabase
       .from('agencies')
       .update({ name: agencyName.trim(), primary_market: primaryMarket.trim() })
@@ -384,6 +392,7 @@ export function Settings() {
     setSavingAgency(false);
     if (error) {
       console.error('[Settings] agency save failed:', error.message);
+      setAgencySaveError('Could not save agency details. Please try again.');
       return;
     }
     setAgencySaved(true);
@@ -457,6 +466,14 @@ export function Settings() {
           >
             BILLING
           </div>
+          {checkoutError && (
+            <p
+              className="mb-[12px] text-[12px]"
+              style={{ fontFamily: 'var(--font-mono)', color: '#e8d4a8' }}
+            >
+              {checkoutError}
+            </p>
+          )}
           <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] p-[24px]">
             <div className="flex items-center justify-between mb-[24px] pb-[24px] border-b border-[#2a2a2a]">
               <div>
@@ -969,6 +986,14 @@ export function Settings() {
               </button>
               )}
             </div>
+            {agencySaveError && (
+              <p
+                className="text-[12px] mt-[8px] text-right"
+                style={{ fontFamily: 'var(--font-mono)', color: '#e8a8a8' }}
+              >
+                {agencySaveError}
+              </p>
+            )}
           </div>
         </div>
 

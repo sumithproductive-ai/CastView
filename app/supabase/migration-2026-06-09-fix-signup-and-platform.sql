@@ -2,7 +2,11 @@
 -- Run in Supabase SQL Editor or via supabase db push after linking migrations.
 
 -- 1. Signup provisioning (bypasses RLS safely for new users)
-CREATE OR REPLACE FUNCTION public.provision_agency_for_user(p_agency_name text DEFAULT NULL)
+CREATE OR REPLACE FUNCTION public.provision_agency_for_user(
+  p_agency_name text DEFAULT NULL,
+  p_plan text DEFAULT 'trial',
+  p_plan_status text DEFAULT 'trialing'
+)
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -14,6 +18,8 @@ DECLARE
   v_agency_id uuid;
   v_name text;
   v_meta_name text;
+  v_plan text;
+  v_plan_status text;
   v_trial_ends_at timestamptz := now() + interval '14 days';
 BEGIN
   IF v_user_id IS NULL THEN
@@ -36,8 +42,19 @@ BEGIN
     'My Agency'
   );
 
+  v_plan := COALESCE(NULLIF(trim(p_plan), ''), 'trial');
+  v_plan_status := COALESCE(NULLIF(trim(p_plan_status), ''), 'trialing');
+
+  IF v_email IS NOT NULL AND EXISTS (
+    SELECT 1 FROM public.waitlist w
+    WHERE lower(w.email) = lower(v_email) AND w.approved_at IS NOT NULL
+  ) THEN
+    v_plan := 'founding_beta';
+    v_plan_status := 'trialing';
+  END IF;
+
   INSERT INTO public.agencies (name, owner_email, plan, plan_status, trial_ends_at)
-  VALUES (v_name, COALESCE(v_email, ''), 'trial', 'trialing', v_trial_ends_at)
+  VALUES (v_name, COALESCE(v_email, ''), v_plan, v_plan_status, v_trial_ends_at)
   RETURNING id INTO v_agency_id;
 
   INSERT INTO public.profiles (id, email, agency_id, role)
@@ -47,8 +64,10 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.provision_agency_for_user(text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.provision_agency_for_user(text) TO authenticated;
+DROP FUNCTION IF EXISTS public.provision_agency_for_user(text);
+REVOKE ALL ON FUNCTION public.provision_agency_for_user(text, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.provision_agency_for_user(text, text, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.provision_agency_for_user(text, text, text) TO authenticated;
 
 -- 2. Backfill confirmed users missing profiles/agencies
 DO $$

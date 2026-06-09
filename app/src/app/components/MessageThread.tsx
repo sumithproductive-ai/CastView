@@ -224,9 +224,10 @@ function ThreadMessages({
 }
 
 export function MessageThread({ prospectId, prospectName, prospectEmail }: Props) {
-  const { agencyId } = useAuth();
+  const { agencyId, agencyName } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [openThreadIds, setOpenThreadIds] = useState<Set<string>>(new Set());
   const [showNewConversation, setShowNewConversation] = useState(false);
   const [newSubject, setNewSubject] = useState('');
@@ -307,6 +308,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
     if (!recipientEmail || !subject.trim() || !messageBody || !agencyId) return;
 
     setSending(true);
+    setSendError(null);
     try {
       const res = await authFetch('/api/send-message', {
         method: 'POST',
@@ -316,7 +318,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
           toName: prospectName,
           subject: subject.trim(),
           body: messageBody,
-          agencyName: 'CastView Agency',
+          agencyName: agencyName?.trim() || 'CastView Agency',
           thread_id: threadId,
         }),
       });
@@ -347,6 +349,11 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
         }
 
         void fetchMessages();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSendError(
+          (data as { error?: string }).error ?? 'Message could not be sent. Please try again.',
+        );
       }
     } finally {
       setSending(false);
@@ -389,6 +396,18 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
 
   return (
     <div style={{ marginBottom: '32px', background: '#080808' }}>
+      {sendError && (
+        <p
+          style={{
+            fontFamily: mono,
+            fontSize: '12px',
+            color: '#e8a8a8',
+            marginBottom: '12px',
+          }}
+        >
+          {sendError}
+        </p>
+      )}
       <div
         style={{
           background: '#1a1a1a',

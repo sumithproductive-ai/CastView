@@ -9,9 +9,10 @@ import { useTutorial } from '../context/TutorialContext';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { isTutorialOpen, closeTutorial } = useTutorial();
-  const { plan, planStatus, agencyId, user } = useAuth();
+  const { plan, planStatus, agencyId, user, setupError, loading: authLoading } = useAuth();
   const [daysLeft, setDaysLeft] = useState<number | null>(null);
   const [trialExpired, setTrialExpired] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [bannerDismissed, setBannerDismissed] = useState(
     () => sessionStorage.getItem('trial-banner-dismissed') === '1',
   );
@@ -84,12 +85,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const handleUpgrade = async (tier = 'studio') => {
     if (!agencyId || !user?.email) return;
+    setCheckoutError(null);
     const res = await authFetch('/api/stripe-checkout', {
       method: 'POST',
       body: JSON.stringify({ tier }),
     });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.url) {
+      setCheckoutError(data.error ?? 'Unable to start checkout. Please try again.');
+      return;
+    }
+    window.location.href = data.url;
   };
 
   return (
@@ -97,6 +103,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 items-stretch min-w-0 w-full">
         <Sidebar />
         <main className="flex-1 min-w-0 w-full pb-[64px] md:pb-0 overflow-x-hidden">
+        {!authLoading && user && setupError && (
+          <div
+            className="px-[24px] py-[12px] text-[12px] border-b"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              backgroundColor: '#2a1a1a',
+              borderColor: '#5a3030',
+              color: '#f0c0c0',
+            }}
+          >
+            {setupError}
+          </div>
+        )}
+        {checkoutError && (
+          <div
+            className="px-[24px] py-[12px] text-[12px] border-b"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              backgroundColor: '#2a2418',
+              borderColor: '#5a4a30',
+              color: '#e8d4a8',
+            }}
+          >
+            {checkoutError}
+          </div>
+        )}
         {!bannerDismissed && !isOnActivePaidPlan && daysLeft !== null && !trialExpired && (
           <div
             className="flex flex-col gap-3 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between md:px-12 flex-shrink-0"

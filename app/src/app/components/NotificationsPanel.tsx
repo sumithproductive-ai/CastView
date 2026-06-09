@@ -317,7 +317,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
   return (
     <div
       data-notifications-panel
-      className="fixed left-[240px] top-0 h-screen flex flex-col border-r"
+      className="fixed left-0 md:left-[240px] top-0 h-screen flex flex-col border-r"
       style={{ width: '320px', backgroundColor: '#111111', borderColor: '#2a2a2a', zIndex: 40 }}
     >
       <div className="flex items-center justify-between px-[16px] py-[16px] border-b" style={{ borderColor: '#2a2a2a' }}>

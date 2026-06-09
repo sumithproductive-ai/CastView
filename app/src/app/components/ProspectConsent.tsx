@@ -258,8 +258,8 @@ export function ProspectConsent() {
                   <p className="mb-[12px]">
                     Deletion: the Agency may delete all prospect data at any time from the prospect profile page.
                   </p>
-                  <p style={{ color: '#888880', fontStyle: 'italic' }}>
-                    This is a placeholder document. Replace with legally reviewed DPA before production launch.
+                  <p style={{ color: '#888880', fontSize: '12px' }}>
+                    Summary for consent purposes. Contact legal@castview.org for the full signed DPA.
                   </p>
                 </div>
               ) : (
@@ -280,8 +280,8 @@ export function ProspectConsent() {
                   <p className="mb-[12px]">
                     Data rights: Prospects have the right to access, correct, or request deletion of their data at any time by contacting their representing agency.
                   </p>
-                  <p style={{ color: '#888880', fontStyle: 'italic' }}>
-                    This is a placeholder document. Replace with legally reviewed Privacy Policy before production launch.
+                  <p style={{ color: '#888880', fontSize: '12px' }}>
+                    Summary for consent purposes. Contact legal@castview.org for the full privacy policy.
                   </p>
                 </div>
               )}

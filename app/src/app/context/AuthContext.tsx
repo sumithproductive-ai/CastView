@@ -12,6 +12,7 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  setupError: string | null;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, agencyName: string) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
@@ -91,6 +92,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
+  setupError: null,
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null }),
   signOut: async () => {},
@@ -126,9 +128,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [plan, setPlan] = useState<string>('trial');
   const [planStatus, setPlanStatus] = useState<string>('trialing');
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
+  const [setupError, setSetupError] = useState<string | null>(null);
 
   const applyAgencyPlan = async (resolvedAgencyId: string) => {
     setAgencyId(resolvedAgencyId);
+    setSetupError(null);
     const { data: agency } = await supabase
       .from('agencies')
       .select('name, plan, plan_status, trial_ends_at')
@@ -144,6 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchAgencyId = async (authUser: User | null | undefined) => {
     if (!authUser) {
+      setSetupError(null);
       setLoading(false);
       return;
     }
@@ -155,6 +160,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { error: provisionError } = await provisionAgencyForUser(authUser);
         if (provisionError) {
           console.error('[AuthContext] agency provisioning failed:', provisionError);
+          setSetupError(
+            'We could not finish setting up your agency. Please try signing out and back in, or contact support@castview.org.',
+          );
           return;
         }
         resolvedAgencyId = await getProfileAgencyId(authUser.id);
@@ -162,9 +170,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (resolvedAgencyId) {
         await applyAgencyPlan(resolvedAgencyId);
+      } else {
+        setSetupError(
+          'Your account is missing an agency profile. Please contact support@castview.org.',
+        );
       }
     } catch (err) {
       console.error('[AuthContext] fetchAgencyId failed:', err);
+      setSetupError('Something went wrong loading your account. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -210,6 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setPlan('trial');
           setPlanStatus('trialing');
           setTrialEndsAt(null);
+          setSetupError(null);
           clearOnboardingSkipped();
           setLoading(false);
         }
@@ -296,6 +310,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAgencyId(null);
     setAgencyName(null);
     setTrialEndsAt(null);
+    setSetupError(null);
     clearOnboardingSkipped();
   };
 
@@ -305,6 +320,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         loading,
+        setupError,
         signIn,
         signUp,
         signOut,

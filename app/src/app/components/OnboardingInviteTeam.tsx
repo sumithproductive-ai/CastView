@@ -1,49 +1,16 @@
 import React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Plus } from 'lucide-react';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
 import { needsOnboarding, skipOnboarding } from '../../lib/onboarding';
-
-interface TeamMember {
-  id: string;
-  email: string;
-  role: string;
-}
 
 export function OnboardingInviteTeam() {
   const navigate = useNavigate();
   const { agencyId, agencyName, setAgencyName } = useAuth();
   const { prospects } = useProspects();
   const { models } = useRoster();
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
-    { id: '1', email: '', role: 'Agent' }
-  ]);
-
-  const addTeamMember = () => {
-    setTeamMembers([
-      ...teamMembers,
-      { id: Date.now().toString(), email: '', role: 'Agent' }
-    ]);
-  };
-
-  const updateEmail = (id: string, email: string) => {
-    setTeamMembers(
-      teamMembers.map(member =>
-        member.id === id ? { ...member, email } : member
-      )
-    );
-  };
-
-  const updateRole = (id: string, role: string) => {
-    setTeamMembers(
-      teamMembers.map(member =>
-        member.id === id ? { ...member, role } : member
-      )
-    );
-  };
 
   useEffect(() => {
     if (!needsOnboarding(agencyName, prospects.length, models.length)) {
@@ -149,7 +116,7 @@ export function OnboardingInviteTeam() {
           className="text-[13px] mb-[48px] text-center"
           style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
         >
-          Add colleagues who will use CastView.
+          Team invites are coming soon. For now, continue solo — you can invite colleagues from Settings later.
         </p>
 
         {/* Form Card */}
@@ -157,55 +124,14 @@ export function OnboardingInviteTeam() {
           className="rounded-[4px] p-[32px]"
           style={{ backgroundColor: '#111111', border: '1px solid #2a2a2a' }}
         >
-          {/* Team Member Inputs */}
-          <div className="mb-[24px] space-y-[12px]">
-            {teamMembers.map((member) => (
-              <div key={member.id} className="flex gap-[12px]">
-                {/* Email Input */}
-                <input
-                  type="email"
-                  value={member.email}
-                  onChange={(e) => updateEmail(member.id, e.target.value)}
-                  placeholder="colleague@agency.com"
-                  className="flex-1 px-[16px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px]"
-                  style={{ 
-                    fontFamily: 'var(--font-mono)', 
-                    fontSize: '13px', 
-                    color: '#f0f0ec'
-                  }}
-                />
+          {/* Team invites coming soon */}
+          <p
+            className="mb-[24px] text-[12px] leading-relaxed"
+            style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+          >
+            Multi-seat team access is on the way. You can manage billing and seats from Settings when invites launch.
+          </p>
 
-                {/* Role Selector */}
-                <select
-                  value={member.role}
-                  onChange={(e) => updateRole(member.id, e.target.value)}
-                  className="px-[16px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px]"
-                  style={{ 
-                    fontFamily: 'var(--font-mono)', 
-                    fontSize: '13px', 
-                    color: '#f0f0ec'
-                  }}
-                >
-                  <option value="Agent">Agent</option>
-                  <option value="Booker">Booker</option>
-                  <option value="Director">Director</option>
-                </select>
-
-                {/* Add Button */}
-                {member.id === teamMembers[teamMembers.length - 1].id && (
-                  <button
-                    onClick={addTeamMember}
-                    className="w-[40px] h-[40px] flex items-center justify-center border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors cursor-pointer"
-                    style={{ color: '#a0a09a' }}
-                  >
-                    <Plus size={16} />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Continue Button */}
           <button
             onClick={handleContinue}
             className="w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 cursor-pointer"
@@ -215,7 +141,7 @@ export function OnboardingInviteTeam() {
               color: '#080808'
             }}
           >
-            SEND INVITES & CONTINUE →
+            CONTINUE →
           </button>
 
           {/* Skip Link */}
