@@ -317,18 +317,32 @@ export function ProspectRenderHistory({
   };
 
   const removeEvaluationFromProfile = async (evalId: string) => {
-    const sourceSets = isProspect
-      ? (contextProspect?.digitalSets ?? profileDigitalSets)
-      : digitalSets;
-
-    const updatedSets = sourceSets.map((set) => ({
-      ...set,
-      evaluations: (set.evaluations ?? []).filter(
-        (evaluation) => evaluation.id !== evalId,
-      ),
-    }));
-
     try {
+      const { error: contextError } = await supabase
+        .from('context_evaluations')
+        .delete()
+        .eq('evaluation_id', evalId);
+
+      if (contextError) throw contextError;
+
+      const { error: evalError } = await supabase
+        .from('evaluations')
+        .delete()
+        .eq('id', evalId);
+
+      if (evalError) throw evalError;
+
+      const sourceSets = isProspect
+        ? (contextProspect?.digitalSets ?? profileDigitalSets)
+        : digitalSets;
+
+      const updatedSets = sourceSets.map((set) => ({
+        ...set,
+        evaluations: (set.evaluations ?? []).filter(
+          (evaluation) => evaluation.id !== evalId,
+        ),
+      }));
+
       if (isProspect && prospectId) {
         await updateProspect(prospectId, { digitalSets: updatedSets });
       } else if (isModel && modelId) {
@@ -337,6 +351,7 @@ export function ProspectRenderHistory({
       }
 
       localStorage.removeItem(`castview_eval_${evalId}`);
+
       if (openEvalId === evalId) {
         setOpenEvalId(null);
       }
