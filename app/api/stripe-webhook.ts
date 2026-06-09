@@ -81,6 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (err) {
     console.error('[Stripe webhook] handler error:', err);
+    return res.status(500).json({ error: 'Webhook handler failed' });
   }
   return res.status(200).json({ received: true });
 }
