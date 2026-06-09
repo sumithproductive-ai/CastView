@@ -23,8 +23,6 @@ type AuthContextType = {
   setAgencyName: (name: string) => void;
 };
 
-const TRIAL_MS = 14 * 24 * 60 * 60 * 1000;
-
 function agencyNameFromUser(user: User): string {
   const meta = user.user_metadata?.agency_name;
   if (typeof meta === 'string' && meta.trim()) return meta.trim();
@@ -43,41 +41,22 @@ async function getProfileAgencyId(userId: string): Promise<string | null> {
   return data?.agency_id ?? null;
 }
 
-async function provisionAgencyForUser(user: User): Promise<{ error: string | null }> {
+async function provisionAgencyForUser(
+  user: User,
+  agencyNameOverride?: string,
+): Promise<{ error: string | null }> {
   const existingAgencyId = await getProfileAgencyId(user.id);
   if (existingAgencyId) return { error: null };
 
-  const agencyName = agencyNameFromUser(user);
-  const trialEndsAt = new Date(Date.now() + TRIAL_MS).toISOString();
-
-  const { data: agency, error: agencyError } = await supabase
-    .from('agencies')
-    .insert({
-      name: agencyName,
-      plan: 'trial',
-      plan_status: 'trialing',
-      trial_ends_at: trialEndsAt,
-    })
-    .select()
-    .single();
-
-  if (agencyError || !agency) {
-    const retryAgencyId = await getProfileAgencyId(user.id);
-    if (retryAgencyId) return { error: null };
-    return { error: 'Could not create agency' };
-  }
-
-  const { error: profileError } = await supabase.from('profiles').insert({
-    id: user.id,
-    email: user.email ?? '',
-    agency_id: agency.id,
-    role: 'owner',
+  const agencyName = agencyNameOverride?.trim() || agencyNameFromUser(user);
+  const { data: agencyId, error } = await supabase.rpc('provision_agency_for_user', {
+    p_agency_name: agencyName,
   });
 
-  if (profileError) {
+  if (error || !agencyId) {
     const retryAgencyId = await getProfileAgencyId(user.id);
     if (retryAgencyId) return { error: null };
-    return { error: 'Could not create profile' };
+    return { error: error?.message ?? 'Could not create agency' };
   }
 
   return { error: null };
@@ -229,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: null, needsConfirmation: true };
       }
 
-      const { error: provisionError } = await provisionAgencyForUser(data.user);
+      const { error: provisionError } = await provisionAgencyForUser(data.user, agencyName);
       if (provisionError) return { error: provisionError };
 
       setLoading(true);

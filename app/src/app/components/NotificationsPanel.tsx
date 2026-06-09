@@ -24,7 +24,6 @@ interface PanelNotification {
 
 interface InboundMessage {
   id: string;
-  entity_id?: string | null;
   prospect_id?: string | null;
   prospect_name?: string | null;
   body: string;
@@ -132,7 +131,7 @@ function truncateBody(body: string, maxLength = 80): string {
 }
 
 function mapInboundMessageToPanelItem(msg: InboundMessage): PanelNotification {
-  const entityId = msg.entity_id ?? msg.prospect_id ?? null;
+  const entityId = msg.prospect_id ?? null;
   const displayName = msg.prospect_name?.trim() || msg.from_email;
 
   return {
@@ -195,7 +194,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
 
     const { data: messages, error: messagesError } = await supabase
       .from('messages')
-      .select('id, entity_id, prospect_id, prospect_name, body, sent_at, from_email, read_at')
+      .select('id, prospect_id, body, sent_at, from_email, read_at')
       .eq('agency_id', agencyId)
       .eq('direction', 'inbound')
       .order('sent_at', { ascending: false })
@@ -205,10 +204,35 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
       console.error('[NotificationsPanel] messages query error:', messagesError);
     }
 
+    const prospectIds = [
+      ...new Set(
+        (messages ?? [])
+          .map((msg) => msg.prospect_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
+    const prospectNames: Record<string, string> = {};
+    if (prospectIds.length > 0) {
+      const { data: prospects } = await supabase
+        .from('prospects')
+        .select('id, name')
+        .in('id', prospectIds);
+
+      for (const prospect of prospects ?? []) {
+        prospectNames[prospect.id] = prospect.name;
+      }
+    }
+
     const items: PanelNotification[] = [];
 
-    for (const msg of ((messages ?? []) as InboundMessage[])) {
-      items.push(mapInboundMessageToPanelItem(msg));
+    for (const msg of (messages ?? []) as InboundMessage[]) {
+      items.push(
+        mapInboundMessageToPanelItem({
+          ...msg,
+          prospect_name: msg.prospect_id ? prospectNames[msg.prospect_id] ?? null : null,
+        }),
+      );
     }
 
     for (const ev of (events ?? [])) {

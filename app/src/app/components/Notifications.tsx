@@ -94,7 +94,7 @@ export function Notifications() {
         items.push({
           id: msg.id,
           type: 'MESSAGES',
-          unread: true,
+          unread: !msg.read_at,
           title: `Reply received from ${msg.from_email}`,
           time: timeAgo(msg.sent_at),
           badge: { text: 'REPLY', color: 'green' },
