@@ -651,6 +651,21 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       }
 
       if (digitalSets !== undefined) {
+        setProspects((prev) =>
+          prev.map((p) =>
+            p.id === id
+              ? {
+                  ...p,
+                  digitalSets,
+                  evaluations: digitalSets.reduce(
+                    (sum, ds) => sum + (ds.evaluations?.length ?? 0),
+                    0,
+                  ),
+                  renderedContexts: deriveRenderedContexts(digitalSets),
+                }
+              : p,
+          ),
+        );
         // Instead of delete+reinsert, upsert each digital set and its evaluations
         await saveDigitalSets(id, digitalSets);
       }

@@ -266,17 +266,13 @@ export function ProspectRenderHistory({
     searchParams,
   ]);
 
-  const profileDigitalSets = activeProfile.digitalSets;
-  const digitalSetCount = profileDigitalSets.length;
-  const totalEvaluations =
-    typeof activeProfile?.evaluations === 'number'
-      ? activeProfile.evaluations
-      : activeProfile?.digitalSets?.reduce(
-          (sum, ds) => sum + (ds.evaluations?.length || 0),
-          0,
-        ) ?? 0;
+  const digitalSetCount = digitalSets.length;
+  const totalEvaluations = digitalSets.reduce(
+    (sum, ds) => sum + (ds.evaluations?.length || 0),
+    0,
+  );
   const hasDigitalSets = digitalSetCount > 0;
-  const digitalSetsForDisplay = isProspect ? profileDigitalSets : digitalSets;
+  const digitalSetsForDisplay = digitalSets;
   const allEvaluations = digitalSetsForDisplay
     .flatMap((ds) =>
       (ds.evaluations ?? []).map((ev) => ({
@@ -335,20 +331,23 @@ export function ProspectRenderHistory({
       localStorage.removeItem(`castview_persisted_${evalId}`);
       localStorage.removeItem(`castview_eval_${evalId}`);
 
-      const sourceSets = isProspect
-        ? (contextProspect?.digitalSets ?? profileDigitalSets)
-        : digitalSets;
-
-      const updatedSets = sourceSets.map((set) => ({
+      const updatedSets = digitalSets.map((set) => ({
         ...set,
         evaluations: (set.evaluations ?? []).filter((e) => e.id !== evalId),
       }));
+
+      setDigitalSets(updatedSets);
+      setSelectedEvalIds((prev) => {
+        if (!prev.has(evalId)) return prev;
+        const next = new Set(prev);
+        next.delete(evalId);
+        return next;
+      });
 
       if (isProspect && prospectId) {
         await updateProspect(prospectId, { digitalSets: updatedSets });
       } else if (isModel && modelId) {
         await updateModel(modelId, { digitalSets: updatedSets });
-        setDigitalSets(updatedSets);
       }
 
       if (openEvalId === evalId) setOpenEvalId(null);
