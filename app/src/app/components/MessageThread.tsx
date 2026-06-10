@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { authFetch } from '../../lib/apiAuth';
+import { messagePreviewText, normalizeMessageRow } from '../../lib/messageEntity';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -55,10 +56,8 @@ function getMessageTimestamp(msg: Message): string {
   return msg.sent_at ?? msg.created_at ?? new Date().toISOString();
 }
 
-function truncate(text: string, maxLength: number): string {
-  const trimmed = text.trim();
-  if (trimmed.length <= maxLength) return trimmed;
-  return `${trimmed.slice(0, maxLength)}...`;
+function getMessageDisplayText(msg: Message): string {
+  return messagePreviewText(msg);
 }
 
 function formatThreadDate(timestamp: string): string {
@@ -111,7 +110,7 @@ function groupIntoThreads(messages: Message[]): ThreadGroup[] {
         messages: sorted,
         startedAt,
         subject: first.subject?.trim() || 'Message',
-        lastPreview: truncate(last.body, 60),
+        lastPreview: messagePreviewText(last, 60),
       };
     })
     .sort(
@@ -199,7 +198,7 @@ function ThreadMessages({
                     }),
               }}
             >
-              {msg.body}
+              {getMessageDisplayText(msg)}
             </div>
 
             <span
@@ -254,7 +253,9 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
       .eq('agency_id', agencyId)
       .order('sent_at', { ascending: true });
 
-    setMessages((data ?? []) as Message[]);
+    setMessages(
+      (data ?? []).map((row) => normalizeMessageRow(row as Record<string, unknown>)) as Message[],
+    );
     setLoading(false);
   }, [prospectId, agencyId]);
 
@@ -342,7 +343,12 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
           await supabase.from('events').insert({
             agency_id: agencyId,
             event_type: 'message_sent',
-            metadata: { prospectId, toEmail: recipientEmail, threadId },
+            metadata: {
+              prospectId,
+              toEmail: recipientEmail,
+              threadId,
+              bodyPreview: messagePreviewText({ body: messageBody, subject: subject.trim() }, 120),
+            },
           });
         } catch {
           /* non-critical */
@@ -533,7 +539,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            {thread.subject}
+                            {thread.lastPreview}
                           </span>
                           <span
                             style={{
@@ -546,19 +552,21 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                             {formatThreadDate(thread.startedAt)}
                           </span>
                         </div>
-                        <p
-                          style={{
-                            fontFamily: mono,
-                            fontSize: '11px',
-                            color: '#888880',
-                            margin: 0,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {thread.lastPreview}
-                        </p>
+                        {thread.subject !== thread.lastPreview && (
+                          <p
+                            style={{
+                              fontFamily: mono,
+                              fontSize: '11px',
+                              color: '#888880',
+                              margin: 0,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {thread.subject}
+                          </p>
+                        )}
                       </div>
                       <span
                         style={{

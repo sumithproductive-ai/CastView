@@ -62,6 +62,7 @@ export function NewModelReview() {
     const newModel: RosterModel = {
       id: crypto.randomUUID(),
       name,
+      email: '',
       image: front || null,
       primaryContext: 'EDITORIAL',
       contexts: ['ED'],

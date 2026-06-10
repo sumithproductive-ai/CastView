@@ -6,6 +6,7 @@ import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
 import { useTutorial } from '../context/TutorialContext';
 import { needsOnboarding } from '../../lib/onboarding';
+import { messagePreviewText, resolveMessageTabPath } from '../../lib/messageEntity';
 import { supabase } from '../../lib/supabase';
 import { DigitalImage } from './DigitalImage';
 
@@ -362,7 +363,7 @@ export function Dashboard() {
             className="text-center py-[32px] text-[12px]"
             style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
           >
-            No messages yet. Send your first message from a prospect profile.
+            No messages yet. Send your first message from a prospect or roster profile.
           </div>
         ) : (
           <div
@@ -379,10 +380,12 @@ export function Dashboard() {
                   ...rowStagger(index, 0.03),
                 }}
                 onClick={() => {
-                  const prospect = prospects.find(p => p.id === msg.prospect_id);
-                  const model = models.find(m => m.id === msg.prospect_id);
-                  if (prospect) window.location.href = `/prospects/${prospect.id}`;
-                  else if (model) window.location.href = `/roster/${model.id}`;
+                  const path = resolveMessageTabPath(
+                    msg.prospect_id,
+                    prospects.map((p) => p.id),
+                    models.map((m) => m.id),
+                  );
+                  navigate(path);
                 }}
               >
                 <div
@@ -395,7 +398,7 @@ export function Dashboard() {
                   className="flex-1 text-[11px] truncate"
                   style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
                 >
-                  {msg.subject}
+                  {messagePreviewText(msg)}
                 </div>
                 <div
                   className="text-[11px] min-w-[80px] text-right"

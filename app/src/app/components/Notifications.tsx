@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Image as ImageIcon, UserCheck, MessageSquare, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { supabase } from '../../lib/supabase';
+import { messagePreviewText, resolveMessageTabPath } from '../../lib/messageEntity';
 import { useAuth } from '../context/AuthContext';
+import { useProspects } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
 
 type FilterType = 'ALL' | 'EVALUATIONS' | 'MESSAGES' | 'STATUS UPDATES';
 
@@ -32,6 +35,8 @@ function timeAgo(dateStr: string): string {
 export function Notifications() {
   const navigate = useNavigate();
   const { agencyId } = useAuth();
+  const { prospects } = useProspects();
+  const { models } = useRoster();
   const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +44,7 @@ export function Notifications() {
   useEffect(() => {
     if (!agencyId) return;
     loadNotifications();
-  }, [agencyId]);
+  }, [agencyId, prospects, models]);
 
   const loadNotifications = async () => {
     setLoading(true);
@@ -60,6 +65,9 @@ export function Notifications() {
         .limit(20);
 
       const items: NotificationItem[] = [];
+
+      const prospectIds = prospects.map((p) => p.id);
+      const modelIds = models.map((m) => m.id);
 
       for (const ev of events ?? []) {
         if (ev.event_type === 'evaluation_confirmed' || ev.event_type === 'evaluation_overridden') {
@@ -93,31 +101,42 @@ export function Notifications() {
           });
         }
         if (ev.event_type === 'message_sent') {
+          const metadata = (ev.metadata ?? {}) as {
+            prospectId?: string;
+            toEmail?: string;
+            bodyPreview?: string;
+          };
+          const entityId = metadata.prospectId;
+          const preview = metadata.bodyPreview?.trim();
           items.push({
             id: ev.id,
             type: 'MESSAGES',
             unread: !ev.read_at,
-            title: `Message sent to ${(ev.metadata as { toEmail?: string })?.toEmail ?? 'model'}`,
+            title: preview
+              ? preview
+              : `Message sent to ${metadata.toEmail ?? 'contact'}`,
             time: timeAgo(ev.created_at),
             sortAt: ev.created_at,
             badge: { text: 'SENT', color: 'teal' },
+            path: resolveMessageTabPath(entityId, prospectIds, modelIds),
             source: 'event',
           });
         }
       }
 
       for (const msg of messages ?? []) {
+        const prospect = prospects.find((p) => p.id === msg.prospect_id);
+        const model = models.find((m) => m.id === msg.prospect_id);
+        const entityName = prospect?.name ?? model?.name ?? msg.from_email;
         items.push({
           id: msg.id,
           type: 'MESSAGES',
           unread: !msg.read_at,
-          title: `Reply received from ${msg.from_email}`,
+          title: `${entityName}: ${messagePreviewText(msg)}`,
           time: timeAgo(msg.sent_at),
           sortAt: msg.sent_at,
           badge: { text: 'REPLY', color: 'green' },
-          path: msg.prospect_id
-            ? `/prospects/${msg.prospect_id}?tab=messages`
-            : '/prospects',
+          path: resolveMessageTabPath(msg.prospect_id, prospectIds, modelIds),
           source: 'message',
         });
       }

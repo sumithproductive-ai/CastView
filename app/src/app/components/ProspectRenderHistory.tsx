@@ -700,7 +700,7 @@ export function ProspectRenderHistory({
                 <MessageThread
                   prospectId={modelId}
                   prospectName={activeProfile.name}
-                  prospectEmail={(rosterModelForImage as { email?: string } | undefined)?.email ?? ''}
+                  prospectEmail={rosterModelForImage?.email ?? ''}
                 />
               )}
               {isProspect && prospectId && (

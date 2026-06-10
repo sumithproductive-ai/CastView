@@ -15,6 +15,7 @@ import { useAuth } from './AuthContext';
 export type RosterModel = {
   id: string;
   name: string;
+  email: string;
   image: string | null;
   primaryContext: string;
   contexts: string[];
@@ -101,6 +102,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
   const mapModel = (row: {
     id: string;
     name: string;
+    email?: string | null;
     image?: string | null;
     contexts?: string[];
     status?: string;
@@ -114,6 +116,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
     return {
       id: row.id,
       name: row.name,
+      email: row.email ?? '',
       image: row.image ?? null,
       primaryContext: (row.contexts ?? [])[0] ?? '',
       contexts: row.contexts ?? [],

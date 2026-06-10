@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { X, Image as ImageIcon, MessageSquare, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { supabase } from '../../lib/supabase';
+import { messagePreviewText, resolveEntityProfilePath, resolveMessageTabPath } from '../../lib/messageEntity';
 import { useAuth } from '../context/AuthContext';
+import { useProspects } from '../context/ProspectsContext';
+import { useRoster } from '../context/RosterContext';
 
 interface NotificationsPanelProps {
   isOpen: boolean;
@@ -37,16 +40,20 @@ function formatEventType(eventType: string): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-function mapEventToPanelItem(ev: {
-  id: string;
-  event_type: string;
-  created_at: string;
-  read_at: string | null;
-  metadata: unknown;
-}): PanelNotification {
+function mapEventToPanelItem(
+  ev: {
+    id: string;
+    event_type: string;
+    created_at: string;
+    read_at: string | null;
+    metadata: unknown;
+  },
+  resolveProfilePath: (entityId?: string) => string,
+  resolveMessagesPath: (entityId?: string) => string,
+): PanelNotification {
   const metadata = (ev.metadata ?? {}) as Record<string, unknown>;
   const entityId = (metadata.prospectId ?? metadata.entityId) as string | undefined;
-  const path = entityId ? `/prospects/${entityId}` : '/prospects';
+  const path = entityId ? resolveProfilePath(entityId) : '/prospects';
 
   switch (ev.event_type) {
     case 'evaluation_confirmed':
@@ -97,18 +104,22 @@ function mapEventToPanelItem(ev: {
         source: 'event',
         sortAt: ev.created_at,
       };
-    case 'message_sent':
+    case 'message_sent': {
+      const preview = (metadata.bodyPreview as string | undefined)?.trim();
+      const toEmail = (metadata.toEmail as string | undefined)?.trim();
       return {
         id: ev.id,
         unread: !ev.read_at,
         title: 'Message sent',
+        body: preview || (toEmail ? `To ${toEmail}` : undefined),
         time: timeAgo(ev.created_at),
         badge: { text: 'SENT', color: 'teal' },
-        path,
+        path: entityId ? resolveMessagesPath(entityId) : '/prospects',
         type: 'message',
         source: 'event',
         sortAt: ev.created_at,
       };
+    }
     default:
       return {
         id: ev.id,
@@ -124,13 +135,10 @@ function mapEventToPanelItem(ev: {
   }
 }
 
-function truncateBody(body: string, maxLength = 80): string {
-  const trimmed = body.trim();
-  if (trimmed.length <= maxLength) return trimmed;
-  return `${trimmed.slice(0, maxLength)}...`;
-}
-
-function mapInboundMessageToPanelItem(msg: InboundMessage): PanelNotification {
+function mapInboundMessageToPanelItem(
+  msg: InboundMessage,
+  resolvePath: (entityId?: string) => string,
+): PanelNotification {
   const entityId = msg.prospect_id ?? null;
   const displayName = msg.prospect_name?.trim() || msg.from_email;
 
@@ -138,10 +146,10 @@ function mapInboundMessageToPanelItem(msg: InboundMessage): PanelNotification {
     id: msg.id,
     unread: !msg.read_at,
     title: `${displayName} replied`,
-    body: truncateBody(msg.body),
+    body: messagePreviewText(msg),
     time: timeAgo(msg.sent_at),
     badge: { text: 'REPLY', color: 'reply' },
-    path: entityId ? `/prospects/${entityId}?tab=messages` : '/prospects',
+    path: entityId ? resolvePath(entityId) : '/prospects',
     type: 'message',
     source: 'message',
     sortAt: msg.sent_at,
@@ -162,6 +170,8 @@ function timeAgo(dateStr: string): string {
 export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps) {
   const navigate = useNavigate();
   const { agencyId } = useAuth();
+  const { prospects } = useProspects();
+  const { models } = useRoster();
   const [notifications, setNotifications] = useState<PanelNotification[]>([]);
 
   useEffect(() => {
@@ -204,7 +214,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
       console.error('[NotificationsPanel] messages query error:', messagesError);
     }
 
-    const prospectIds = [
+    const entityIds = [
       ...new Set(
         (messages ?? [])
           .map((msg) => msg.prospect_id)
@@ -213,30 +223,57 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
     ];
 
     const prospectNames: Record<string, string> = {};
-    if (prospectIds.length > 0) {
-      const { data: prospects } = await supabase
+    const modelNames: Record<string, string> = {};
+
+    if (entityIds.length > 0) {
+      const { data: prospectRows } = await supabase
         .from('prospects')
         .select('id, name')
-        .in('id', prospectIds);
+        .in('id', entityIds);
 
-      for (const prospect of prospects ?? []) {
+      for (const prospect of prospectRows ?? []) {
         prospectNames[prospect.id] = prospect.name;
       }
+
+      const unresolvedIds = entityIds.filter((id) => !prospectNames[id]);
+      if (unresolvedIds.length > 0) {
+        const { data: modelRows } = await supabase
+          .from('models')
+          .select('id, name')
+          .in('id', unresolvedIds);
+
+        for (const model of modelRows ?? []) {
+          modelNames[model.id] = model.name;
+        }
+      }
     }
+
+    const prospectIds = prospects.map((p) => p.id);
+    const modelIds = models.map((m) => m.id);
+    const resolveProfilePath = (entityId?: string) =>
+      resolveEntityProfilePath(entityId, prospectIds, modelIds);
+    const resolveMessagesPath = (entityId?: string) =>
+      resolveMessageTabPath(entityId, prospectIds, modelIds);
 
     const items: PanelNotification[] = [];
 
     for (const msg of (messages ?? []) as InboundMessage[]) {
+      const entityId = msg.prospect_id ?? null;
       items.push(
-        mapInboundMessageToPanelItem({
-          ...msg,
-          prospect_name: msg.prospect_id ? prospectNames[msg.prospect_id] ?? null : null,
-        }),
+        mapInboundMessageToPanelItem(
+          {
+            ...msg,
+            prospect_name: entityId
+              ? prospectNames[entityId] ?? modelNames[entityId] ?? null
+              : null,
+          },
+          resolveMessagesPath,
+        ),
       );
     }
 
-    for (const ev of (events ?? [])) {
-      items.push(mapEventToPanelItem(ev));
+    for (const ev of events ?? []) {
+      items.push(mapEventToPanelItem(ev, resolveProfilePath, resolveMessagesPath));
     }
 
     items.sort((a, b) => {
@@ -250,7 +287,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
     if (isOpen && agencyId) {
       loadNotifications();
     }
-  }, [isOpen, agencyId]);
+  }, [isOpen, agencyId, prospects, models]);
 
   const handleMarkAllRead = async () => {
     if (!agencyId) return;
