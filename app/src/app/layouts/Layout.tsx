@@ -166,7 +166,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   cursor: 'pointer',
                 }}
               >
-                SOLO $129
+                SOLO $99
               </button>
               <button
                 onClick={() => handleUpgrade('studio')}
@@ -278,7 +278,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </p>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
               {[
-                { tier: 'solo', label: 'Solo', price: '$129/mo', desc: 'For solo bookers' },
+                { tier: 'solo', label: 'Solo', price: '$99/mo', desc: 'For solo bookers' },
                 { tier: 'studio', label: 'Studio', price: '$349/mo', desc: 'For boutique agencies', highlight: true },
                 { tier: 'agency', label: 'Agency', price: '$699/mo', desc: 'For established agencies' },
               ].map(({ tier, label, price, desc, highlight }) => (
