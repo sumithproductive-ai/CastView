@@ -172,8 +172,7 @@ export function Settings() {
   const { agencyId, user, plan, planStatus, signOut, loading: authLoading } = useAuth();
 
   const isPageLoading = authLoading || loading;
-  const isOnPaidPlan = planStatus === 'active' && plan !== 'trial';
-  const canManageBilling = Boolean(stripeCustomerId) || isOnPaidPlan;
+  const canManageBilling = Boolean(stripeCustomerId);
 
   const seatProgress =
     seatLimit != null && seatLimit > 0

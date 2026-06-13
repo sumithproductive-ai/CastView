@@ -17,7 +17,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     () => sessionStorage.getItem('trial-banner-dismissed') === '1',
   );
 
-  const isOnActivePaidPlan = planStatus === 'active' && plan !== 'trial';
+  const paidPlans = new Set(['solo', 'studio', 'agency']);
+  const isOnActivePaidPlan =
+    planStatus === 'active' && paidPlans.has(plan.toLowerCase());
 
   useEffect(() => {
     if (!agencyId) return;
