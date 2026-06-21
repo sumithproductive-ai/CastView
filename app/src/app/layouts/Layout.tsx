@@ -168,7 +168,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   cursor: 'pointer',
                 }}
               >
-                SOLO $99
+                SOLO $49
               </button>
               <button
                 onClick={() => handleUpgrade('studio')}
@@ -185,7 +185,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   cursor: 'pointer',
                 }}
               >
-                STUDIO $349 ★
+                STUDIO $99 ★
               </button>
               <button
                 onClick={() => handleUpgrade('agency')}
@@ -202,7 +202,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   cursor: 'pointer',
                 }}
               >
-                AGENCY $699
+                BOUTIQUE TEAM $149–199
               </button>
             </div>
             <button
@@ -280,9 +280,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </p>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
               {[
-                { tier: 'solo', label: 'Solo', price: '$99/mo', desc: 'For solo bookers' },
-                { tier: 'studio', label: 'Studio', price: '$349/mo', desc: 'For boutique agencies', highlight: true },
-                { tier: 'agency', label: 'Agency', price: '$699/mo', desc: 'For established agencies' },
+                { tier: 'solo', label: 'Solo', price: '$49/mo', desc: 'For solo bookers' },
+                { tier: 'studio', label: 'Studio', price: '$99/mo', desc: 'For boutique agencies', highlight: true },
+                { tier: 'agency', label: 'Boutique Team', price: '$149–199/mo', desc: 'For established agencies' },
               ].map(({ tier, label, price, desc, highlight }) => (
                 <div
                   key={tier}

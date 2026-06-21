@@ -29,13 +29,13 @@ export function Pricing() {
               className="text-[11px] uppercase tracking-[0.12em] mb-[16px]"
               style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
             >
-              BOUTIQUE
+              SOLO
             </div>
             <div 
               className="text-[48px] mb-[8px]"
               style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
             >
-              $99
+              $49
             </div>
             <div 
               className="text-[13px] mb-[32px]"
@@ -115,7 +115,7 @@ export function Pricing() {
               className="text-[48px] mb-[8px]"
               style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
             >
-              $249
+              $99
             </div>
             <div 
               className="text-[13px] mb-[32px]"

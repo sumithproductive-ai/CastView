@@ -9,9 +9,9 @@ import { useTutorial } from '../context/TutorialContext';
 import { MARKET_SUGGESTIONS } from './LocationMarketField';
 
 const BILLING_TIERS = [
-  { id: 'solo' as const, name: 'SOLO', price: '$99', description: 'For independent agents' },
-  { id: 'studio' as const, name: 'STUDIO', price: '$349', description: 'For growing agencies', recommended: true },
-  { id: 'agency' as const, name: 'AGENCY', price: '$699', description: 'For established agencies' },
+  { id: 'solo' as const, name: 'SOLO', price: '$49', description: 'For independent agents' },
+  { id: 'studio' as const, name: 'STUDIO', price: '$99', description: 'For growing agencies', recommended: true },
+  { id: 'agency' as const, name: 'BOUTIQUE TEAM', price: '$149–199', description: 'For established agencies' },
 ];
 
 type TeamProfileRow = {
