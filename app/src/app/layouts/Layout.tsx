@@ -202,7 +202,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   cursor: 'pointer',
                 }}
               >
-                BOUTIQUE TEAM $149–199
+                BOUTIQUE TEAM $149
               </button>
             </div>
             <button
@@ -282,7 +282,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               {[
                 { tier: 'solo', label: 'Solo', price: '$49/mo', desc: 'For solo bookers' },
                 { tier: 'studio', label: 'Studio', price: '$99/mo', desc: 'For boutique agencies', highlight: true },
-                { tier: 'agency', label: 'Boutique Team', price: '$149–199/mo', desc: 'For established agencies' },
+                { tier: 'agency', label: 'Boutique Team', price: '$149/mo', desc: 'For established agencies' },
               ].map(({ tier, label, price, desc, highlight }) => (
                 <div
                   key={tier}
