@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authFetch, UPGRADE_REQUIRED_KEY } from '../../lib/apiAuth';
+import { hasPermanentAccess } from '../../lib/admin';
 import { supabase } from '../../lib/supabase';
 import { Sidebar } from '../components/Sidebar';
 import { TutorialOverlay } from '../components/TutorialOverlay';
@@ -17,13 +18,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
     () => sessionStorage.getItem('trial-banner-dismissed') === '1',
   );
 
-  const paidPlans = new Set(['solo', 'studio', 'agency']);
-  const isOnActivePaidPlan =
-    planStatus === 'active' && paidPlans.has(plan.toLowerCase());
+  const isAdmin = hasPermanentAccess(user?.email);
+  const isOnActivePaidPlan = isAdmin || planStatus === 'active';
 
   useEffect(() => {
     if (!agencyId) return;
-    if (isOnActivePaidPlan) {
+    if (isAdmin || planStatus === 'active') {
       setDaysLeft(null);
       setTrialExpired(false);
       return;
@@ -50,7 +50,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       }
     };
     fetchTrial();
-  }, [agencyId, plan, planStatus, isOnActivePaidPlan]);
+  }, [agencyId, plan, planStatus, isOnActivePaidPlan, isAdmin]);
 
   useEffect(() => {
     const showUpgradeOverlay = () => {
