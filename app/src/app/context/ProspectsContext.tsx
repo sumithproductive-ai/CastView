@@ -47,7 +47,7 @@ type ProspectsContextType = {
   prospects: Prospect[];
   loading: boolean;
   addProspect: (prospect: Prospect) => void;
-  updateProspect: (id: string, updates: Partial<Prospect>) => void;
+  updateProspect: (id: string, updates: Partial<Prospect>) => Promise<void>;
   removeProspect: (id: string) => void;
   getProspectById: (id: string) => Prospect | undefined;
 };

@@ -32,7 +32,7 @@ type RosterContextType = {
   models: RosterModel[];
   loading: boolean;
   addModel: (model: RosterModel) => void;
-  updateModel: (id: string, updates: Partial<RosterModel>) => void;
+  updateModel: (id: string, updates: Partial<RosterModel>) => Promise<void>;
   removeModel: (id: string) => void;
   getModelById: (id: string) => RosterModel | undefined;
 };
