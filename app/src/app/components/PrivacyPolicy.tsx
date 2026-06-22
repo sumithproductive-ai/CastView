@@ -15,6 +15,7 @@ const bodyStyle = {
   fontSize: '13px',
   color: '#888880',
   lineHeight: 1.8,
+  whiteSpace: 'pre-line' as const,
 };
 
 function Section({ id, title, body }: { id?: string; title: string; body: string }) {
@@ -63,11 +64,11 @@ export function PrivacyPolicy() {
             letterSpacing: '0.05em',
           }}
         >
-          Last updated: June 9, 2026 · CastView (castview.org)
+          Last updated: June 2026 · Founding Agency Pilot
         </p>
         <p style={{ ...bodyStyle, marginBottom: '48px' }}>
-          This policy describes how CastView collects, uses, and protects information when modeling
-          agencies use our platform. It applies to agency account holders. Prospect and model data is
+          This policy describes how CastView collects, uses, and protects information during our
+          founding-agency pilot. It applies to agency account holders. Prospect and model data is
           processed on behalf of your agency — see the{' '}
           <a href="#data-processing-agreement" style={{ color: '#c8c8c2' }}>
             Data Processing Agreement
@@ -77,10 +78,18 @@ export function PrivacyPolicy() {
 
         <Section
           title="1. Who We Are"
-          body={`CastView provides an AI-powered casting evaluation platform for modeling agencies. For agency account data, CastView is the data controller. For prospect and model personal data uploaded by your agency, your agency is the data controller and CastView acts as a data processor.`}
+          body={`CastView provides an AI-assisted workflow platform for modeling and talent agencies. For agency account data, CastView is the data controller. For prospect and model personal data uploaded by your agency, your agency is the data controller and CastView acts as a data processor.`}
         />
         <Section
-          title="2. Information We Collect"
+          title="2. Your Data Stays Yours"
+          body={`All data you upload (submissions, digitals, development notes, evaluations) is stored under your agency's account and is fully isolated from every other agency using CastView, enforced at the database level (row-level security).
+
+CastView does not sell, share, or license your data, or any model's images or information, to any third party.
+
+We do not use your agency's data to train AI models beyond the evaluation requested at the time you run it.`}
+        />
+        <Section
+          title="3. Information We Collect"
           body={`Agency accounts: name, work email, agency name, authentication credentials, billing status, and settings you configure in the product.
 
 Prospect and model data (uploaded by your agency): photographic digitals, names, biographical details, evaluation results, messages, consent records, and related metadata your team enters.
@@ -90,52 +99,60 @@ Usage data: log data, device/browser type, IP address, and product interaction e
 Payment data: billing is handled by Stripe. We receive subscription status and customer identifiers, not full card numbers.`}
         />
         <Section
-          title="3. How We Use Information"
+          title="4. How We Use Information"
           body={`We use information to provide and maintain CastView, run AI alignment evaluations, deliver agency-initiated communications, process subscriptions, authenticate users, prevent abuse, and respond to support requests. We do not sell personal information. We do not use your uploaded digitals or evaluations to train public AI models.`}
         />
         <Section
-          title="4. AI Processing"
-          body={`Evaluations are generated using third-party AI infrastructure (Anthropic). Image and text inputs are sent to generate structured alignment reports for your agency. Outputs are stored in your agency workspace. We configure these services for service delivery only, not for model training on your content.`}
+          title="5. AI Processing"
+          body={`Evaluations are generated using third-party AI infrastructure (Anthropic's Claude). Image and text inputs are sent to generate structured alignment reports for your agency. Outputs are stored in your agency workspace. We configure these services for service delivery only — not for model training on your content beyond the evaluation requested at the time you run it.`}
         />
         <Section
-          title="5. Email"
-          body={`We send transactional email (account verification, password reset, billing notices) and agency-initiated messages to prospects or models when your team uses CastView messaging. Email delivery is handled by Resend. Inbound reply-by-email is optional and may not be enabled for all accounts.`}
+          title="6. Email"
+          body={`We send transactional email (account verification, password reset, billing notices) and agency-initiated messages to prospects or models when your team uses CastView messaging. Email delivery is handled by Resend. Inbound reply-by-email is optional and may not be enabled for all accounts during the pilot.`}
         />
         <Section
-          title="6. Storage and Security"
-          body={`Data is stored using Supabase on AWS in the United States (us-west-2). Digital images and application data are encrypted in transit (TLS) and at rest. Access is restricted by authentication and row-level security so agency users only see their own agency data.`}
+          title="7. Storage and Security"
+          body={`Data is stored using Supabase on AWS in the United States (us-west-2). Digital images and application data are encrypted in transit (TLS) and at rest. Access is restricted by authentication and row-level security so each agency's data is fully isolated from every other agency on the platform.`}
         />
         <Section
-          title="7. Subprocessors"
+          title="8. Subprocessors"
           body={`We use trusted infrastructure providers to run CastView, including Supabase (database, auth, storage), Anthropic (AI evaluations), Stripe (payments), Resend (email), and Vercel (application hosting). These providers process data only as needed to deliver the service.`}
         />
         <Section
-          title="8. Retention"
-          body={`We retain agency account data while your subscription is active and for a reasonable period afterward for billing, legal, and security purposes. Prospect and model data is retained until deleted by your agency from the relevant profile, or until the agency account is deleted. You may request account deletion at any time.`}
+          title="9. Data Deletion"
+          body={`You can request deletion of your agency's account and associated data at any time by contacting us at sumith@castview.org, or by using the delete function within the platform.
+
+Deletion requests are processed promptly and remove the associated data from active systems.
+
+Individual prospect or model records may also be deleted by your agency from within CastView at any time.`}
         />
         <Section
-          title="9. Cookies"
+          title="10. Retention"
+          body={`We retain agency account data while your subscription or pilot access is active and for a reasonable period afterward for billing, legal, and security purposes. Prospect and model data is retained until deleted by your agency from the relevant profile, or until the agency account is deleted.`}
+        />
+        <Section
+          title="11. Cookies"
           body={`We use essential cookies and local storage to maintain your login session and preferences. We do not use advertising or cross-site tracking cookies.`}
         />
         <Section
-          title="10. Your Rights"
-          body={`Depending on your location, you may have rights to access, correct, delete, or export personal data, or to object to certain processing. Agency users can contact hello@castview.org for account-related requests. Prospects and models should contact their representing agency first; agencies can delete prospect data directly in CastView.`}
+          title="12. Your Rights"
+          body={`Depending on your location, you may have rights to access, correct, delete, or export personal data, or to object to certain processing. Agency users can contact sumith@castview.org for account-related requests. Prospects and models should contact their representing agency first; agencies can delete prospect data directly in CastView.`}
         />
         <Section
-          title="11. International Transfers"
+          title="13. International Transfers"
           body={`CastView is operated from the United States. If you access the service from outside the US, your information may be processed in the US and in other countries where our subprocessors operate. We take steps designed to protect data in line with this policy.`}
         />
         <Section
-          title="12. Children"
+          title="14. Children"
           body={`CastView is a business tool for modeling agencies. It is not directed at children under 16. Agencies are responsible for ensuring they have appropriate consent before uploading prospect or model data.`}
         />
         <Section
-          title="13. Changes"
+          title="15. Changes"
           body={`We may update this policy from time to time. We will post the revised version on this page and update the "Last updated" date. Continued use of CastView after changes constitutes acceptance of the updated policy.`}
         />
         <Section
-          title="14. Contact"
-          body={`Privacy questions: hello@castview.org · Data protection / DPA requests: legal@castview.org`}
+          title="16. Contact"
+          body={`Privacy questions, deletion requests, or concerns: sumith@castview.org`}
         />
 
         <div
@@ -179,15 +196,15 @@ Payment data: billing is handled by Stripe. We receive subscription status and c
           />
           <Section
             title="E. Storage Location"
-            body={`Primary storage is in the United States (AWS us-west-2 via Supabase). Subprocessors may process data in other regions as listed in Section 7 above.`}
+            body={`Primary storage is in the United States (AWS us-west-2 via Supabase). Subprocessors may process data in other regions as listed in Section 8 above.`}
           />
           <Section
             title="F. Security"
-            body={`CastView implements access controls, encryption in transit and at rest, and logical separation between agencies. Agency users are responsible for safeguarding their login credentials.`}
+            body={`CastView implements access controls, encryption in transit and at rest, and logical separation between agencies enforced at the database level (row-level security). Agency users are responsible for safeguarding their login credentials.`}
           />
           <Section
             title="G. Deletion"
-            body={`Your agency may delete individual prospect data from within CastView at any time. Upon account termination, contact legal@castview.org to request deletion of remaining agency-held personal data, subject to legal retention requirements.`}
+            body={`Your agency may delete individual prospect data from within CastView at any time. You can request deletion of your agency's account and associated data by contacting sumith@castview.org. Deletion requests are processed promptly and remove the associated data from active systems, subject to legal retention requirements.`}
           />
           <Section
             title="H. Agency Obligations"
@@ -195,13 +212,19 @@ Payment data: billing is handled by Stripe. We receive subscription status and c
           />
           <Section
             title="I. Subprocessors"
-            body={`CastView may engage subprocessors listed in Section 7. We will ensure they are bound by obligations consistent with this DPA.`}
+            body={`CastView may engage subprocessors listed in Section 8. We will ensure they are bound by obligations consistent with this DPA.`}
           />
           <Section
             title="J. Contact"
-            body={`DPA and processor inquiries: legal@castview.org`}
+            body={`DPA and processor inquiries: sumith@castview.org`}
           />
         </div>
+
+        <p style={{ ...bodyStyle, marginTop: '48px', fontStyle: 'italic', color: '#666660' }}>
+          This notice is provided for transparency during CastView's pilot phase and does not
+          constitute a binding legal contract in lieu of formal review by counsel as the platform
+          scales.
+        </p>
       </div>
     </div>
   );
