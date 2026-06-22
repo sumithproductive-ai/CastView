@@ -1,7 +1,7 @@
 import type { IncomingMessage } from 'http';
 import type { VercelRequest } from '@vercel/node';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { hasPermanentAccess } from '../src/lib/admin';
+import { hasPermanentAccess, isPaidPlan } from '../src/lib/admin';
 
 export const ENTITLEMENT_ERROR =
   'Trial ended or subscription inactive. Please choose a plan to continue.';
@@ -169,10 +169,10 @@ function bearerTokenFromHeaders(headers?: Record<string, string | string[] | und
 }
 
 export function isEntitled(
-  agency: Pick<AuthedAgency, 'email' | 'plan_status' | 'trial_ends_at'>,
+  agency: Pick<AuthedAgency, 'email' | 'plan' | 'plan_status' | 'trial_ends_at'>,
 ): boolean {
   if (hasPermanentAccess(agency.email)) return true;
-  if (agency.plan_status === 'active') return true;
+  if (agency.plan_status === 'active' && isPaidPlan(agency.plan)) return true;
   if (agency.plan_status === 'trialing') {
     if (!agency.trial_ends_at) return false;
     return new Date(agency.trial_ends_at).getTime() > Date.now();

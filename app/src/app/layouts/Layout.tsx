@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authFetch, UPGRADE_REQUIRED_KEY } from '../../lib/apiAuth';
-import { hasPermanentAccess } from '../../lib/admin';
+import { hasPermanentAccess, isPaidPlan } from '../../lib/admin';
 import { supabase } from '../../lib/supabase';
 import { Sidebar } from '../components/Sidebar';
 import { TutorialOverlay } from '../components/TutorialOverlay';
@@ -19,11 +19,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 
   const isAdmin = hasPermanentAccess(user?.email);
-  const isOnActivePaidPlan = isAdmin || planStatus === 'active';
+  const isOnActivePaidPlan =
+    isAdmin || (planStatus === 'active' && isPaidPlan(plan));
 
   useEffect(() => {
     if (!agencyId) return;
-    if (isAdmin || planStatus === 'active') {
+    if (isAdmin || (planStatus === 'active' && isPaidPlan(plan))) {
       setDaysLeft(null);
       setTrialExpired(false);
       return;
