@@ -259,16 +259,16 @@ export function Share() {
   
   const tabButtonStyle = (isActive: boolean) => ({
     fontFamily: 'var(--font-mono)',
-    backgroundColor: isActive ? '#f0f0ec' : 'transparent',
-    color: isActive ? '#080808' : '#a0a09a',
-    border: isActive ? 'none' : '1px solid #2a2a2a',
+    backgroundColor: isActive ? 'var(--cv-primary-text)' : 'transparent',
+    color: isActive ? 'var(--cv-background)' : 'var(--cv-secondary-text)',
+    border: isActive ? 'none' : '1px solid var(--cv-subtle-border)',
   });
 
   return (
     <div className="p-[20px] md:p-[48px]">
       <h1
         className="text-[48px] mb-[24px]"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
         Messages
       </h1>
@@ -297,7 +297,7 @@ export function Share() {
           {!prospectsLoading && !rosterLoading && messageContacts.length === 0 ? (
             <p
               className="py-[48px]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
             >
               No prospects yet. Add your first prospect to get started.
             </p>
@@ -306,18 +306,18 @@ export function Share() {
               {messageContacts.map((contact) => (
                 <div
                   key={`${contact.type}-${contact.id}`}
-                  className="flex items-center justify-between gap-[16px] p-[16px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors"
+                  className="flex items-center justify-between gap-[16px] p-[16px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] hover:bg-[var(--cv-elevated)] transition-colors"
                 >
                   <div className="min-w-0">
                     <div
                       className="text-[13px] mb-[4px] truncate"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
                     >
                       {contact.name}
                     </div>
                     <div
                       className="text-[11px]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                     >
                       {contact.type} · {contact.status}
                     </div>
@@ -325,10 +325,10 @@ export function Share() {
                   <button
                     type="button"
                     onClick={() => navigate(contact.path)}
-                    className="px-[14px] py-[8px] rounded-[4px] text-[11px] uppercase tracking-[0.08em] border border-[#2a2a2a] hover:border-[#f0f0ec] transition-colors flex-shrink-0"
+                    className="px-[14px] py-[8px] rounded-[4px] text-[11px] uppercase tracking-[0.08em] border border-[var(--cv-subtle-border)] hover:border-[var(--cv-primary-text)] transition-colors flex-shrink-0"
                     style={{
                       fontFamily: 'var(--font-mono)',
-                      color: '#f0f0ec',
+                      color: 'var(--cv-primary-text)',
                       cursor: 'pointer',
                     }}
                   >
@@ -349,7 +349,7 @@ export function Share() {
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
@@ -364,17 +364,17 @@ export function Share() {
 
       <h1 
         className="text-[48px] mb-[8px]" 
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
         Share Evaluation
       </h1>
       <button
         type="button"
         onClick={() => navigate('/mass-send')}
-        className="mb-[40px] text-[11px] uppercase tracking-[0.1em] border border-[#2a2a2a] px-[16px] py-[8px] rounded-[4px] hover:border-[#f0f0ec] transition-colors"
+        className="mb-[40px] text-[11px] uppercase tracking-[0.1em] border border-[var(--cv-subtle-border)] px-[16px] py-[8px] rounded-[4px] hover:border-[var(--cv-primary-text)] transition-colors"
         style={{
           fontFamily: 'var(--font-mono)',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           cursor: 'pointer',
         }}
       >
@@ -386,7 +386,7 @@ export function Share() {
         <div>
           <div 
             className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             EVALUATION SELECTION
           </div>
@@ -397,24 +397,24 @@ export function Share() {
               return (
                 <label
                   key={evaluation.id}
-                  className="flex items-center gap-[16px] p-[16px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] cursor-pointer hover:bg-[#1a1a1a] transition-colors"
+                  className="flex items-center gap-[16px] p-[16px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] cursor-pointer hover:bg-[var(--cv-elevated)] transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
                     onChange={() => toggleEvaluation(evaluation.id)}
-                    className="w-[16px] h-[16px] accent-[#f0f0ec]"
+                    className="w-[16px] h-[16px] accent-[var(--cv-primary-text)]"
                     style={{ cursor: 'pointer' }}
                   />
                   <div className="flex-1">
                     <div 
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}
                     >
                       {evaluation.context}
                     </div>
                   </div>
                   <div 
-                    style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
                   >
                     {evaluation.score}%
                   </div>
@@ -428,7 +428,7 @@ export function Share() {
         <div>
           <div 
             className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             Delivery Method
           </div>
@@ -447,15 +447,15 @@ export function Share() {
                     }
                   }}
                   className={`w-full p-[20px] rounded-[4px] text-left transition-all cursor-pointer ${
-                    isExportPdf ? 'border border-[#f0f0ec]' : ''
+                    isExportPdf ? 'border border-[var(--cv-primary-text)]' : ''
                   }`}
                   style={{ 
-                    backgroundColor: isSelected ? '#1a1a1a' : '#111111',
+                    backgroundColor: isSelected ? 'var(--cv-elevated)' : 'var(--cv-surface)',
                     border: isExportPdf
                       ? undefined
                       : isSelected
-                        ? '2px solid #f0f0ec'
-                        : '2px solid #2a2a2a'
+                        ? '2px solid var(--cv-primary-text)'
+                        : '2px solid var(--cv-subtle-border)'
                   }}
                 >
                   {isExportPdf && (
@@ -472,13 +472,13 @@ export function Share() {
                   )}
                   <div 
                     className="text-[13px] mb-[4px]"
-                    style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
                   >
                     {method.name}
                   </div>
                   <div 
                     className="text-[11px]"
-                    style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                   >
                     {method.description}
                   </div>
@@ -494,7 +494,7 @@ export function Share() {
             <>
               <div 
                 className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
-                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
                 Link Settings
               </div>
@@ -502,7 +502,7 @@ export function Share() {
               <div className="mb-[24px]">
                 <label 
                   className="block mb-[12px] text-[11px] uppercase tracking-[0.1em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   Generated Link
                 </label>
@@ -512,16 +512,16 @@ export function Share() {
                     type="text"
                     value={shareLink}
                     readOnly
-                    className="flex-1 px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
-                    style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
+                    className="flex-1 px-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]"
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}
                   />
                   <button
                     onClick={handleCopy}
-                    className="px-[16px] py-[10px] border border-[#2a2a2a] rounded-[4px] transition-all text-[11px] uppercase tracking-[0.1em]"
+                    className="px-[16px] py-[10px] border border-[var(--cv-subtle-border)] rounded-[4px] transition-all text-[11px] uppercase tracking-[0.1em]"
                     style={{ 
                       fontFamily: 'var(--font-mono)',
-                      color: '#f0f0ec',
-                      backgroundColor: copied ? '#2a2a2a' : '#1a1a1a',
+                      color: 'var(--cv-primary-text)',
+                      backgroundColor: copied ? 'var(--cv-subtle-border)' : 'var(--cv-elevated)',
                       cursor: 'pointer'
                     }}
                   >
@@ -531,7 +531,7 @@ export function Share() {
                 <p style={{ 
                   fontFamily: 'var(--font-mono)', 
                   fontSize: '11px', 
-                  color: '#888880',
+                  color: 'var(--cv-secondary-text)',
                   marginTop: '8px'
                 }}>
                   Link does not expire · Safe to forward internally · No login required for client
@@ -541,15 +541,15 @@ export function Share() {
               <div className="mb-[24px]">
                 <label 
                   className="block mb-[12px] text-[11px] uppercase tracking-[0.1em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   Expiry
                 </label>
                 <select
                   value={expiry}
                   onChange={(e) => setExpiry(e.target.value)}
-                  className="w-full px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
+                  className="w-full px-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]"
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}
                 >
                   <option value="24-hours">24 Hours</option>
                   <option value="7-days">7 Days</option>
@@ -564,11 +564,11 @@ export function Share() {
                     type="checkbox"
                     checked={passwordEnabled}
                     onChange={(e) => setPasswordEnabled(e.target.checked)}
-                    className="w-[16px] h-[16px] accent-[#f0f0ec]"
+                    className="w-[16px] h-[16px] accent-[var(--cv-primary-text)]"
                   />
                   <span 
                     className="text-[11px] uppercase tracking-[0.1em]"
-                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                    style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                   >
                     Password Protection
                   </span>
@@ -579,8 +579,8 @@ export function Share() {
                 className="w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-colors"
                 style={{ 
                   fontFamily: 'var(--font-label)',
-                  backgroundColor: '#f0f0ec',
-                  color: '#080808'
+                  backgroundColor: 'var(--cv-primary-text)',
+                  color: 'var(--cv-background)'
                 }}
               >
                 Send to Client
@@ -589,10 +589,10 @@ export function Share() {
               <div className="mt-[24px]">
                 <button
                   onClick={() => window.open('/client-portal', '_blank')}
-                  className="flex items-center gap-[8px] px-[16px] py-[10px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
+                  className="flex items-center gap-[8px] px-[16px] py-[10px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)]"
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
-                    color: '#888880',
+                    color: 'var(--cv-secondary-text)',
                     cursor: 'pointer'
                   }}
                 >
@@ -605,7 +605,7 @@ export function Share() {
                 <p style={{ 
                   fontFamily: 'var(--font-mono)', 
                   fontSize: '10px', 
-                  color: '#555550',
+                  color: 'var(--cv-secondary-text)',
                   marginTop: '8px',
                   fontStyle: 'italic'
                 }}>
@@ -619,7 +619,7 @@ export function Share() {
             <div>
               <div
                 className="mb-[12px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#888880' }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cv-secondary-text)' }}
               >
                 AGENT NOTES FOR REPORT
               </div>
@@ -629,17 +629,17 @@ export function Share() {
                 onChange={(e) => setAgentNotes(e.target.value)}
                 placeholder="Add notes to include in the PDF report..."
                 rows={5}
-                className="w-full px-[16px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] mb-[16px] resize-none"
+                className="w-full px-[16px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] mb-[16px] resize-none"
                 style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: '12px',
-                  color: '#f0f0ec'
+                  color: 'var(--cv-primary-text)'
                 }}
               />
 
               <div
                 className="mb-[16px]"
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
               >
                 {checkedEvaluations.length} evaluation{checkedEvaluations.length !== 1 ? 's' : ''} will be included in the PDF report
               </div>
@@ -649,8 +649,8 @@ export function Share() {
                 className="w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
                 style={{
                   fontFamily: 'var(--font-label)',
-                  backgroundColor: '#f0f0ec',
-                  color: '#080808',
+                  backgroundColor: 'var(--cv-primary-text)',
+                  color: 'var(--cv-background)',
                   cursor: 'pointer'
                 }}
               >
@@ -666,21 +666,21 @@ export function Share() {
                   placeholder="Recipient email"
                   value={emailTo}
                   onChange={e => setEmailTo(e.target.value)}
-                  style={{ background: '#111111', border: '1px solid #2a2a2a', borderRadius: '4px', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#F0F0EC', outline: 'none' }}
+                  style={{ background: 'var(--cv-surface)', border: '1px solid var(--cv-subtle-border)', borderRadius: '4px', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-primary-text)', outline: 'none' }}
                 />
                 <input
                   type="text"
                   placeholder="Subject"
                   value={emailSubject}
                   onChange={e => setEmailSubject(e.target.value)}
-                  style={{ background: '#111111', border: '1px solid #2a2a2a', borderRadius: '4px', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#F0F0EC', outline: 'none' }}
+                  style={{ background: 'var(--cv-surface)', border: '1px solid var(--cv-subtle-border)', borderRadius: '4px', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-primary-text)', outline: 'none' }}
                 />
                 <textarea
                   placeholder="Add a note..."
                   value={emailBody}
                   onChange={e => setEmailBody(e.target.value)}
                   rows={4}
-                  style={{ background: '#111111', border: '1px solid #2a2a2a', borderRadius: '4px', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#F0F0EC', resize: 'none', outline: 'none' }}
+                  style={{ background: 'var(--cv-surface)', border: '1px solid var(--cv-subtle-border)', borderRadius: '4px', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-primary-text)', resize: 'none', outline: 'none' }}
                 />
                 {emailSent ? (
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#4a7a4a', letterSpacing: '0.08em' }}>✓ Email sent successfully</div>
@@ -707,7 +707,7 @@ export function Share() {
                       }
                     }}
                     disabled={emailSending || !emailTo}
-                    style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '10px 20px', background: '#C8A96E', color: '#080808', border: 'none', borderRadius: '4px', cursor: !emailTo ? 'not-allowed' : 'pointer', opacity: !emailTo ? 0.5 : 1 }}
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '10px 20px', background: '#C8A96E', color: 'var(--cv-background)', border: 'none', borderRadius: '4px', cursor: !emailTo ? 'not-allowed' : 'pointer', opacity: !emailTo ? 0.5 : 1 }}
                   >
                     {emailSending ? 'SENDING...' : 'SEND EMAIL →'}
                   </button>

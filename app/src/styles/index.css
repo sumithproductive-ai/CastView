@@ -109,10 +109,10 @@ input[type="radio"] {
 }
 
 .cv-eval-panel-body::-webkit-scrollbar-thumb {
-  background: #2a2a2a;
+  background: var(--cv-subtle-border);
   border-radius: 4px;
 }
 
 .cv-eval-panel-body::-webkit-scrollbar-thumb:hover {
-  background: #3a3a3a;
+  background: var(--cv-elevated);
 }

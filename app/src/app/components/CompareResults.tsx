@@ -52,7 +52,7 @@ function getCompareChangeTag(direction: ComparisonDirection) {
   if (direction === 'declined') {
     return { text: 'DECLINED', color: '#c87a7a' };
   }
-  return { text: 'STABLE', color: '#888880' };
+  return { text: 'STABLE', color: 'var(--cv-secondary-text)' };
 }
 
 export function CompareResults() {
@@ -138,7 +138,7 @@ export function CompareResults() {
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '13px',
-            color: '#666660',
+            color: 'var(--cv-secondary-text)',
           }}
         >
           No comparison data found.
@@ -146,10 +146,10 @@ export function CompareResults() {
         <button
           type="button"
           onClick={() => navigate('/compare')}
-          className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+          className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
           style={{
             fontFamily: 'var(--font-mono)',
-            color: '#f0f0ec',
+            color: 'var(--cv-primary-text)',
             cursor: 'pointer',
           }}
         >
@@ -174,7 +174,7 @@ export function CompareResults() {
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '11px',
-            color: '#888880',
+            color: 'var(--cv-secondary-text)',
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             backgroundColor: 'transparent',
@@ -188,10 +188,10 @@ export function CompareResults() {
         <button
           type="button"
           onClick={generatePDF}
-          className="border border-[#2a2a2a] bg-transparent rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] hover:text-[#f0f0ec] transition-colors"
+          className="border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)] transition-colors"
           style={{
             fontFamily: 'var(--font-mono)',
-            color: '#888880',
+            color: 'var(--cv-secondary-text)',
             cursor: 'pointer',
           }}
         >
@@ -204,7 +204,7 @@ export function CompareResults() {
         style={{
           fontFamily: 'var(--font-display)',
           fontWeight: 300,
-          color: '#f0f0ec',
+          color: 'var(--cv-primary-text)',
         }}
       >
         {prospectName} — Progression Report
@@ -215,14 +215,14 @@ export function CompareResults() {
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
         }}
       >
         {getDigitalSetDisplayTitle(comparisonData.previousSet.title)} →{' '}
         {getDigitalSetDisplayTitle(comparisonData.currentSet.title)}
       </p>
 
-      <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[20px] mb-[32px] flex gap-[24px]">
+      <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[20px] mb-[32px] flex gap-[24px]">
         {(
           [
             {
@@ -234,7 +234,7 @@ export function CompareResults() {
             {
               key: 'stable' as const,
               label: 'STABLE',
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
               count: comparisonData.stableCount,
             },
             {
@@ -291,7 +291,7 @@ export function CompareResults() {
                 }}
               >
                 <div
-                  className={`w-full bg-[#111111] border border-[#2a2a2a] px-[24px] py-[16px] mb-[8px] flex justify-between items-center ${
+                  className={`w-full bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] px-[24px] py-[16px] mb-[8px] flex justify-between items-center ${
                     isOpen
                       ? 'rounded-t-[4px] rounded-b-none border-b-0'
                       : 'rounded-[4px]'
@@ -301,7 +301,7 @@ export function CompareResults() {
                     style={{
                       fontFamily: 'var(--font-display)',
                       fontSize: '18px',
-                      color: '#f0f0ec',
+                      color: 'var(--cv-primary-text)',
                       fontWeight: 300,
                     }}
                   >
@@ -312,7 +312,7 @@ export function CompareResults() {
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '13px',
-                        color: '#f0f0ec',
+                        color: 'var(--cv-primary-text)',
                       }}
                     >
                       {result.oldScore} → {result.newScore}
@@ -330,7 +330,7 @@ export function CompareResults() {
                     <ChevronDown
                       size={14}
                       style={{
-                        color: '#888880',
+                        color: 'var(--cv-secondary-text)',
                         transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                         transition: 'transform 0.2s ease',
                       }}
@@ -340,7 +340,7 @@ export function CompareResults() {
               </button>
 
               {isOpen && (
-                <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] mb-[8px]">
+                <div className="bg-[var(--cv-background)] border border-t-0 border-[var(--cv-subtle-border)] rounded-b-[4px] mb-[8px]">
                   <div className="cv-eval-panel-body px-[24px] py-[20px] pb-[24px]">
                   <div className="flex items-center gap-[16px]">
                     <div className="flex-1">
@@ -348,7 +348,7 @@ export function CompareResults() {
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '9px',
-                          color: '#888880',
+                          color: 'var(--cv-secondary-text)',
                           marginBottom: '4px',
                         }}
                       >
@@ -359,7 +359,7 @@ export function CompareResults() {
                           fontFamily: 'var(--font-display)',
                           fontSize: '48px',
                           fontWeight: 300,
-                          color: '#f0f0ec',
+                          color: 'var(--cv-primary-text)',
                         }}
                       >
                         {result.oldScore}
@@ -369,7 +369,7 @@ export function CompareResults() {
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '14px',
-                        color: '#888880',
+                        color: 'var(--cv-secondary-text)',
                       }}
                     >
                       →
@@ -379,7 +379,7 @@ export function CompareResults() {
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '9px',
-                          color: '#888880',
+                          color: 'var(--cv-secondary-text)',
                           marginBottom: '4px',
                         }}
                       >
@@ -390,7 +390,7 @@ export function CompareResults() {
                           fontFamily: 'var(--font-display)',
                           fontSize: '48px',
                           fontWeight: 300,
-                          color: '#f0f0ec',
+                          color: 'var(--cv-primary-text)',
                         }}
                       >
                         {result.newScore}
@@ -398,14 +398,14 @@ export function CompareResults() {
                     </div>
                   </div>
 
-                  <div className="h-[1px] bg-[#2a2a2a] my-[16px]" />
+                  <div className="h-[1px] bg-[var(--cv-subtle-border)] my-[16px]" />
 
                   <div
                     className="uppercase mb-[8px]"
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '9px',
-                      color: '#888880',
+                      color: 'var(--cv-secondary-text)',
                       letterSpacing: '0.1em',
                     }}
                   >
@@ -428,7 +428,7 @@ export function CompareResults() {
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '9px',
-                      color: '#888880',
+                      color: 'var(--cv-secondary-text)',
                       letterSpacing: '0.1em',
                     }}
                   >
@@ -439,7 +439,7 @@ export function CompareResults() {
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '12px',
-                      color: '#a0a09a',
+                      color: 'var(--cv-secondary-text)',
                       lineHeight: 1.8,
                     }}
                   >
@@ -451,7 +451,7 @@ export function CompareResults() {
                       fontFamily: 'var(--font-mono)',
                       fontSize: '11px',
                       color: result.newScore > result.oldScore ? '#4a7a4a' : 
-                             result.newScore < result.oldScore ? '#c87a7a' : '#888880',
+                             result.newScore < result.oldScore ? '#c87a7a' : 'var(--cv-secondary-text)',
                       marginTop: '12px',
                     }}
                   >
@@ -467,7 +467,7 @@ export function CompareResults() {
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '9px',
-                      color: '#888880',
+                      color: 'var(--cv-secondary-text)',
                       letterSpacing: '0.1em',
                     }}
                   >
@@ -483,11 +483,11 @@ export function CompareResults() {
                     }
                     placeholder="Add agent note for this context..."
                     rows={2}
-                    className="w-full px-[12px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] resize-none"
+                    className="w-full px-[12px] py-[10px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none"
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '11px',
-                      color: '#f0f0ec',
+                      color: 'var(--cv-primary-text)',
                     }}
                   />
                 </div>

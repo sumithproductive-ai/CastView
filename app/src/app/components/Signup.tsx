@@ -42,7 +42,7 @@ export function Signup() {
           left: '24px',
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
           textDecoration: 'none',
@@ -51,19 +51,19 @@ export function Signup() {
       >
         ← Back
       </a>
-      <div className="min-h-screen flex items-center justify-center px-[20px]" style={{ backgroundColor: '#080808' }}>
+      <div className="min-h-screen flex items-center justify-center px-[20px]" style={{ backgroundColor: 'var(--cv-background)' }}>
       <div className="w-full max-w-[400px]">
-        <h1 className="text-[32px] mb-[8px] text-center" style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec', letterSpacing: '0.06em' }}>
+        <h1 className="text-[32px] mb-[8px] text-center" style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)', letterSpacing: '0.06em' }}>
           CastView
         </h1>
-        <p className="text-[11px] mb-[32px] text-center uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}>
+        <p className="text-[11px] mb-[32px] text-center uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
           Start your 14-day free trial
         </p>
         {needsConfirmation ? (
           <div className="text-center">
             <p
               className="mb-[24px] text-[13px] leading-relaxed"
-              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
               Check your email to confirm your account, then log in.
             </p>
@@ -72,8 +72,8 @@ export function Signup() {
               className="inline-block py-[14px] px-[24px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
               style={{
                 fontFamily: 'var(--font-mono)',
-                backgroundColor: '#f0f0ec',
-                color: '#080808',
+                backgroundColor: 'var(--cv-primary-text)',
+                color: 'var(--cv-background)',
                 textDecoration: 'none',
               }}
             >
@@ -83,28 +83,28 @@ export function Signup() {
         ) : (
         <form onSubmit={handleSubmit}>
           <div className="mb-[16px]">
-            <input type="text" value={agencyName} onChange={e => setAgencyName(e.target.value)} placeholder="Agency name" required className="w-full px-[12px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec', outline: 'none' }} />
+            <input type="text" value={agencyName} onChange={e => setAgencyName(e.target.value)} placeholder="Agency name" required className="w-full px-[12px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', outline: 'none' }} />
           </div>
           <div className="mb-[16px]">
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Work email" required className="w-full px-[12px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec', outline: 'none' }} />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Work email" required className="w-full px-[12px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', outline: 'none' }} />
           </div>
           <div className="mb-[16px]">
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password (min. 8 characters)" required className="w-full px-[12px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec', outline: 'none' }} />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password (min. 8 characters)" required className="w-full px-[12px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', outline: 'none' }} />
           </div>
           <div className="mb-[24px]">
-            <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm password" required className="w-full px-[12px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec', outline: 'none' }} />
+            <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm password" required className="w-full px-[12px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', outline: 'none' }} />
           </div>
           {errorMsg && <p className="mb-[16px] text-[12px]" style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a' }}>{errorMsg}</p>}
-          <button type="submit" disabled={loading} className="w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80" style={{ fontFamily: 'var(--font-mono)', backgroundColor: '#f0f0ec', color: '#080808', opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer', border: 'none' }}>
+          <button type="submit" disabled={loading} className="w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80" style={{ fontFamily: 'var(--font-mono)', backgroundColor: 'var(--cv-primary-text)', color: 'var(--cv-background)', opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer', border: 'none' }}>
             {loading ? 'Creating account...' : 'Start Free Trial →'}
           </button>
         </form>
         )}
-        <p className="mt-[24px] text-center text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}>
+        <p className="mt-[24px] text-center text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
           Already have an account?{' '}
-          <Link to="/login" style={{ color: '#f0f0ec', textDecoration: 'none' }}>Sign in</Link>
+          <Link to="/login" style={{ color: 'var(--cv-primary-text)', textDecoration: 'none' }}>Sign in</Link>
         </p>
-        <p className="mt-[12px] text-center text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: '#555550' }}>
+        <p className="mt-[12px] text-center text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
           No credit card required · Cancel anytime
         </p>
         <div style={{
@@ -119,7 +119,7 @@ export function Signup() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: '#555550',
+              color: 'var(--cv-secondary-text)',
               textDecoration: 'none',
               letterSpacing: '0.05em',
             }}
@@ -131,7 +131,7 @@ export function Signup() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: '#555550',
+              color: 'var(--cv-secondary-text)',
               textDecoration: 'none',
               letterSpacing: '0.05em',
             }}

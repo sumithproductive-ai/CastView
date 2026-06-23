@@ -122,7 +122,7 @@ export function MassSend() {
             style={{
               fontFamily: 'var(--font-display)',
               fontWeight: 300,
-              color: '#f0f0ec',
+              color: 'var(--cv-primary-text)',
             }}
           >
             Mass Send
@@ -131,7 +131,7 @@ export function MassSend() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '12px',
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
             }}
           >
             Share evaluation links for multiple prospects and models at once.
@@ -141,7 +141,7 @@ export function MassSend() {
           <button
             type="button"
             onClick={handleCopyAll}
-            className="flex-shrink-0 border border-[#2a2a2a] font-mono text-[11px] text-[#a0a09a] px-[20px] py-[10px] rounded-[4px] hover:border-[#f0f0ec] transition-colors uppercase tracking-[0.1em] cursor-pointer"
+            className="flex-shrink-0 border border-[var(--cv-subtle-border)] font-mono text-[11px] text-[var(--cv-secondary-text)] px-[20px] py-[10px] rounded-[4px] hover:border-[var(--cv-primary-text)] transition-colors uppercase tracking-[0.1em] cursor-pointer"
           >
             {copiedAll ? 'COPIED' : 'COPY ALL LINKS'}
           </button>
@@ -154,7 +154,7 @@ export function MassSend() {
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '12px',
-            color: '#666660',
+            color: 'var(--cv-secondary-text)',
           }}
         >
           No evaluations on file yet. Run an evaluation to generate share links.
@@ -164,7 +164,7 @@ export function MassSend() {
           {allEntries.map((entry) => (
             <div
               key={`${entry.type}-${entry.id}`}
-              className="bg-[#111111] border-b border-[#2a2a2a] px-[24px] py-[16px] flex items-center gap-[16px]"
+              className="bg-[var(--cv-surface)] border-b border-[var(--cv-subtle-border)] px-[24px] py-[16px] flex items-center gap-[16px]"
             >
               {entry.image ? (
                 <DigitalImage
@@ -175,7 +175,7 @@ export function MassSend() {
               ) : (
                 <div
                   className="w-[36px] h-[48px] rounded-[2px] flex-shrink-0"
-                  style={{ backgroundColor: '#1a1a1a' }}
+                  style={{ backgroundColor: 'var(--cv-elevated)' }}
                 />
               )}
 
@@ -185,7 +185,7 @@ export function MassSend() {
                     fontFamily: 'var(--font-display)',
                     fontSize: '16px',
                     fontWeight: 300,
-                    color: '#f0f0ec',
+                    color: 'var(--cv-primary-text)',
                   }}
                 >
                   {entry.name}
@@ -194,7 +194,7 @@ export function MassSend() {
                   style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: '10px',
-                    color: '#666660',
+                    color: 'var(--cv-secondary-text)',
                     marginTop: '2px',
                   }}
                 >
@@ -202,7 +202,7 @@ export function MassSend() {
                   {entry.contexts && ` · ${entry.contexts}`}
                 </div>
                 <span
-                  className="inline-block mt-[4px] font-mono text-[9px] uppercase tracking-[0.1em] px-[6px] py-[2px] border border-[#2a2a2a] text-[#888880]"
+                  className="inline-block mt-[4px] font-mono text-[9px] uppercase tracking-[0.1em] px-[6px] py-[2px] border border-[var(--cv-subtle-border)] text-[var(--cv-secondary-text)]"
                 >
                   {entry.type}
                 </span>
@@ -213,7 +213,7 @@ export function MassSend() {
                 style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: '11px',
-                  color: '#555550',
+                  color: 'var(--cv-secondary-text)',
                 }}
               >
                 {entry.link}
@@ -222,7 +222,7 @@ export function MassSend() {
               <button
                 type="button"
                 onClick={() => handleCopyRow(entry)}
-                className="flex-shrink-0 font-mono text-[9px] uppercase text-[#a0a09a] border border-[#2a2a2a] px-[10px] py-[4px] rounded-[2px] hover:border-[#f0f0ec] transition-colors cursor-pointer tracking-[0.1em]"
+                className="flex-shrink-0 font-mono text-[9px] uppercase text-[var(--cv-secondary-text)] border border-[var(--cv-subtle-border)] px-[10px] py-[4px] rounded-[2px] hover:border-[var(--cv-primary-text)] transition-colors cursor-pointer tracking-[0.1em]"
               >
                 {copiedRowId === entry.id ? 'COPIED' : 'COPY'}
               </button>

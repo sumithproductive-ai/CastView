@@ -42,7 +42,7 @@ export function Login() {
           left: '24px',
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
           textDecoration: 'none',
@@ -53,7 +53,7 @@ export function Login() {
       </a>
       <div
       className="min-h-screen flex items-center justify-center px-[20px]"
-      style={{ backgroundColor: '#080808' }}
+      style={{ backgroundColor: 'var(--cv-background)' }}
     >
       <div className="w-full max-w-[400px]">
         <h1
@@ -61,7 +61,7 @@ export function Login() {
           style={{
             fontFamily: 'var(--font-display)',
             fontWeight: 300,
-            color: '#f0f0ec',
+            color: 'var(--cv-primary-text)',
             letterSpacing: '0.06em',
           }}
         >
@@ -69,7 +69,7 @@ export function Login() {
         </h1>
         <p
           className="text-[11px] mb-[32px] text-center uppercase tracking-[0.1em]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
           Agency Login
         </p>
@@ -82,11 +82,11 @@ export function Login() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
               required
-              className="w-full px-[12px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
+              className="w-full px-[12px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]"
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '13px',
-                color: '#f0f0ec',
+                color: 'var(--cv-primary-text)',
               }}
             />
           </div>
@@ -98,11 +98,11 @@ export function Login() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
               required
-              className="w-full px-[12px] py-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
+              className="w-full px-[12px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]"
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '13px',
-                color: '#f0f0ec',
+                color: 'var(--cv-primary-text)',
               }}
             />
           </div>
@@ -121,8 +121,8 @@ export function Login() {
             className="w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
             style={{
               fontFamily: 'var(--font-mono)',
-              backgroundColor: '#f0f0ec',
-              color: '#080808',
+              backgroundColor: 'var(--cv-primary-text)',
+              color: 'var(--cv-background)',
             }}
           >
             Sign In
@@ -138,7 +138,7 @@ export function Login() {
               cursor: 'pointer',
               fontFamily: 'var(--font-mono)',
               fontSize: '12px',
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
               padding: 0,
               marginTop: '12px',
             }}
@@ -156,8 +156,8 @@ export function Login() {
               placeholder="Enter your email"
               value={forgotEmail}
               onChange={e => setForgotEmail(e.target.value)}
-              className="w-full px-[12px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#f0f0ec', outline: 'none' }}
+              className="w-full px-[12px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-primary-text)', outline: 'none' }}
             />
             <button
               type="button"
@@ -182,10 +182,10 @@ export function Login() {
 
         <p
           className="mt-[32px] text-center text-[11px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
           No account yet?{' '}
-          <Link to="/signup" style={{ color: '#f0f0ec', textDecoration: 'none' }}>
+          <Link to="/signup" style={{ color: 'var(--cv-primary-text)', textDecoration: 'none' }}>
             Start free trial →
           </Link>
         </p>
@@ -202,7 +202,7 @@ export function Login() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: '#555550',
+              color: 'var(--cv-secondary-text)',
               textDecoration: 'none',
               letterSpacing: '0.05em',
             }}
@@ -214,7 +214,7 @@ export function Login() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: '#555550',
+              color: 'var(--cv-secondary-text)',
               textDecoration: 'none',
               letterSpacing: '0.05em',
             }}

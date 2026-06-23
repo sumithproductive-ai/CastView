@@ -87,15 +87,15 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between gap-[12px] px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+        className="flex items-center justify-between gap-[12px] px-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] hover:bg-[var(--cv-elevated)] transition-colors cursor-pointer"
         style={{ 
           fontFamily: 'var(--font-mono)', 
           fontSize: '13px', 
-          color: '#f0f0ec'
+          color: 'var(--cv-primary-text)'
         }}
       >
         <span>{currentLabel}</span>
-        <ChevronDown size={14} style={{ color: '#a0a09a' }} />
+        <ChevronDown size={14} style={{ color: 'var(--cv-secondary-text)' }} />
       </button>
 
       {isOpen && (
@@ -105,7 +105,7 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
             onClick={() => setIsOpen(false)} 
           />
           <div 
-            className="absolute top-full mt-[4px] left-0 min-w-full bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden z-20"
+            className="absolute top-full mt-[4px] left-0 min-w-full bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] overflow-hidden z-20"
             style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' }}
           >
             {options.map((option) => (
@@ -115,11 +115,11 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className="w-full text-left px-[16px] py-[10px] hover:bg-[#1a1a1a] transition-colors"
+                className="w-full text-left px-[16px] py-[10px] hover:bg-[var(--cv-elevated)] transition-colors"
                 style={{ 
                   fontFamily: 'var(--font-mono)', 
                   fontSize: '13px', 
-                  color: value === option.value ? '#f0f0ec' : '#a0a09a'
+                  color: value === option.value ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)'
                 }}
               >
                 {option.label}
@@ -271,14 +271,14 @@ export function Roster() {
       <div className="flex items-center mb-[48px]">
         <h1 
           className="text-[48px]" 
-          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
         >
           Roster
         </h1>
         <button
           type="button"
           onClick={() => navigate('/roster/new')}
-          className="ml-auto mr-[12px] px-[20px] py-[12px] bg-[#f0f0ec] text-[#080808] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
+          className="ml-auto mr-[12px] px-[20px] py-[12px] bg-[var(--cv-primary-text)] text-[var(--cv-background)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
           style={{ fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
         >
           + ADD MODEL
@@ -286,8 +286,8 @@ export function Roster() {
         <button
           type="button"
           onClick={handleExportCSV}
-          className="px-[16px] py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+          className="px-[16px] py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)]"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
           EXPORT CSV
         </button>
@@ -295,8 +295,8 @@ export function Roster() {
 
       {/* Controls Row */}
       <div 
-        className="flex flex-col md:flex-row items-stretch md:items-center gap-[12px] md:gap-[24px] mb-[32px] md:mb-[48px] sticky top-0 z-20 py-[16px] -mx-[20px] px-[20px] md:-mx-[48px] md:px-[48px] bg-[#080808]"
-        style={{ boxShadow: '0 1px 0 #1e1e1e' }}
+        className="flex flex-col md:flex-row items-stretch md:items-center gap-[12px] md:gap-[24px] mb-[32px] md:mb-[48px] sticky top-0 z-20 py-[16px] -mx-[20px] px-[20px] md:-mx-[48px] md:px-[48px] bg-[var(--cv-background)]"
+        style={{ boxShadow: '0 1px 0 var(--cv-subtle-border)' }}
       >
         {!briefMatchActive ? (
           <>
@@ -305,18 +305,18 @@ export function Roster() {
               <Search 
                 size={16} 
                 className="absolute left-[16px] top-1/2 -translate-y-1/2" 
-                style={{ color: '#6a6a64' }} 
+                style={{ color: 'var(--cv-secondary-text)' }} 
               />
               <input
                 type="text"
                 placeholder="Search models..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-[44px] pr-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
+                className="w-full pl-[44px] pr-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                 style={{ 
                   fontFamily: 'var(--font-mono)', 
                   fontSize: '13px', 
-                  color: '#f0f0ec'
+                  color: 'var(--cv-primary-text)'
                 }}
               />
             </div>
@@ -356,14 +356,14 @@ export function Roster() {
             {/* Brief Match Button */}
             <button
               onClick={() => setBriefMatchActive(true)}
-              className="flex items-center gap-[8px] px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] text-[12px] uppercase tracking-[0.1em] hover:bg-[#1a1a1a] transition-colors whitespace-nowrap"
+              className="flex items-center gap-[8px] px-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] text-[12px] uppercase tracking-[0.1em] hover:bg-[var(--cv-elevated)] transition-colors whitespace-nowrap"
               style={{ 
                 fontFamily: 'var(--font-mono)', 
-                color: '#f0f0ec',
+                color: 'var(--cv-primary-text)',
                 cursor: 'pointer'
               }}
             >
-              <Sparkles size={14} style={{ color: '#f0f0ec' }} />
+              <Sparkles size={14} style={{ color: 'var(--cv-primary-text)' }} />
               BRIEF MATCH
             </button>
           </>
@@ -376,12 +376,12 @@ export function Roster() {
                 placeholder="Describe the brief — e.g. luxury fragrance, aspirational, European market, strong bone structure..."
                 value={briefQuery}
                 onChange={(e) => setBriefQuery(e.target.value)}
-                className="w-full px-[16px] py-[10px] bg-[#111111] border rounded-[4px]"
+                className="w-full px-[16px] py-[10px] bg-[var(--cv-surface)] border rounded-[4px]"
                 style={{ 
                   fontFamily: 'var(--font-mono)', 
                   fontSize: '13px', 
-                  color: '#f0f0ec',
-                  borderColor: '#f0f0ec'
+                  color: 'var(--cv-primary-text)',
+                  borderColor: 'var(--cv-primary-text)'
                 }}
               />
             </div>
@@ -421,8 +421,8 @@ export function Roster() {
               className="px-[16px] py-[10px] rounded-[4px] text-[12px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 whitespace-nowrap"
               style={{ 
                 fontFamily: 'var(--font-mono)', 
-                backgroundColor: '#f0f0ec',
-                color: '#080808'
+                backgroundColor: 'var(--cv-primary-text)',
+                color: 'var(--cv-background)'
               }}
             >
               {briefMatchLoading ? 'MATCHING...' : 'MATCH'}
@@ -436,9 +436,9 @@ export function Roster() {
                 setBriefQuery('');
                 setBriefMatchResults([]);
               }}
-              className="px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors"
+              className="px-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] hover:bg-[var(--cv-elevated)] transition-colors"
             >
-              <X size={16} style={{ color: '#f0f0ec' }} />
+              <X size={16} style={{ color: 'var(--cv-primary-text)' }} />
             </button>
           </>
         )}
@@ -447,11 +447,11 @@ export function Roster() {
       {/* Match Results Strip */}
       {showMatchResults && briefMatchActive && (
         <div 
-          className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[16px] mb-[16px]"
+          className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] mb-[16px]"
         >
           <div 
             className="text-[11px] uppercase tracking-[0.1em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             TOP MATCHES
           </div>
@@ -468,10 +468,10 @@ export function Roster() {
                 <div
                   key={match.id}
                   className="flex flex-col py-[12px]"
-                  style={{ borderTop: index > 0 ? '1px solid #1a1a1a' : 'none' }}
+                  style={{ borderTop: index > 0 ? '1px solid var(--cv-elevated)' : 'none' }}
                 >
                   <div className="flex items-center gap-[12px]">
-                    <div className="w-[40px] h-[40px] bg-[#1a1a1a] rounded-[4px] overflow-hidden flex-shrink-0">
+                    <div className="w-[40px] h-[40px] bg-[var(--cv-elevated)] rounded-[4px] overflow-hidden flex-shrink-0">
                       <DigitalImage
                         storageRef={model.image}
                         alt={model.name}
@@ -480,16 +480,16 @@ export function Roster() {
                       />
                     </div>
                     <div className="flex-1 text-[13px]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}>
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}>
                       {model.name}
                     </div>
                     <div className="text-[16px] font-bold"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}>
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}>
                       {match.score}%
                     </div>
                     <div
                       className="text-[12px] cursor-pointer hover:opacity-70 transition-opacity"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                       onClick={() => navigate(`/roster/${match.id}/history`)}
                     >
                       VIEW →
@@ -501,7 +501,7 @@ export function Roster() {
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '10px',
-                        color: '#666660',
+                        color: 'var(--cv-secondary-text)',
                         lineHeight: 1.6,
                         paddingLeft: '52px',
                       }}
@@ -524,7 +524,7 @@ export function Roster() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '13px',
-              color: '#666660',
+              color: 'var(--cv-secondary-text)',
             }}
           >
             {search.trim()
@@ -533,26 +533,26 @@ export function Roster() {
           </div>
         ) : (
           <div 
-            className="flex flex-col items-center justify-center py-[64px] border border-dashed border-[#2a2a2a] bg-[#0d0d0d] rounded-[4px]"
+            className="flex flex-col items-center justify-center py-[64px] border border-dashed border-[var(--cv-subtle-border)] bg-[var(--cv-background)] rounded-[4px]"
           >
             <div 
               className="text-[14px] mb-[8px]"
-              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
               No models on the roster yet.
             </div>
             <div 
               className="text-[13px] mb-[24px]"
-              style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
             >
               Sign a prospect to get started.
             </div>
             <button
               onClick={() => navigate('/prospects')}
-              className="px-[24px] py-[12px] bg-[#111111] border border-[#f0f0ec] rounded-[4px] text-[13px] transition-opacity hover:opacity-80"
+              className="px-[24px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-primary-text)] rounded-[4px] text-[13px] transition-opacity hover:opacity-80"
               style={{ 
                 fontFamily: 'var(--font-mono)', 
-                color: '#f0f0ec'
+                color: 'var(--cv-primary-text)'
               }}
             >
               Go to Prospects
@@ -565,10 +565,10 @@ export function Roster() {
             <div
               key={model.id}
               onClick={() => navigate(`/roster/${model.id}/history`)}
-              className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden hover:border-[#3a3a3a] transition-colors cursor-pointer"
+              className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] overflow-hidden hover:border-[var(--cv-elevated)] transition-colors cursor-pointer"
             >
               {/* Image with Badge */}
-              <div className="relative bg-[#1a1a1a] h-[160px] md:h-[220px]">
+              <div className="relative bg-[var(--cv-elevated)] h-[160px] md:h-[220px]">
                 <DigitalImage
                   storageRef={model.image}
                   alt={model.name}
@@ -582,8 +582,8 @@ export function Roster() {
                     className="absolute top-[8px] right-[8px] px-[10px] py-[6px] rounded-[4px] text-[10px] uppercase tracking-tight"
                     style={{ 
                       fontFamily: 'var(--font-label)', 
-                      backgroundColor: '#f0f0ec',
-                      color: '#080808'
+                      backgroundColor: 'var(--cv-primary-text)',
+                      color: 'var(--cv-background)'
                     }}
                   >
                     NEW TO ROSTER
@@ -596,7 +596,7 @@ export function Roster() {
                   style={{ 
                     fontFamily: 'var(--font-label)', 
                     backgroundColor: 'rgba(8, 8, 8, 0.8)',
-                    color: '#f0f0ec',
+                    color: 'var(--cv-primary-text)',
                     backdropFilter: 'blur(8px)'
                   }}
                 >
@@ -609,7 +609,7 @@ export function Roster() {
                 {/* Model Name */}
                 <div 
                   className="text-[20px] mb-[12px]"
-                  style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                  style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
                 >
                   {model.name}
                 </div>
@@ -624,9 +624,9 @@ export function Roster() {
                         className="w-[24px] h-[24px] rounded-[4px] border flex items-center justify-center text-[8px] uppercase tracking-[0.1em]"
                         style={{
                           fontFamily: 'var(--font-label)',
-                          backgroundColor: isRendered ? '#f0f0ec' : 'transparent',
-                          borderColor: isRendered ? '#f0f0ec' : '#2a2a2a',
-                          color: isRendered ? '#080808' : '#6a6a64'
+                          backgroundColor: isRendered ? 'var(--cv-primary-text)' : 'transparent',
+                          borderColor: isRendered ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
+                          color: isRendered ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
                         }}
                       >
                         {context}
@@ -638,19 +638,19 @@ export function Roster() {
                 {/* Score and Date */}
                 <div className="flex items-center justify-between mb-[16px]">
                   <div 
-                    style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: '#f0f0ec' }}
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: 'var(--cv-primary-text)' }}
                   >
                     {model.topScore}%
                   </div>
                   <div 
-                    style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a' }}
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
                   >
                     {model.lastEvaluation}
                   </div>
                 </div>
 
                 {/* Separator */}
-                <div className="h-[1px] bg-[#2a2a2a] mb-[12px]" />
+                <div className="h-[1px] bg-[var(--cv-subtle-border)] mb-[12px]" />
 
                 {/* Status */}
                 <div 
@@ -672,7 +672,7 @@ export function Roster() {
                   className="text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
                   style={{
                     fontFamily: 'var(--font-mono)',
-                    color: '#6a6a64',
+                    color: 'var(--cv-secondary-text)',
                   }}
                 >
                   COMPARE DIGITALS
@@ -686,12 +686,12 @@ export function Roster() {
                     setSelectedModel(model);
                     setShowDevReportModal(true);
                   }}
-                  className="w-full mt-[12px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-all hover:border-[#f0f0ec] hover:text-[#f0f0ec]"
+                  className="w-full mt-[12px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-all hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)]"
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
                     height: '36px',
-                    borderColor: '#2a2a2a',
-                    color: '#888880',
+                    borderColor: 'var(--cv-subtle-border)',
+                    color: 'var(--cv-secondary-text)',
                     backgroundColor: 'transparent',
                     cursor: 'pointer'
                   }}
@@ -706,7 +706,7 @@ export function Roster() {
                     e.stopPropagation();
                     setDeleteTargetId(model.id);
                   }}
-                  className="w-full mt-[8px] border border-[#c87a7a] text-[#c87a7a] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] px-[10px] py-[6px] hover:bg-[#c87a7a] hover:text-[#080808] transition-colors cursor-pointer"
+                  className="w-full mt-[8px] border border-[#c87a7a] text-[#c87a7a] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] px-[10px] py-[6px] hover:bg-[#c87a7a] hover:text-[var(--cv-background)] transition-colors cursor-pointer"
                   style={{ fontFamily: 'var(--font-mono)' }}
                 >
                   DELETE MODEL
@@ -724,18 +724,18 @@ export function Roster() {
           onClick={() => setDeleteTargetId(null)}
         >
           <div
-            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[32px] max-w-[400px] w-full mx-[24px]"
+            className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[32px] max-w-[400px] w-full mx-[24px]"
             onClick={(e) => e.stopPropagation()}
           >
             <h2
               className="text-[28px] mb-[16px]"
-              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
             >
               Remove from roster?
             </h2>
             <p
               className="mb-[24px]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a', lineHeight: 1.8 }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)', lineHeight: 1.8 }}
             >
               This will permanently remove {modelToDelete?.name} from your roster. Their digital sets and evaluation history will be deleted. This cannot be undone.
             </p>
@@ -743,8 +743,8 @@ export function Roster() {
               <button
                 type="button"
                 onClick={() => setDeleteTargetId(null)}
-                className="flex-1 px-[16px] py-[10px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#888880', backgroundColor: 'transparent' }}
+                className="flex-1 px-[16px] py-[10px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', backgroundColor: 'transparent' }}
               >
                 CANCEL
               </button>
@@ -761,7 +761,7 @@ export function Roster() {
                   }
                 }}
                 className="flex-1 px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-                style={{ fontFamily: 'var(--font-mono)', backgroundColor: '#c87a7a', color: '#080808' }}
+                style={{ fontFamily: 'var(--font-mono)', backgroundColor: '#c87a7a', color: 'var(--cv-background)' }}
               >
                 REMOVE MODEL
               </button>
@@ -783,14 +783,14 @@ export function Roster() {
           >
             {/* Modal */}
             <div 
-              className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[32px]"
+              className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[32px]"
               style={{ width: '480px' }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
               <h2 
                 className="text-[24px] mb-[24px]"
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
               >
                 Development Report — {selectedModel.name}
               </h2>
@@ -798,7 +798,7 @@ export function Roster() {
               {/* Preview Summary - hardcoded for Sofia Andersen, generic for others */}
               <div 
                 className="mb-[32px] text-[12px] leading-relaxed whitespace-pre-line"
-                style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
               >
                 {selectedModel.id === 'sofia-andersen' ? (
                   `July 2025 (Prospect era)
@@ -824,11 +824,11 @@ Overall trajectory: +23 points across primary contexts since signing.`
                     setShowDevReportModal(false);
                     setShowCopiedConfirmation(false);
                   }}
-                  className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec]"
+                  className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
                   style={{ 
                     fontFamily: 'var(--font-mono)',
-                    borderColor: '#2a2a2a',
-                    color: '#888880',
+                    borderColor: 'var(--cv-subtle-border)',
+                    color: 'var(--cv-secondary-text)',
                     backgroundColor: 'transparent'
                   }}
                 >
@@ -846,12 +846,12 @@ Overall trajectory: +23 points across primary contexts since signing.`
                   className="px-[16px] py-[10px] rounded-[4px] text-[12px] transition-opacity hover:opacity-80"
                   style={{ 
                     fontFamily: 'var(--font-mono)',
-                    backgroundColor: '#f0f0ec',
-                    color: '#080808'
+                    backgroundColor: 'var(--cv-primary-text)',
+                    color: 'var(--cv-background)'
                   }}
                 >
                   {showCopiedConfirmation ? (
-                    <span style={{ color: '#888880', backgroundColor: 'transparent', fontSize: '11px' }}>
+                    <span style={{ color: 'var(--cv-secondary-text)', backgroundColor: 'transparent', fontSize: '11px' }}>
                       Link copied to clipboard
                     </span>
                   ) : (

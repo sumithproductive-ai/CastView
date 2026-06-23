@@ -109,7 +109,7 @@ export function NewModelReview() {
         style={{
           fontFamily: 'var(--font-display)',
           fontWeight: 300,
-          color: '#f0f0ec',
+          color: 'var(--cv-primary-text)',
         }}
       >
         Review & Add to Roster
@@ -120,56 +120,56 @@ export function NewModelReview() {
           <div
             className="w-[32px] h-[32px] rounded-full flex items-center justify-center"
             style={{
-              backgroundColor: '#f0f0ec',
-              color: '#080808',
+              backgroundColor: 'var(--cv-primary-text)',
+              color: 'var(--cv-background)',
             }}
           >
             <Check size={16} />
           </div>
           <span
             className="text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
             Basic Info
           </span>
         </div>
 
-        <div className="w-[40px] h-[1px] bg-[#2a2a2a]" />
+        <div className="w-[40px] h-[1px] bg-[var(--cv-subtle-border)]" />
 
         <div className="flex items-center gap-[12px]">
           <div
             className="w-[32px] h-[32px] rounded-full flex items-center justify-center"
             style={{
-              backgroundColor: '#f0f0ec',
-              color: '#080808',
+              backgroundColor: 'var(--cv-primary-text)',
+              color: 'var(--cv-background)',
             }}
           >
             <Check size={16} />
           </div>
           <span
             className="text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
             Digitals
           </span>
         </div>
 
-        <div className="w-[40px] h-[1px] bg-[#2a2a2a]" />
+        <div className="w-[40px] h-[1px] bg-[var(--cv-subtle-border)]" />
 
         <div className="flex items-center gap-[12px]">
           <div
             className="w-[32px] h-[32px] rounded-full flex items-center justify-center text-[13px]"
             style={{
               fontFamily: 'var(--font-mono)',
-              backgroundColor: '#f0f0ec',
-              color: '#080808',
+              backgroundColor: 'var(--cv-primary-text)',
+              color: 'var(--cv-background)',
             }}
           >
             3
           </div>
           <span
             className="text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
             Review
           </span>
@@ -179,19 +179,19 @@ export function NewModelReview() {
       <div className="mb-[24px]">
         <div
           className="text-[9px] uppercase tracking-[0.1em]"
-          style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+          style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
           REVIEW MODEL
         </div>
       </div>
 
-      <div className="max-w-[480px] mx-auto bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[32px]">
+      <div className="max-w-[480px] mx-auto bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[32px]">
         <h2
           className="text-[32px] mb-[16px]"
           style={{
             fontFamily: 'var(--font-display)',
             fontWeight: 300,
-            color: '#f0f0ec',
+            color: 'var(--cv-primary-text)',
           }}
         >
           {modelData.name}
@@ -201,8 +201,8 @@ export function NewModelReview() {
           {modelData.markets.map((market) => (
             <div
               key={market}
-              className="px-[12px] py-[6px] border border-[#2a2a2a] rounded-full text-[9px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+              className="px-[12px] py-[6px] border border-[var(--cv-subtle-border)] rounded-full text-[9px] uppercase tracking-[0.1em]"
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
               {market}
             </div>
@@ -225,7 +225,7 @@ export function NewModelReview() {
           {modelData.digitals.map((digital) => (
             <div key={digital.label} className="flex flex-col gap-[8px]">
               {digital.url ? (
-                <div className="aspect-square bg-[#1a1a1a] rounded-[4px] overflow-hidden">
+                <div className="aspect-square bg-[var(--cv-elevated)] rounded-[4px] overflow-hidden">
                   <DigitalImage
                     storageRef={digital.url}
                     alt={digital.label}
@@ -234,14 +234,14 @@ export function NewModelReview() {
                 </div>
               ) : (
                 <div
-                  className="aspect-square bg-[#0d0d0d] border border-dashed rounded-[4px] flex items-center justify-center"
-                  style={{ borderColor: '#2a2a2a' }}
+                  className="aspect-square bg-[var(--cv-background)] border border-dashed rounded-[4px] flex items-center justify-center"
+                  style={{ borderColor: 'var(--cv-subtle-border)' }}
                 >
                   <div
                     className="text-[7px] uppercase tracking-[0.05em] text-center px-[4px]"
                     style={{
                       fontFamily: 'var(--font-label)',
-                      color: '#6a6a64',
+                      color: 'var(--cv-secondary-text)',
                       lineHeight: 1.3,
                     }}
                   >
@@ -253,7 +253,7 @@ export function NewModelReview() {
               )}
               <div
                 className="text-[8px] uppercase tracking-[0.05em] text-center"
-                style={{ fontFamily: 'var(--font-label)', color: '#6a6a64' }}
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
                 {digital.label}
               </div>
@@ -261,20 +261,20 @@ export function NewModelReview() {
           ))}
         </div>
 
-        <div className="h-[1px] bg-[#2a2a2a] mb-[24px]" />
+        <div className="h-[1px] bg-[var(--cv-subtle-border)] mb-[24px]" />
 
         <div className="grid grid-cols-2 gap-x-[24px] gap-y-[12px] mb-[24px]">
           {Object.entries(modelData.measurements).map(([key, value]) => (
             <div key={key} className="flex justify-between">
               <span
                 className="text-[11px] uppercase tracking-[0.05em]"
-                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
                 {key}
               </span>
               <span
                 className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
               >
                 {value}
               </span>
@@ -285,7 +285,7 @@ export function NewModelReview() {
         {modelData.notes && (
           <div
             className="text-[13px] mb-[32px] italic"
-            style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             {modelData.notes}
           </div>
@@ -296,10 +296,10 @@ export function NewModelReview() {
             type="button"
             onClick={handleAddToRoster}
             disabled={saving}
-            className="w-full py-[12px] bg-[#f0f0ec] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-[12px] bg-[var(--cv-primary-text)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               fontFamily: 'var(--font-mono)',
-              color: '#080808',
+              color: 'var(--cv-background)',
             }}
           >
             {saving ? 'ADDING TO ROSTER...' : 'ADD TO ROSTER'}
@@ -310,7 +310,7 @@ export function NewModelReview() {
               navigate(`/roster/new/digitals${window.location.search}`)
             }
             className="w-full text-center text-[12px] transition-opacity hover:opacity-70"
-            style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             Back to edit
           </button>

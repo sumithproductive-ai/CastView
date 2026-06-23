@@ -52,7 +52,7 @@ function getPlanStatusDisplay(plan: string, planStatus: string): { label: string
   if (normalizedStatus === 'active' || normalizedStatus === 'trialing') {
     return { label: planStatus.replace(/_/g, ' ').toUpperCase(), color: '#c8a96e' };
   }
-  return { label: planStatus.replace(/_/g, ' ').toUpperCase(), color: '#888880' };
+  return { label: planStatus.replace(/_/g, ' ').toUpperCase(), color: 'var(--cv-secondary-text)' };
 }
 
 function formatLastActive(iso: string | null): string {
@@ -130,7 +130,7 @@ function PulseBar({
 }) {
   return (
     <div
-      className={`animate-pulse bg-[#1a1a1a] ${className}`}
+      className={`animate-pulse bg-[var(--cv-elevated)] ${className}`}
       style={{ width, height, borderRadius: rounded }}
       aria-hidden
     />
@@ -449,7 +449,7 @@ export function Settings() {
         style={{
           fontFamily: 'var(--font-display)',
           fontWeight: 300,
-          color: '#f0f0ec',
+          color: 'var(--cv-primary-text)',
           ...(!isPageLoading ? sectionFade(0) : {}),
         }}
       >
@@ -461,7 +461,7 @@ export function Settings() {
         <div style={!isPageLoading ? sectionFade(1) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             BILLING
           </div>
@@ -473,12 +473,12 @@ export function Settings() {
               {checkoutError}
             </p>
           )}
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] p-[24px]">
-            <div className="flex items-center justify-between mb-[24px] pb-[24px] border-b border-[#2a2a2a]">
+          <div className="bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
+            <div className="flex items-center justify-between mb-[24px] pb-[24px] border-b border-[var(--cv-subtle-border)]">
               <div>
                 <div
                   className="text-[9px] uppercase tracking-[0.1em] mb-[8px]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   CURRENT PLAN
                 </div>
@@ -487,7 +487,7 @@ export function Settings() {
                 ) : (
                   <div
                     className="text-[28px]"
-                    style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                    style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
                   >
                     {planLabel || formatPlanLabel(plan)}
                   </div>
@@ -497,7 +497,7 @@ export function Settings() {
                 <PulseBar width={88} height={30} />
               ) : (
                 <div
-                  className="px-[12px] py-[6px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
+                  className="px-[12px] py-[6px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
                   style={{ fontFamily: 'var(--font-mono)', color: planStatusColor }}
                 >
                   {planStatusLabel || planStatus.replace(/_/g, ' ')}
@@ -514,7 +514,7 @@ export function Settings() {
               <div className="mb-[24px]">
                 <p
                   className="text-[13px] mb-[16px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a', lineHeight: 1.6 }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
                 >
                   Update your payment method, view invoices, or cancel your subscription anytime.
                 </p>
@@ -525,8 +525,8 @@ export function Settings() {
                   className="px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
                     fontFamily: 'var(--font-mono)',
-                    backgroundColor: '#f0f0ec',
-                    color: '#080808',
+                    backgroundColor: 'var(--cv-primary-text)',
+                    color: 'var(--cv-background)',
                     border: 'none',
                     cursor: portalLoading ? 'not-allowed' : 'pointer',
                   }}
@@ -546,7 +546,7 @@ export function Settings() {
               <>
                 <div
                   className="text-[11px] uppercase tracking-[0.12em] mb-[16px]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   CHOOSE A PLAN
                 </div>
@@ -561,8 +561,8 @@ export function Settings() {
                         key={tier.id}
                         className="rounded-[4px] p-[24px] flex flex-col"
                         style={{
-                          backgroundColor: '#1a1a1a',
-                          border: `1px solid ${isRecommended ? '#c8a96e' : '#2a2a2a'}`,
+                          backgroundColor: 'var(--cv-elevated)',
+                          border: `1px solid ${isRecommended ? '#c8a96e' : 'var(--cv-subtle-border)'}`,
                         }}
                       >
                         {isRecommended && (
@@ -577,26 +577,26 @@ export function Settings() {
                           className="text-[11px] uppercase tracking-[0.12em] mb-[12px]"
                           style={{
                             fontFamily: 'var(--font-label)',
-                            color: isRecommended ? '#c8a96e' : '#888880',
+                            color: isRecommended ? '#c8a96e' : 'var(--cv-secondary-text)',
                           }}
                         >
                           {tier.name}
                         </div>
                         <div
                           className="text-[40px] mb-[4px]"
-                          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
                         >
                           {tier.price}
                         </div>
                         <div
                           className="text-[13px] mb-[20px]"
-                          style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                         >
                           per month
                         </div>
                         <div
                           className="text-[13px] mb-[24px] flex-1"
-                          style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a', lineHeight: 1.5 }}
+                          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.5 }}
                         >
                           {tier.description}
                         </div>
@@ -608,8 +608,8 @@ export function Settings() {
                           style={{
                             fontFamily: 'var(--font-mono)',
                             backgroundColor: isRecommended ? '#c8a96e' : 'transparent',
-                            color: isRecommended ? '#080808' : '#f0f0ec',
-                            border: isRecommended ? '1px solid #c8a96e' : '1px solid #2a2a2a',
+                            color: isRecommended ? 'var(--cv-background)' : 'var(--cv-primary-text)',
+                            border: isRecommended ? '1px solid #c8a96e' : '1px solid var(--cv-subtle-border)',
                             cursor: isCurrent ? 'not-allowed' : 'pointer',
                           }}
                         >
@@ -617,7 +617,7 @@ export function Settings() {
                         </button>
                         <div
                           className="text-[11px] text-center mt-[12px]"
-                          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+                          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                         >
                           14-day free trial
                         </div>
@@ -634,15 +634,15 @@ export function Settings() {
         <div style={!isPageLoading ? sectionFade(2) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             YOUR PLAN
           </div>
-          <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
+          <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
             <div className="flex items-center justify-between mb-[24px]">
               <div
                 className="text-[9px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
                 YOUR PLAN
               </div>
@@ -650,19 +650,19 @@ export function Settings() {
                 <PulseBar width={120} height={30} />
               ) : (
                 <div
-                  className="px-[12px] py-[6px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] text-[11px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                  className="px-[12px] py-[6px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
                 >
                   {planLabel || '—'}
                 </div>
               )}
             </div>
 
-            <div className="border-b border-[#2a2a2a] py-[14px]">
+            <div className="border-b border-[var(--cv-subtle-border)] py-[14px]">
               <div className="flex items-center justify-between mb-[12px]">
                 <label
                   className="text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
                   Agent seats
                 </label>
@@ -671,28 +671,28 @@ export function Settings() {
                 ) : (
                   <div
                     className="text-[13px]"
-                    style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
                   >
                     {`${activeProfileCount} of ${formatSeatLimit(seatLimit)} active`}
                   </div>
                 )}
               </div>
-              <div className="w-full h-[4px] bg-[#2a2a2a] rounded-[4px] overflow-hidden">
+              <div className="w-full h-[4px] bg-[var(--cv-subtle-border)] rounded-[4px] overflow-hidden">
                 {isPageLoading ? (
                   <PulseBar width="100%" height={4} />
                 ) : (
                   <div
                     className="h-full rounded-[4px]"
-                    style={{ width: `${seatProgress}%`, backgroundColor: '#f0f0ec' }}
+                    style={{ width: `${seatProgress}%`, backgroundColor: 'var(--cv-primary-text)' }}
                   />
                 )}
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-b border-[#2a2a2a] py-[14px]">
+            <div className="flex items-center justify-between border-b border-[var(--cv-subtle-border)] py-[14px]">
               <label
                 className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
                 Evaluations this month
               </label>
@@ -701,17 +701,17 @@ export function Settings() {
               ) : (
                 <div
                   className="text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
                 >
                   {String(evaluationsThisMonth)}
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-between border-b border-[#2a2a2a] py-[14px]">
+            <div className="flex items-center justify-between border-b border-[var(--cv-subtle-border)] py-[14px]">
               <label
                 className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
                 Renewal date
               </label>
@@ -720,7 +720,7 @@ export function Settings() {
               ) : (
                 <div
                   className="text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
                 >
                   {renewalDate}
                 </div>
@@ -730,11 +730,11 @@ export function Settings() {
             <div className="flex justify-end gap-[12px] mt-[24px]">
               <a
                 href="mailto:hello@castview.org?subject=Seat%20Management%20Request"
-                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec] no-underline inline-block"
+                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] no-underline inline-block"
                 style={{
                   fontFamily: 'var(--font-label)',
-                  borderColor: '#2a2a2a',
-                  color: '#a0a09a',
+                  borderColor: 'var(--cv-subtle-border)',
+                  color: 'var(--cv-secondary-text)',
                   cursor: 'pointer',
                 }}
               >
@@ -746,8 +746,8 @@ export function Settings() {
                 className="px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
                 style={{
                   fontFamily: 'var(--font-label)',
-                  backgroundColor: '#f0f0ec',
-                  color: '#080808',
+                  backgroundColor: 'var(--cv-primary-text)',
+                  color: 'var(--cv-background)',
                   cursor: 'pointer',
                   border: 'none',
                 }}
@@ -762,34 +762,34 @@ export function Settings() {
         <div style={!isPageLoading ? sectionFade(3) : undefined}>
           <div
             className="text-[11px] uppercase tracking-[0.12em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             TEAM ACTIVITY
           </div>
-          <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
+          <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
             <div>
-              <div className="flex items-center gap-[24px] pb-[12px] border-b border-[#1e1e1e]">
+              <div className="flex items-center gap-[24px] pb-[12px] border-b border-[var(--cv-subtle-border)]">
                 <div
                   className="flex-1 text-[10px] uppercase tracking-[0.05em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   AGENT
                 </div>
                 <div
                   className="w-[180px] text-[10px] uppercase tracking-[0.05em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   EVALUATIONS THIS MONTH
                 </div>
                 <div
                   className="w-[140px] text-[10px] uppercase tracking-[0.05em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   LAST ACTIVE
                 </div>
                 <div
                   className="w-[100px] text-[10px] uppercase tracking-[0.05em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   STATUS
                 </div>
@@ -797,7 +797,7 @@ export function Settings() {
 
               {isPageLoading ? (
                 <div
-                  className="flex items-center gap-[24px] border-b border-[#1e1e1e]"
+                  className="flex items-center gap-[24px] border-b border-[var(--cv-subtle-border)]"
                   style={{ height: '48px' }}
                 >
                   <PulseBar width="55%" height={13} className="flex-1 min-w-0" />
@@ -808,7 +808,7 @@ export function Settings() {
               ) : teamProfiles.length === 0 ? (
                 <div
                   className="py-[24px] text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#666660' }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
                   No team members found
                 </div>
@@ -816,30 +816,30 @@ export function Settings() {
                 teamProfiles.map((member) => (
                   <div
                     key={member.id}
-                    className="flex items-center gap-[24px] border-b border-[#1e1e1e]"
+                    className="flex items-center gap-[24px] border-b border-[var(--cv-subtle-border)]"
                     style={{ height: '48px' }}
                   >
                     <div
                       className="flex-1 text-[13px] min-w-0 truncate"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
                       title={member.email}
                     >
                       {member.email}
                       {member.role === 'owner' ? (
-                        <span style={{ color: '#888880', marginLeft: '8px' }}>
+                        <span style={{ color: 'var(--cv-secondary-text)', marginLeft: '8px' }}>
                           ({member.role})
                         </span>
                       ) : null}
                     </div>
                     <div
                       className="w-[180px] text-[13px]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
                     >
                       {member.evaluationsThisMonth}
                     </div>
                     <div
                       className="w-[140px] text-[13px]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
                     >
                       {formatLastActive(member.lastActiveAt)}
                     </div>
@@ -848,8 +848,8 @@ export function Settings() {
                         className="inline-block px-[10px] py-[4px] rounded-full text-[9px] uppercase tracking-[0.1em] border"
                         style={{
                           fontFamily: 'var(--font-label)',
-                          borderColor: '#c8c8c2',
-                          color: '#c8c8c2',
+                          borderColor: 'var(--cv-accent)',
+                          color: 'var(--cv-accent)',
                           backgroundColor: 'transparent',
                         }}
                       >
@@ -863,7 +863,7 @@ export function Settings() {
 
             <div
               className="mt-[16px] text-[11px] italic"
-              style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
             >
               Activity data resets on the 1st of each month.
             </div>
@@ -874,15 +874,15 @@ export function Settings() {
         <div style={!isPageLoading ? sectionFade(4) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             AGENCY
           </div>
-          <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] space-y-[16px]">
+          <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] space-y-[16px]">
             <div className="flex items-center justify-between">
               <label
                 className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
                 Agency Name
               </label>
@@ -897,11 +897,11 @@ export function Settings() {
                     setAgencyName(e.target.value);
                     setAgencySaved(false);
                   }}
-                  className="px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] w-[320px]"
+                  className="px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] w-[320px]"
                   style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: '13px',
-                    color: '#f0f0ec',
+                    color: 'var(--cv-primary-text)',
                   }}
                 />
               )}
@@ -911,7 +911,7 @@ export function Settings() {
               <div className="flex items-center justify-between">
                 <label
                   className="text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
                   Primary Market
                 </label>
@@ -926,11 +926,11 @@ export function Settings() {
                       setPrimaryMarket(e.target.value);
                       setAgencySaved(false);
                     }}
-                    className="px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] w-[320px]"
+                    className="px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] w-[320px]"
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '13px',
-                      color: '#f0f0ec',
+                      color: 'var(--cv-primary-text)',
                     }}
                   />
                 )}
@@ -949,7 +949,7 @@ export function Settings() {
                         setPrimaryMarket(suggestion);
                         setAgencySaved(false);
                       }}
-                      className="border border-[#2a2a2a] text-[#888880] hover:border-[#f0f0ec] hover:text-[#f0f0ec] rounded-[4px] cursor-pointer transition-colors"
+                      className="border border-[var(--cv-subtle-border)] text-[var(--cv-secondary-text)] hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)] rounded-[4px] cursor-pointer transition-colors"
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '11px',
@@ -972,11 +972,11 @@ export function Settings() {
                 type="button"
                 onClick={handleSaveAgency}
                 disabled={savingAgency || !agencyId}
-                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec] disabled:opacity-50"
+                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] disabled:opacity-50"
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  borderColor: agencySaved ? '#4a7a4a' : '#2a2a2a',
-                  color: agencySaved ? '#4a7a4a' : '#f0f0ec',
+                  borderColor: agencySaved ? '#4a7a4a' : 'var(--cv-subtle-border)',
+                  color: agencySaved ? '#4a7a4a' : 'var(--cv-primary-text)',
                   cursor: savingAgency ? 'not-allowed' : 'pointer',
                   background: 'transparent',
                 }}
@@ -1000,25 +1000,25 @@ export function Settings() {
         <div style={!isPageLoading ? sectionFade(5) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             HELP
           </div>
-          <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
+          <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
             <div className="flex items-center justify-between">
               <label
                 className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
                 Product Tutorial
               </label>
               <button
                 onClick={openTutorial}
-                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec]"
+                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  borderColor: '#2a2a2a',
-                  color: '#f0f0ec',
+                  borderColor: 'var(--cv-subtle-border)',
+                  color: 'var(--cv-primary-text)',
                   cursor: 'pointer',
                   background: 'transparent',
                 }}
@@ -1033,11 +1033,11 @@ export function Settings() {
         <div style={!isPageLoading ? sectionFade(6) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             SUPPORT
           </div>
-          <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
+          <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
             {supportSuccess ? (
               <p
                 className="text-center py-[24px]"
@@ -1049,7 +1049,7 @@ export function Settings() {
               <div className="space-y-[16px]">
                 <p
                   className="text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
                   Report a bug, request a feature, or ask a question.
                 </p>
@@ -1058,11 +1058,11 @@ export function Settings() {
                   onChange={(e) =>
                     setSupportCategory(e.target.value as 'bug' | 'feedback' | 'other')
                   }
-                  className="w-full px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                  className="w-full px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: '13px',
-                    color: '#f0f0ec',
+                    color: 'var(--cv-primary-text)',
                   }}
                 >
                   <option value="bug">Bug Report</option>
@@ -1074,11 +1074,11 @@ export function Settings() {
                   placeholder="Brief description"
                   value={supportSubject}
                   onChange={(e) => setSupportSubject(e.target.value)}
-                  className="w-full px-[16px] py-[10px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                  className="w-full px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: '13px',
-                    color: '#f0f0ec',
+                    color: 'var(--cv-primary-text)',
                   }}
                 />
                 <div>
@@ -1087,11 +1087,11 @@ export function Settings() {
                     value={supportMessage}
                     onChange={(e) => setSupportMessage(e.target.value)}
                     rows={4}
-                    className="w-full px-[16px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] resize-none"
+                    className="w-full px-[16px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none"
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '13px',
-                      color: '#f0f0ec',
+                      color: 'var(--cv-primary-text)',
                       minHeight: '100px',
                     }}
                   />
@@ -1100,7 +1100,7 @@ export function Settings() {
                       className="mt-[8px] text-[11px]"
                       style={{
                         fontFamily: 'var(--font-mono)',
-                        color: supportMessageTooLong ? '#c87a7a' : '#888880',
+                        color: supportMessageTooLong ? '#c87a7a' : 'var(--cv-secondary-text)',
                       }}
                     >
                       {supportMessage.length} / 2000
@@ -1115,8 +1115,8 @@ export function Settings() {
                     className="px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                       fontFamily: 'var(--font-mono)',
-                      backgroundColor: '#f0f0ec',
-                      color: '#080808',
+                      backgroundColor: 'var(--cv-primary-text)',
+                      color: 'var(--cv-background)',
                       border: 'none',
                       cursor: !canSubmitSupport ? 'not-allowed' : 'pointer',
                     }}
@@ -1142,7 +1142,7 @@ export function Settings() {
             <Link
               to="/admin/requests"
               className="text-[12px] hover:opacity-80 transition-opacity"
-              style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
             >
               ADMIN: View Requests →
             </Link>

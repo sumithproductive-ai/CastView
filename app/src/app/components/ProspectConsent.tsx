@@ -37,12 +37,12 @@ export function ProspectConsent() {
   return (
     <div 
       className="min-h-screen flex flex-col items-center justify-center px-[24px]"
-      style={{ backgroundColor: '#080808' }}
+      style={{ backgroundColor: 'var(--cv-background)' }}
     >
       {/* CastView Logo */}
       <div 
         className="text-[32px] mb-[32px]"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
         CastView
       </div>
@@ -50,7 +50,7 @@ export function ProspectConsent() {
       {/* Headline */}
       <h1 
         className="text-[36px] mb-[24px] text-center"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
         Before we continue
       </h1>
@@ -61,7 +61,7 @@ export function ProspectConsent() {
         style={{ 
           fontFamily: 'var(--font-mono)', 
           fontSize: '13px', 
-          color: '#c8c8c2',
+          color: 'var(--cv-accent)',
           maxWidth: '480px',
           lineHeight: '1.8'
         }}
@@ -82,7 +82,7 @@ export function ProspectConsent() {
           style={{
             width: '16px',
             height: '16px',
-            accentColor: '#f0f0ec'
+            accentColor: 'var(--cv-primary-text)'
           }}
         />
         <label 
@@ -91,7 +91,7 @@ export function ProspectConsent() {
           style={{ 
             fontFamily: 'var(--font-mono)', 
             fontSize: '12px', 
-            color: '#f0f0ec'
+            color: 'var(--cv-primary-text)'
           }}
         >
           I've confirmed {prospectName} has consented to their photos being used for internal evaluation.
@@ -102,11 +102,11 @@ export function ProspectConsent() {
       <div className="flex gap-[12px] mb-[16px]">
         <button
           onClick={handleBack}
-          className="px-[24px] py-[12px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec]"
+          className="px-[24px] py-[12px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
           style={{ 
             fontFamily: 'var(--font-label)',
-            borderColor: '#2a2a2a',
-            color: '#a0a09a',
+            borderColor: 'var(--cv-subtle-border)',
+            color: 'var(--cv-secondary-text)',
             backgroundColor: 'transparent',
             cursor: 'pointer'
           }}
@@ -119,8 +119,8 @@ export function ProspectConsent() {
           className="px-[24px] py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity"
           style={{ 
             fontFamily: 'var(--font-label)',
-            backgroundColor: isChecked ? '#f0f0ec' : '#2a2a2a',
-            color: isChecked ? '#080808' : '#6a6a64',
+            backgroundColor: isChecked ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
+            color: isChecked ? 'var(--cv-background)' : 'var(--cv-secondary-text)',
             cursor: isChecked ? 'pointer' : 'not-allowed',
             opacity: isChecked ? 1 : 0.5
           }}
@@ -135,7 +135,7 @@ export function ProspectConsent() {
         style={{ 
           fontFamily: 'var(--font-mono)', 
           fontSize: '11px', 
-          color: '#888880'
+          color: 'var(--cv-secondary-text)'
         }}
       >
         <div className="italic mb-[4px]">
@@ -151,7 +151,7 @@ export function ProspectConsent() {
             target="_blank"
             rel="noopener noreferrer"
             className="underline"
-            style={{ color: '#c8c8c2' }}
+            style={{ color: 'var(--cv-accent)' }}
           >
             Data Processing Agreement
           </Link>
@@ -161,7 +161,7 @@ export function ProspectConsent() {
             target="_blank"
             rel="noopener noreferrer"
             className="underline"
-            style={{ color: '#c8c8c2' }}
+            style={{ color: 'var(--cv-accent)' }}
           >
             Privacy Policy
           </Link>

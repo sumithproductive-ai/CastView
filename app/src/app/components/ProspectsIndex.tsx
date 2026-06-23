@@ -38,15 +38,15 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
     <div className="relative w-full md:w-auto">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full md:w-auto items-center justify-between gap-[12px] px-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+        className="flex w-full md:w-auto items-center justify-between gap-[12px] px-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] hover:bg-[var(--cv-elevated)] transition-colors cursor-pointer"
         style={{ 
           fontFamily: 'var(--font-mono)', 
           fontSize: '13px', 
-          color: '#f0f0ec'
+          color: 'var(--cv-primary-text)'
         }}
       >
         <span>{currentLabel}</span>
-        <ChevronDown size={14} style={{ color: '#a0a09a' }} />
+        <ChevronDown size={14} style={{ color: 'var(--cv-secondary-text)' }} />
       </button>
 
       {isOpen && (
@@ -56,7 +56,7 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
             onClick={() => setIsOpen(false)} 
           />
           <div 
-            className="absolute top-full mt-[4px] left-0 min-w-full bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden z-20"
+            className="absolute top-full mt-[4px] left-0 min-w-full bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] overflow-hidden z-20"
             style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' }}
           >
             {options.map((option) => (
@@ -66,11 +66,11 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className="w-full text-left px-[16px] py-[10px] hover:bg-[#1a1a1a] transition-colors"
+                className="w-full text-left px-[16px] py-[10px] hover:bg-[var(--cv-elevated)] transition-colors"
                 style={{ 
                   fontFamily: 'var(--font-mono)', 
                   fontSize: '13px', 
-                  color: value === option.value ? '#f0f0ec' : '#a0a09a'
+                  color: value === option.value ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)'
                 }}
               >
                 {option.label}
@@ -315,37 +315,37 @@ export function ProspectsIndex() {
       <div className="flex items-center mb-[48px]">
         <h1 
           className="text-[48px]" 
-          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
         >
           Prospects
         </h1>
         <button
           onClick={() => setStatusFilter('draft')}
           className="ml-auto mr-[16px] text-[13px] transition-opacity hover:opacity-70"
-          style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
           {draftCount} draft{draftCount !== 1 ? 's' : ''}
         </button>
         <button
           onClick={handleExportCSV}
-          className="px-[16px] py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec] hover:text-[#f0f0ec] mr-[16px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+          className="px-[16px] py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)] mr-[16px]"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
           EXPORT CSV
         </button>
         <button
           onClick={() => setQuickAddOpen(true)}
           className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity mr-[12px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#888880', cursor: 'pointer' }}
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}
         >
           QUICK ADD
         </button>
         <button
           onClick={() => navigate('/prospects/new')}
-          className="flex items-center gap-[8px] px-[20px] py-[12px] bg-[#f0f0ec] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+          className="flex items-center gap-[8px] px-[20px] py-[12px] bg-[var(--cv-primary-text)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
           style={{ 
             fontFamily: 'var(--font-mono)', 
-            color: '#080808'
+            color: 'var(--cv-background)'
           }}
           data-tutorial="add-prospect-button"
         >
@@ -356,26 +356,26 @@ export function ProspectsIndex() {
 
       {/* Controls Row */}
       <div 
-        className="flex flex-col md:flex-row items-stretch md:items-center gap-[12px] md:gap-[24px] mb-[32px] md:mb-[48px] sticky top-0 z-20 py-[16px] -mx-[20px] px-[20px] md:-mx-[48px] md:px-[48px] bg-[#080808]"
-        style={{ boxShadow: '0 1px 0 #1e1e1e' }}
+        className="flex flex-col md:flex-row items-stretch md:items-center gap-[12px] md:gap-[24px] mb-[32px] md:mb-[48px] sticky top-0 z-20 py-[16px] -mx-[20px] px-[20px] md:-mx-[48px] md:px-[48px] bg-[var(--cv-background)]"
+        style={{ boxShadow: '0 1px 0 var(--cv-subtle-border)' }}
       >
         {/* Search Input */}
         <div className="flex-1 relative">
           <Search 
             size={16} 
             className="absolute left-[16px] top-1/2 -translate-y-1/2" 
-            style={{ color: '#6a6a64' }} 
+            style={{ color: 'var(--cv-secondary-text)' }} 
           />
           <input
             type="text"
             placeholder="Search prospects..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-[44px] pr-[16px] py-[10px] bg-[#111111] border border-[#2a2a2a] rounded-[4px]"
+            className="w-full pl-[44px] pr-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]"
             style={{ 
               fontFamily: 'var(--font-mono)', 
               fontSize: '13px', 
-              color: '#f0f0ec'
+              color: 'var(--cv-primary-text)'
             }}
           />
         </div>
@@ -409,7 +409,7 @@ export function ProspectsIndex() {
       <div className="flex items-center gap-[12px] mb-[24px] overflow-x-auto pb-[4px] scrollbar-hide">
         <span 
           className="text-[9px] uppercase tracking-[0.1em]"
-          style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+          style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
           FILTER BY SOURCE:
         </span>
@@ -418,9 +418,9 @@ export function ProspectsIndex() {
           className="px-[14px] py-[6px] rounded-full text-[11px] uppercase tracking-[0.05em] transition-colors border cursor-pointer"
           style={{
             fontFamily: 'var(--font-mono)',
-            backgroundColor: sourceFilters.size === 0 ? '#f0f0ec' : 'transparent',
-            borderColor: sourceFilters.size === 0 ? '#f0f0ec' : '#444440',
-            color: sourceFilters.size === 0 ? '#080808' : '#888880'
+            backgroundColor: sourceFilters.size === 0 ? 'var(--cv-primary-text)' : 'transparent',
+            borderColor: sourceFilters.size === 0 ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)',
+            color: sourceFilters.size === 0 ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
           }}
         >
           ALL
@@ -432,9 +432,9 @@ export function ProspectsIndex() {
             className="px-[14px] py-[6px] rounded-full text-[11px] uppercase tracking-[0.05em] transition-colors border cursor-pointer"
             style={{
               fontFamily: 'var(--font-mono)',
-              backgroundColor: sourceFilters.has(source) ? '#f0f0ec' : 'transparent',
-              borderColor: sourceFilters.has(source) ? '#f0f0ec' : '#444440',
-              color: sourceFilters.has(source) ? '#080808' : '#888880'
+              backgroundColor: sourceFilters.has(source) ? 'var(--cv-primary-text)' : 'transparent',
+              borderColor: sourceFilters.has(source) ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)',
+              color: sourceFilters.has(source) ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
             }}
           >
             {source}
@@ -449,7 +449,7 @@ export function ProspectsIndex() {
           className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity"
           style={{ 
             fontFamily: 'var(--font-mono)', 
-            color: '#888880',
+            color: 'var(--cv-secondary-text)',
             visibility: (hoveredRow !== null || selected.size > 0) 
               ? 'visible' : 'hidden',
             opacity: (hoveredRow !== null || selected.size > 0) ? 1 : 0,
@@ -493,19 +493,19 @@ export function ProspectsIndex() {
                 onClick={(e) => e.stopPropagation()}
                 className="w-[20px] h-[20px] cursor-pointer"
                 style={{
-                  accentColor: '#f0f0ec',
-                  backgroundColor: '#111111',
-                  border: '1px solid #f0f0ec'
+                  accentColor: 'var(--cv-primary-text)',
+                  backgroundColor: 'var(--cv-surface)',
+                  border: '1px solid var(--cv-primary-text)'
                 }}
               />
             </div>
 
             <Link
               to={prospect.status === 'DRAFT' ? `/prospects/${prospect.id}/draft` : `/prospects/${prospect.id}`}
-              className="block bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden hover:border-[#3a3a3a] transition-colors"
+              className="block bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] overflow-hidden hover:border-[var(--cv-elevated)] transition-colors"
             >
               {/* Image with Status Badge */}
-              <div className="relative bg-[#1a1a1a]" style={{ height: '220px' }}>
+              <div className="relative bg-[var(--cv-elevated)]" style={{ height: '220px' }}>
                 {prospect.image ? (
                   <DigitalImage
                     storageRef={prospect.image}
@@ -519,7 +519,7 @@ export function ProspectsIndex() {
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '11px',
-                        color: '#6a6a64',
+                        color: 'var(--cv-secondary-text)',
                         letterSpacing: '0.05em'
                       }}
                     >
@@ -549,8 +549,8 @@ export function ProspectsIndex() {
                     style={{ 
                       fontFamily: 'var(--font-mono)', 
                       backgroundColor: 'transparent',
-                      color: '#888880',
-                      border: '1px solid #333333'
+                      color: 'var(--cv-secondary-text)',
+                      border: '1px solid var(--cv-subtle-border)'
                     }}
                   >
                     {prospect.source}
@@ -563,7 +563,7 @@ export function ProspectsIndex() {
                 {/* Prospect Name */}
                 <div 
                   className="text-[20px] mb-[12px]"
-                  style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                  style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
                 >
                   {prospect.name}
                 </div>
@@ -578,9 +578,9 @@ export function ProspectsIndex() {
                         className="w-[24px] h-[24px] rounded-[4px] border flex items-center justify-center text-[8px] uppercase tracking-[0.1em]"
                         style={{
                           fontFamily: 'var(--font-label)',
-                          backgroundColor: isRendered ? '#f0f0ec' : 'transparent',
-                          borderColor: isRendered ? '#f0f0ec' : '#2a2a2a',
-                          color: isRendered ? '#080808' : '#6a6a64'
+                          backgroundColor: isRendered ? 'var(--cv-primary-text)' : 'transparent',
+                          borderColor: isRendered ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
+                          color: isRendered ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
                         }}
                       >
                         {context}
@@ -594,7 +594,7 @@ export function ProspectsIndex() {
                   <div className="mb-[16px]">
                     <div 
                       className="text-[12px] uppercase tracking-[0.05em]"
-                      style={{ fontFamily: 'var(--font-label)', color: '#6a6a64' }}
+                      style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                     >
                       COMPLETE PROFILE →
                     </div>
@@ -620,12 +620,12 @@ export function ProspectsIndex() {
                 ) : (
                   <div className="flex items-center justify-between mb-[16px]">
                     <div 
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
                     >
                       {prospect.evaluations} evaluation{prospect.evaluations !== 1 ? 's' : ''}
                     </div>
                     <div 
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a' }}
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
                     >
                       {prospect.submissionDate}
                     </div>
@@ -633,7 +633,7 @@ export function ProspectsIndex() {
                 )}
 
                 {/* Separator */}
-                <div className="h-[1px] bg-[#2a2a2a] mb-[12px]" />
+                <div className="h-[1px] bg-[var(--cv-subtle-border)] mb-[12px]" />
 
                 {/* Status */}
                 <div 
@@ -659,8 +659,8 @@ export function ProspectsIndex() {
                       className="w-full mb-[8px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
                       style={{
                         fontFamily: 'var(--font-mono)',
-                        backgroundColor: '#f0f0ec',
-                        color: '#080808',
+                        backgroundColor: 'var(--cv-primary-text)',
+                        color: 'var(--cv-background)',
                         cursor: 'pointer',
                       }}
                     >
@@ -673,8 +673,8 @@ export function ProspectsIndex() {
                           e.stopPropagation();
                           handleProspectStatus(prospect.id, 'SHORTLISTED', '#7d6d4d');
                         }}
-                        className="flex-1 px-[10px] py-[6px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                        className="flex-1 px-[10px] py-[6px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                        style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
                       >
                         SHORTLIST
                       </button>
@@ -684,8 +684,8 @@ export function ProspectsIndex() {
                           e.stopPropagation();
                           handleProspectStatus(prospect.id, 'PASSED', '#5d3d3d');
                         }}
-                        className="flex-1 px-[10px] py-[6px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                        className="flex-1 px-[10px] py-[6px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                        style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
                       >
                         PASS
                       </button>
@@ -721,7 +721,7 @@ export function ProspectsIndex() {
           style={{ 
             fontFamily: 'var(--font-mono)', 
             fontSize: '13px', 
-            color: '#666660' 
+            color: 'var(--cv-secondary-text)' 
           }}
         >
           {search.trim()
@@ -735,7 +735,7 @@ export function ProspectsIndex() {
       {/* Bulk Action Bar - slides up from bottom */}
       {selected.size > 0 && (
         <div 
-          className="fixed bottom-0 left-0 right-0 h-[56px] bg-[#1a1a1a] border-t border-[#333333] flex items-center px-[48px] z-50"
+          className="fixed bottom-0 left-0 right-0 h-[56px] bg-[var(--cv-elevated)] border-t border-[var(--cv-subtle-border)] flex items-center px-[48px] z-50"
           style={{
             animation: 'slideUp 200ms ease-out'
           }}
@@ -754,7 +754,7 @@ export function ProspectsIndex() {
           {/* Selected Count */}
           <div 
             className="text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
             {selected.size} selected
           </div>
@@ -763,24 +763,24 @@ export function ProspectsIndex() {
           <div className="ml-auto flex items-center gap-[12px]">
             <button
               onClick={() => handleBulkAction('SHORTLISTED', '#7d6d4d')}
-              className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+              className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
               MOVE TO SHORTLISTED
             </button>
 
             <button
               onClick={() => handleBulkAction('IN REVIEW', '#4d3d5d')}
-              className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+              className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
               MOVE TO IN REVIEW
             </button>
 
             <button
               onClick={() => handleBulkAction('PASSED', '#5d3d3d')}
-              className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+              className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
               MARK AS PASSED
             </button>
@@ -790,7 +790,7 @@ export function ProspectsIndex() {
                 Array.from(selected).forEach((id) => removeProspect(id));
                 setSelected(new Set());
               }}
-              className="px-[16px] py-[10px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#c87a7a] hover:text-[#080808] transition-colors"
+              className="px-[16px] py-[10px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#c87a7a] hover:text-[var(--cv-background)] transition-colors"
               style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a', cursor: 'pointer' }}
             >
               DELETE SELECTED
@@ -801,7 +801,7 @@ export function ProspectsIndex() {
               onClick={handleDeselectAll}
               className="ml-[12px] p-[8px] hover:opacity-70 transition-opacity"
             >
-              <X size={20} color="#f0f0ec" />
+              <X size={20} color="var(--cv-primary-text)" />
             </button>
           </div>
         </div>
@@ -812,14 +812,14 @@ export function ProspectsIndex() {
         <div 
           className="fixed left-1/2 -translate-x-1/2 flex items-center gap-[16px] px-[20px] py-[14px] border rounded-[4px] z-[60]"
           style={{ 
-            backgroundColor: '#1a1a1a',
-            borderColor: '#2a2a2a',
+            backgroundColor: 'var(--cv-elevated)',
+            borderColor: 'var(--cv-subtle-border)',
             bottom: selected.size > 0 ? '72px' : '24px',
             boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
             transition: 'bottom 200ms ease'
           }}
         >
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
             {pendingBulkAction.ids.length} prospect{pendingBulkAction.ids.length !== 1 ? 's' : ''} moved to {pendingBulkAction.status}
           </span>
           <button
@@ -827,7 +827,7 @@ export function ProspectsIndex() {
             style={{ 
               fontFamily: 'var(--font-mono)', 
               fontSize: '11px', 
-              color: '#f0f0ec',
+              color: 'var(--cv-primary-text)',
               textDecoration: 'underline', 
               cursor: 'pointer' 
             }}
@@ -844,7 +844,7 @@ export function ProspectsIndex() {
           onClick={() => setQuickAddOpen(false)}
         >
           <div 
-            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] max-w-[380px] w-full mx-auto"
+            className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] max-w-[380px] w-full mx-auto"
             onClick={(e) => e.stopPropagation()}
             style={{
               position: 'fixed',
@@ -856,7 +856,7 @@ export function ProspectsIndex() {
             {/* Headline */}
             <h2 
               className="text-[24px] mb-[8px]"
-              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
             >
               Quick add prospect
             </h2>
@@ -864,7 +864,7 @@ export function ProspectsIndex() {
             {/* Sub-label */}
             <p 
               className="mb-[20px]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
             >
               Name only — fill details later
             </p>
@@ -883,11 +883,11 @@ export function ProspectsIndex() {
               }}
               placeholder="Prospect name"
               autoFocus
-              className="w-full px-[16px] py-[12px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] mb-[24px]"
+              className="w-full px-[16px] py-[12px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px] mb-[24px]"
               style={{ 
                 fontFamily: 'var(--font-mono)', 
                 fontSize: '13px', 
-                color: '#f0f0ec'
+                color: 'var(--cv-primary-text)'
               }}
             />
 
@@ -898,15 +898,15 @@ export function ProspectsIndex() {
                   setQuickAddOpen(false);
                   setQuickName('');
                 }}
-                className="flex-1 px-[16px] py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[#f0f0ec]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+                className="flex-1 px-[16px] py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
                 CANCEL
               </button>
               <button
                 onClick={handleQuickAdd}
-                className="flex-1 px-[16px] py-[12px] bg-[#f0f0ec] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-                style={{ fontFamily: 'var(--font-mono)', color: '#080808' }}
+                className="flex-1 px-[16px] py-[12px] bg-[var(--cv-primary-text)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)' }}
               >
                 ADD TO DRAFTS →
               </button>
@@ -922,7 +922,7 @@ export function ProspectsIndex() {
           onClick={() => setDeleteTargetId(null)}
         >
           <div
-            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[32px] max-w-[400px] w-full mx-[24px]"
+            className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[32px] max-w-[400px] w-full mx-[24px]"
             onClick={(e) => e.stopPropagation()}
           >
             <h3
@@ -931,7 +931,7 @@ export function ProspectsIndex() {
                 fontFamily: 'var(--font-display)',
                 fontSize: '28px',
                 fontWeight: 300,
-                color: '#f0f0ec',
+                color: 'var(--cv-primary-text)',
               }}
             >
               Delete prospect?
@@ -941,7 +941,7 @@ export function ProspectsIndex() {
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '12px',
-                color: '#a0a09a',
+                color: 'var(--cv-secondary-text)',
                 lineHeight: 1.8,
               }}
             >
@@ -952,10 +952,10 @@ export function ProspectsIndex() {
               <button
                 type="button"
                 onClick={() => setDeleteTargetId(null)}
-                className="flex-1 py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] transition-colors"
+                className="flex-1 py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] transition-colors"
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  color: '#a0a09a',
+                  color: 'var(--cv-secondary-text)',
                 }}
               >
                 CANCEL
@@ -970,7 +970,7 @@ export function ProspectsIndex() {
                 style={{
                   fontFamily: 'var(--font-mono)',
                   backgroundColor: '#c87a7a',
-                  color: '#080808',
+                  color: 'var(--cv-background)',
                 }}
               >
                 DELETE

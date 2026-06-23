@@ -66,18 +66,18 @@ export function OnboardingAgencySetup() {
           <div className="flex flex-col items-center">
             <div 
               className="w-[32px] h-[32px] rounded-full flex items-center justify-center mb-[8px]"
-              style={{ backgroundColor: '#f0f0ec' }}
+              style={{ backgroundColor: 'var(--cv-primary-text)' }}
             >
               <span 
                 className="text-[13px]" 
-                style={{ fontFamily: 'var(--font-mono)', color: '#080808', fontWeight: 500 }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)', fontWeight: 500 }}
               >
                 1
               </span>
             </div>
             <span 
               className="text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#f0f0ec' }}
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-primary-text)' }}
             >
               Agency
             </span>
@@ -86,25 +86,25 @@ export function OnboardingAgencySetup() {
           {/* Connecting Line */}
           <div 
             className="w-[80px] h-[1px] mx-[16px] mb-[24px]"
-            style={{ backgroundColor: '#2a2a2a' }}
+            style={{ backgroundColor: 'var(--cv-subtle-border)' }}
           />
 
           {/* Step 2 - Inactive */}
           <div className="flex flex-col items-center">
             <div 
               className="w-[32px] h-[32px] rounded-full flex items-center justify-center mb-[8px]"
-              style={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }}
+              style={{ backgroundColor: 'var(--cv-elevated)', border: '1px solid var(--cv-subtle-border)' }}
             >
               <span 
                 className="text-[13px]" 
-                style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
                 2
               </span>
             </div>
             <span 
               className="text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#6a6a64' }}
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
               Team
             </span>
@@ -113,25 +113,25 @@ export function OnboardingAgencySetup() {
           {/* Connecting Line */}
           <div 
             className="w-[80px] h-[1px] mx-[16px] mb-[24px]"
-            style={{ backgroundColor: '#2a2a2a' }}
+            style={{ backgroundColor: 'var(--cv-subtle-border)' }}
           />
 
           {/* Step 3 - Inactive */}
           <div className="flex flex-col items-center">
             <div 
               className="w-[32px] h-[32px] rounded-full flex items-center justify-center mb-[8px]"
-              style={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }}
+              style={{ backgroundColor: 'var(--cv-elevated)', border: '1px solid var(--cv-subtle-border)' }}
             >
               <span 
                 className="text-[13px]" 
-                style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
                 3
               </span>
             </div>
             <span 
               className="text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#6a6a64' }}
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
               First Prospect
             </span>
@@ -141,7 +141,7 @@ export function OnboardingAgencySetup() {
         {/* Title */}
         <h1 
           className="text-[48px] mb-[12px] text-center" 
-          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
         >
           Welcome to CastView.
         </h1>
@@ -149,7 +149,7 @@ export function OnboardingAgencySetup() {
         {/* Subtitle */}
         <p 
           className="text-[13px] mb-[48px] text-center"
-          style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
           Let's set up your agency in 3 steps.
         </p>
@@ -157,13 +157,13 @@ export function OnboardingAgencySetup() {
         {/* Form Card */}
         <div 
           className="rounded-[4px] p-[32px]"
-          style={{ backgroundColor: '#111111', border: '1px solid #2a2a2a' }}
+          style={{ backgroundColor: 'var(--cv-surface)', border: '1px solid var(--cv-subtle-border)' }}
         >
           {/* Agency Name Field */}
           <div className="mb-[24px]">
             <label 
               className="block mb-[8px] text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
               AGENCY NAME
             </label>
@@ -172,11 +172,11 @@ export function OnboardingAgencySetup() {
               value={agencyName}
               onChange={(e) => setAgencyName(e.target.value)}
               placeholder="e.g. Meridian Models"
-              className="w-full px-[16px] py-[12px] bg-[#080808] border border-[#2a2a2a] rounded-[4px]"
+              className="w-full px-[16px] py-[12px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px]"
               style={{ 
                 fontFamily: 'var(--font-mono)', 
                 fontSize: '13px', 
-                color: '#f0f0ec'
+                color: 'var(--cv-primary-text)'
               }}
             />
           </div>
@@ -195,7 +195,7 @@ export function OnboardingAgencySetup() {
           <div className="mb-[32px]">
             <label 
               className="block mb-[12px] text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
               YOUR ROLE
             </label>
@@ -209,9 +209,9 @@ export function OnboardingAgencySetup() {
                     className="py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors cursor-pointer"
                     style={{ 
                       fontFamily: 'var(--font-label)',
-                      border: isSelected ? '1px solid #f0f0ec' : '1px solid #2a2a2a',
-                      backgroundColor: isSelected ? '#f0f0ec' : 'transparent',
-                      color: isSelected ? '#080808' : '#a0a09a'
+                      border: isSelected ? '1px solid var(--cv-primary-text)' : '1px solid var(--cv-subtle-border)',
+                      backgroundColor: isSelected ? 'var(--cv-primary-text)' : 'transparent',
+                      color: isSelected ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
                     }}
                   >
                     {role}
@@ -227,8 +227,8 @@ export function OnboardingAgencySetup() {
             className="cv-btn-primary w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 cursor-pointer"
             style={{ 
               fontFamily: 'var(--font-label)',
-              backgroundColor: '#f0f0ec',
-              color: '#080808'
+              backgroundColor: 'var(--cv-primary-text)',
+              color: 'var(--cv-background)'
             }}
           >
             CONTINUE →
@@ -241,7 +241,7 @@ export function OnboardingAgencySetup() {
             style={{ 
               fontFamily: 'var(--font-mono)', 
               fontSize: '12px', 
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
               display: 'block',
               textAlign: 'center', 
               cursor: 'pointer',
@@ -262,7 +262,7 @@ export function OnboardingAgencySetup() {
             style={{ 
               fontFamily: 'var(--font-mono)', 
               fontSize: '10px', 
-              color: '#555550',
+              color: 'var(--cv-secondary-text)',
               fontStyle: 'italic'
             }}
           >

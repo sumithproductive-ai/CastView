@@ -147,19 +147,19 @@ export function ClientPortal() {
   return (
     <div
       className="w-full mx-auto p-[48px]"
-      style={{ maxWidth: '1000px', backgroundColor: '#080808' }}
+      style={{ maxWidth: '1000px', backgroundColor: 'var(--cv-background)' }}
     >
       <div className="mb-[48px]">
         <h1
           className="text-[56px] mb-[12px]"
-          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
         >
           {prospectName}
         </h1>
 
         <p
           className="text-[12px] mb-[16px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
           {`Sent by ${agencyName ?? 'CastView Agency'} · ${new Date().toLocaleDateString('en-US', {
             month: 'long',
@@ -173,8 +173,8 @@ export function ClientPortal() {
             {markets.map((market) => (
               <div
                 key={market}
-                className="px-[12px] py-[6px] border border-[#2a2a2a] rounded-full text-[9px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                className="px-[12px] py-[6px] border border-[var(--cv-subtle-border)] rounded-full text-[9px] uppercase tracking-[0.1em]"
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
                 {market}
               </div>
@@ -184,7 +184,7 @@ export function ClientPortal() {
       </div>
 
       {loading && (
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#888880' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
           Loading package...
         </p>
       )}
@@ -203,11 +203,11 @@ export function ClientPortal() {
                 key={card.id}
                 className="rounded-[4px] overflow-hidden"
                 style={{
-                  backgroundColor: '#111111',
-                  border: index === 0 ? '1px solid #f0f0ec' : '1px solid #2a2a2a',
+                  backgroundColor: 'var(--cv-surface)',
+                  border: index === 0 ? '1px solid var(--cv-primary-text)' : '1px solid var(--cv-subtle-border)',
                 }}
               >
-                <div className="aspect-[4/5] bg-[#1a1a1a]">
+                <div className="aspect-[4/5] bg-[var(--cv-elevated)]">
                   {card.image ? (
                     <DigitalImage
                       storageRef={card.image}
@@ -217,7 +217,7 @@ export function ClientPortal() {
                   ) : (
                     <div
                       className="w-full h-full flex items-center justify-center text-[11px] uppercase tracking-[0.1em]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                     >
                       Preview unavailable
                     </div>
@@ -227,14 +227,14 @@ export function ClientPortal() {
                 <div className="p-[16px]">
                   <div
                     className="text-[9px] uppercase tracking-[0.1em] mb-[8px]"
-                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                    style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                   >
                     {card.context}
                   </div>
 
                   <div
                     className="text-[32px] mb-[8px]"
-                    style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+                    style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
                   >
                     {card.alignmentScore}%
                   </div>
@@ -248,14 +248,14 @@ export function ClientPortal() {
 
                   <p
                     className="text-[12px]"
-                    style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2', lineHeight: 1.6 }}
+                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)', lineHeight: 1.6 }}
                   >
                     {card.reasoning}
                   </p>
 
-                  <div className="h-[4px] bg-[#2a2a2a] rounded-full overflow-hidden mt-[12px]">
+                  <div className="h-[4px] bg-[var(--cv-subtle-border)] rounded-full overflow-hidden mt-[12px]">
                     <div
-                      className="h-full bg-[#f0f0ec] rounded-full"
+                      className="h-full bg-[var(--cv-primary-text)] rounded-full"
                       style={{ width: `${card.alignmentScore}%` }}
                     />
                   </div>
@@ -268,13 +268,13 @@ export function ClientPortal() {
             <div className="mb-[48px]">
               <div
                 className="text-[11px] uppercase tracking-[0.1em] mb-[12px]"
-                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
                 AGENT NOTES
               </div>
               <p
                 className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', lineHeight: 1.6 }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', lineHeight: 1.6 }}
               >
                 {agentNotes}
               </p>
@@ -285,11 +285,11 @@ export function ClientPortal() {
 
       <div
         className="rounded-[4px] p-[24px] mb-[48px]"
-        style={{ backgroundColor: '#111111', border: '1px solid #2a2a2a' }}
+        style={{ backgroundColor: 'var(--cv-surface)', border: '1px solid var(--cv-subtle-border)' }}
       >
         <div
           className="text-[11px] uppercase tracking-[0.1em] mb-[16px]"
-          style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+          style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
           YOUR RESPONSE
         </div>
@@ -301,9 +301,9 @@ export function ClientPortal() {
             className="py-[16px] rounded-[4px] border text-[11px] uppercase tracking-[0.1em] transition-all"
             style={{
               fontFamily: 'var(--font-label)',
-              borderColor: response === 'interested' ? '#4a7a4a' : '#2a2a2a',
+              borderColor: response === 'interested' ? '#4a7a4a' : 'var(--cv-subtle-border)',
               backgroundColor: response === 'interested' ? '#1a2a1a' : 'transparent',
-              color: response === 'interested' ? '#6ababa' : '#f0f0ec',
+              color: response === 'interested' ? '#6ababa' : 'var(--cv-primary-text)',
               cursor: 'pointer',
             }}
           >
@@ -316,9 +316,9 @@ export function ClientPortal() {
             className="py-[16px] rounded-[4px] border text-[11px] uppercase tracking-[0.1em] transition-all"
             style={{
               fontFamily: 'var(--font-label)',
-              borderColor: response === 'pass' ? '#7a4a4a' : '#2a2a2a',
+              borderColor: response === 'pass' ? '#7a4a4a' : 'var(--cv-subtle-border)',
               backgroundColor: response === 'pass' ? '#2a1a1a' : 'transparent',
-              color: response === 'pass' ? '#ba6a6a' : '#f0f0ec',
+              color: response === 'pass' ? '#ba6a6a' : 'var(--cv-primary-text)',
               cursor: 'pointer',
             }}
           >
@@ -330,11 +330,11 @@ export function ClientPortal() {
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Leave a note for the agent..."
-          className="w-full h-[100px] px-[16px] py-[12px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] resize-none mb-[16px]"
+          className="w-full h-[100px] px-[16px] py-[12px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none mb-[16px]"
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '13px',
-            color: '#f0f0ec',
+            color: 'var(--cv-primary-text)',
           }}
         />
 
@@ -344,8 +344,8 @@ export function ClientPortal() {
             className="px-[20px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
             style={{
               fontFamily: 'var(--font-label)',
-              backgroundColor: '#f0f0ec',
-              color: '#080808',
+              backgroundColor: 'var(--cv-primary-text)',
+              color: 'var(--cv-background)',
               cursor: 'pointer',
             }}
             onClick={() => {
@@ -364,7 +364,7 @@ export function ClientPortal() {
       <div className="text-center">
         <p
           className="text-[11px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
           This package was shared via CastView
         </p>

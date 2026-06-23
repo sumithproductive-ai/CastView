@@ -5,7 +5,7 @@ const sectionStyle = { marginBottom: '40px' } as const;
 const h2Style = {
   fontFamily: 'var(--font-mono)',
   fontSize: '13px',
-  color: '#F0F0EC',
+  color: 'var(--cv-primary-text)',
   letterSpacing: '0.08em',
   textTransform: 'uppercase' as const,
   marginBottom: '12px',
@@ -13,7 +13,7 @@ const h2Style = {
 const bodyStyle = {
   fontFamily: 'var(--font-mono)',
   fontSize: '13px',
-  color: '#888880',
+  color: 'var(--cv-secondary-text)',
   lineHeight: 1.8,
   whiteSpace: 'pre-line' as const,
 };
@@ -29,14 +29,14 @@ function Section({ id, title, body }: { id?: string; title: string; body: string
 
 export function PrivacyPolicy() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#080808', padding: '64px 24px' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--cv-background)', padding: '64px 24px' }}>
       <div style={{ maxWidth: '720px', margin: '0 auto' }}>
         <Link
           to="/"
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '11px',
-            color: '#888880',
+            color: 'var(--cv-secondary-text)',
             letterSpacing: '0.08em',
             textDecoration: 'none',
             textTransform: 'uppercase',
@@ -49,7 +49,7 @@ export function PrivacyPolicy() {
             fontFamily: 'var(--font-display)',
             fontSize: '48px',
             fontWeight: 300,
-            color: '#F0F0EC',
+            color: 'var(--cv-primary-text)',
             margin: '32px 0 8px',
           }}
         >
@@ -59,7 +59,7 @@ export function PrivacyPolicy() {
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '11px',
-            color: '#888880',
+            color: 'var(--cv-secondary-text)',
             marginBottom: '24px',
             letterSpacing: '0.05em',
           }}
@@ -70,7 +70,7 @@ export function PrivacyPolicy() {
           This policy describes how CastView collects, uses, and protects information during our
           founding-agency pilot. It applies to agency account holders. Prospect and model data is
           processed on behalf of your agency — see the{' '}
-          <a href="#data-processing-agreement" style={{ color: '#c8c8c2' }}>
+          <a href="#data-processing-agreement" style={{ color: 'var(--cv-accent)' }}>
             Data Processing Agreement
           </a>{' '}
           below.
@@ -160,7 +160,7 @@ Individual prospect or model records may also be deleted by your agency from wit
           style={{
             marginTop: '64px',
             paddingTop: '48px',
-            borderTop: '1px solid #2a2a2a',
+            borderTop: '1px solid var(--cv-subtle-border)',
           }}
         >
           <h2
@@ -168,7 +168,7 @@ Individual prospect or model records may also be deleted by your agency from wit
               fontFamily: 'var(--font-display)',
               fontSize: '32px',
               fontWeight: 300,
-              color: '#F0F0EC',
+              color: 'var(--cv-primary-text)',
               marginBottom: '16px',
             }}
           >
@@ -220,7 +220,7 @@ Individual prospect or model records may also be deleted by your agency from wit
           />
         </div>
 
-        <p style={{ ...bodyStyle, marginTop: '48px', fontStyle: 'italic', color: '#666660' }}>
+        <p style={{ ...bodyStyle, marginTop: '48px', fontStyle: 'italic', color: 'var(--cv-secondary-text)' }}>
           This notice is provided for transparency during CastView's pilot phase and does not
           constitute a binding legal contract in lieu of formal review by counsel as the platform
           scales.

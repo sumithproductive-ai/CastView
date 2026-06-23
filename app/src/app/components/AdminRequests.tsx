@@ -107,7 +107,7 @@ export function AdminRequests() {
   if (authLoading) {
     return (
       <div className="p-[48px]">
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#888880' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
           Loading...
         </p>
       </div>
@@ -122,52 +122,52 @@ export function AdminRequests() {
     <div className="p-[48px]">
       <h1
         className="text-[48px] mb-[12px]"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
         Waitlist Requests
       </h1>
       <p
         className="mb-[32px] text-[13px]"
-        style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+        style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
       >
         {pendingCount} request{pendingCount === 1 ? '' : 's'} pending
       </p>
 
-      <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
-        <div className="flex items-center gap-[16px] pb-[12px] border-b border-[#1e1e1e]">
+      <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
+        <div className="flex items-center gap-[16px] pb-[12px] border-b border-[var(--cv-subtle-border)]">
           <div
             className="w-[140px] text-[10px] uppercase tracking-[0.05em]"
-            style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             Name
           </div>
           <div
             className="w-[160px] text-[10px] uppercase tracking-[0.05em]"
-            style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             Agency
           </div>
           <div
             className="flex-1 min-w-0 text-[10px] uppercase tracking-[0.05em]"
-            style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             Email
           </div>
           <div
             className="w-[80px] text-[10px] uppercase tracking-[0.05em]"
-            style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             Size
           </div>
           <div
             className="w-[110px] text-[10px] uppercase tracking-[0.05em]"
-            style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             Requested
           </div>
           <div
             className="w-[200px] text-[10px] uppercase tracking-[0.05em] text-right"
-            style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             Action
           </div>
@@ -185,14 +185,14 @@ export function AdminRequests() {
         {loading ? (
           <div
             className="py-[24px] text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#666660' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             —
           </div>
         ) : rows.length === 0 ? (
           <div
             className="py-[24px] text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#666660' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             No requests yet.
           </div>
@@ -200,38 +200,38 @@ export function AdminRequests() {
           rows.map((row) => (
             <div
               key={row.id}
-              className="flex items-center gap-[16px] border-b border-[#1e1e1e] py-[12px]"
+              className="flex items-center gap-[16px] border-b border-[var(--cv-subtle-border)] py-[12px]"
             >
               <div
                 className="w-[140px] text-[13px] truncate"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
                 title={row.name}
               >
                 {row.name}
               </div>
               <div
                 className="w-[160px] text-[13px] truncate"
-                style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
                 title={row.agency_name}
               >
                 {row.agency_name}
               </div>
               <div
                 className="flex-1 min-w-0 text-[13px] truncate"
-                style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
                 title={row.email}
               >
                 {row.email}
               </div>
               <div
                 className="w-[80px] text-[13px] truncate"
-                style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
               >
                 {row.agency_size || '—'}
               </div>
               <div
                 className="w-[110px] text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
               >
                 {formatRequestedAt(row.created_at)}
               </div>
@@ -253,10 +253,10 @@ export function AdminRequests() {
                   type="button"
                   onClick={() => handleToggleApproved(row)}
                   disabled={updatingId === row.id}
-                  className="px-[10px] py-[6px] rounded-[4px] text-[10px] uppercase tracking-[0.08em] border border-[#2a2a2a] hover:border-[#f0f0ec] transition-colors disabled:opacity-50"
+                  className="px-[10px] py-[6px] rounded-[4px] text-[10px] uppercase tracking-[0.08em] border border-[var(--cv-subtle-border)] hover:border-[var(--cv-primary-text)] transition-colors disabled:opacity-50"
                   style={{
                     fontFamily: 'var(--font-mono)',
-                    color: row.approved_at ? '#888880' : '#f0f0ec',
+                    color: row.approved_at ? 'var(--cv-secondary-text)' : 'var(--cv-primary-text)',
                     cursor: updatingId === row.id ? 'not-allowed' : 'pointer',
                     background: 'transparent',
                   }}
@@ -268,8 +268,8 @@ export function AdminRequests() {
                   className="px-[10px] py-[6px] rounded-[4px] text-[10px] uppercase tracking-[0.08em] transition-opacity hover:opacity-80"
                   style={{
                     fontFamily: 'var(--font-mono)',
-                    backgroundColor: '#f0f0ec',
-                    color: '#080808',
+                    backgroundColor: 'var(--cv-primary-text)',
+                    color: 'var(--cv-background)',
                   }}
                 >
                   INVITE

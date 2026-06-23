@@ -3,26 +3,26 @@ import { Lock } from 'lucide-react';
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#080808' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--cv-background)' }}>
       {/* Top Bar */}
       <div 
         className="w-full px-[24px] py-[16px] border-b flex items-center justify-between"
-        style={{ backgroundColor: '#080808', borderColor: '#2a2a2a' }}
+        style={{ backgroundColor: 'var(--cv-background)', borderColor: 'var(--cv-subtle-border)' }}
       >
         {/* Left: CastView Wordmark */}
         <div 
           className="text-[18px]"
-          style={{ fontFamily: 'var(--font-display)', color: '#f0f0ec' }}
+          style={{ fontFamily: 'var(--font-display)', color: 'var(--cv-primary-text)' }}
         >
           CastView
         </div>
 
         {/* Right: Secure indicator */}
         <div className="flex items-center gap-[8px]">
-          <Lock size={14} style={{ color: '#a0a09a' }} />
+          <Lock size={14} style={{ color: 'var(--cv-secondary-text)' }} />
           <span 
             className="text-[12px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             Secure · View only
           </span>

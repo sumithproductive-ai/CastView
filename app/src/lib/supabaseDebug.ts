@@ -71,7 +71,7 @@ export async function castviewDiagnose() {
       agency_id: agencyId,
       name: '__castview_diagnose_test__',
       status: 'DRAFT',
-      status_color: '#888880',
+      status_color: 'var(--cv-secondary-text)',
       source: 'TEST',
       height: '',
       markets: [],

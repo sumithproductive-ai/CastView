@@ -207,7 +207,7 @@ export function Dashboard() {
     <div className="p-[20px] md:p-[48px]">
       <h1 
         className="text-[48px] mb-[48px]" 
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
         Briefing
       </h1>
@@ -219,66 +219,66 @@ export function Dashboard() {
           <div className="flex-[4] min-w-0">
             <div
               className="mb-[12px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
             >
               PROSPECTS
             </div>
             <div className="flex flex-wrap items-stretch gap-[12px]">
               <div
-                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                className="flex-1 min-w-[120px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] flex flex-col justify-between"
                 style={statCardStagger(0)}
               >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: 'var(--cv-primary-text)' }}>
                   {totalProspects}
                 </div>
                 <div
                   className="text-[10px] uppercase tracking-[0.12em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   TOTAL PROSPECTS
                 </div>
               </div>
 
               <div
-                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                className="flex-1 min-w-[120px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] flex flex-col justify-between"
                 style={statCardStagger(1)}
               >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: 'var(--cv-primary-text)' }}>
                   {shortlistedCount}
                 </div>
                 <div
                   className="text-[10px] uppercase tracking-[0.12em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   SHORTLISTED
                 </div>
               </div>
 
               <div
-                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                className="flex-1 min-w-[120px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] flex flex-col justify-between"
                 style={statCardStagger(2)}
               >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: 'var(--cv-primary-text)' }}>
                   {awaitingReviewCount}
                 </div>
                 <div
                   className="text-[10px] uppercase tracking-[0.12em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   AWAITING REVIEW
                 </div>
               </div>
 
               <div
-                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                className="flex-1 min-w-[120px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] flex flex-col justify-between"
                 style={statCardStagger(3)}
               >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: 'var(--cv-primary-text)' }}>
                   {totalEvaluations}
                 </div>
                 <div
                   className="text-[10px] uppercase tracking-[0.12em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   EVALUATIONS RUN
                 </div>
@@ -290,51 +290,51 @@ export function Dashboard() {
           <div className="flex-[3] min-w-0">
             <div
               className="mb-[12px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
             >
               ROSTER
             </div>
             <div className="flex flex-wrap items-stretch gap-[12px]">
               <div
-                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                className="flex-1 min-w-[120px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] flex flex-col justify-between"
                 style={statCardStagger(4)}
               >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: 'var(--cv-primary-text)' }}>
                   {activeModelsCount}
                 </div>
                 <div
                   className="text-[10px] uppercase tracking-[0.12em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   ACTIVE MODELS
                 </div>
               </div>
 
               <div
-                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                className="flex-1 min-w-[120px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] flex flex-col justify-between"
                 style={statCardStagger(5)}
               >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: 'var(--cv-primary-text)' }}>
                   {totalRosterEvaluations}
                 </div>
                 <div
                   className="text-[10px] uppercase tracking-[0.12em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   EVALUATIONS
                 </div>
               </div>
 
               <div
-                className="flex-1 min-w-[120px] bg-[#111111] border border-[#1e1e1e] rounded-[4px] p-[16px] flex flex-col justify-between"
+                className="flex-1 min-w-[120px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] flex flex-col justify-between"
                 style={statCardStagger(6)}
               >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: '#f0f0ec' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', color: 'var(--cv-primary-text)' }}>
                   {onHoldCount}
                 </div>
                 <div
                   className="text-[10px] uppercase tracking-[0.12em]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
                   ON HOLD
                 </div>
@@ -344,10 +344,10 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[48px]">
+      <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] mb-[48px]">
         <div
           className="text-[10px] uppercase tracking-[0.12em] mb-[24px] flex items-center"
-          style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+          style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
           RECENT MESSAGES ({recentMessages.length})
           {recentMessages.some(m => m.direction === 'inbound') && (
@@ -361,7 +361,7 @@ export function Dashboard() {
         {recentMessages.length === 0 ? (
           <div
             className="text-center py-[32px] text-[12px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             No messages yet. Send your first message from a prospect or roster profile.
           </div>
@@ -373,7 +373,7 @@ export function Dashboard() {
             {recentMessages.map((msg, index) => (
               <div
                 key={msg.id}
-                className="flex items-center gap-[16px] py-[10px] px-[16px] hover:bg-[#1a1a1a] rounded-[4px] transition-colors cursor-pointer"
+                className="flex items-center gap-[16px] py-[10px] px-[16px] hover:bg-[var(--cv-elevated)] rounded-[4px] transition-colors cursor-pointer"
                 style={{
                   borderLeft: msg.direction === 'inbound'
                     ? '2px solid #C8A96E' : '1px solid transparent',
@@ -390,19 +390,19 @@ export function Dashboard() {
               >
                 <div
                   className="text-[13px] min-w-[160px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
                 >
                   {msg.prospectName}
                 </div>
                 <div
                   className="flex-1 text-[11px] truncate"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
                   {messagePreviewText(msg)}
                 </div>
                 <div
                   className="text-[11px] min-w-[80px] text-right"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
                   {new Date(msg.sent_at).toLocaleDateString('en-US', {
                     month: 'short', day: 'numeric'
@@ -412,8 +412,8 @@ export function Dashboard() {
                   className="px-[8px] py-[3px] rounded-full text-[9px] uppercase tracking-[0.1em] border"
                   style={{
                     fontFamily: 'var(--font-label)',
-                    borderColor: msg.direction === 'inbound' ? '#C8A96E' : '#555550',
-                    color: msg.direction === 'inbound' ? '#C8A96E' : '#888880',
+                    borderColor: msg.direction === 'inbound' ? '#C8A96E' : 'var(--cv-secondary-text)',
+                    color: msg.direction === 'inbound' ? '#C8A96E' : 'var(--cv-secondary-text)',
                   }}
                 >
                   {msg.direction === 'inbound' ? 'REPLY' : 'SENT'}
@@ -427,10 +427,10 @@ export function Dashboard() {
       {/* Activity Panels Row */}
       <div className="flex flex-col md:flex-row gap-[24px]">
         {/* Recent Prospects Panel */}
-        <div className="flex-1 bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
+        <div className="flex-1 bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
           <div 
             className="text-[9px] uppercase tracking-[0.1em] mb-[24px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             RECENT PROSPECTS
           </div>
@@ -443,7 +443,7 @@ export function Dashboard() {
                 className="flex items-center gap-[12px] hover:opacity-80 transition-opacity"
               >
                 {/* Thumbnail */}
-                <div className="w-[32px] h-[32px] rounded-[4px] bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden flex-shrink-0">
+                <div className="w-[32px] h-[32px] rounded-[4px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] overflow-hidden flex-shrink-0">
                   <DigitalImage
                     storageRef={prospect.image}
                     alt={prospect.name}
@@ -455,7 +455,7 @@ export function Dashboard() {
                 {/* Name */}
                 <div 
                   className="flex-1"
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}
                 >
                   {prospect.name}
                 </div>
@@ -475,7 +475,7 @@ export function Dashboard() {
 
                 {/* Time Ago */}
                 <div 
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6a6a64' }}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
                 >
                   {prospect.submissionDate}
                 </div>
@@ -487,17 +487,17 @@ export function Dashboard() {
           <Link
             to="/prospects"
             className="block text-center py-[8px] hover:opacity-70 transition-opacity"
-            style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
           >
             View all prospects →
           </Link>
         </div>
 
         {/* Recent Roster Activity Panel */}
-        <div className="flex-1 bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
+        <div className="flex-1 bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
           <div 
             className="text-[9px] uppercase tracking-[0.1em] mb-[24px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             RECENT ROSTER ACTIVITY
           </div>
@@ -506,7 +506,7 @@ export function Dashboard() {
             {rosterActivity.length === 0 ? (
               <div
                 className="text-center py-[32px] text-[12px]"
-                style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
                 No roster activity yet.
               </div>
@@ -519,7 +519,7 @@ export function Dashboard() {
                     className="flex items-center gap-[12px] hover:opacity-80 transition-opacity"
                   >
                     {/* Thumbnail */}
-                    <div className="w-[32px] h-[32px] rounded-[4px] bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden flex-shrink-0">
+                    <div className="w-[32px] h-[32px] rounded-[4px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] overflow-hidden flex-shrink-0">
                       <DigitalImage
                         storageRef={item.image}
                         alt={item.name}
@@ -531,21 +531,21 @@ export function Dashboard() {
                     {/* Name */}
                     <div
                       className="flex-1"
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}
                     >
                       {item.name}
                     </div>
 
                     {/* Activity Description */}
                     <div
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6a6a64' }}
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
                     >
                       {item.activity}
                     </div>
 
                     {/* Time Ago */}
                     <div
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6a6a64' }}
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
                     >
                       {item.timeAgo}
                     </div>
@@ -559,7 +559,7 @@ export function Dashboard() {
           <Link
             to="/roster"
             className="block text-center py-[8px] hover:opacity-70 transition-opacity"
-            style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
           >
             View full roster →
           </Link>

@@ -17,7 +17,7 @@ const contexts = [
 const sectionLabelStyle = {
   fontFamily: 'var(--font-mono)',
   fontSize: '9px',
-  color: '#888880',
+  color: 'var(--cv-secondary-text)',
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
 };
@@ -102,7 +102,7 @@ export function Profile() {
         <div style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           letterSpacing: '0.05em',
           padding: '48px 0',
         }}>
@@ -128,7 +128,7 @@ export function Profile() {
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
@@ -142,11 +142,11 @@ export function Profile() {
       </button>
 
       <div className="flex items-center gap-[8px] mb-[48px]">
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
           Prospects
         </span>
-        <ChevronRight size={14} style={{ color: '#a0a09a' }} />
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}>
+        <ChevronRight size={14} style={{ color: 'var(--cv-secondary-text)' }} />
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
           {prospectName}
         </span>
       </div>
@@ -158,7 +158,7 @@ export function Profile() {
             <div style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: '#666660',
+              color: 'var(--cv-secondary-text)',
               padding: '24px 0',
             }}>
               Loading digitals...
@@ -167,12 +167,12 @@ export function Profile() {
             <div className="grid grid-cols-2 gap-[16px] mb-[16px]">
               {digitals.map((digital) => (
                 <div key={digital.label}>
-                  <div className="aspect-square bg-[#111111] border border-[#2a2a2a] rounded-[4px] mb-[12px] overflow-hidden">
+                  <div className="aspect-square bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] mb-[12px] overflow-hidden">
                     <DigitalImage storageRef={digital.image} alt={digital.label} className="w-full h-full object-cover" />
                   </div>
                   <div 
                     className="text-[11px] uppercase tracking-[0.1em]"
-                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                    style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                   >
                     {digital.label}
                   </div>
@@ -183,7 +183,7 @@ export function Profile() {
             <div
               className="mb-[16px]"
               style={{
-                color: '#666660',
+                color: 'var(--cv-secondary-text)',
                 fontFamily: 'var(--font-mono)',
                 fontSize: '12px',
               }}
@@ -194,10 +194,10 @@ export function Profile() {
           
           {/* Privacy Notice */}
           <div className="flex items-center gap-[8px] pt-[12px] mb-[24px]">
-            <Lock size={12} style={{ color: '#888880' }} />
+            <Lock size={12} style={{ color: 'var(--cv-secondary-text)' }} />
             <div 
               className="text-[11px]"
-              style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
             >
               Digitals are stored securely and used only for evaluation.{' '}
               <span className="underline cursor-pointer hover:opacity-70 transition-opacity">
@@ -207,20 +207,20 @@ export function Profile() {
           </div>
           
           {measurementData.length > 0 && (
-            <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px]">
+            <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
               <div 
                 className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
-                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
                 Measurements
               </div>
               <div className="space-y-[12px]">
                 {measurementData.map((m) => (
                   <div key={m.key} className="flex justify-between">
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
                       {m.key}
                     </span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
                       {m.value}
                     </span>
                   </div>
@@ -234,7 +234,7 @@ export function Profile() {
         <div>
           <h1 
             className="text-[56px] mb-[24px]" 
-            style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
           >
             {prospectName}
           </h1>
@@ -244,8 +244,8 @@ export function Profile() {
               ? entity.contexts.map((market) => (
                   <span 
                     key={market}
-                    className="px-[12px] py-[6px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
-                    style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                    className="px-[12px] py-[6px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em]"
+                    style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                   >
                     {market}
                   </span>
@@ -256,13 +256,13 @@ export function Profile() {
           <div className="mb-[32px]">
             <label 
               className="block mb-[12px] text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
               Agent Notes
             </label>
             <textarea 
-              className="w-full h-[120px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[16px] resize-none"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}
+              className="w-full h-[120px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] resize-none"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}
               placeholder="Strong runway presence, versatile look..."
             />
           </div>
@@ -272,7 +272,7 @@ export function Profile() {
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '10px',
-                color: '#a0a09a',
+                color: 'var(--cv-secondary-text)',
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
                 display: 'block',
@@ -290,13 +290,13 @@ export function Profile() {
                 setTimeout(() => setSignedStatusSaveConfirmed(false), 1500);
               }}
               style={{
-                background: '#111111',
-                border: `1px solid ${signedStatusSaveConfirmed ? '#4a7a4a' : '#2a2a2a'}`,
+                background: 'var(--cv-surface)',
+                border: `1px solid ${signedStatusSaveConfirmed ? '#4a7a4a' : 'var(--cv-subtle-border)'}`,
                 borderRadius: '4px',
                 padding: '8px 12px',
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
-                color: '#F0F0EC',
+                color: 'var(--cv-primary-text)',
                 letterSpacing: '0.05em',
                 cursor: 'pointer',
                 width: '100%',
@@ -334,7 +334,7 @@ export function Profile() {
           <div className="mb-[32px]">
             <label 
               className="block mb-[16px] text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
               Select Alignment Contexts
             </label>
@@ -349,9 +349,9 @@ export function Profile() {
                       className="px-[16px] py-[10px] border rounded-[4px] transition-all text-[11px] uppercase tracking-[0.1em] w-full cursor-pointer"
                       style={{ 
                         fontFamily: 'var(--font-label)',
-                        backgroundColor: isSelected ? '#f0f0ec' : 'transparent',
-                        borderColor: isSelected ? '#f0f0ec' : '#2a2a2a',
-                        color: isSelected ? '#080808' : '#a0a09a'
+                        backgroundColor: isSelected ? 'var(--cv-primary-text)' : 'transparent',
+                        borderColor: isSelected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
+                        color: isSelected ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
                       }}
                     >
                       {context}
@@ -362,9 +362,9 @@ export function Profile() {
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '10px',
-                        color: '#c8c8c2',
-                        backgroundColor: '#1a1a1a',
-                        border: '1px solid #2a2a2a',
+                        color: 'var(--cv-accent)',
+                        backgroundColor: 'var(--cv-elevated)',
+                        border: '1px solid var(--cv-subtle-border)',
                         width: '180px',
                         lineHeight: '1.5',
                         whiteSpace: 'normal'
@@ -378,7 +378,7 @@ export function Profile() {
             </div>
             <p 
               className="mt-[12px]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', lineHeight: 1.6 }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
             >
               CastView analyses uploaded digitals against market context indicators. Results are alignment guidance — not objective judgments.
             </p>
@@ -389,8 +389,8 @@ export function Profile() {
             className="cv-btn-primary w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-colors mb-[24px]"
             style={{ 
               fontFamily: 'var(--font-label)',
-              backgroundColor: '#f0f0ec',
-              color: '#080808',
+              backgroundColor: 'var(--cv-primary-text)',
+              color: 'var(--cv-background)',
               cursor: 'pointer'
             }}
           >
@@ -412,7 +412,7 @@ export function Profile() {
             </div>
             <button
               className="text-[13px] hover:opacity-70 transition-opacity"
-              style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
             >
               Change Status
             </button>

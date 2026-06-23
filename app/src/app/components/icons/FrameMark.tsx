@@ -4,7 +4,7 @@ interface FrameMarkProps {
   color?: string;
 }
 
-export function FrameMark({ size = 20, color = '#f0f0ec' }: FrameMarkProps) {
+export function FrameMark({ size = 20, color = 'var(--cv-primary-text)' }: FrameMarkProps) {
   return (
     <svg
       width={size}

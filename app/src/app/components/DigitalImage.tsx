@@ -63,7 +63,7 @@ export function DigitalImage({
       <div
         className={[className, 'animate-pulse'].filter(Boolean).join(' ')}
         style={{
-          backgroundColor: '#1a1a1a',
+          backgroundColor: 'var(--cv-elevated)',
           ...style,
         }}
         aria-hidden={!alt}

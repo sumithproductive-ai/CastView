@@ -3,15 +3,15 @@ import { Link } from 'react-router';
 
 export function Terms() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#080808', padding: '64px 24px' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--cv-background)', padding: '64px 24px' }}>
       <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-        <Link to="/" style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', letterSpacing: '0.08em', textDecoration: 'none', textTransform: 'uppercase' }}>
+        <Link to="/" style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', textDecoration: 'none', textTransform: 'uppercase' }}>
           ← Back
         </Link>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '48px', fontWeight: 300, color: '#F0F0EC', margin: '32px 0 8px' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '48px', fontWeight: 300, color: 'var(--cv-primary-text)', margin: '32px 0 8px' }}>
           Terms of Use
         </h1>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', marginBottom: '48px', letterSpacing: '0.05em' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', marginBottom: '48px', letterSpacing: '0.05em' }}>
           Last updated: June 2026 · Founding Agency Pilot
         </p>
         {[
@@ -49,15 +49,15 @@ CastView and its founder are not liable for any indirect, incidental, or consequ
           },
         ].map(({ title, body }) => (
           <div key={title} style={{ marginBottom: '40px' }}>
-            <h2 style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#F0F0EC', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
+            <h2 style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
               {title}
             </h2>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#888880', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
               {body}
             </p>
           </div>
         ))}
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#666660', lineHeight: 1.8, marginTop: '16px', fontStyle: 'italic' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)', lineHeight: 1.8, marginTop: '16px', fontStyle: 'italic' }}>
           This notice is provided for transparency during CastView's pilot phase and does not constitute a binding legal contract in lieu of formal review by counsel as the platform scales.
         </p>
       </div>

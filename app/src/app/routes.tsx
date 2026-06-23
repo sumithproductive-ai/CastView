@@ -120,10 +120,10 @@ function RouteLoadingFallback() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        backgroundColor: '#080808',
+        backgroundColor: 'var(--cv-background)',
         fontFamily: 'var(--font-mono)',
         fontSize: '11px',
-        color: '#888880',
+        color: 'var(--cv-secondary-text)',
       }}
     >
       Loading...

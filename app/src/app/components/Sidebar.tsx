@@ -142,14 +142,14 @@ export function Sidebar() {
     <>
       {/* Desktop Sidebar */}
       <div
-        className="hidden md:flex w-[240px] bg-[#111111] border-r border-[#2a2a2a] flex-col p-[24px] self-stretch"
-        style={{ boxShadow: '1px 0 0 #1a1a1a' }}
+        className="hidden md:flex w-[240px] bg-[var(--cv-surface)] border-r border-[var(--cv-subtle-border)] flex-col p-[24px] self-stretch"
+        style={{ boxShadow: '1px 0 0 var(--cv-elevated)' }}
       >
         {/* Logo */}
         <div className="py-[20px] mb-[48px]">
           <span 
             className="text-[20px]"
-            style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec', letterSpacing: '0.06em' }}
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)', letterSpacing: '0.06em' }}
           >
             CastView
           </span>
@@ -169,7 +169,7 @@ export function Sidebar() {
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '13px',
-                      color: '#6a6a64',
+                      color: 'var(--cv-secondary-text)',
                       cursor: 'pointer',
                       opacity: 0.5
                     }}
@@ -185,12 +185,12 @@ export function Sidebar() {
               <div key={item.name}>
                 <Link
                   to={item.path}
-                  className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px] transition-all duration-200 hover:bg-[#1a1a1a]"
+                  className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px] transition-all duration-200 hover:bg-[var(--cv-elevated)]"
                   style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: '13px',
-                    color: active ? '#f0f0ec' : '#a0a09a',
-                    backgroundColor: active ? '#1a1a1a' : 'transparent',
+                    color: active ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)',
+                    backgroundColor: active ? 'var(--cv-elevated)' : 'transparent',
                     boxShadow: active
                       ? 'inset 2px 0 0 #C8A96E'
                       : 'inset 2px 0 0 transparent',
@@ -265,11 +265,11 @@ export function Sidebar() {
           <button
             data-notifications-bell
             onClick={() => setNotificationsOpen(!notificationsOpen)}
-            className="relative mb-[16px] px-[12px] py-[10px] rounded-[4px] transition-colors hover:bg-[#1a1a1a] flex items-center gap-[12px]"
+            className="relative mb-[16px] px-[12px] py-[10px] rounded-[4px] transition-colors hover:bg-[var(--cv-elevated)] flex items-center gap-[12px]"
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '13px',
-              color: '#a0a09a',
+              color: 'var(--cv-secondary-text)',
               width: '100%',
               textAlign: 'left',
               cursor: 'pointer'
@@ -281,8 +281,8 @@ export function Sidebar() {
                 <div
                   className="absolute -top-[4px] -right-[6px] min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-[4px]"
                   style={{
-                    backgroundColor: '#f0f0ec',
-                    color: '#080808',
+                    backgroundColor: 'var(--cv-primary-text)',
+                    color: 'var(--cv-background)',
                     fontFamily: 'var(--font-mono)',
                     fontSize: '10px',
                     fontWeight: 600
@@ -297,13 +297,13 @@ export function Sidebar() {
           
           <Link
             to="/settings"
-            className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px] transition-colors hover:bg-[#1a1a1a] cursor-pointer"
+            className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px] transition-colors hover:bg-[var(--cv-elevated)] cursor-pointer"
             title={user?.email ?? 'Account settings'}
           >
-            <div className="w-[32px] h-[32px] rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex-shrink-0" />
+            <div className="w-[32px] h-[32px] rounded-full bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] flex-shrink-0" />
             <span
               className="truncate"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#a0a09a' }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
             >
               {accountLabel}
             </span>
@@ -318,7 +318,7 @@ export function Sidebar() {
       />
 
       {createPortal(
-        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[#111111] border-t border-[#2a2a2a] flex items-center justify-around h-[64px] z-50">
+        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[var(--cv-surface)] border-t border-[var(--cv-subtle-border)] flex items-center justify-around h-[64px] z-50">
           {coreNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.name);
@@ -333,12 +333,12 @@ export function Sidebar() {
                       cursor: 'pointer',
                     }}
                   >
-                    <Icon size={20} style={{ color: '#6a6a64' }} />
+                    <Icon size={20} style={{ color: 'var(--cv-secondary-text)' }} />
                     <span
                       className="text-[9px] uppercase tracking-[0.05em] flex items-center"
                       style={{
                         fontFamily: 'var(--font-label)',
-                        color: '#6a6a64',
+                        color: 'var(--cv-secondary-text)',
                       }}
                     >
                       {item.name}
@@ -362,13 +362,13 @@ export function Sidebar() {
                 >
                   <Icon
                     size={20}
-                    style={{ color: active ? '#f0f0ec' : '#a0a09a' }}
+                    style={{ color: active ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)' }}
                   />
                   <span
                     className="text-[9px] uppercase tracking-[0.05em] flex items-center"
                     style={{
                       fontFamily: 'var(--font-label)',
-                      color: active ? '#f0f0ec' : '#a0a09a',
+                      color: active ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)',
                     }}
                   >
                     {item.name}

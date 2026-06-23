@@ -143,7 +143,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     id: row.id,
     name: row.name,
     status: row.status ?? 'DRAFT',
-    statusColor: row.status_color ?? '#888880',
+    statusColor: row.status_color ?? 'var(--cv-secondary-text)',
     evaluations: digitalSets.reduce((sum, ds) => sum + (ds.evaluations?.length ?? 0), 0),
     submissionDate: new Date(row.created_at).toLocaleDateString(),
     source: row.source ?? '',

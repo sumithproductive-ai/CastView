@@ -35,13 +35,13 @@ const mono = 'var(--font-mono)';
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  background: '#111111',
-  border: '1px solid #2a2a2a',
+  background: 'var(--cv-surface)',
+  border: '1px solid var(--cv-subtle-border)',
   borderRadius: '4px',
   padding: '8px 12px',
   fontFamily: mono,
   fontSize: '13px',
-  color: '#f0f0ec',
+  color: 'var(--cv-primary-text)',
   boxSizing: 'border-box',
   outline: 'none',
 };
@@ -164,7 +164,7 @@ function ThreadMessages({
                 style={{
                   fontFamily: mono,
                   fontSize: '10px',
-                  color: '#888880',
+                  color: 'var(--cv-secondary-text)',
                   paddingLeft: '4px',
                 }}
               >
@@ -185,15 +185,15 @@ function ThreadMessages({
                 alignSelf: outbound ? 'flex-end' : 'flex-start',
                 ...(outbound
                   ? {
-                      background: '#1a1a1a',
-                      color: '#f0f0ec',
-                      border: '1px solid #2a2a2a',
+                      background: 'var(--cv-elevated)',
+                      color: 'var(--cv-primary-text)',
+                      border: '1px solid var(--cv-subtle-border)',
                       borderRadius: '18px 18px 4px 18px',
                     }
                   : {
-                      background: '#111111',
-                      color: '#c8c8c2',
-                      border: '1px solid #3a3a3a',
+                      background: 'var(--cv-surface)',
+                      color: 'var(--cv-accent)',
+                      border: '1px solid var(--cv-elevated)',
                       borderRadius: '18px 18px 18px 4px',
                     }),
               }}
@@ -205,7 +205,7 @@ function ThreadMessages({
               style={{
                 fontFamily: mono,
                 fontSize: '10px',
-                color: '#555550',
+                color: 'var(--cv-secondary-text)',
                 textAlign: outbound ? 'right' : 'left',
                 maxWidth: '75%',
                 paddingLeft: outbound ? 0 : '4px',
@@ -401,7 +401,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
   };
 
   return (
-    <div style={{ marginBottom: '32px', background: '#080808' }}>
+    <div style={{ marginBottom: '32px', background: 'var(--cv-background)' }}>
       {sendError && (
         <p
           style={{
@@ -416,8 +416,8 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
       )}
       <div
         style={{
-          background: '#1a1a1a',
-          border: '1px solid #2a2a2a',
+          background: 'var(--cv-elevated)',
+          border: '1px solid var(--cv-subtle-border)',
           borderRadius: '4px',
           overflow: 'hidden',
         }}
@@ -425,8 +425,8 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
         <div
           style={{
             padding: '16px',
-            borderBottom: '1px solid #2a2a2a',
-            background: '#080808',
+            borderBottom: '1px solid var(--cv-subtle-border)',
+            background: 'var(--cv-background)',
           }}
         >
           <label
@@ -435,7 +435,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
               display: 'block',
               fontFamily: mono,
               fontSize: '10px',
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
               marginBottom: '6px',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
@@ -457,7 +457,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
           style={{
             maxHeight: '500px',
             overflowY: 'auto',
-            background: '#080808',
+            background: 'var(--cv-background)',
           }}
         >
           {loading && (
@@ -467,7 +467,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                 textAlign: 'center',
                 fontFamily: mono,
                 fontSize: '12px',
-                color: '#555550',
+                color: 'var(--cv-secondary-text)',
               }}
             >
               Loading...
@@ -481,7 +481,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                 textAlign: 'center',
                 fontFamily: mono,
                 fontSize: '12px',
-                color: '#555550',
+                color: 'var(--cv-secondary-text)',
               }}
             >
               No messages yet.
@@ -497,7 +497,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
               return (
                 <div
                   key={thread.threadId}
-                  style={{ borderBottom: '1px solid #2a2a2a' }}
+                  style={{ borderBottom: '1px solid var(--cv-subtle-border)' }}
                 >
                   <button
                     type="button"
@@ -533,7 +533,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                             style={{
                               fontFamily: mono,
                               fontSize: '13px',
-                              color: '#f0f0ec',
+                              color: 'var(--cv-primary-text)',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
@@ -545,7 +545,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                             style={{
                               fontFamily: mono,
                               fontSize: '11px',
-                              color: '#555550',
+                              color: 'var(--cv-secondary-text)',
                               flexShrink: 0,
                             }}
                           >
@@ -557,7 +557,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                             style={{
                               fontFamily: mono,
                               fontSize: '11px',
-                              color: '#888880',
+                              color: 'var(--cv-secondary-text)',
                               margin: 0,
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -572,7 +572,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                         style={{
                           fontFamily: mono,
                           fontSize: '11px',
-                          color: '#888880',
+                          color: 'var(--cv-secondary-text)',
                           flexShrink: 0,
                           marginTop: '2px',
                         }}
@@ -617,8 +617,8 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                             letterSpacing: '0.08em',
                             textTransform: 'uppercase',
                             padding: '10px 24px',
-                            background: '#f0f0ec',
-                            color: '#080808',
+                            background: 'var(--cv-primary-text)',
+                            color: 'var(--cv-background)',
                             border: 'none',
                             borderRadius: '4px',
                             cursor:
@@ -639,7 +639,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
             })}
         </div>
 
-        <div style={{ padding: '16px', borderTop: '1px solid #2a2a2a' }}>
+        <div style={{ padding: '16px', borderTop: '1px solid var(--cv-subtle-border)' }}>
           {!showNewConversation && (
             <button
               type="button"
@@ -650,9 +650,9 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                 width: '100%',
                 fontFamily: mono,
                 fontSize: '11px',
-                color: newConvoButtonHover ? '#f0f0ec' : '#888880',
+                color: newConvoButtonHover ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)',
                 background: 'transparent',
-                border: `1px solid ${newConvoButtonHover ? '#f0f0ec' : '#2a2a2a'}`,
+                border: `1px solid ${newConvoButtonHover ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)'}`,
                 borderRadius: '4px',
                 padding: '10px',
                 cursor: 'pointer',
@@ -712,8 +712,8 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
                     padding: '10px 24px',
-                    background: '#f0f0ec',
-                    color: '#080808',
+                    background: 'var(--cv-primary-text)',
+                    color: 'var(--cv-background)',
                     border: 'none',
                     borderRadius: '4px',
                     cursor:
@@ -742,7 +742,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                   style={{
                     fontFamily: mono,
                     fontSize: '11px',
-                    color: '#888880',
+                    color: 'var(--cv-secondary-text)',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',

@@ -413,7 +413,7 @@ export function TutorialOverlay({
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           cursor: 'pointer',
           zIndex: TOOLTIP_Z_INDEX,
         }}
@@ -442,7 +442,7 @@ export function TutorialOverlay({
 
           {/* Tooltip card */}
           <div
-            className="fixed bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] transition-opacity duration-200"
+            className="fixed bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] transition-opacity duration-200"
             style={{
               ...getTooltipStyle(),
               maxWidth: isTooltipOffscreen(getTooltipAnchorX(spotlightRect, step.tooltipPosition))
@@ -455,7 +455,7 @@ export function TutorialOverlay({
             {/* Step Counter */}
             <div 
               className="text-[10px] uppercase tracking-[0.1em] mb-[12px]"
-              style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
               STEP {currentStep + 1} OF {totalSteps}
             </div>
@@ -463,7 +463,7 @@ export function TutorialOverlay({
             {/* Headline */}
             <h2 
               className="text-[24px] mb-[16px]"
-              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
             >
               {step.headline}
             </h2>
@@ -474,7 +474,7 @@ export function TutorialOverlay({
               style={{ 
                 fontFamily: 'var(--font-mono)', 
                 fontSize: '12px', 
-                color: '#c8c8c2',
+                color: 'var(--cv-accent)',
                 lineHeight: '1.7'
               }}
             >
@@ -489,8 +489,8 @@ export function TutorialOverlay({
                 className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  borderColor: '#2a2a2a',
-                  color: currentStep === 0 ? '#444440' : '#a0a09a',
+                  borderColor: 'var(--cv-subtle-border)',
+                  color: currentStep === 0 ? 'var(--cv-secondary-text)' : 'var(--cv-secondary-text)',
                   backgroundColor: 'transparent',
                   cursor: currentStep === 0 ? 'not-allowed' : 'pointer',
                   opacity: currentStep === 0 ? 0.5 : 1
@@ -503,8 +503,8 @@ export function TutorialOverlay({
                 className="flex-1 px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  backgroundColor: '#f0f0ec',
-                  color: '#080808',
+                  backgroundColor: 'var(--cv-primary-text)',
+                  color: 'var(--cv-background)',
                   cursor: 'pointer'
                 }}
               >
@@ -521,7 +521,7 @@ export function TutorialOverlay({
                   style={{
                     width: '6px',
                     height: '6px',
-                    backgroundColor: index === currentStep ? '#f0f0ec' : '#2a2a2a'
+                    backgroundColor: index === currentStep ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)'
                   }}
                 />
               ))}

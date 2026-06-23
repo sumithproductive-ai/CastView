@@ -76,7 +76,7 @@ function ContextArrowList({ items }: { items: string[] }) {
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '11px',
-            color: '#a0a09a',
+            color: 'var(--cv-secondary-text)',
             marginBottom: '6px',
           }}
         >
@@ -108,7 +108,7 @@ function ContextScoreBar({
 
   return (
     <div
-      className="h-[2px] bg-[#2a2a2a] rounded-full overflow-hidden"
+      className="h-[2px] bg-[var(--cv-subtle-border)] rounded-full overflow-hidden"
       style={{ width: '80px' }}
     >
       <div
@@ -650,7 +650,7 @@ export function Results() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
               backgroundColor: 'transparent',
@@ -736,9 +736,9 @@ export function Results() {
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '11px',
-            color: evalSaved ? '#4a7a4a' : saveError ? '#c87a7a' : '#f0f0ec',
+            color: evalSaved ? '#4a7a4a' : saveError ? '#c87a7a' : 'var(--cv-primary-text)',
             background: 'none',
-            border: `1px solid ${evalSaved ? '#4a7a4a' : saveError ? '#c87a7a' : '#2a2a2a'}`,
+            border: `1px solid ${evalSaved ? '#4a7a4a' : saveError ? '#c87a7a' : 'var(--cv-subtle-border)'}`,
             borderRadius: '4px',
             padding: '8px 16px',
             cursor: evalSaved || savingEval ? 'default' : 'pointer',
@@ -754,10 +754,10 @@ export function Results() {
           <button
             type="button"
             onClick={generatePDF}
-            className="cv-btn-primary border border-[#2a2a2a] bg-transparent rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] hover:text-[#f0f0ec] transition-colors"
+            className="cv-btn-primary border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)] transition-colors"
             style={{
               fontFamily: 'var(--font-mono)',
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
               cursor: 'pointer',
             }}
           >
@@ -772,7 +772,7 @@ export function Results() {
                   : `/prospects/${prospectId}`,
               )
             }
-            className="bg-[#f0f0ec] text-[#080808] rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
+            className="bg-[var(--cv-primary-text)] text-[var(--cv-background)] rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
             style={{
               fontFamily: 'var(--font-mono)',
               cursor: 'pointer',
@@ -785,7 +785,7 @@ export function Results() {
 
       <h1 
         className="text-[48px] mb-[12px]" 
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
         {prospectName} — Context Alignment Report
       </h1>
@@ -793,7 +793,7 @@ export function Results() {
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           letterSpacing: '0.05em',
           marginBottom: '36px',
         }}
@@ -822,7 +822,7 @@ export function Results() {
               const src = digitalSet?.[key] ?? null;
               return (
                 <div key={key} className="flex-1">
-                  <div className="aspect-[3/4] overflow-hidden rounded-[4px] bg-[#111111]">
+                  <div className="aspect-[3/4] overflow-hidden rounded-[4px] bg-[var(--cv-surface)]">
                     {src ? (
                       <DigitalImage
                         storageRef={src}
@@ -830,7 +830,7 @@ export function Results() {
                         className="w-full h-full object-cover object-top"
                       />
                     ) : (
-                      <div className="w-full h-full bg-[#1a1a1a]" />
+                      <div className="w-full h-full bg-[var(--cv-elevated)]" />
                     )}
                   </div>
                   <div
@@ -838,7 +838,7 @@ export function Results() {
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '9px',
-                      color: '#888880',
+                      color: 'var(--cv-secondary-text)',
                     }}
                   >
                     {label}
@@ -884,7 +884,7 @@ export function Results() {
             return (
               <div key={result.context}>
                 <div
-                  className={`w-full bg-[#111111] border border-[#2a2a2a] px-[24px] py-[16px] mb-[8px] flex justify-between items-center ${
+                  className={`w-full bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] px-[24px] py-[16px] mb-[8px] flex justify-between items-center ${
                     isOpen ? 'rounded-t-[4px] rounded-b-none border-b-0' : 'rounded-[4px]'
                   }`}
                   style={{ transition: 'background-color 0.2s ease' }}
@@ -898,14 +898,14 @@ export function Results() {
                       }
                       setOpenContext(isOpen ? null : result.context);
                     }}
-                    className="flex flex-1 justify-between items-center text-left hover:bg-[#1a1a1a]"
+                    className="flex flex-1 justify-between items-center text-left hover:bg-[var(--cv-elevated)]"
                     style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
                   >
                     <span
                       style={{
                         fontFamily: 'var(--font-display)',
                         fontSize: '18px',
-                        color: '#f0f0ec',
+                        color: 'var(--cv-primary-text)',
                         fontWeight: 300,
                       }}
                     >
@@ -930,7 +930,7 @@ export function Results() {
                       <ChevronDown
                         size={14}
                         style={{
-                          color: '#888880',
+                          color: 'var(--cv-secondary-text)',
                           transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                           transition: 'transform 0.3s ease',
                         }}
@@ -947,7 +947,7 @@ export function Results() {
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '10px',
-                        color: '#888880',
+                        color: 'var(--cv-secondary-text)',
                         background: 'none',
                         border: 'none',
                         cursor: removingContext === result.context ? 'default' : 'pointer',
@@ -961,7 +961,7 @@ export function Results() {
                         }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.color = '#888880';
+                        e.currentTarget.style.color = 'var(--cv-secondary-text)';
                       }}
                     >
                       {removingContext === result.context ? 'Removing...' : 'Remove'}
@@ -970,7 +970,7 @@ export function Results() {
                 </div>
 
                 {isOpen && (
-                  <div className="bg-[#0d0d0d] border border-t-0 border-[#2a2a2a] rounded-b-[4px] mb-[8px]">
+                  <div className="bg-[var(--cv-background)] border border-t-0 border-[var(--cv-subtle-border)] rounded-b-[4px] mb-[8px]">
                     <div className="cv-eval-panel-body px-[24px] py-[20px] pb-[32px]">
                     {!data ? (
                       <p
@@ -994,7 +994,7 @@ export function Results() {
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: '9px',
-                            color: '#888880',
+                            color: 'var(--cv-secondary-text)',
                             letterSpacing: '0.1em',
                           }}
                         >
@@ -1045,7 +1045,7 @@ export function Results() {
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: '9px',
-                            color: '#888880',
+                            color: 'var(--cv-secondary-text)',
                             letterSpacing: '0.1em',
                           }}
                         >
@@ -1058,7 +1058,7 @@ export function Results() {
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: '9px',
-                            color: '#888880',
+                            color: 'var(--cv-secondary-text)',
                             letterSpacing: '0.1em',
                           }}
                         >
@@ -1070,7 +1070,7 @@ export function Results() {
 
                     <div
                       className="mt-[20px] pt-[16px]"
-                      style={{ borderTop: '1px solid #1a1a1a', scrollMarginBottom: '120px' }}
+                      style={{ borderTop: '1px solid var(--cv-elevated)', scrollMarginBottom: '120px' }}
                     >
                       <div className="flex items-center justify-between mb-[12px]">
                         <div
@@ -1083,10 +1083,10 @@ export function Results() {
                           DEVELOPMENT PATHWAY
                         </div>
                         <div
-                          className="text-[9px] uppercase tracking-[0.08em] px-[8px] py-[3px] border border-[#2a2a2a] rounded-[2px]"
+                          className="text-[9px] uppercase tracking-[0.08em] px-[8px] py-[3px] border border-[var(--cv-subtle-border)] rounded-[2px]"
                           style={{
                             fontFamily: 'var(--font-mono)',
-                            color: '#888880',
+                            color: 'var(--cv-secondary-text)',
                           }}
                         >
                           AI COACHING
@@ -1098,7 +1098,7 @@ export function Results() {
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '11px',
-                          color: '#666660',
+                          color: 'var(--cv-secondary-text)',
                           lineHeight: 1.7,
                         }}
                       >
@@ -1111,11 +1111,11 @@ export function Results() {
                         onChange={(e) => setDevPathwayNote(e.target.value)}
                         placeholder={`e.g. "Strong bone structure — I think he has potential for ${result.context} but needs work on posture and styling direction."`}
                         rows={3}
-                        className="w-full px-[12px] py-[10px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] resize-none mb-[12px]"
+                        className="w-full px-[12px] py-[10px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none mb-[12px]"
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '11px',
-                          color: '#f0f0ec',
+                          color: 'var(--cv-primary-text)',
                           lineHeight: 1.6,
                         }}
                       />
@@ -1159,7 +1159,7 @@ export function Results() {
                             setDevPathwayLoading(false);
                           }
                         }}
-                        className="w-full py-[12px] border border-[#C8A96E] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#C8A96E] hover:text-[#080808]"
+                        className="w-full py-[12px] border border-[#C8A96E] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#C8A96E] hover:text-[var(--cv-background)]"
                         style={{
                           fontFamily: 'var(--font-mono)',
                           color: '#C8A96E',
@@ -1172,12 +1172,12 @@ export function Results() {
                       </button>
 
                       {devPathwayContext === result.context && (
-                        <div className="mt-[16px] p-[16px] bg-[#0d0d0d] border border-[#2a2a2a] rounded-[4px]">
+                        <div className="mt-[16px] p-[16px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px]">
                           <div
                             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
                             style={{
                               fontFamily: 'var(--font-mono)',
-                              color: '#888880',
+                              color: 'var(--cv-secondary-text)',
                             }}
                           >
                             DEVELOPMENT RECOMMENDATIONS
@@ -1187,7 +1187,7 @@ export function Results() {
                             className="text-[11px] mb-[16px]"
                             style={{
                               fontFamily: 'var(--font-mono)',
-                              color: '#a0a09a',
+                              color: 'var(--cv-secondary-text)',
                               lineHeight: 1.8,
                             }}
                           >
@@ -1198,7 +1198,7 @@ export function Results() {
 
                           {devPathwayLoading && devPathwayContext === result.context && (
                             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
-                              color: '#666660', padding: '16px 0' }}>
+                              color: 'var(--cv-secondary-text)', padding: '16px 0' }}>
                               Generating pathway...
                             </div>
                           )}
@@ -1214,7 +1214,7 @@ export function Results() {
                             <>
                               {devPathwayData.summary && (
                                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
-                                  color: '#a0a09a', lineHeight: 1.8, marginBottom: '16px' }}>
+                                  color: 'var(--cv-secondary-text)', lineHeight: 1.8, marginBottom: '16px' }}>
                                   {devPathwayData.summary}
                                 </p>
                               )}
@@ -1227,7 +1227,7 @@ export function Results() {
                                   {section.items.map((item, i) => (
                                     <div key={i} className="mb-[4px]"
                                       style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
-                                        color: '#888880', lineHeight: 1.7 }}>
+                                        color: 'var(--cv-secondary-text)', lineHeight: 1.7 }}>
                                       → {item}
                                     </div>
                                   ))}
@@ -1251,13 +1251,13 @@ export function Results() {
         {/* Right Panel */}
         <div>
           <div
-            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[24px]"
+            className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] mb-[24px]"
             data-tutorial="score-panel"
           >
             <div className="flex items-center justify-between">
               <div 
                 className="text-[10px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
                 Does This Align With Your Judgment?
               </div>
@@ -1286,11 +1286,11 @@ export function Results() {
                   className="cv-btn-primary px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors disabled:transform-none"
                   style={{ 
                     fontFamily: 'var(--font-mono)',
-                    borderColor: agreed ? '#4a7a4a' : '#2a2a2a',
-                    color: agreed ? '#4a7a4a' : '#a0a09a',
+                    borderColor: agreed ? '#4a7a4a' : 'var(--cv-subtle-border)',
+                    color: agreed ? '#4a7a4a' : 'var(--cv-secondary-text)',
                     backgroundColor: agreed 
                       ? 'rgba(74,122,74,0.1)' 
-                      : (showOverride ? 'transparent' : '#1a1a1a'),
+                      : (showOverride ? 'transparent' : 'var(--cv-elevated)'),
                     cursor: agreed ? 'default' : 'pointer'
                   }}
                   disabled={agreed}
@@ -1319,9 +1319,9 @@ export function Results() {
                   className="cv-btn-secondary px-[12px] py-[6px] border rounded-[4px] text-[10px] uppercase transition-colors"
                   style={{ 
                     fontFamily: 'var(--font-mono)',
-                    borderColor: '#2a2a2a',
-                    color: '#a0a09a',
-                    backgroundColor: showOverride ? '#1a1a1a' : 'transparent',
+                    borderColor: 'var(--cv-subtle-border)',
+                    color: 'var(--cv-secondary-text)',
+                    backgroundColor: showOverride ? 'var(--cv-elevated)' : 'transparent',
                     cursor: 'pointer'
                   }}
                 >
@@ -1333,7 +1333,7 @@ export function Results() {
             <p style={{ 
               fontFamily: 'var(--font-mono)', 
               fontSize: '11px', 
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
               marginTop: '8px',
               fontStyle: 'italic'
             }}>
@@ -1350,8 +1350,8 @@ export function Results() {
                     setOverrideSaveError(null);
                   }}
                   placeholder="Add your assessment..."
-                  className="w-full h-[80px] bg-[#080808] border border-[#2a2a2a] rounded-[4px] p-[12px] resize-none mb-[8px]"
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#f0f0ec' }}
+                  className="w-full h-[80px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[12px] resize-none mb-[8px]"
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-primary-text)' }}
                 />
                 <button
                   type="button"
@@ -1392,12 +1392,12 @@ export function Results() {
                       ? 'transparent'
                       : overrideSaveError
                         ? 'transparent'
-                        : '#f0f0ec',
+                        : 'var(--cv-primary-text)',
                     color: overrideSaved
                       ? '#4a7a4a'
                       : overrideSaveError
                         ? '#c87a7a'
-                        : '#080808',
+                        : 'var(--cv-background)',
                     border: overrideSaved
                       ? '1px solid #4a7a4a'
                       : overrideSaveError
@@ -1425,12 +1425,12 @@ export function Results() {
             )}
           </div>
 
-          <div className="h-[1px] bg-[#2a2a2a] mb-[24px]" />
+          <div className="h-[1px] bg-[var(--cv-subtle-border)] mb-[24px]" />
 
           <div>
             <div
               className="mb-[8px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cv-secondary-text)' }}
             >
               AGENT NOTES
             </div>
@@ -1445,12 +1445,12 @@ export function Results() {
               style={{
                 width: '100%',
                 backgroundColor: 'transparent',
-                border: '1px solid #2a2a2a',
+                border: '1px solid var(--cv-subtle-border)',
                 borderRadius: '4px',
                 padding: '12px',
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
-                color: '#f0f0ec',
+                color: 'var(--cv-primary-text)',
                 lineHeight: 1.6,
                 resize: 'vertical',
                 outline: 'none',
@@ -1468,9 +1468,9 @@ export function Results() {
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '10px',
-                color: notesSaved ? '#4a7a4a' : '#f0f0ec',
+                color: notesSaved ? '#4a7a4a' : 'var(--cv-primary-text)',
                 background: 'none',
-                border: `1px solid ${notesSaved ? '#4a7a4a' : '#2a2a2a'}`,
+                border: `1px solid ${notesSaved ? '#4a7a4a' : 'var(--cv-subtle-border)'}`,
                 borderRadius: '4px',
                 padding: '8px 16px',
                 cursor: 'pointer',

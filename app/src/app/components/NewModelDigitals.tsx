@@ -105,7 +105,7 @@ export function NewModelDigitals() {
         style={{
           fontFamily: 'var(--font-display)',
           fontWeight: 300,
-          color: '#f0f0ec',
+          color: 'var(--cv-primary-text)',
         }}
       >
         Upload Digitals
@@ -116,57 +116,57 @@ export function NewModelDigitals() {
           <div
             className="w-[32px] h-[32px] rounded-full flex items-center justify-center"
             style={{
-              backgroundColor: '#f0f0ec',
-              color: '#080808',
+              backgroundColor: 'var(--cv-primary-text)',
+              color: 'var(--cv-background)',
             }}
           >
             <Check size={16} />
           </div>
           <span
             className="text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
             Basic Info
           </span>
         </div>
 
-        <div className="w-[40px] h-[1px] bg-[#2a2a2a]" />
+        <div className="w-[40px] h-[1px] bg-[var(--cv-subtle-border)]" />
 
         <div className="flex items-center gap-[12px]">
           <div
             className="w-[32px] h-[32px] rounded-full flex items-center justify-center text-[13px]"
             style={{
               fontFamily: 'var(--font-mono)',
-              backgroundColor: '#f0f0ec',
-              color: '#080808',
+              backgroundColor: 'var(--cv-primary-text)',
+              color: 'var(--cv-background)',
             }}
           >
             2
           </div>
           <span
             className="text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
             Digitals
           </span>
         </div>
 
-        <div className="w-[40px] h-[1px] bg-[#2a2a2a]" />
+        <div className="w-[40px] h-[1px] bg-[var(--cv-subtle-border)]" />
 
         <div className="flex items-center gap-[12px]">
           <div
             className="w-[32px] h-[32px] rounded-full border flex items-center justify-center text-[13px]"
             style={{
               fontFamily: 'var(--font-mono)',
-              borderColor: '#2a2a2a',
-              color: '#6a6a64',
+              borderColor: 'var(--cv-subtle-border)',
+              color: 'var(--cv-secondary-text)',
             }}
           >
             3
           </div>
           <span
             className="text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             Review
           </span>
@@ -176,7 +176,7 @@ export function NewModelDigitals() {
       <div className="mb-[24px]">
         <div
           className="text-[9px] uppercase tracking-[0.1em] mb-[8px]"
-          style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+          style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
           UPLOAD DIGITALS
         </div>
@@ -184,7 +184,7 @@ export function NewModelDigitals() {
           className="text-[11px] mb-[6px]"
           style={{
             fontFamily: 'var(--font-mono)',
-            color: '#888880',
+            color: 'var(--cv-secondary-text)',
             fontStyle: 'italic',
           }}
         >
@@ -194,7 +194,7 @@ export function NewModelDigitals() {
         </div>
         <div
           className="text-[12px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
           All four shots are required. Clear, natural light, no filters.
         </div>
@@ -208,9 +208,9 @@ export function NewModelDigitals() {
         {uploadZones.map((zone) => (
           <div
             key={zone.key}
-            className="relative bg-[#0d0d0d] border border-dashed rounded-[4px] cursor-pointer hover:border-[#3a3a3a] transition-colors"
+            className="relative bg-[var(--cv-background)] border border-dashed rounded-[4px] cursor-pointer hover:border-[var(--cv-elevated)] transition-colors"
             style={{
-              borderColor: '#2a2a2a',
+              borderColor: 'var(--cv-subtle-border)',
               height: '140px',
             }}
             onClick={() => fileInputRefs[zone.key].current?.click()}
@@ -297,7 +297,7 @@ export function NewModelDigitals() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    color: '#f0f0ec',
+                    color: 'var(--cv-primary-text)',
                     fontSize: '10px',
                     lineHeight: 1,
                   }}
@@ -309,17 +309,17 @@ export function NewModelDigitals() {
               <div className="w-full h-full flex flex-col items-center justify-center">
                 <Upload
                   size={32}
-                  style={{ color: '#6a6a64', marginBottom: '16px' }}
+                  style={{ color: 'var(--cv-secondary-text)', marginBottom: '16px' }}
                 />
                 <div
                   className="text-[9px] uppercase tracking-[0.1em] mb-[8px]"
-                  style={{ fontFamily: 'var(--font-label)', color: '#f0f0ec' }}
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-primary-text)' }}
                 >
                   {zone.label}
                 </div>
                 <div
                   className="text-[11px] text-center"
-                  style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
                   (click or drag to upload)
                 </div>
@@ -331,16 +331,16 @@ export function NewModelDigitals() {
 
       <div
         className="text-[12px] mb-[8px]"
-        style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+        style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
       >
         JPG or PNG · Max 10MB per image · Minimum 800px on shortest side
       </div>
 
       <div className="flex items-center gap-[8px] mb-[24px]">
-        <Lock size={12} style={{ color: '#6a6a64' }} />
+        <Lock size={12} style={{ color: 'var(--cv-secondary-text)' }} />
         <div
           className="text-[11px]"
-          style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
           Photos stored securely in EU-West (Ireland) · Never used for model
           training · Deletable anytime
@@ -351,10 +351,10 @@ export function NewModelDigitals() {
         <button
           type="button"
           onClick={() => navigate('/roster/new')}
-          className="px-[20px] py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#1a1a1a]"
+          className="px-[20px] py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[var(--cv-elevated)]"
           style={{
             fontFamily: 'var(--font-mono)',
-            color: '#a0a09a',
+            color: 'var(--cv-secondary-text)',
             cursor: 'pointer',
           }}
         >
@@ -377,17 +377,17 @@ export function NewModelDigitals() {
           <button
             type="button"
             onClick={handleContinue}
-            className="px-[20px] py-[12px] bg-[#f0f0ec] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 cursor-pointer"
+            className="px-[20px] py-[12px] bg-[var(--cv-primary-text)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80 cursor-pointer"
             style={{
               fontFamily: 'var(--font-mono)',
-              color: '#080808',
+              color: 'var(--cv-background)',
             }}
           >
             CONTINUE TO REVIEW →
           </button>
           <div
             className="text-[12px] mt-[8px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             You can complete missing digitals later.
           </div>

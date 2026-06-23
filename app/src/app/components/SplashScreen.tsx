@@ -41,7 +41,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         role="presentation"
         onClick={() => onComplete?.()}
         style={{
-          backgroundColor: '#080808',
+          backgroundColor: 'var(--cv-background)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -62,7 +62,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             fontFamily: 'var(--font-display)',
             fontSize: '36px',
             fontWeight: 300,
-            color: '#f0f0ec',
+            color: 'var(--cv-primary-text)',
             letterSpacing: '0.06em'
           }}
         >
@@ -74,7 +74,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           style={{
             width: '80px',
             height: '1px',
-            backgroundColor: '#2a2a2a',
+            backgroundColor: 'var(--cv-subtle-border)',
             marginTop: '32px',
             position: 'relative',
             overflow: 'hidden'
@@ -83,7 +83,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           <div
             style={{
               height: '1px',
-              backgroundColor: '#f0f0ec',
+              backgroundColor: 'var(--cv-primary-text)',
               animation: 'progress-fill 1.8s ease-in-out infinite'
             }}
           />

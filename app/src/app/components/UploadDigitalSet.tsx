@@ -11,7 +11,7 @@ type UploadFormImageKey = 'front' | 'profile' | 'threeQuarter' | 'fullBody';
 const formFieldLabelStyle = {
   fontFamily: 'var(--font-mono)',
   fontSize: '9px',
-  color: '#888880',
+  color: 'var(--cv-secondary-text)',
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
 };
@@ -19,7 +19,7 @@ const formFieldLabelStyle = {
 const formInputStyle = {
   fontFamily: 'var(--font-mono)',
   fontSize: '13px',
-  color: '#f0f0ec',
+  color: 'var(--cv-primary-text)',
 };
 
 const uploadFields = [
@@ -105,7 +105,7 @@ export function UploadDigitalSet() {
   };
 
   return (
-    <div className="p-[20px] md:p-[32px]" style={{ backgroundColor: '#080808', minHeight: '100%' }}>
+    <div className="p-[20px] md:p-[32px]" style={{ backgroundColor: 'var(--cv-background)', minHeight: '100%' }}>
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -113,7 +113,7 @@ export function UploadDigitalSet() {
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           cursor: 'pointer',
         }}
       >
@@ -126,7 +126,7 @@ export function UploadDigitalSet() {
           fontFamily: 'var(--font-display)',
           fontSize: '40px',
           fontWeight: 300,
-          color: '#f0f0ec',
+          color: 'var(--cv-primary-text)',
           lineHeight: 1.1,
         }}
       >
@@ -138,7 +138,7 @@ export function UploadDigitalSet() {
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
         }}
       >
         {entityName}
@@ -155,7 +155,7 @@ export function UploadDigitalSet() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. May 2026 Update"
-              className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+              className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
               style={formInputStyle}
             />
           </div>
@@ -168,7 +168,7 @@ export function UploadDigitalSet() {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               placeholder="e.g. May 2026"
-              className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+              className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
               style={formInputStyle}
             />
           </div>
@@ -206,7 +206,7 @@ export function UploadDigitalSet() {
 
               {imageUrl ? (
                 <div
-                  className="relative bg-[#111111] border border-[#2a2a2a] rounded-[4px] overflow-hidden"
+                  className="relative bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] overflow-hidden"
                   style={{ height: '220px' }}
                 >
                   <DigitalImage
@@ -228,7 +228,7 @@ export function UploadDigitalSet() {
                       top: '8px',
                       right: '8px',
                       background: 'rgba(0,0,0,0.7)',
-                      border: '1px solid #2a2a2a',
+                      border: '1px solid var(--cv-subtle-border)',
                       borderRadius: '50%',
                       width: '24px',
                       height: '24px',
@@ -236,7 +236,7 @@ export function UploadDigitalSet() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      color: '#f0f0ec',
+                      color: 'var(--cv-primary-text)',
                     }}
                     aria-label={`Clear ${field.label}`}
                   >
@@ -252,7 +252,7 @@ export function UploadDigitalSet() {
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '9px',
-                        color: '#888880',
+                        color: 'var(--cv-secondary-text)',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -266,8 +266,8 @@ export function UploadDigitalSet() {
                 <div
                   role="button"
                   tabIndex={0}
-                  className="relative bg-[#0d0d0d] border border-dashed rounded-[4px] cursor-pointer hover:border-[#3a3a3a] transition-colors"
-                  style={{ borderColor: '#2a2a2a', height: '220px' }}
+                  className="relative bg-[var(--cv-background)] border border-dashed rounded-[4px] cursor-pointer hover:border-[var(--cv-elevated)] transition-colors"
+                  style={{ borderColor: 'var(--cv-subtle-border)', height: '220px' }}
                   onClick={() =>
                     document.getElementById(`upload-digitals-${fieldKey}`)?.click()
                   }
@@ -279,10 +279,10 @@ export function UploadDigitalSet() {
                   }}
                 >
                   <div className="w-full h-full flex flex-col items-center justify-center">
-                    <Upload size={24} style={{ color: '#6a6a64', marginBottom: '8px' }} />
+                    <Upload size={24} style={{ color: 'var(--cv-secondary-text)', marginBottom: '8px' }} />
                     <div
                       className="text-[9px] uppercase tracking-[0.1em]"
-                      style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
                     >
                       {field.label}
                     </div>
@@ -290,7 +290,7 @@ export function UploadDigitalSet() {
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '9px',
-                        color: '#888880',
+                        color: 'var(--cv-secondary-text)',
                         marginTop: '4px',
                       }}
                     >
@@ -313,7 +313,7 @@ export function UploadDigitalSet() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Optional notes about this set"
-            className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] resize-none"
+            className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none"
             style={formInputStyle}
           />
         </div>
@@ -324,8 +324,8 @@ export function UploadDigitalSet() {
           className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
           style={{
             fontFamily: 'var(--font-mono)',
-            backgroundColor: '#f0f0ec',
-            color: '#080808',
+            backgroundColor: 'var(--cv-primary-text)',
+            color: 'var(--cv-background)',
             cursor: saving ? 'not-allowed' : 'pointer',
             border: 'none',
             opacity: saving ? 0.6 : 1,
@@ -337,10 +337,10 @@ export function UploadDigitalSet() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="w-full py-[12px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+          className="w-full py-[12px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
           style={{
             fontFamily: 'var(--font-mono)',
-            color: '#f0f0ec',
+            color: 'var(--cv-primary-text)',
             cursor: 'pointer',
           }}
         >

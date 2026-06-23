@@ -73,7 +73,7 @@ const contexts = [
 const sectionLabelStyle = {
   fontFamily: 'var(--font-mono)',
   fontSize: '9px',
-  color: '#888880',
+  color: 'var(--cv-secondary-text)',
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
 };
@@ -166,15 +166,15 @@ export function CompareMode() {
       <div className="p-[32px] min-h-screen flex flex-col items-center justify-center text-center">
         <p
           className="mb-[24px] max-w-[420px]"
-          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#666660', lineHeight: 1.6 }}
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
         >
           No digital sets on file. Upload digitals from the prospect profile to begin comparing.
         </p>
         <button
           type="button"
           onClick={() => navigate(profilePath)}
-          className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-          style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+          className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
         >
           UPLOAD NEW DIGITAL SET
         </button>
@@ -188,21 +188,21 @@ export function CompareMode() {
       <div className="p-[32px] min-h-screen flex flex-col items-center justify-center text-center">
         <p
           className="mb-[12px] max-w-[420px]"
-          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#666660', lineHeight: 1.6 }}
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
         >
           Upload a second digital set to compare progression.
         </p>
         <p
           className="mb-[24px]"
-          style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', lineHeight: 1.6 }}
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
         >
           {getDigitalSetDisplayTitle(onlySet.title)} · {onlySet.date}
         </p>
         <button
           type="button"
           onClick={() => navigate(profilePath)}
-          className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-          style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+          className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
         >
           UPLOAD NEW DIGITAL SET
         </button>
@@ -399,7 +399,7 @@ export function CompareMode() {
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
@@ -419,7 +419,7 @@ export function CompareMode() {
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '12px',
-                color: '#6a6a64',
+                color: 'var(--cv-secondary-text)',
               }}
             >
               Prospects › {prospectName} › Compare
@@ -430,7 +430,7 @@ export function CompareMode() {
               fontFamily: 'var(--font-display)',
               fontWeight: 300,
               fontSize: '28px',
-              color: '#f0f0ec',
+              color: 'var(--cv-primary-text)',
               lineHeight: 1.1,
             }}
           >
@@ -440,7 +440,7 @@ export function CompareMode() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '12px',
-              color: '#a0a09a',
+              color: 'var(--cv-secondary-text)',
               marginTop: '4px',
             }}
           >
@@ -455,7 +455,7 @@ export function CompareMode() {
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '10px',
-            color: '#888880',
+            color: 'var(--cv-secondary-text)',
             cursor: 'pointer',
             textDecoration: 'underline',
             textUnderlineOffset: '3px',
@@ -494,8 +494,8 @@ export function CompareMode() {
                 }}
                 className="w-full flex items-center gap-[16px] p-[14px] rounded-[4px] text-left transition-colors"
                 style={{
-                  backgroundColor: '#111111',
-                  border: `1px solid ${isSelected ? '#f0f0ec' : '#2a2a2a'}`,
+                  backgroundColor: 'var(--cv-surface)',
+                  border: `1px solid ${isSelected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)'}`,
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
                   opacity: isDisabled ? 0.35 : 1,
                 }}
@@ -505,8 +505,8 @@ export function CompareMode() {
                     width: '16px',
                     height: '16px',
                     borderRadius: '2px',
-                    border: `1px solid ${isSelected ? '#f0f0ec' : '#444440'}`,
-                    backgroundColor: isSelected ? '#f0f0ec' : 'transparent',
+                    border: `1px solid ${isSelected ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)'}`,
+                    backgroundColor: isSelected ? 'var(--cv-primary-text)' : 'transparent',
                     flexShrink: 0,
                     display: 'flex',
                     alignItems: 'center',
@@ -514,7 +514,7 @@ export function CompareMode() {
                   }}
                 >
                   {isSelected && (
-                    <span style={{ color: '#080808', fontSize: '10px', lineHeight: 1 }}>
+                    <span style={{ color: 'var(--cv-background)', fontSize: '10px', lineHeight: 1 }}>
                       ✓
                     </span>
                   )}
@@ -526,7 +526,7 @@ export function CompareMode() {
                     height: '40px',
                     borderRadius: '4px',
                     overflow: 'hidden',
-                    backgroundColor: '#1a1a1a',
+                    backgroundColor: 'var(--cv-elevated)',
                     flexShrink: 0,
                   }}
                 >
@@ -549,7 +549,7 @@ export function CompareMode() {
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '12px',
-                      color: '#f0f0ec',
+                      color: 'var(--cv-primary-text)',
                     }}
                   >
                     {set.date || getDigitalSetDisplayTitle(set.title)}
@@ -558,7 +558,7 @@ export function CompareMode() {
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '10px',
-                      color: '#555550',
+                      color: 'var(--cv-secondary-text)',
                       marginTop: '2px',
                     }}
                   >
@@ -571,7 +571,7 @@ export function CompareMode() {
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '9px',
-                      color: '#888880',
+                      color: 'var(--cv-secondary-text)',
                       letterSpacing: '0.08em',
                       flexShrink: 0,
                     }}
@@ -588,7 +588,7 @@ export function CompareMode() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '10px',
-              color: '#666660',
+              color: 'var(--cv-secondary-text)',
               marginTop: '10px',
             }}
           >
@@ -615,9 +615,9 @@ export function CompareMode() {
                 className="px-[16px] py-[10px] border rounded-[4px] transition-all text-[11px] uppercase tracking-[0.1em] w-full cursor-pointer"
                 style={{
                   fontFamily: 'var(--font-label)',
-                  backgroundColor: isSelected ? '#f0f0ec' : 'transparent',
-                  borderColor: isSelected ? '#f0f0ec' : '#2a2a2a',
-                  color: isSelected ? '#080808' : '#a0a09a',
+                  backgroundColor: isSelected ? 'var(--cv-primary-text)' : 'transparent',
+                  borderColor: isSelected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
+                  color: isSelected ? 'var(--cv-background)' : 'var(--cv-secondary-text)',
                 }}
               >
                 {context}
@@ -632,7 +632,7 @@ export function CompareMode() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
               cursor: 'pointer',
               background: 'none',
               border: 'none',
@@ -641,7 +641,7 @@ export function CompareMode() {
           >
             SELECT ALL
           </button>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
             ·
           </span>
           <button
@@ -650,7 +650,7 @@ export function CompareMode() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
               cursor: 'pointer',
               background: 'none',
               border: 'none',
@@ -671,8 +671,8 @@ export function CompareMode() {
         className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity mb-[32px]"
         style={{
           fontFamily: 'var(--font-mono)',
-          backgroundColor: isComparing ? '#2a2a2a' : '#f0f0ec',
-          color: isComparing ? '#666660' : '#080808',
+          backgroundColor: isComparing ? 'var(--cv-subtle-border)' : 'var(--cv-primary-text)',
+          color: isComparing ? 'var(--cv-secondary-text)' : 'var(--cv-background)',
           cursor:
             isComparing || selectedContexts.length === 0 || selectedSetIds.length !== 2
               ? 'not-allowed'

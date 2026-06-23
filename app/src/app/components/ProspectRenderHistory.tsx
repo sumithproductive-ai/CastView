@@ -33,13 +33,13 @@ function getRosterStatusColor(status: string) {
 const sectionLabelStyle = {
   fontFamily: 'var(--font-mono)',
   fontSize: '9px',
-  color: '#888880',
+  color: 'var(--cv-secondary-text)',
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
 };
 
 const ghostButtonClass =
-  'px-[10px] py-[6px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors';
+  'px-[10px] py-[6px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors';
 
 function countDigitalsOnFile(digitalSet: DigitalSet) {
   return [digitalSet.front, digitalSet.profile, digitalSet.threeQuarter, digitalSet.fullBody].filter(
@@ -49,9 +49,9 @@ function countDigitalsOnFile(digitalSet: DigitalSet) {
 
 function getFitLabelColor(fitLabel: string) {
   if (fitLabel.includes('STRONG')) return '#4a7a4a';
-  if (fitLabel.includes('MODERATE')) return '#888880';
+  if (fitLabel.includes('MODERATE')) return 'var(--cv-secondary-text)';
   if (fitLabel.includes('LOW')) return '#c87a7a';
-  return '#888880';
+  return 'var(--cv-secondary-text)';
 }
 
 function digitalGridSlots(digitalSet: DigitalSet) {
@@ -81,7 +81,7 @@ function revokeUploadFormBlobUrls(_form: typeof emptyUploadForm) {}
 const formFieldLabelStyle = {
   fontFamily: 'var(--font-mono)',
   fontSize: '9px',
-  color: '#888880',
+  color: 'var(--cv-secondary-text)',
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
 };
@@ -89,7 +89,7 @@ const formFieldLabelStyle = {
 const formInputStyle = {
   fontFamily: 'var(--font-mono)',
   fontSize: '13px',
-  color: '#f0f0ec',
+  color: 'var(--cv-primary-text)',
 };
 
 function formatTagsLine(digitalSet: DigitalSet) {
@@ -193,7 +193,7 @@ export function ProspectRenderHistory({
   const activeProfile: ProfileData = resolvedProfile ?? {
     name: '',
     status: '',
-    statusColor: '#888880',
+    statusColor: 'var(--cv-secondary-text)',
     digitalSets: [],
   };
 
@@ -475,14 +475,14 @@ export function ProspectRenderHistory({
         <div className="text-center py-[64px]">
           <p
             className="text-[13px] mb-[16px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             Prospect not found.
           </p>
           <Link
             to="/prospects"
             className="text-[13px] hover:opacity-70 transition-opacity"
-            style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             ← Back to Prospects
           </Link>
@@ -494,14 +494,14 @@ export function ProspectRenderHistory({
           <Link
             to={isModel ? '/roster' : '/prospects'}
             className="text-[13px] hover:opacity-70 transition-opacity"
-            style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             {isModel ? 'Roster' : 'Prospects'}
           </Link>
-          <ChevronRight size={14} style={{ color: '#6a6a64' }} />
+          <ChevronRight size={14} style={{ color: 'var(--cv-secondary-text)' }} />
           <span
             className="text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
             {activeProfile.name}
           </span>
@@ -512,7 +512,7 @@ export function ProspectRenderHistory({
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '10px',
-            color: '#888880',
+            color: 'var(--cv-secondary-text)',
             cursor: 'pointer',
             textDecoration: 'underline',
             textUnderlineOffset: '3px',
@@ -533,7 +533,7 @@ export function ProspectRenderHistory({
         className="mb-[24px] text-[11px] uppercase tracking-[0.1em] bg-transparent border-none hover:opacity-70 transition-opacity"
         style={{
           fontFamily: 'var(--font-mono)',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           cursor: 'pointer',
         }}
       >
@@ -550,8 +550,8 @@ export function ProspectRenderHistory({
               height: '72px',
               borderRadius: '4px',
               overflow: 'hidden',
-              border: '1px solid #2a2a2a',
-              backgroundColor: '#111111',
+              border: '1px solid var(--cv-subtle-border)',
+              backgroundColor: 'var(--cv-surface)',
             }}
           >
             {(contextProspect?.image || (models.find(m => m.id === resolvedEntityId)?.image)) ? (
@@ -564,7 +564,7 @@ export function ProspectRenderHistory({
               <div style={{
                 width: '100%', height: '100%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--font-mono)', fontSize: '20px', color: '#2a2a2a',
+                fontFamily: 'var(--font-mono)', fontSize: '20px', color: 'var(--cv-subtle-border)',
               }}>
                 {activeProfile.name.charAt(0).toUpperCase()}
               </div>
@@ -578,7 +578,7 @@ export function ProspectRenderHistory({
             <div style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '8px',
-              color: '#666660',
+              color: 'var(--cv-secondary-text)',
               letterSpacing: '0.08em',
               textAlign: 'center',
               textTransform: 'uppercase',
@@ -613,11 +613,11 @@ export function ProspectRenderHistory({
           </p>
           <h1
             className="text-[40px] mb-[8px]"
-            style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec', lineHeight: 1.1 }}
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)', lineHeight: 1.1 }}
           >
             {activeProfile.name}
           </h1>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
             {digitalSetCount} digital set{digitalSetCount !== 1 ? 's' : ''} · {totalEvaluations}{' '}
             evaluation{totalEvaluations !== 1 ? 's' : ''} completed
             {isProspect && activeProfile.signedDate ? ` · Signed ${activeProfile.signedDate}` : ''}
@@ -630,7 +630,7 @@ export function ProspectRenderHistory({
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '10px',
-                color: '#a0a09a',
+                color: 'var(--cv-secondary-text)',
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
                 marginBottom: '10px',
@@ -661,13 +661,13 @@ export function ProspectRenderHistory({
                 setTimeout(() => setSignedStatusSaveConfirmed(false), 1500);
               }}
               style={{
-                background: '#111111',
-                border: `1px solid ${signedStatusSaveConfirmed ? '#4a7a4a' : '#2a2a2a'}`,
+                background: 'var(--cv-surface)',
+                border: `1px solid ${signedStatusSaveConfirmed ? '#4a7a4a' : 'var(--cv-subtle-border)'}`,
                 borderRadius: '4px',
                 padding: '8px 12px',
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
-                color: '#F0F0EC',
+                color: 'var(--cv-primary-text)',
                 letterSpacing: '0.05em',
                 cursor: 'pointer',
                 width: '100%',
@@ -715,10 +715,10 @@ export function ProspectRenderHistory({
         </>
       )}
 
-      <div className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[24px] mb-[48px]">
+      <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] mb-[48px]">
         <div
           className="text-[10px] uppercase tracking-[0.12em] mb-[16px]"
-          style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+          style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
           CURRENT STATUS
         </div>
@@ -744,8 +744,8 @@ export function ProspectRenderHistory({
               className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
               style={{
                 fontFamily: 'var(--font-mono)',
-                backgroundColor: '#f0f0ec',
-                color: '#080808',
+                backgroundColor: 'var(--cv-primary-text)',
+                color: 'var(--cv-background)',
                 cursor: canRunEvaluationOnSelected ? 'pointer' : 'not-allowed',
                 opacity: canRunEvaluationOnSelected ? 1 : 0.4,
               }}
@@ -764,21 +764,21 @@ export function ProspectRenderHistory({
                   setDigitalSetsExpanded(true);
                 }
               }}
-              className="w-full px-[16px] py-[10px] border border-[#2a2a2a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] transition-colors"
+              className="w-full px-[16px] py-[10px] border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] transition-colors"
               style={{
                 fontFamily: 'var(--font-mono)',
-                color: '#a0a09a',
+                color: 'var(--cv-secondary-text)',
                 cursor: 'pointer',
               }}
             >
               {compareSelectMode ? 'CANCEL COMPARE' : 'COMPARE DIGITALS'}
             </button>
-            <div className="w-full h-[1px] bg-[#2a2a2a] my-[4px]" />
+            <div className="w-full h-[1px] bg-[var(--cv-subtle-border)] my-[4px]" />
             <div
               className="text-[9px] uppercase tracking-[0.1em]"
               style={{
                 fontFamily: 'var(--font-mono)',
-                color: '#666660',
+                color: 'var(--cv-secondary-text)',
               }}
             >
               PIPELINE DECISION
@@ -787,16 +787,16 @@ export function ProspectRenderHistory({
               <button
                 type="button"
                 onClick={() => handleStatusChange('SHORTLISTED', '#7d6d4d')}
-                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                className="flex-1 px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
               >
                 SHORTLIST
               </button>
               <button
                 type="button"
                 onClick={() => handleStatusChange('PASSED', '#5d3d3d')}
-                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                className="flex-1 px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
               >
                 PASS
               </button>
@@ -818,8 +818,8 @@ export function ProspectRenderHistory({
               className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
               style={{
                 fontFamily: 'var(--font-mono)',
-                backgroundColor: '#f0f0ec',
-                color: '#080808',
+                backgroundColor: 'var(--cv-primary-text)',
+                color: 'var(--cv-background)',
                 cursor: canRunEvaluationOnSelected ? 'pointer' : 'not-allowed',
                 opacity: canRunEvaluationOnSelected ? 1 : 0.4,
               }}
@@ -836,8 +836,8 @@ export function ProspectRenderHistory({
                       : `/prospects/${prospectId ?? ''}`,
                   )
                 }
-                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-                style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                className="flex-1 px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
               >
                 SHARE DEVELOPMENT REPORT
               </button>
@@ -854,10 +854,10 @@ export function ProspectRenderHistory({
                     setDigitalSetsExpanded(true);
                   }
                 }}
-                className="flex-1 px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                className="flex-1 px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  color: '#f0f0ec',
+                  color: 'var(--cv-primary-text)',
                   cursor: canCompare ? 'pointer' : 'not-allowed',
                   opacity: canCompare ? 1 : 0.4,
                 }}
@@ -881,7 +881,7 @@ export function ProspectRenderHistory({
         <div className="text-center py-[80px]">
           <p
             className="mb-[24px]"
-            style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#666660' }}
+            style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
           >
             No digital sets uploaded yet.
           </p>
@@ -891,8 +891,8 @@ export function ProspectRenderHistory({
               onClick={() => navigate(
                 `/${profileType === 'model' ? 'roster' : 'prospects'}/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
               )}
-              className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+              className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
             >
               UPLOAD FIRST DIGITAL SET
             </button>
@@ -907,8 +907,8 @@ export function ProspectRenderHistory({
               `/${profileType === 'model' ? 'roster' : 'prospects'}/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
             )}
             data-tutorial="upload-new-set"
-            className="w-full mt-[16px] px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-            style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+            className="w-full mt-[16px] px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
           >
             UPLOAD NEW DIGITAL SET
           </button>
@@ -938,7 +938,7 @@ export function ProspectRenderHistory({
                   <div
                     className="flex items-center gap-[24px] py-[16px]"
                     style={{
-                      borderBottom: '1px solid #1a1a1a',
+                      borderBottom: '1px solid var(--cv-elevated)',
                       cursor: 'pointer',
                       opacity:
                         compareSelectMode &&
@@ -967,9 +967,9 @@ export function ProspectRenderHistory({
                           width: '20px',
                           height: '20px',
                           borderRadius: '2px',
-                          border: `1px solid ${compareSelectedIds.includes(ds.id) ? '#f0f0ec' : '#2a2a2a'}`,
+                          border: `1px solid ${compareSelectedIds.includes(ds.id) ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)'}`,
                           backgroundColor: compareSelectedIds.includes(ds.id)
-                            ? '#f0f0ec'
+                            ? 'var(--cv-primary-text)'
                             : 'transparent',
                           flexShrink: 0,
                           display: 'flex',
@@ -982,7 +982,7 @@ export function ProspectRenderHistory({
                             style={{
                               width: '10px',
                               height: '10px',
-                              backgroundColor: '#080808',
+                              backgroundColor: 'var(--cv-background)',
                               borderRadius: '1px',
                             }}
                           />
@@ -994,7 +994,7 @@ export function ProspectRenderHistory({
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '12px',
-                          color: '#f0f0ec',
+                          color: 'var(--cv-primary-text)',
                           fontWeight: 700,
                         }}
                       >
@@ -1004,7 +1004,7 @@ export function ProspectRenderHistory({
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '9px',
-                          color: '#888880',
+                          color: 'var(--cv-secondary-text)',
                           marginTop: '4px',
                         }}
                       >
@@ -1017,7 +1017,7 @@ export function ProspectRenderHistory({
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '9px',
-                        color: '#888880',
+                        color: 'var(--cv-secondary-text)',
                       }}
                     >
                       {digitalsOnFile} digital{digitalsOnFile !== 1 ? 's' : ''} ·{' '}
@@ -1033,7 +1033,7 @@ export function ProspectRenderHistory({
                           toggleOpenSet(ds.id);
                         }}
                         className={ghostButtonClass}
-                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                        style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
                       >
                         OPEN
                       </button>
@@ -1054,7 +1054,7 @@ export function ProspectRenderHistory({
                         className={ghostButtonClass}
                         style={{
                           fontFamily: 'var(--font-mono)',
-                          color: '#f0f0ec',
+                          color: 'var(--cv-primary-text)',
                           cursor: digitalsOnFile > 0 ? 'pointer' : 'not-allowed',
                           opacity: digitalsOnFile > 0 ? 1 : 0.4,
                         }}
@@ -1126,7 +1126,7 @@ export function ProspectRenderHistory({
                               style={{
                                 fontFamily: 'var(--font-mono)',
                                 fontSize: '8px',
-                                color: '#666660',
+                                color: 'var(--cv-secondary-text)',
                                 letterSpacing: '0.15em',
                                 textTransform: 'uppercase',
                                 marginTop: '4px',
@@ -1143,7 +1143,7 @@ export function ProspectRenderHistory({
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '10px',
-                          color: '#888880',
+                          color: 'var(--cv-secondary-text)',
                         }}
                       >
                         {formatTagsLine(ds)}
@@ -1158,7 +1158,7 @@ export function ProspectRenderHistory({
                             {contextRows.map((row) => (
                               <div
                                 key={`${row.evaluationId}-${row.context}`}
-                                className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px] hover:border-[#3a3a3a] transition-colors"
+                                className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px] hover:border-[var(--cv-elevated)] transition-colors"
                                 onClick={() => {
                                   const contextsParam = row.allContexts.join(',');
                                   navigate(
@@ -1176,7 +1176,7 @@ export function ProspectRenderHistory({
                                     style={{
                                       fontFamily: 'var(--font-mono)',
                                       fontSize: '11px',
-                                      color: '#f0f0ec',
+                                      color: 'var(--cv-primary-text)',
                                       textTransform: 'uppercase',
                                       fontWeight: 700,
                                     }}
@@ -1187,7 +1187,7 @@ export function ProspectRenderHistory({
                                     style={{
                                       fontFamily: 'var(--font-mono)',
                                       fontSize: '9px',
-                                      color: '#888880',
+                                      color: 'var(--cv-secondary-text)',
                                       marginTop: '4px',
                                     }}
                                   >
@@ -1201,7 +1201,7 @@ export function ProspectRenderHistory({
                                     style={{
                                       fontFamily: 'var(--font-mono)',
                                       fontSize: '10px',
-                                      color: '#a0a09a',
+                                      color: 'var(--cv-secondary-text)',
                                       lineHeight: 1.6,
                                       display: '-webkit-box',
                                       WebkitLineClamp: 2,
@@ -1217,7 +1217,7 @@ export function ProspectRenderHistory({
                                     style={{
                                       fontFamily: 'Georgia, serif',
                                       fontSize: '28px',
-                                      color: '#f0f0ec',
+                                      color: 'var(--cv-primary-text)',
                                       lineHeight: 1,
                                     }}
                                   >
@@ -1246,7 +1246,7 @@ export function ProspectRenderHistory({
                                       evalId: row.evaluationId,
                                     });
                                   }}
-                                  className="flex-shrink-0 font-mono text-[9px] text-[#c87a7a] border border-[#c87a7a] bg-transparent px-[8px] py-[3px] rounded-[2px] hover:bg-[#c87a7a] hover:text-[#080808] transition-colors cursor-pointer uppercase tracking-[0.1em]"
+                                  className="flex-shrink-0 font-mono text-[9px] text-[#c87a7a] border border-[#c87a7a] bg-transparent px-[8px] py-[3px] rounded-[2px] hover:bg-[#c87a7a] hover:text-[var(--cv-background)] transition-colors cursor-pointer uppercase tracking-[0.1em]"
                                 >
                                   DELETE
                                 </button>
@@ -1262,7 +1262,7 @@ export function ProspectRenderHistory({
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: '9px',
-                            color: '#666660',
+                            color: 'var(--cv-secondary-text)',
                             letterSpacing: '0.12em',
                             textTransform: 'uppercase',
                           }}
@@ -1281,10 +1281,10 @@ export function ProspectRenderHistory({
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: '11px',
-                            color: '#888880',
+                            color: 'var(--cv-secondary-text)',
                             backgroundColor: 'transparent',
                             border: 'none',
-                            borderBottom: '1px solid #1a1a1a',
+                            borderBottom: '1px solid var(--cv-elevated)',
                             padding: '4px 0',
                             width: '100%',
                             resize: 'vertical',
@@ -1312,8 +1312,8 @@ export function ProspectRenderHistory({
               className="w-full mt-[16px] py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
               style={{
                 fontFamily: 'var(--font-mono)',
-                backgroundColor: '#f0f0ec',
-                color: '#080808',
+                backgroundColor: 'var(--cv-primary-text)',
+                color: 'var(--cv-background)',
                 cursor: 'pointer',
                 border: 'none',
               }}
@@ -1328,7 +1328,7 @@ export function ProspectRenderHistory({
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '9px',
-                color: '#666660',
+                color: 'var(--cv-secondary-text)',
                 fontStyle: 'italic',
               }}
             >
@@ -1368,7 +1368,7 @@ export function ProspectRenderHistory({
                     style={{
                       fontFamily: 'DM Mono, monospace',
                       fontSize: '11px',
-                      color: '#888880',
+                      color: 'var(--cv-secondary-text)',
                       cursor: 'pointer',
                       marginRight: '12px',
                     }}
@@ -1416,7 +1416,7 @@ export function ProspectRenderHistory({
                     : null;
 
                 return (
-                  <div key={ev.id} style={{ borderBottom: '1px solid #1a1a1a' }}>
+                  <div key={ev.id} style={{ borderBottom: '1px solid var(--cv-elevated)' }}>
                     <button
                       type="button"
                       onClick={() => setOpenEvalId(isOpen ? null : ev.id)}
@@ -1457,7 +1457,7 @@ export function ProspectRenderHistory({
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: '12px',
-                            color: '#f0f0ec',
+                            color: 'var(--cv-primary-text)',
                             fontWeight: 700,
                           }}
                         >
@@ -1467,7 +1467,7 @@ export function ProspectRenderHistory({
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: '9px',
-                            color: '#888880',
+                            color: 'var(--cv-secondary-text)',
                             marginTop: '4px',
                           }}
                         >
@@ -1479,7 +1479,7 @@ export function ProspectRenderHistory({
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '9px',
-                          color: '#888880',
+                          color: 'var(--cv-secondary-text)',
                           flexShrink: 0,
                         }}
                       >
@@ -1492,7 +1492,7 @@ export function ProspectRenderHistory({
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '9px',
-                          color: '#888880',
+                          color: 'var(--cv-secondary-text)',
                           flexShrink: 0,
                         }}
                       >
@@ -1506,14 +1506,14 @@ export function ProspectRenderHistory({
                           {ev.contexts.map((ctx) => (
                             <div
                               key={ctx.context}
-                              className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px]"
+                              className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px]"
                             >
                               <div className="w-[30%] flex-shrink-0">
                                 <div
                                   style={{
                                     fontFamily: 'var(--font-mono)',
                                     fontSize: '11px',
-                                    color: '#f0f0ec',
+                                    color: 'var(--cv-primary-text)',
                                     textTransform: 'uppercase',
                                     fontWeight: 700,
                                   }}
@@ -1527,7 +1527,7 @@ export function ProspectRenderHistory({
                                   style={{
                                     fontFamily: 'var(--font-mono)',
                                     fontSize: '10px',
-                                    color: '#a0a09a',
+                                    color: 'var(--cv-secondary-text)',
                                     lineHeight: 1.6,
                                     overflow: 'hidden',
                                     display: '-webkit-box',
@@ -1544,7 +1544,7 @@ export function ProspectRenderHistory({
                                   style={{
                                     fontFamily: 'Georgia, serif',
                                     fontSize: '24px',
-                                    color: '#f0f0ec',
+                                    color: 'var(--cv-primary-text)',
                                     lineHeight: 1,
                                   }}
                                 >
@@ -1575,10 +1575,10 @@ export function ProspectRenderHistory({
                               `/results?name=${encodeURIComponent(activeProfile.name)}&contexts=${contextsParam}&prospectId=${resolvedEntityId}&profileType=${profileType}&evaluationId=${ev.id}`,
                             );
                           }}
-                          className="px-[16px] py-[10px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
+                          className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
                           style={{
                             fontFamily: 'var(--font-mono)',
-                            color: '#f0f0ec',
+                            color: 'var(--cv-primary-text)',
                             cursor: 'pointer',
                           }}
                         >
@@ -1618,7 +1618,7 @@ export function ProspectRenderHistory({
       )}
 
       {showUploadForm && (
-            <div className="mt-[12px] bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[20px]">
+            <div className="mt-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[20px]">
               <div className="space-y-[16px]">
                 <div>
                   <label className="block mb-[8px]" style={formFieldLabelStyle}>
@@ -1629,7 +1629,7 @@ export function ProspectRenderHistory({
                     value={uploadForm.title}
                     onChange={(e) => setUploadForm((prev) => ({ ...prev, title: e.target.value }))}
                     placeholder="e.g. Post-Cut Digitals, July 2026 Update"
-                    className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                    className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                     style={formInputStyle}
                   />
                 </div>
@@ -1643,7 +1643,7 @@ export function ProspectRenderHistory({
                     value={uploadForm.date}
                     onChange={(e) => setUploadForm((prev) => ({ ...prev, date: e.target.value }))}
                     placeholder="e.g. June 2026"
-                    className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                    className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                     style={formInputStyle}
                   />
                 </div>
@@ -1762,7 +1762,7 @@ export function ProspectRenderHistory({
                               alignItems: 'center',
                               justifyContent: 'center',
                               cursor: 'pointer',
-                              color: '#f0f0ec',
+                              color: 'var(--cv-primary-text)',
                               fontSize: '10px',
                               lineHeight: 1,
                             }}
@@ -1774,8 +1774,8 @@ export function ProspectRenderHistory({
                         <div
                           role="button"
                           tabIndex={0}
-                          className="relative bg-[#0d0d0d] border border-dashed rounded-[4px] cursor-pointer hover:border-[#3a3a3a] transition-colors"
-                          style={{ borderColor: '#2a2a2a', height: '80px' }}
+                          className="relative bg-[var(--cv-background)] border border-dashed rounded-[4px] cursor-pointer hover:border-[var(--cv-elevated)] transition-colors"
+                          style={{ borderColor: 'var(--cv-subtle-border)', height: '80px' }}
                           onClick={() =>
                             document.getElementById(`upload-${fieldKey}`)?.click()
                           }
@@ -1789,11 +1789,11 @@ export function ProspectRenderHistory({
                           <div className="w-full h-full flex flex-col items-center justify-center">
                             <Upload
                               size={24}
-                              style={{ color: '#6a6a64', marginBottom: '8px' }}
+                              style={{ color: 'var(--cv-secondary-text)', marginBottom: '8px' }}
                             />
                             <div
                               className="text-[9px] uppercase tracking-[0.1em]"
-                              style={{ fontFamily: 'var(--font-label)', color: '#f0f0ec' }}
+                              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-primary-text)' }}
                             >
                               {field.label}
                             </div>
@@ -1813,7 +1813,7 @@ export function ProspectRenderHistory({
                     value={uploadForm.notes}
                     onChange={(e) => setUploadForm((prev) => ({ ...prev, notes: e.target.value }))}
                     placeholder="Optional notes about this set"
-                    className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px] resize-none"
+                    className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none"
                     style={formInputStyle}
                   />
                 </div>
@@ -1827,7 +1827,7 @@ export function ProspectRenderHistory({
                     value={uploadForm.tags}
                     onChange={(e) => setUploadForm((prev) => ({ ...prev, tags: e.target.value }))}
                     placeholder="e.g. post-shoot, updated, cut"
-                    className="w-full px-[12px] py-[12px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[4px]"
+                    className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                     style={formInputStyle}
                   />
                 </div>
@@ -1839,8 +1839,8 @@ export function ProspectRenderHistory({
                     className="flex-1 py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
                     style={{
                       fontFamily: 'var(--font-mono)',
-                      backgroundColor: '#f0f0ec',
-                      color: '#080808',
+                      backgroundColor: 'var(--cv-primary-text)',
+                      color: 'var(--cv-background)',
                       cursor: 'pointer',
                     }}
                   >
@@ -1849,8 +1849,8 @@ export function ProspectRenderHistory({
                   <button
                     type="button"
                     onClick={handleCancelUpload}
-                    className="flex-1 py-[12px] border border-[#f0f0ec] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#f0f0ec] hover:text-[#080808] transition-colors"
-                    style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', cursor: 'pointer' }}
+                    className="flex-1 py-[12px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
                   >
                     CANCEL
                   </button>
@@ -1865,7 +1865,7 @@ export function ProspectRenderHistory({
           onClick={() => setDeleteEvalTarget(null)}
         >
           <div
-            className="bg-[#111111] border border-[#2a2a2a] rounded-[4px] p-[32px] max-w-[380px] w-full mx-[24px]"
+            className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[32px] max-w-[380px] w-full mx-[24px]"
             onClick={(e) => e.stopPropagation()}
           >
             <h3
@@ -1874,7 +1874,7 @@ export function ProspectRenderHistory({
                 fontFamily: 'var(--font-display)',
                 fontSize: '24px',
                 fontWeight: 300,
-                color: '#f0f0ec',
+                color: 'var(--cv-primary-text)',
               }}
             >
               Delete evaluation?
@@ -1884,7 +1884,7 @@ export function ProspectRenderHistory({
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '12px',
-                color: '#a0a09a',
+                color: 'var(--cv-secondary-text)',
                 lineHeight: 1.8,
               }}
             >
@@ -1895,10 +1895,10 @@ export function ProspectRenderHistory({
               <button
                 type="button"
                 onClick={() => setDeleteEvalTarget(null)}
-                className="flex-1 py-[12px] border border-[#2a2a2a] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[#f0f0ec] transition-colors"
+                className="flex-1 py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] transition-colors"
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  color: '#a0a09a',
+                  color: 'var(--cv-secondary-text)',
                 }}
               >
                 CANCEL
@@ -1910,7 +1910,7 @@ export function ProspectRenderHistory({
                 style={{
                   fontFamily: 'var(--font-mono)',
                   backgroundColor: '#c87a7a',
-                  color: '#080808',
+                  color: 'var(--cv-background)',
                 }}
               >
                 DELETE
@@ -1924,12 +1924,12 @@ export function ProspectRenderHistory({
         <div
           className="fixed bottom-[80px] left-1/2 -translate-x-1/2 flex items-center gap-[16px] px-[20px] py-[14px] border rounded-[4px] z-50"
           style={{
-            backgroundColor: '#1a1a1a',
-            borderColor: '#2a2a2a',
+            backgroundColor: 'var(--cv-elevated)',
+            borderColor: 'var(--cv-subtle-border)',
             boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
           }}
         >
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#f0f0ec' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
             Status updated
           </span>
           <button
@@ -1937,7 +1937,7 @@ export function ProspectRenderHistory({
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: '#f0f0ec',
+              color: 'var(--cv-primary-text)',
               textDecoration: 'underline',
               cursor: 'pointer',
             }}

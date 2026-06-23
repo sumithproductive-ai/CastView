@@ -102,7 +102,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#080808', fontFamily: 'var(--font-mono)' }}>
+    <div className="flex flex-col min-h-screen" style={{ backgroundColor: 'var(--cv-background)', fontFamily: 'var(--font-mono)' }}>
       <div className="flex flex-1 items-stretch min-w-0 w-full min-h-0">
         <Sidebar />
         <main className="flex-1 min-w-0 min-h-0 w-full pb-[64px] md:pb-0 overflow-x-hidden overflow-y-auto">
@@ -136,8 +136,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div
             className="flex flex-col gap-3 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between md:px-12 flex-shrink-0"
             style={{
-              backgroundColor: daysLeft <= 3 ? '#1a0808' : '#111111',
-              borderBottom: `1px solid ${daysLeft <= 3 ? '#c87a7a' : '#2a2a2a'}`,
+              backgroundColor: daysLeft <= 3 ? '#1a0808' : 'var(--cv-surface)',
+              borderBottom: `1px solid ${daysLeft <= 3 ? '#c87a7a' : 'var(--cv-subtle-border)'}`,
             }}
           >
             <span
@@ -145,7 +145,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
-                color: daysLeft <= 3 ? '#c87a7a' : '#888880',
+                color: daysLeft <= 3 ? '#c87a7a' : 'var(--cv-secondary-text)',
                 letterSpacing: '0.05em',
               }}
             >
@@ -180,7 +180,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   textTransform: 'uppercase',
                   padding: '6px 14px',
                   backgroundColor: '#C8A96E',
-                  color: '#080808',
+                  color: 'var(--cv-background)',
                   border: '1px solid #C8A96E',
                   borderRadius: '4px',
                   cursor: 'pointer',
@@ -197,8 +197,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   textTransform: 'uppercase',
                   padding: '6px 14px',
                   backgroundColor: 'transparent',
-                  color: '#888880',
-                  border: '1px solid #2a2a2a',
+                  color: 'var(--cv-secondary-text)',
+                  border: '1px solid var(--cv-subtle-border)',
                   borderRadius: '4px',
                   cursor: 'pointer',
                 }}
@@ -215,16 +215,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#888880',
+                color: 'var(--cv-secondary-text)',
                 padding: '4px',
                 display: 'flex',
                 alignItems: 'center',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#f0f0ec';
+                e.currentTarget.style.color = 'var(--cv-primary-text)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = '#888880';
+                e.currentTarget.style.color = 'var(--cv-secondary-text)';
               }}
             >
               <X size={16} />
@@ -261,7 +261,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               fontFamily: 'var(--font-display)',
               fontSize: '48px',
               fontWeight: 300,
-              color: '#F0F0EC',
+              color: 'var(--cv-primary-text)',
               marginBottom: '16px',
               textAlign: 'center',
             }}>
@@ -270,7 +270,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <p style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '13px',
-              color: '#888880',
+              color: 'var(--cv-secondary-text)',
               marginBottom: '48px',
               textAlign: 'center',
               maxWidth: '480px',
@@ -288,8 +288,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <div
                   key={tier}
                   style={{
-                    background: '#111111',
-                    border: `1px solid ${highlight ? '#C8A96E' : '#2a2a2a'}`,
+                    background: 'var(--cv-surface)',
+                    border: `1px solid ${highlight ? '#C8A96E' : 'var(--cv-subtle-border)'}`,
                     borderRadius: '4px',
                     padding: '32px 28px',
                     width: '220px',
@@ -298,9 +298,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     gap: '12px',
                   }}
                 >
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{label}</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '32px', fontWeight: 300, color: '#F0F0EC' }}>{price}</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#888880' }}>{desc}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{label}</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '32px', fontWeight: 300, color: 'var(--cv-primary-text)' }}>{price}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>{desc}</div>
                   <button
                     onClick={() => handleUpgrade(tier)}
                     style={{
@@ -311,8 +311,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       textTransform: 'uppercase',
                       padding: '12px',
                       backgroundColor: highlight ? '#C8A96E' : 'transparent',
-                      color: highlight ? '#080808' : '#F0F0EC',
-                      border: `1px solid ${highlight ? '#C8A96E' : '#2a2a2a'}`,
+                      color: highlight ? 'var(--cv-background)' : 'var(--cv-primary-text)',
+                      border: `1px solid ${highlight ? '#C8A96E' : 'var(--cv-subtle-border)'}`,
                       borderRadius: '4px',
                       cursor: 'pointer',
                       width: '100%',
@@ -327,7 +327,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               marginTop: '32px',
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: '#555550',
+              color: 'var(--cv-secondary-text)',
             }}>
               All plans include your existing data · Cancel anytime
             </p>

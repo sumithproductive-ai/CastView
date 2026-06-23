@@ -7,7 +7,7 @@ export function Navigation() {
       {/* Logo */}
       <div 
         className="text-[24px]"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
         CastView
       </div>
@@ -16,8 +16,8 @@ export function Navigation() {
       <div className="flex items-center gap-[24px]">
         <a
           href="https://marsh-crow-19382976.figma.site/#/login"
-          className="px-[24px] py-[12px] border border-[#2a2a2a] rounded-[4px] text-[13px] uppercase tracking-[0.1em] hover:bg-[#1a1a1a] transition-colors"
-          style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+          className="px-[24px] py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[13px] uppercase tracking-[0.1em] hover:bg-[var(--cv-elevated)] transition-colors"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
         >
           Log In
         </a>
@@ -26,8 +26,8 @@ export function Navigation() {
           className="px-[24px] py-[12px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
           style={{ 
             fontFamily: 'var(--font-mono)', 
-            backgroundColor: '#f0f0ec', 
-            color: '#080808' 
+            backgroundColor: 'var(--cv-primary-text)', 
+            color: 'var(--cv-background)' 
           }}
         >
           Request Early Access

@@ -335,7 +335,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
 
   const getBadgeStyles = (color: string) => {
     switch (color) {
-      case 'reply': return { backgroundColor: '#4a7a4a', color: '#f0f0ec', border: '1px solid #4a7a4a' };
+      case 'reply': return { backgroundColor: '#4a7a4a', color: 'var(--cv-primary-text)', border: '1px solid #4a7a4a' };
       case 'green': return { backgroundColor: 'rgba(106,186,186,0.15)', color: '#6ababa', border: '1px solid rgba(106,186,186,0.3)' };
       case 'amber': return { backgroundColor: 'rgba(212,165,116,0.15)', color: '#d4a574', border: '1px solid rgba(212,165,116,0.3)' };
       case 'teal': return { backgroundColor: 'rgba(100,200,200,0.15)', color: '#64c8c8', border: '1px solid rgba(100,200,200,0.3)' };
@@ -355,17 +355,17 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
     <div
       data-notifications-panel
       className="fixed left-0 md:left-[240px] top-0 h-screen flex flex-col border-r"
-      style={{ width: '320px', backgroundColor: '#111111', borderColor: '#2a2a2a', zIndex: 40 }}
+      style={{ width: '320px', backgroundColor: 'var(--cv-surface)', borderColor: 'var(--cv-subtle-border)', zIndex: 40 }}
     >
-      <div className="flex items-center justify-between px-[16px] py-[16px] border-b" style={{ borderColor: '#2a2a2a' }}>
-        <h2 className="text-[11px] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-label)', color: '#f0f0ec' }}>
+      <div className="flex items-center justify-between px-[16px] py-[16px] border-b" style={{ borderColor: 'var(--cv-subtle-border)' }}>
+        <h2 className="text-[11px] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-primary-text)' }}>
           NOTIFICATIONS
         </h2>
         <div className="flex items-center gap-[16px]">
-          <button onClick={handleMarkAllRead} className="text-[12px] hover:opacity-70 transition-opacity" style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}>
+          <button onClick={handleMarkAllRead} className="text-[12px] hover:opacity-70 transition-opacity" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
             MARK ALL READ
           </button>
-          <button onClick={onClose} className="hover:opacity-70 transition-opacity" style={{ color: '#a0a09a' }}>
+          <button onClick={onClose} className="hover:opacity-70 transition-opacity" style={{ color: 'var(--cv-secondary-text)' }}>
             <X size={16} />
           </button>
         </div>
@@ -373,7 +373,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
 
       <div className="flex-1 overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="py-[48px] px-[16px] text-center" style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#888880' }}>
+          <div className="py-[48px] px-[16px] text-center" style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}>
             No notifications yet.
           </div>
         ) : (
@@ -383,24 +383,24 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
               <div
                 key={`${notification.source}-${notification.id}`}
                 onClick={() => { void handleNotificationClick(notification); }}
-                className="relative px-[16px] py-[16px] border-b hover:bg-[#1a1a1a] transition-colors cursor-pointer"
-                style={{ backgroundColor: notification.unread ? '#161616' : '#111111', borderColor: '#2a2a2a' }}
+                className="relative px-[16px] py-[16px] border-b hover:bg-[var(--cv-elevated)] transition-colors cursor-pointer"
+                style={{ backgroundColor: notification.unread ? 'var(--cv-elevated)' : 'var(--cv-surface)', borderColor: 'var(--cv-subtle-border)' }}
               >
                 {notification.unread && (
-                  <div className="absolute left-[6px] top-[24px] w-[6px] h-[6px] rounded-full" style={{ backgroundColor: '#f0f0ec' }} />
+                  <div className="absolute left-[6px] top-[24px] w-[6px] h-[6px] rounded-full" style={{ backgroundColor: 'var(--cv-primary-text)' }} />
                 )}
                 <div className="flex items-start gap-[12px]" style={{ marginLeft: notification.unread ? '10px' : '0' }}>
-                  <div className="mt-[2px]"><Icon size={14} style={{ color: '#a0a09a' }} /></div>
+                  <div className="mt-[2px]"><Icon size={14} style={{ color: 'var(--cv-secondary-text)' }} /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] mb-[4px]" style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', lineHeight: 1.4 }}>
+                    <p className="text-[13px] mb-[4px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', lineHeight: 1.4 }}>
                       {notification.title}
                     </p>
                     {notification.body && (
-                      <p className="text-[11px] mb-[4px]" style={{ fontFamily: 'var(--font-mono)', color: '#888880', lineHeight: 1.4 }}>
+                      <p className="text-[11px] mb-[4px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.4 }}>
                         {notification.body}
                       </p>
                     )}
-                    <p className="text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}>
+                    <p className="text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
                       {notification.time}
                     </p>
                   </div>
@@ -417,11 +417,11 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
         )}
       </div>
 
-      <div className="p-[16px] border-t" style={{ borderColor: '#2a2a2a' }}>
+      <div className="p-[16px] border-t" style={{ borderColor: 'var(--cv-subtle-border)' }}>
         <a
           href="/notifications"
-          className="block w-full py-[12px] text-center border rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#1a1a1a] transition-colors"
-          style={{ fontFamily: 'var(--font-label)', borderColor: '#2a2a2a', color: '#f0f0ec' }}
+          className="block w-full py-[12px] text-center border rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-elevated)] transition-colors"
+          style={{ fontFamily: 'var(--font-label)', borderColor: 'var(--cv-subtle-border)', color: 'var(--cv-primary-text)' }}
         >
           VIEW ALL NOTIFICATIONS
         </a>

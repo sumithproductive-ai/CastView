@@ -238,24 +238,24 @@ export function Notifications() {
   };
 
   return (
-    <div className="p-[48px]" style={{ backgroundColor: '#080808', minHeight: '100vh' }}>
+    <div className="p-[48px]" style={{ backgroundColor: 'var(--cv-background)', minHeight: '100vh' }}>
       <div style={{ maxWidth: '800px' }}>
         <div className="mb-[32px] flex items-center justify-between">
           <div>
             <h1
               className="text-[40px] mb-[8px]"
-              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: '#f0f0ec' }}
+              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
             >
               Notifications
             </h1>
-            <p className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: '#a0a09a' }}>
+            <p className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
               Evaluations, messages, and status updates.
             </p>
           </div>
           <button
             onClick={handleMarkAllRead}
             className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity"
-            style={{ fontFamily: 'var(--font-mono)', color: '#888880', cursor: 'pointer' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}
           >
             MARK ALL READ
           </button>
@@ -269,9 +269,9 @@ export function Notifications() {
               className="px-[16px] py-[8px] rounded-full text-[11px] uppercase tracking-[0.1em] transition-colors cursor-pointer"
               style={{
                 fontFamily: 'var(--font-label)',
-                border: activeFilter === filter ? '1px solid #f0f0ec' : '1px solid #2a2a2a',
-                backgroundColor: activeFilter === filter ? '#f0f0ec' : 'transparent',
-                color: activeFilter === filter ? '#080808' : '#a0a09a',
+                border: activeFilter === filter ? '1px solid var(--cv-primary-text)' : '1px solid var(--cv-subtle-border)',
+                backgroundColor: activeFilter === filter ? 'var(--cv-primary-text)' : 'transparent',
+                color: activeFilter === filter ? 'var(--cv-background)' : 'var(--cv-secondary-text)',
               }}
             >
               {filter}
@@ -281,19 +281,19 @@ export function Notifications() {
 
         <div
           className="rounded-[4px] overflow-hidden"
-          style={{ backgroundColor: '#111111', border: '1px solid #2a2a2a' }}
+          style={{ backgroundColor: 'var(--cv-surface)', border: '1px solid var(--cv-subtle-border)' }}
         >
           {loading ? (
             <div
               className="py-[48px] text-center"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
             >
               Loading...
             </div>
           ) : filtered.length === 0 ? (
             <div
               className="py-[48px] text-center"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
             >
               No notifications yet. They will appear here as you use CastView.
             </div>
@@ -312,16 +312,16 @@ export function Notifications() {
                       void handleNotificationClick(notification);
                     }
                   }}
-                  className="relative px-[24px] py-[20px] border-b last:border-b-0 hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+                  className="relative px-[24px] py-[20px] border-b last:border-b-0 hover:bg-[var(--cv-elevated)] transition-colors cursor-pointer"
                   style={{
-                    backgroundColor: notification.unread ? '#161616' : '#111111',
-                    borderColor: '#2a2a2a',
+                    backgroundColor: notification.unread ? 'var(--cv-elevated)' : 'var(--cv-surface)',
+                    borderColor: 'var(--cv-subtle-border)',
                   }}
                 >
                   {notification.unread && (
                     <div
                       className="absolute left-[8px] top-[28px] w-[6px] h-[6px] rounded-full"
-                      style={{ backgroundColor: '#f0f0ec' }}
+                      style={{ backgroundColor: 'var(--cv-primary-text)' }}
                     />
                   )}
                   <div
@@ -329,16 +329,16 @@ export function Notifications() {
                     style={{ marginLeft: notification.unread ? '12px' : '0' }}
                   >
                     <div className="mt-[2px]">
-                      <Icon size={16} style={{ color: '#a0a09a' }} />
+                      <Icon size={16} style={{ color: 'var(--cv-secondary-text)' }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p
                         className="text-[13px] mb-[4px]"
-                        style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec', lineHeight: 1.4 }}
+                        style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', lineHeight: 1.4 }}
                       >
                         {notification.title}
                       </p>
-                      <p className="text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: '#6a6a64' }}>
+                      <p className="text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
                         {notification.time}
                       </p>
                     </div>

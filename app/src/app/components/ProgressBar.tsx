@@ -28,7 +28,7 @@ export function ProgressBar() {
   return (
     <>
       <div
-        className="fixed top-[12px] left-1/2 -translate-x-1/2 z-50 flex items-center gap-[10px] px-[16px] py-[8px] bg-[#111111] border border-[#2a2a2a] rounded-full cursor-pointer hover:border-[#3a3a3a] transition-colors"
+        className="fixed top-[12px] left-1/2 -translate-x-1/2 z-50 flex items-center gap-[10px] px-[16px] py-[8px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-full cursor-pointer hover:border-[var(--cv-elevated)] transition-colors"
         onClick={() => navigate(location.pathname)}
         style={{ 
           boxShadow: '0 2px 12px rgba(0,0,0,0.4)' 
@@ -39,13 +39,13 @@ export function ProgressBar() {
           <div 
             className="absolute w-[8px] h-[8px] rounded-full opacity-40"
             style={{ 
-              backgroundColor: '#f0f0ec',
+              backgroundColor: 'var(--cv-primary-text)',
               animation: 'ping 1.5s ease-in-out infinite'
             }} 
           />
           <div 
             className="w-[6px] h-[6px] rounded-full"
-            style={{ backgroundColor: '#f0f0ec' }} 
+            style={{ backgroundColor: 'var(--cv-primary-text)' }} 
           />
         </div>
 
@@ -53,7 +53,7 @@ export function ProgressBar() {
         <span style={{ 
           fontFamily: 'var(--font-mono)', 
           fontSize: '11px', 
-          color: '#f0f0ec',
+          color: 'var(--cv-primary-text)',
           letterSpacing: '0.05em'
         }}>
           {currentLabel}
@@ -70,7 +70,7 @@ export function ProgressBar() {
                 height: '4px',
                 backgroundColor: 
                   location.pathname === path 
-                    ? '#f0f0ec' : '#333330'
+                    ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)'
               }} 
             />
           ))}

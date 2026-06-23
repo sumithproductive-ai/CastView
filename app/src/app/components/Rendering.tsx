@@ -753,7 +753,7 @@ export function Rendering() {
           left: '20px',
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
-          color: '#888880',
+          color: 'var(--cv-secondary-text)',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
@@ -769,7 +769,7 @@ export function Rendering() {
           style={{
             fontFamily: 'var(--font-display)',
             fontWeight: 300,
-            color: '#f0f0ec',
+            color: 'var(--cv-primary-text)',
             animation: 'castview-fadein 0.6s ease forwards',
           }}
         >
@@ -795,15 +795,15 @@ export function Rendering() {
                 <div 
                   className="w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center"
                   style={{ 
-                    borderColor: isComplete || isActive ? '#f0f0ec' : '#2a2a2a',
-                    backgroundColor: isComplete ? '#f0f0ec' : 'transparent'
+                    borderColor: isComplete || isActive ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
+                    backgroundColor: isComplete ? 'var(--cv-primary-text)' : 'transparent'
                   }}
                 >
                   {isComplete && (
                     <Check
                       size={14}
                       style={{
-                        color: '#080808',
+                        color: 'var(--cv-background)',
                         opacity: 0,
                         animation: 'castview-fadein 0.3s ease forwards',
                       }}
@@ -826,7 +826,7 @@ export function Rendering() {
                       />
                       <div
                         className="w-[8px] h-[8px] rounded-full animate-pulse relative"
-                        style={{ backgroundColor: '#f0f0ec' }}
+                        style={{ backgroundColor: 'var(--cv-primary-text)' }}
                       />
                     </div>
                   )}
@@ -837,15 +837,15 @@ export function Rendering() {
                     style={{ 
                       fontFamily: 'var(--font-mono)', 
                       fontSize: '14px', 
-                      color: isComplete || isActive ? '#f0f0ec' : '#6a6a64' 
+                      color: isComplete || isActive ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)' 
                     }}
                   >
                     {step.name}
                   </div>
                   {isActive && (
-                    <div className="mt-[8px] h-[2px] bg-[#2a2a2a] rounded-full overflow-hidden">
+                    <div className="mt-[8px] h-[2px] bg-[var(--cv-subtle-border)] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#f0f0ec]"
+                        className="h-full bg-[var(--cv-primary-text)]"
                         style={{
                           width: `${progress}%`,
                           transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -859,7 +859,7 @@ export function Rendering() {
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
                     fontSize: '13px', 
-                    color: '#6a6a64' 
+                    color: 'var(--cv-secondary-text)' 
                   }}
                 >
                   {isComplete ? '100%' : isActive ? `${Math.round(progress)}%` : '—'}
@@ -872,13 +872,13 @@ export function Rendering() {
         <div className="text-center">
           <div 
             className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
-            style={{ fontFamily: 'var(--font-label)', color: '#a0a09a' }}
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
             Estimated Time
           </div>
           <div 
             className="text-[32px]" 
-            style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, color: '#f0f0ec' }}
+            style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
           >
             1-3 minutes
           </div>
@@ -900,7 +900,7 @@ export function Rendering() {
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
-                color: '#888880',
+                color: 'var(--cv-secondary-text)',
               }}
             >
               {completedContextCount} of {selectedContexts.length} contexts complete
@@ -911,19 +911,19 @@ export function Rendering() {
         {/* Queue Status Block */}
         <div 
           className="border rounded-[4px] p-[20px] w-full max-w-[400px] mx-auto mt-[32px]"
-          style={{ backgroundColor: '#111111', borderColor: '#2a2a2a' }}
+          style={{ backgroundColor: 'var(--cv-surface)', borderColor: 'var(--cv-subtle-border)' }}
         >
           {/* Queue Position */}
           <div className="flex items-center justify-between mb-[12px]">
             <div 
               className="text-[10px] uppercase tracking-[0.12em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
               QUEUE POSITION
             </div>
             <div 
               className="text-[24px]"
-              style={{ fontFamily: 'var(--font-mono)', color: '#f0f0ec' }}
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
               {Math.min(completedContextCount + 1, selectedContexts.length)} of{' '}
               {selectedContexts.length || 1}
@@ -934,13 +934,13 @@ export function Rendering() {
           <div className="flex items-center justify-between mb-[16px]">
             <div 
               className="text-[10px] uppercase tracking-[0.12em]"
-              style={{ fontFamily: 'var(--font-label)', color: '#888880' }}
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
               ESTIMATED TIME
             </div>
             <div 
               className="text-[16px]"
-              style={{ fontFamily: 'var(--font-mono)', color: '#c8c8c2' }}
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
             >
               1-3 minutes
             </div>
@@ -949,12 +949,12 @@ export function Rendering() {
           {/* Progress Bar */}
           <div 
             className="w-full h-[2px] rounded overflow-hidden"
-            style={{ backgroundColor: '#1a1a1a' }}
+            style={{ backgroundColor: 'var(--cv-elevated)' }}
           >
             <div 
               className="h-full transition-all duration-100 ease-linear"
               style={{ 
-                backgroundColor: '#f0f0ec',
+                backgroundColor: 'var(--cv-primary-text)',
                 width: `${queueProgress}%`
               }}
             />
@@ -965,18 +965,18 @@ export function Rendering() {
         <div className="text-center mt-[24px]">
           <button
             onClick={() => navigate('/prospects')}
-            className="border rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase transition-colors hover:border-[#f0f0ec] hover:text-[#f0f0ec] cursor-pointer"
+            className="border rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase transition-colors hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)] cursor-pointer"
             style={{ 
               fontFamily: 'var(--font-mono)',
-              borderColor: '#2a2a2a',
-              color: '#888880'
+              borderColor: 'var(--cv-subtle-border)',
+              color: 'var(--cv-secondary-text)'
             }}
           >
             + QUEUE ANOTHER PROSPECT
           </button>
           <div 
             className="text-[11px] italic mt-[8px]"
-            style={{ fontFamily: 'var(--font-mono)', color: '#888880' }}
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
             You'll be notified when this evaluation completes.
           </div>
@@ -994,7 +994,7 @@ export function Rendering() {
         {evaluationComplete && (
           <div 
             className="fixed bottom-[48px] left-1/2 -translate-x-1/2 rounded-[4px] px-[24px] py-[14px] shadow-lg z-50 flex items-center gap-[16px]"
-            style={{ backgroundColor: '#f0f0ec', color: '#080808' }}
+            style={{ backgroundColor: 'var(--cv-primary-text)', color: 'var(--cv-background)' }}
           >
             <div 
               className="text-[13px]"
@@ -1010,7 +1010,7 @@ export function Rendering() {
                 navigate(url, { replace: true });
               }}
               className="text-[11px] uppercase hover:underline"
-              style={{ fontFamily: 'var(--font-mono)', color: '#080808' }}
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)' }}
             >
               VIEW RESULTS
             </button>
