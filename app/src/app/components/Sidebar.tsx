@@ -1,10 +1,11 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, Link } from 'react-router';
-import { LayoutDashboard, Users, Image, Settings, Bell, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users, Image, Settings, Bell, Sun, Moon, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { NotificationsPanel } from './NotificationsPanel';
 
 type NavItem = { name: string; icon: LucideIcon; path: string };
@@ -47,6 +48,7 @@ export function Sidebar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const { agencyId, user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const accountLabel = user?.email
     ? user.email.length > 22
@@ -228,7 +230,37 @@ export function Sidebar() {
         )}
         
         {/* Sticky Bottom Section */}
-        <div className="sticky bottom-0 pt-[16px]" style={{ backgroundColor: '#111111', borderTop: '1px solid #2a2a2a' }}>
+        <div
+          className="sticky bottom-0 pt-[16px]"
+          style={{
+            backgroundColor: 'var(--cv-surface)',
+            borderTop: '1px solid var(--cv-subtle-border)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="mb-[12px] px-[12px] py-[8px] rounded-[4px] flex items-center justify-between w-full transition-colors hover:opacity-80"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: 'var(--cv-secondary-text)',
+              backgroundColor: 'var(--cv-elevated)',
+              border: '1px solid var(--cv-subtle-border)',
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ color: 'var(--cv-primary-text)' }}>
+              {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            </span>
+            {theme === 'dark' ? (
+              <Sun size={14} style={{ color: 'var(--cv-accent)' }} />
+            ) : (
+              <Moon size={14} style={{ color: 'var(--cv-accent)' }} />
+            )}
+          </button>
+
           {/* Notifications Bell */}
           <button
             data-notifications-bell

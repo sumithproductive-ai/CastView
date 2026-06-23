@@ -1,15 +1,15 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* CastView Color Palette */
-  --cv-background: #080808;
-  --cv-surface: #111111;
-  --cv-elevated: #1a1a1a;
-  --cv-primary-text: #f0f0ec;
-  --cv-secondary-text: #a0a09a;
-  --cv-accent: #c8c8c2;
-  --cv-bright: #e8e8e2;
-  --cv-subtle-border: #2a2a2a;
+  /* CastView Color Palette — Light (Bone) */
+  --cv-background: #f5f3ee;
+  --cv-surface: #ebe7df;
+  --cv-elevated: #e0dace;
+  --cv-primary-text: #26211c;
+  --cv-secondary-text: #6a6258;
+  --cv-accent: #3a342c;
+  --cv-bright: #161210;
+  --cv-subtle-border: #d6cfc2;
   
   /* CastView Fonts */
   --font-display: 'Cormorant Garamond', serif;
@@ -60,6 +60,16 @@
 }
 
 .dark {
+  /* CastView Color Palette — Dark */
+  --cv-background: #080808;
+  --cv-surface: #111111;
+  --cv-elevated: #1a1a1a;
+  --cv-primary-text: #f0f0ec;
+  --cv-secondary-text: #a0a09a;
+  --cv-accent: #c8c8c2;
+  --cv-bright: #e8e8e2;
+  --cv-subtle-border: #2a2a2a;
+
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.145 0 0);

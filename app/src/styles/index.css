@@ -3,13 +3,13 @@
 @import './theme.css';
 
 html, body {
-  background-color: #080808;
+  background-color: var(--cv-background);
   margin: 0;
   padding: 0;
 }
 
 #root {
-  background-color: #080808;
+  background-color: var(--cv-background);
   min-height: 100vh;
 }
 
