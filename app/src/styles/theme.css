@@ -15,6 +15,7 @@
   --font-display: 'Cormorant Garamond', serif;
   --font-mono: 'DM Mono', monospace;
   --font-label: 'Syne', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
   
   /* CastView Spacing */
   --spacing-unit: 24px;

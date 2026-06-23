@@ -67,16 +67,29 @@ const evaluationData = {
   },
 };
 
-function ContextArrowList({ items }: { items: string[] }) {
+const evalBodyTextStyle: React.CSSProperties = {
+  fontFamily: 'var(--font-body)',
+  color: 'var(--cv-primary-text)',
+  lineHeight: 1.6,
+};
+
+function ContextArrowList({
+  items,
+  body = false,
+}: {
+  items: string[];
+  body?: boolean;
+}) {
   return (
     <>
       {items.map((item, index) => (
         <div
           key={index}
           style={{
-            fontFamily: 'var(--font-mono)',
+            fontFamily: body ? 'var(--font-body)' : 'var(--font-mono)',
             fontSize: '11px',
-            color: 'var(--cv-secondary-text)',
+            color: body ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)',
+            lineHeight: body ? 1.6 : undefined,
             marginBottom: '6px',
           }}
         >
@@ -1003,10 +1016,8 @@ export function Results() {
                         <p
                           className="mb-[20px]"
                           style={{
-                            fontFamily: 'var(--font-mono)',
+                            ...evalBodyTextStyle,
                             fontSize: '12px',
-                            color: '#c0c0ba',
-                            lineHeight: 1.8,
                           }}
                         >
                           {data.reasoning}
@@ -1023,7 +1034,7 @@ export function Results() {
                         >
                           STRENGTHS
                         </div>
-                        <ContextArrowList items={data.strengths} />
+                        <ContextArrowList items={data.strengths} body />
 
                         <div
                           className="uppercase mb-[8px] mt-[16px]"
@@ -1036,7 +1047,7 @@ export function Results() {
                         >
                           RISKS
                         </div>
-                        <ContextArrowList items={data.risks} />
+                        <ContextArrowList items={data.risks} body />
                       </div>
 
                       <div>
@@ -1186,9 +1197,7 @@ export function Results() {
                           <div
                             className="text-[11px] mb-[16px]"
                             style={{
-                              fontFamily: 'var(--font-mono)',
-                              color: 'var(--cv-secondary-text)',
-                              lineHeight: 1.8,
+                              ...evalBodyTextStyle,
                             }}
                           >
                             Based on the uploaded digitals and your notes, here is a
@@ -1213,8 +1222,13 @@ export function Results() {
                           {devPathwayData && devPathwayContext === result.context && (
                             <>
                               {devPathwayData.summary && (
-                                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
-                                  color: 'var(--cv-secondary-text)', lineHeight: 1.8, marginBottom: '16px' }}>
+                                <p
+                                  style={{
+                                    ...evalBodyTextStyle,
+                                    fontSize: '11px',
+                                    marginBottom: '16px',
+                                  }}
+                                >
                                   {devPathwayData.summary}
                                 </p>
                               )}
@@ -1225,9 +1239,14 @@ export function Results() {
                                     {section.label}
                                   </div>
                                   {section.items.map((item, i) => (
-                                    <div key={i} className="mb-[4px]"
-                                      style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
-                                        color: 'var(--cv-secondary-text)', lineHeight: 1.7 }}>
+                                    <div
+                                      key={i}
+                                      className="mb-[4px]"
+                                      style={{
+                                        ...evalBodyTextStyle,
+                                        fontSize: '11px',
+                                      }}
+                                    >
                                       → {item}
                                     </div>
                                   ))}
