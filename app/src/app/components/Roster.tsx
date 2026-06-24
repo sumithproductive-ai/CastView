@@ -6,6 +6,7 @@ import { Search, ChevronDown, Sparkles, X } from 'lucide-react';
 import { useRoster, type RosterModel } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
 import { DigitalImage } from './DigitalImage';
+import { ContextCodeChip, PhotoContextBadge } from './TalentCardBadges';
 
 const ROSTER_STORAGE_KEY = 'castview_roster';
 const ROSTER_VERSION_KEY = 'castview_roster_version';
@@ -591,17 +592,13 @@ export function Roster() {
                 )}
                 
                 {/* Primary Context Badge - Bottom Left */}
-                <div 
-                  className="absolute bottom-[12px] left-[12px] px-[10px] py-[4px] rounded-full text-[9px] uppercase tracking-[0.1em]"
-                  style={{ 
-                    fontFamily: 'var(--font-label)', 
-                    backgroundColor: 'rgba(8, 8, 8, 0.8)',
-                    color: 'var(--cv-primary-text)',
-                    backdropFilter: 'blur(8px)'
-                  }}
-                >
-                  {model.primaryContext}
-                </div>
+                {model.primaryContext && (
+                  <PhotoContextBadge
+                    label={
+                      contextCodeMap[model.primaryContext.toLowerCase()] ?? model.primaryContext
+                    }
+                  />
+                )}
               </div>
 
               {/* Card Content */}
@@ -616,23 +613,13 @@ export function Roster() {
 
                 {/* Context Chips */}
                 <div className="flex gap-[8px] mb-[16px]">
-                  {model.contexts.map((context) => {
-                    const isRendered = model.renderedContexts.includes(context);
-                    return (
-                      <div
-                        key={context}
-                        className="w-[24px] h-[24px] rounded-[4px] border flex items-center justify-center text-[8px] uppercase tracking-[0.1em]"
-                        style={{
-                          fontFamily: 'var(--font-label)',
-                          backgroundColor: isRendered ? 'var(--cv-primary-text)' : 'transparent',
-                          borderColor: isRendered ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
-                          color: isRendered ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
-                        }}
-                      >
-                        {context}
-                      </div>
-                    );
-                  })}
+                  {model.contexts.map((context) => (
+                    <ContextCodeChip
+                      key={context}
+                      code={context}
+                      rendered={model.renderedContexts.includes(context)}
+                    />
+                  ))}
                 </div>
 
                 {/* Score and Date */}

@@ -5,6 +5,7 @@ import { Search, ChevronDown, Plus, X } from 'lucide-react';
 import { CONTEXT_FILTER_CODE_MAP } from '../../lib/contextCodes';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
 import { DigitalImage } from './DigitalImage';
+import { ContextCodeChip } from './TalentCardBadges';
 
 type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL' | 'DIRECT';
 
@@ -570,23 +571,13 @@ export function ProspectsIndex() {
 
                 {/* Context Chips */}
                 <div className="flex gap-[8px] mb-[16px]">
-                  {prospect.contexts.map((context) => {
-                    const isRendered = prospect.renderedContexts.includes(context);
-                    return (
-                      <div
-                        key={context}
-                        className="w-[24px] h-[24px] rounded-[4px] border flex items-center justify-center text-[8px] uppercase tracking-[0.1em]"
-                        style={{
-                          fontFamily: 'var(--font-label)',
-                          backgroundColor: isRendered ? 'var(--cv-primary-text)' : 'transparent',
-                          borderColor: isRendered ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
-                          color: isRendered ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
-                        }}
-                      >
-                        {context}
-                      </div>
-                    );
-                  })}
+                  {prospect.contexts.map((context) => (
+                    <ContextCodeChip
+                      key={context}
+                      code={context}
+                      rendered={prospect.renderedContexts.includes(context)}
+                    />
+                  ))}
                 </div>
 
                 {/* Render Count and Submission Date OR Complete Profile for DRAFT */}
