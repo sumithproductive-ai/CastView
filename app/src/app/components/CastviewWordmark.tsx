@@ -10,14 +10,17 @@ export function CastviewWordmark({ height = 30 }: CastviewWordmarkProps) {
 
   return (
     <span
-      className="inline-flex items-center"
-      style={{ color: 'var(--cv-primary-text)' }}
+      className="inline-flex shrink-0 items-center"
+      style={{ color: 'var(--cv-primary-text)', width, height }}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 230 40"
         width={width}
         height={height}
+        preserveAspectRatio="xMinYMid meet"
+        className="block shrink-0"
+        style={{ width, height, maxWidth: width }}
         role="img"
         aria-label="CastView"
       >
