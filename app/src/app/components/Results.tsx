@@ -186,10 +186,10 @@ function DevelopmentPathwayModal({
     >
       <DialogContent
         hideClose
-        overlayClassName="bg-[var(--cv-background)]/80 backdrop-blur-sm"
-        className="fixed inset-0 top-0 left-0 z-50 flex h-[100dvh] w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none border border-[var(--cv-subtle-border)] bg-[var(--cv-surface)] p-0 shadow-none sm:max-w-none data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100"
+        overlayClassName="bg-[var(--cv-background)]/75 backdrop-blur-sm"
+        className="flex w-[calc(100%-2rem)] max-w-[680px] max-h-[80vh] flex-col gap-0 overflow-hidden rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-surface)] p-0 shadow-lg"
       >
-        <div className="flex shrink-0 items-center gap-[16px] border-b border-[var(--cv-subtle-border)] px-[20px] py-[16px] md:px-[32px]">
+        <div className="flex shrink-0 items-center gap-[16px] border-b border-[var(--cv-subtle-border)] px-[20px] py-[16px]">
           <DialogClose
             className="flex h-[36px] w-[36px] items-center justify-center rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-elevated)] text-[var(--cv-primary-text)] transition-opacity hover:opacity-80 focus:outline-none"
             aria-label="Close development pathway"
@@ -221,7 +221,7 @@ function DevelopmentPathwayModal({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-[20px] py-[24px] md:px-[32px]">
+        <div className="min-h-0 flex-1 overflow-y-auto px-[20px] py-[24px]">
           <div
             className="mb-[8px] uppercase tracking-[0.1em]"
             style={{
