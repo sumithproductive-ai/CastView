@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { NotificationsPanel } from './NotificationsPanel';
+import { CastviewWordmark } from './CastviewWordmark';
 
 type NavItem = { name: string; icon: LucideIcon; path: string };
 
@@ -147,12 +148,7 @@ export function Sidebar() {
       >
         {/* Logo */}
         <div className="py-[20px] mb-[48px]">
-          <span 
-            className="text-[20px]"
-            style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)', letterSpacing: '0.06em' }}
-          >
-            CastView
-          </span>
+          <CastviewWordmark height={30} />
         </div>
         
         <nav className="flex-1 space-y-[4px]">

@@ -1,9 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#080808" />
-  <path
-    d="M16 22h32M16 32h24M16 42h16"
-    stroke="#f0f0ec"
-    stroke-width="4"
-    stroke-linecap="round"
-  />
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="112" fill="#000000"/>
+  <text
+    x="256"
+    y="318"
+    text-anchor="middle"
+    font-family="'Cormorant Garamond', Georgia, 'Times New Roman', serif"
+    font-size="236"
+    font-weight="300"
+    fill="#F5F5F0"
+    letter-spacing="-10"
+  >CV</text>
+  <circle cx="346" cy="150" r="15" fill="#BFA77B"/>
 </svg>
