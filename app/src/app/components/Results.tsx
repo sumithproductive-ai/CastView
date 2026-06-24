@@ -1271,10 +1271,6 @@ export function Results() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (openContext !== result.context) {
-                        setDevPathwayNote('');
-                        setDevPathwayContext(null);
-                      }
                       setOpenContext(isOpen ? null : result.context);
                     }}
                     className="flex flex-1 justify-between items-center text-left hover:bg-[var(--cv-elevated)]"
