@@ -169,6 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (resolvedAgencyId) {
+        setAgencyId(resolvedAgencyId);
         await applyAgencyPlan(resolvedAgencyId);
       } else {
         setSetupError(
