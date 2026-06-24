@@ -54,6 +54,7 @@ import {
   savePathwayForContext,
   type StoredDevelopmentPathway,
 } from '../utils/pathwayStorage';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   Dialog,
   DialogClose,
@@ -186,8 +187,8 @@ function DevelopmentPathwayModal({
     >
       <DialogContent
         hideClose
-        overlayClassName="bg-[var(--cv-background)]/75 backdrop-blur-sm"
-        className="flex w-[calc(100%-2rem)] max-w-[680px] max-h-[80vh] flex-col gap-0 overflow-hidden rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-surface)] p-0 shadow-lg"
+        overlayClassName="bg-[var(--cv-background)]/70 backdrop-blur-md"
+        className="flex w-[calc(100%-2rem)] max-w-[640px] max-h-[80vh] flex-col gap-0 overflow-hidden rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-surface)] p-0 shadow-2xl duration-300 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 sm:max-w-[640px]"
       >
         <div className="flex shrink-0 items-center gap-[16px] border-b border-[var(--cv-subtle-border)] px-[20px] py-[16px]">
           <DialogClose
@@ -293,82 +294,97 @@ function DevelopmentPathwayModal({
                 Development recommendations
               </div>
 
-              {pathway && !loading && (
-                <div
-                  className="mb-[16px] text-[11px]"
-                  style={evalBodyTextStyle}
-                >
-                  Based on the uploaded digitals and your notes, here is a suggested
-                  development pathway for {context} alignment:
-                </div>
-              )}
+              <AnimatePresence mode="wait">
+                {loading && (
+                  <motion.div
+                    key="pathway-loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="castview-soft-pulse py-[16px]"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      color: 'var(--cv-secondary-text)',
+                    }}
+                  >
+                    Generating pathway...
+                  </motion.div>
+                )}
 
-              {loading && (
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '11px',
-                    color: 'var(--cv-secondary-text)',
-                    padding: '16px 0',
-                  }}
-                >
-                  Generating pathway...
-                </div>
-              )}
+                {error && !loading && (
+                  <motion.div
+                    key="pathway-error"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      color: '#c87a7a',
+                      padding: '8px 0',
+                    }}
+                  >
+                    {error}
+                  </motion.div>
+                )}
 
-              {error && !loading && (
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '11px',
-                    color: '#c87a7a',
-                    padding: '8px 0',
-                  }}
-                >
-                  {error}
-                </div>
-              )}
-
-              {pathway && !loading && (
-                <>
-                  {pathway.summary && (
-                    <p
-                      style={{
-                        ...evalBodyTextStyle,
-                        fontSize: '11px',
-                        marginBottom: '16px',
-                      }}
+                {pathway && !loading && (
+                  <motion.div
+                    key="pathway-results"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                  >
+                    <div
+                      className="mb-[16px] text-[11px]"
+                      style={evalBodyTextStyle}
                     >
-                      {pathway.summary}
-                    </p>
-                  )}
-                  {pathway.sections.map((section) => (
-                    <div key={section.label} className="mb-[14px]">
-                      <div
-                        className="mb-[6px] text-[8px] uppercase tracking-[0.1em]"
+                      Based on the uploaded digitals and your notes, here is a suggested
+                      development pathway for {context} alignment:
+                    </div>
+                    {pathway.summary && (
+                      <p
                         style={{
-                          fontFamily: 'var(--font-mono)',
-                          color: '#C8A96E',
+                          ...evalBodyTextStyle,
+                          fontSize: '11px',
+                          marginBottom: '16px',
                         }}
                       >
-                        {section.label}
-                      </div>
-                      {section.items.map((item, i) => (
+                        {pathway.summary}
+                      </p>
+                    )}
+                    {pathway.sections.map((section) => (
+                      <div key={section.label} className="mb-[14px]">
                         <div
-                          key={i}
-                          className="mb-[4px]"
+                          className="mb-[6px] text-[8px] uppercase tracking-[0.1em]"
                           style={{
-                            ...evalBodyTextStyle,
-                            fontSize: '11px',
+                            fontFamily: 'var(--font-mono)',
+                            color: '#C8A96E',
                           }}
                         >
-                          → {item}
+                          {section.label}
                         </div>
-                      ))}
-                    </div>
-                  ))}
-                </>
-              )}
+                        {section.items.map((item, i) => (
+                          <div
+                            key={i}
+                            className="mb-[4px]"
+                            style={{
+                              ...evalBodyTextStyle,
+                              fontSize: '11px',
+                            }}
+                          >
+                            → {item}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </div>

@@ -116,13 +116,23 @@ input[type="radio"] {
   transform: none;
 }
 
-/* Scrollable evaluation context panels (Results, Compare, etc.) */
+/* Evaluation context panel body (Results, Compare, etc.) — page scrolls, not inner panel */
 .cv-eval-panel-body {
-  max-height: min(72vh, calc(100dvh - 260px));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
+}
+
+@keyframes castview-soft-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.castview-soft-pulse {
+  animation: castview-soft-pulse 1.6s ease-in-out infinite;
 }
 
 .cv-eval-panel-body::-webkit-scrollbar {
