@@ -2,41 +2,34 @@ type CastviewWordmarkProps = {
   height?: number;
 };
 
-const VIEWBOX_WIDTH = 230;
-const VIEWBOX_HEIGHT = 40;
-
 export function CastviewWordmark({ height = 30 }: CastviewWordmarkProps) {
-  const width = Math.round(height * (VIEWBOX_WIDTH / VIEWBOX_HEIGHT));
+  const fontSize = Math.round(height * 0.75);
+  const dotSize = Math.max(4, Math.round(height * 0.17));
 
   return (
     <span
-      className="inline-flex shrink-0 items-center"
-      style={{ color: 'var(--cv-primary-text)', width, height }}
+      className="inline-flex shrink-0 items-baseline whitespace-nowrap"
+      style={{
+        color: 'var(--cv-primary-text)',
+        fontFamily: "'Cormorant Garamond', Georgia, serif",
+        fontSize: `${fontSize}px`,
+        fontWeight: 500,
+        letterSpacing: '0.04em',
+        lineHeight: 1,
+      }}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 230 40"
-        width={width}
-        height={height}
-        preserveAspectRatio="xMinYMid meet"
-        className="block shrink-0"
-        style={{ width, height, maxWidth: width }}
-        role="img"
-        aria-label="CastView"
-      >
-        <text
-          x="0"
-          y="29"
-          fontFamily="'Cormorant Garamond', Georgia, serif"
-          fontSize="30"
-          fontWeight="500"
-          letterSpacing="0.4"
-          fill="currentColor"
-        >
-          CastView
-        </text>
-        <circle cx="214" cy="29" r="3.4" fill="#b8a06a" />
-      </svg>
+      CastView
+      <span
+        aria-hidden="true"
+        className="inline-block shrink-0 rounded-full"
+        style={{
+          width: dotSize,
+          height: dotSize,
+          marginLeft: Math.round(dotSize * 0.3),
+          marginBottom: Math.round(dotSize * 0.1),
+          backgroundColor: '#b8a06a',
+        }}
+      />
     </span>
   );
 }

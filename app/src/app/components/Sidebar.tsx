@@ -147,7 +147,7 @@ export function Sidebar() {
         style={{ boxShadow: '1px 0 0 var(--cv-elevated)' }}
       >
         {/* Logo */}
-        <div className="self-start py-[20px] mb-[48px]">
+        <div className="py-[20px] mb-[48px]">
           <CastviewWordmark height={30} />
         </div>
         
