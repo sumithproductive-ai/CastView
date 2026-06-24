@@ -61,7 +61,7 @@ export function DigitalImage({
   if (!displaySrc) {
     return (
       <div
-        className={[className, 'animate-pulse'].filter(Boolean).join(' ')}
+        className={[className, 'cv-digital-image', 'animate-pulse'].filter(Boolean).join(' ')}
         style={{
           backgroundColor: 'var(--cv-elevated)',
           ...style,
@@ -76,7 +76,7 @@ export function DigitalImage({
       {...rest}
       src={displaySrc}
       alt={alt}
-      className={className}
+      className={[className, 'cv-digital-image'].filter(Boolean).join(' ')}
       style={{
         ...style,
         opacity: isLoaded ? 1 : 0,
