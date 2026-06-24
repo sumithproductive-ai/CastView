@@ -32,6 +32,7 @@ import { authFetch } from '../../lib/apiAuth';
 import {
   deleteContextEvaluationById,
   deleteEvaluationById,
+  fetchEvaluationReportFromSupabase,
   supabase,
 } from '../../lib/supabase';
 import { DigitalImage } from './DigitalImage';
@@ -400,6 +401,8 @@ export function Results() {
   const digitalSetId = searchParams.get('digitalSetId') || '';
 
   useEffect(() => {
+    let cancelled = false;
+
     const errorStored = sessionStorage.getItem(EVALUATION_ERROR_KEY);
     if (errorStored) {
       setEvaluationError(errorStored);
@@ -411,8 +414,40 @@ export function Results() {
       setRealEvalData(stored);
       if (stored.agentNotes) setAgentNotes(stored.agentNotes);
       clearHandoffStorage();
+      return;
     }
-  }, [evaluationId]);
+
+    if (!evaluationId) return;
+
+    (async () => {
+      try {
+        const fromDb = await fetchEvaluationReportFromSupabase(evaluationId);
+        if (cancelled || !fromDb) return;
+
+        setRealEvalData({
+          evaluationId,
+          prospectName,
+          prospectId: prospectId || fromDb.entityId,
+          contextsParam:
+            contextsParam ||
+            fromDb.contextEvaluations.map((entry) => entry.context).join(','),
+          profileType,
+          contextEvaluations: fromDb.contextEvaluations,
+          unavailableContexts: [],
+          updatedAt: new Date().toISOString(),
+          agentNotes: fromDb.agentNotes,
+        });
+        if (fromDb.agentNotes) setAgentNotes(fromDb.agentNotes);
+        setEvalSaved(true);
+      } catch (err) {
+        console.error('[Results] failed to load evaluation from Supabase:', err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [evaluationId, prospectName, prospectId, contextsParam, profileType]);
 
   useEffect(() => {
     if (!evaluationId || !prospectId) return;
@@ -1046,7 +1081,12 @@ export function Results() {
             setSaveError(null);
 
             try {
+              if (!agencyId) {
+                throw new Error('Missing agency context');
+              }
+
               const synced = await persistEvaluationToSupabase({
+                agencyId,
                 profileType,
                 entityId: prospectId,
                 evaluationId,

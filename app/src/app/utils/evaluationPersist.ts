@@ -2,9 +2,37 @@ import type { DigitalSet, Evaluation } from '../types/talent';
 import type { Prospect } from '../context/ProspectsContext';
 import type { RosterModel } from '../context/RosterContext';
 import type { StoredContextEvaluation } from './evaluationStorage';
+import {
+  upsertEvaluationWithContexts,
+} from '../../lib/supabase';
 
 export const EVALUATION_SYNC_FAILED_MSG =
   'Saved locally — sync failed, will retry.';
+
+async function fetchEntityDigitalSets(entityId: string): Promise<DigitalSet[]> {
+  const { supabase } = await import('../../lib/supabase');
+  const { data: freshSets, error } = await supabase
+    .from('digital_sets')
+    .select('*')
+    .eq('entity_id', entityId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  return (freshSets ?? []).map((ds) => ({
+    id: ds.id,
+    title: ds.title ?? '',
+    uploadedAt: ds.uploaded_at ?? '',
+    front: ds.front ?? null,
+    profile: ds.profile ?? null,
+    threeQuarter: ds.three_quarter ?? null,
+    fullBody: ds.full_body ?? null,
+    additionalImages: [],
+    notes: ds.notes ?? '',
+    tags: ds.tags ?? [],
+    evaluations: [],
+  }));
+}
 
 export function buildEvaluationFromContextResults(
   evaluationId: string,
@@ -50,34 +78,8 @@ export function mergeEvaluationIntoDigitalSets(
   );
 }
 
-export async function fetchEntityDigitalSets(
-  entityId: string,
-): Promise<DigitalSet[]> {
-  const { supabase } = await import('../../lib/supabase');
-  const { data: freshSets, error } = await supabase
-    .from('digital_sets')
-    .select('*')
-    .eq('entity_id', entityId)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-
-  return (freshSets ?? []).map((ds) => ({
-    id: ds.id,
-    title: ds.title ?? '',
-    uploadedAt: ds.uploaded_at ?? '',
-    front: ds.front ?? null,
-    profile: ds.profile ?? null,
-    threeQuarter: ds.three_quarter ?? null,
-    fullBody: ds.full_body ?? null,
-    additionalImages: [],
-    notes: ds.notes ?? '',
-    tags: ds.tags ?? [],
-    evaluations: [],
-  }));
-}
-
 export type PersistEvaluationParams = {
+  agencyId: string;
   profileType: string;
   entityId: string;
   evaluationId: string;
@@ -94,6 +96,7 @@ export async function persistEvaluationToSupabase(
   params: PersistEvaluationParams,
 ): Promise<boolean> {
   const {
+    agencyId,
     profileType,
     entityId,
     evaluationId,
@@ -107,12 +110,8 @@ export async function persistEvaluationToSupabase(
   } = params;
 
   const persistedKey = `castview_persisted_${evaluationId}`;
-  if (localStorage.getItem(persistedKey)) {
-    console.log('[evaluationPersist] already persisted, skipping');
-    return false;
-  }
 
-  if (!entityId || contextEvaluations.length === 0) return false;
+  if (!agencyId || !entityId || contextEvaluations.length === 0) return false;
 
   const evaluation = buildEvaluationFromContextResults(
     evaluationId,
@@ -120,37 +119,40 @@ export async function persistEvaluationToSupabase(
     agentNotes,
   );
 
-  if (profileType === 'model') {
-    let digitalSets = getModelById(entityId)?.digitalSets ?? [];
-    if (digitalSets.length === 0) {
-      digitalSets = await fetchEntityDigitalSets(entityId);
-    }
-    if (digitalSets.length === 0) return false;
+  let digitalSets =
+    profileType === 'model'
+      ? getModelById(entityId)?.digitalSets ?? []
+      : getProspectById(entityId)?.digitalSets ?? [];
 
-    const targetSetId = targetDigitalSetId || digitalSets[0].id;
-    const updatedSets = mergeEvaluationIntoDigitalSets(
-      digitalSets,
-      targetSetId,
-      evaluation,
-    );
-    await updateModel(entityId, { digitalSets: updatedSets });
-    localStorage.setItem(persistedKey, '1');
-    return true;
-  }
-
-  let digitalSets = getProspectById(entityId)?.digitalSets ?? [];
   if (digitalSets.length === 0) {
     digitalSets = await fetchEntityDigitalSets(entityId);
   }
   if (digitalSets.length === 0) return false;
 
   const targetSetId = targetDigitalSetId || digitalSets[0].id;
+
+  await upsertEvaluationWithContexts({
+    agencyId,
+    entityId,
+    evaluationId,
+    digitalSetId: targetSetId,
+    contextEvaluations,
+    agentNotes,
+    completedAt: new Date().toISOString(),
+  });
+
   const updatedSets = mergeEvaluationIntoDigitalSets(
     digitalSets,
     targetSetId,
     evaluation,
   );
-  await updateProspect(entityId, { digitalSets: updatedSets });
+
+  if (profileType === 'model') {
+    await updateModel(entityId, { digitalSets: updatedSets });
+  } else {
+    await updateProspect(entityId, { digitalSets: updatedSets });
+  }
+
   localStorage.setItem(persistedKey, '1');
   return true;
 }
@@ -165,3 +167,5 @@ export function isEvaluationPersisted(
     ) ?? false
   );
 }
+
+export { fetchEvaluationReportFromSupabase } from '../../lib/supabase';

@@ -5,6 +5,7 @@ import { Check } from 'lucide-react';
 import { getContextData } from '../constants/contextMockData';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
+import { useAuth } from '../context/AuthContext';
 import {
   compressImageUrlForEvaluation,
   EVALUATION_REQUEST_TIMEOUT_MS,
@@ -122,6 +123,7 @@ export function Rendering() {
   const [searchParams] = useSearchParams();
   const { getProspectById, updateProspect } = useProspects();
   const { getModelById, updateModel } = useRoster();
+  const { agencyId } = useAuth();
   const prospectName = searchParams.get('name')
     ? decodeURIComponent(searchParams.get('name')!)
     : 'Prospect';
@@ -293,8 +295,13 @@ export function Rendering() {
           navigate(resultsUrl, { replace: true });
 
           void (async () => {
+            if (!agencyId) {
+              console.error('[CastView] auto-save evaluation skipped: missing agencyId');
+              return;
+            }
             try {
               const synced = await persistEvaluationToSupabase({
+                agencyId,
                 profileType,
                 entityId: prospectId,
                 evaluationId,

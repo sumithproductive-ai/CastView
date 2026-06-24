@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { DigitalSet } from '../app/types/talent';
+import type { StoredContextEvaluation } from '../app/utils/evaluationStorage';
 
 export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 export const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -251,4 +252,135 @@ export async function resolveDigitalSetForDisplay(ds: DigitalSet): Promise<Digit
     threeQuarter: resolveField(ds.threeQuarter),
     fullBody: resolveField(ds.fullBody),
   };
+}
+
+export type FetchedEvaluationReport = {
+  entityId: string;
+  digitalSetId: string;
+  agentNotes: string;
+  contextEvaluations: StoredContextEvaluation[];
+};
+
+type ContextEvaluationRow = {
+  context: string;
+  alignment_score: number | null;
+  fit_label: string | null;
+  reasoning: string | null;
+  strengths?: string[] | null;
+  risks?: string[] | null;
+  market_signals?: string[] | null;
+  suggested_next_steps?: string[] | null;
+};
+
+function mapContextEvaluationRow(row: ContextEvaluationRow): StoredContextEvaluation {
+  return {
+    context: row.context,
+    alignmentScore: row.alignment_score ?? 0,
+    fitLabel: row.fit_label ?? '',
+    reasoning: row.reasoning ?? '',
+    strengths: Array.isArray(row.strengths) ? row.strengths : [],
+    risks: Array.isArray(row.risks) ? row.risks : [],
+    marketSignals: Array.isArray(row.market_signals) ? row.market_signals : [],
+    suggestedNextSteps: Array.isArray(row.suggested_next_steps)
+      ? row.suggested_next_steps
+      : [],
+  };
+}
+
+/** Load full evaluation payload from Supabase when browser storage is empty. */
+export async function fetchEvaluationReportFromSupabase(
+  evaluationId: string,
+): Promise<FetchedEvaluationReport | null> {
+  const { data: evaluation, error: evalError } = await supabase
+    .from('evaluations')
+    .select('id, entity_id, digital_set_id, agent_notes')
+    .eq('id', evaluationId)
+    .maybeSingle();
+
+  if (evalError) {
+    console.error('[CastView] fetchEvaluationReportFromSupabase evaluation error:', evalError);
+    throw evalError;
+  }
+
+  if (!evaluation) return null;
+
+  const { data: contextRows, error: ctxError } = await supabase
+    .from('context_evaluations')
+    .select(
+      'context, alignment_score, fit_label, reasoning, strengths, risks, market_signals, suggested_next_steps',
+    )
+    .eq('evaluation_id', evaluationId);
+
+  if (ctxError) {
+    console.error('[CastView] fetchEvaluationReportFromSupabase context error:', ctxError);
+    throw ctxError;
+  }
+
+  if (!contextRows?.length) return null;
+
+  return {
+    entityId: evaluation.entity_id,
+    digitalSetId: evaluation.digital_set_id,
+    agentNotes: evaluation.agent_notes ?? '',
+    contextEvaluations: contextRows.map((row) =>
+      mapContextEvaluationRow(row as ContextEvaluationRow),
+    ),
+  };
+}
+
+/** Write evaluation + full per-context rows directly to Supabase. */
+export async function upsertEvaluationWithContexts(params: {
+  agencyId: string;
+  entityId: string;
+  evaluationId: string;
+  digitalSetId: string;
+  contextEvaluations: StoredContextEvaluation[];
+  agentNotes?: string;
+  completedAt?: string;
+}): Promise<void> {
+  const {
+    agencyId,
+    entityId,
+    evaluationId,
+    digitalSetId,
+    contextEvaluations,
+    agentNotes = '',
+    completedAt,
+  } = params;
+
+  const { error: evalError } = await supabase.from('evaluations').upsert({
+    id: evaluationId,
+    digital_set_id: digitalSetId,
+    entity_id: entityId,
+    agency_id: agencyId,
+    completed_at: completedAt ?? new Date().toISOString(),
+    agent_notes: agentNotes,
+  });
+
+  if (evalError) {
+    console.error('[CastView] upsertEvaluationWithContexts evaluation error:', evalError);
+    throw evalError;
+  }
+
+  for (const ctx of contextEvaluations) {
+    const { error: ctxError } = await supabase.from('context_evaluations').upsert(
+      {
+        evaluation_id: evaluationId,
+        context: ctx.context,
+        alignment_score: ctx.alignmentScore,
+        fit_label: ctx.fitLabel,
+        reasoning: ctx.reasoning,
+        strengths: ctx.strengths ?? [],
+        risks: ctx.risks ?? [],
+        market_signals: ctx.marketSignals ?? [],
+        suggested_next_steps: ctx.suggestedNextSteps ?? [],
+      },
+      { onConflict: 'evaluation_id,context' },
+    );
+
+    if (ctxError) {
+      console.error('[CastView] upsertEvaluationWithContexts context error:', ctxError);
+      throw ctxError;
+    }
+  }
 }
