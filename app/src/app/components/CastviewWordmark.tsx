@@ -2,8 +2,11 @@ type CastviewWordmarkProps = {
   height?: number;
 };
 
+const VIEWBOX_WIDTH = 230;
+const VIEWBOX_HEIGHT = 40;
+
 export function CastviewWordmark({ height = 30 }: CastviewWordmarkProps) {
-  const width = Math.round(height * (320 / 64));
+  const width = Math.round(height * (VIEWBOX_WIDTH / VIEWBOX_HEIGHT));
 
   return (
     <span
@@ -11,26 +14,25 @@ export function CastviewWordmark({ height = 30 }: CastviewWordmarkProps) {
       style={{ color: 'var(--cv-primary-text)' }}
     >
       <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 230 40"
         width={width}
         height={height}
-        viewBox="0 0 320 64"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-label="CastView"
         role="img"
+        aria-label="CastView"
       >
         <text
-          x="20"
-          y="44"
-          fontFamily="Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-          fontSize="38"
-          fontWeight="400"
+          x="0"
+          y="29"
+          fontFamily="'Cormorant Garamond', Georgia, serif"
+          fontSize="30"
+          fontWeight="500"
+          letterSpacing="0.4"
           fill="currentColor"
-          letterSpacing="-0.02em"
         >
-          castview
+          CastView
         </text>
-        <circle cx="284" cy="42" r="5.5" fill="#C5B08D" />
+        <circle cx="214" cy="29" r="3.4" fill="#b8a06a" />
       </svg>
     </span>
   );
