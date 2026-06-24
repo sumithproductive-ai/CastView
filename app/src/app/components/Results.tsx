@@ -21,7 +21,7 @@ import {
   pdfSave,
   pdfSafeText,
 } from '../../lib/castviewPdf';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ArrowLeft } from 'lucide-react';
 import { getContextData } from '../constants/contextMockData';
 import { getSumithDigitalSetV1, isSumithProspect } from '../constants/sumithProspect';
 import { useAuth } from '../context/AuthContext';
@@ -47,6 +47,18 @@ import {
   isEvaluationPersisted,
   persistEvaluationToSupabase,
 } from '../utils/evaluationPersist';
+import {
+  getPathwayForContext,
+  loadPathwaysForEvaluation,
+  savePathwayForContext,
+  type StoredDevelopmentPathway,
+} from '../utils/pathwayStorage';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+} from './ui/dialog';
 
 const DIGITAL_STRIP = [
   { key: 'front' as const, label: 'FRONT' },
@@ -134,6 +146,233 @@ function ContextScoreBar({
         }}
       />
     </div>
+  );
+}
+
+function normalizePathwayContext(context: string): string {
+  return context.trim().toLowerCase();
+}
+
+type DevelopmentPathwayModalProps = {
+  open: boolean;
+  context: string | null;
+  note: string;
+  onNoteChange: (note: string) => void;
+  pathway: StoredDevelopmentPathway | null;
+  loading: boolean;
+  error: string | null | undefined;
+  onClose: () => void;
+  onGenerate: () => void;
+};
+
+function DevelopmentPathwayModal({
+  open,
+  context,
+  note,
+  onNoteChange,
+  pathway,
+  loading,
+  error,
+  onClose,
+  onGenerate,
+}: DevelopmentPathwayModalProps) {
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
+      <DialogContent
+        hideClose
+        overlayClassName="bg-[var(--cv-background)]/80 backdrop-blur-sm"
+        className="fixed inset-0 top-0 left-0 z-50 flex h-[100dvh] w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none border border-[var(--cv-subtle-border)] bg-[var(--cv-surface)] p-0 shadow-none sm:max-w-none data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100"
+      >
+        <div className="flex shrink-0 items-center gap-[16px] border-b border-[var(--cv-subtle-border)] px-[20px] py-[16px] md:px-[32px]">
+          <DialogClose
+            className="flex h-[36px] w-[36px] items-center justify-center rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-elevated)] text-[var(--cv-primary-text)] transition-opacity hover:opacity-80 focus:outline-none"
+            aria-label="Close development pathway"
+          >
+            <ArrowLeft size={18} />
+          </DialogClose>
+          <div>
+            <DialogTitle
+              className="text-[11px] uppercase tracking-[0.1em]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                color: '#C8A96E',
+                fontWeight: 400,
+              }}
+            >
+              Development Pathway
+            </DialogTitle>
+            {context && (
+              <p
+                className="mt-[4px] text-[11px]"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--cv-secondary-text)',
+                }}
+              >
+                {context} · AI Coaching
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-[20px] py-[24px] md:px-[32px]">
+          <div
+            className="mb-[8px] uppercase tracking-[0.1em]"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '9px',
+              color: 'var(--cv-secondary-text)',
+            }}
+          >
+            Your notes
+          </div>
+          <textarea
+            value={note}
+            onChange={(e) => onNoteChange(e.target.value)}
+            placeholder={
+              context
+                ? `e.g. "Strong bone structure — I think they have potential for ${context} but needs work on posture and styling direction."`
+                : 'Add notes about this prospect in this context...'
+            }
+            rows={4}
+            className="mb-[16px] w-full resize-none rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-background)] px-[12px] py-[10px]"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: 'var(--cv-primary-text)',
+              lineHeight: 1.6,
+            }}
+          />
+
+          {!pathway && !loading && (
+            <button
+              type="button"
+              onClick={onGenerate}
+              className="mb-[24px] w-full rounded-[4px] border border-[#C8A96E] bg-transparent py-[12px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#C8A96E] hover:text-[var(--cv-background)]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                color: '#C8A96E',
+                cursor: 'pointer',
+              }}
+            >
+              Generate development pathway
+            </button>
+          )}
+
+          {pathway && !loading && (
+            <button
+              type="button"
+              onClick={onGenerate}
+              className="mb-[24px] w-full rounded-[4px] border border-[var(--cv-subtle-border)] bg-transparent py-[10px] text-[10px] uppercase tracking-[0.1em] transition-colors hover:border-[#C8A96E] hover:text-[#C8A96E]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--cv-secondary-text)',
+                cursor: 'pointer',
+              }}
+            >
+              Regenerate pathway
+            </button>
+          )}
+
+          {(loading || pathway || error) && (
+            <div className="border-t border-[var(--cv-subtle-border)] pt-[20px]">
+              <div
+                className="mb-[12px] uppercase tracking-[0.1em]"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  color: 'var(--cv-secondary-text)',
+                }}
+              >
+                Development recommendations
+              </div>
+
+              {pathway && !loading && (
+                <div
+                  className="mb-[16px] text-[11px]"
+                  style={evalBodyTextStyle}
+                >
+                  Based on the uploaded digitals and your notes, here is a suggested
+                  development pathway for {context} alignment:
+                </div>
+              )}
+
+              {loading && (
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '11px',
+                    color: 'var(--cv-secondary-text)',
+                    padding: '16px 0',
+                  }}
+                >
+                  Generating pathway...
+                </div>
+              )}
+
+              {error && !loading && (
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '11px',
+                    color: '#c87a7a',
+                    padding: '8px 0',
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
+              {pathway && !loading && (
+                <>
+                  {pathway.summary && (
+                    <p
+                      style={{
+                        ...evalBodyTextStyle,
+                        fontSize: '11px',
+                        marginBottom: '16px',
+                      }}
+                    >
+                      {pathway.summary}
+                    </p>
+                  )}
+                  {pathway.sections.map((section) => (
+                    <div key={section.label} className="mb-[14px]">
+                      <div
+                        className="mb-[6px] text-[8px] uppercase tracking-[0.1em]"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          color: '#C8A96E',
+                        }}
+                      >
+                        {section.label}
+                      </div>
+                      {section.items.map((item, i) => (
+                        <div
+                          key={i}
+                          className="mb-[4px]"
+                          style={{
+                            ...evalBodyTextStyle,
+                            fontSize: '11px',
+                          }}
+                        >
+                          → {item}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -345,14 +584,19 @@ export function Results() {
   }, [displayContexts, realEvalData, allowDevMock]);
 
   const [openContext, setOpenContext] = useState<string | null>(null);
-  const [devPathwayContext, setDevPathwayContext] = useState<string | null>(null);
-  const [devPathwayNote, setDevPathwayNote] = useState('');
-  const [devPathwayLoading, setDevPathwayLoading] = useState(false);
-  const [devPathwayData, setDevPathwayData] = useState<{
-    sections: { label: string; items: string[] }[];
-    summary: string;
-  } | null>(null);
-  const [devPathwayError, setDevPathwayError] = useState<string | null>(null);
+  const [pathwaysByContext, setPathwaysByContext] = useState<
+    Record<string, StoredDevelopmentPathway>
+  >({});
+  const [pathwayModalContext, setPathwayModalContext] = useState<string | null>(null);
+  const [pathwayNotesByContext, setPathwayNotesByContext] = useState<
+    Record<string, string>
+  >({});
+  const [pathwayLoadingContext, setPathwayLoadingContext] = useState<string | null>(
+    null,
+  );
+  const [pathwayErrorByContext, setPathwayErrorByContext] = useState<
+    Record<string, string>
+  >({});
   const [showOverride, setShowOverride] = useState(false);
   const [overrideText, setOverrideText] = useState('');
   const [overrideSaved, setOverrideSaved] = useState(false);
@@ -364,6 +608,88 @@ export function Results() {
   const [evalSaved, setEvalSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savingEval, setSavingEval] = useState(false);
+
+  useEffect(() => {
+    if (!evaluationId) {
+      setPathwaysByContext({});
+      setPathwayNotesByContext({});
+      return;
+    }
+
+    const stored = loadPathwaysForEvaluation(evaluationId);
+    setPathwaysByContext(stored);
+
+    const notes: Record<string, string> = {};
+    for (const [ctx, pathway] of Object.entries(stored)) {
+      notes[ctx] = pathway.agentNote;
+    }
+    setPathwayNotesByContext(notes);
+  }, [evaluationId]);
+
+  const generatePathway = async (context: string) => {
+    if (pathwayLoadingContext) return;
+
+    const contextKey = normalizePathwayContext(context);
+    const note = pathwayNotesByContext[contextKey] ?? '';
+
+    setPathwayModalContext(context);
+    setPathwayLoadingContext(context);
+    setPathwayErrorByContext((prev) => {
+      const next = { ...prev };
+      delete next[contextKey];
+      return next;
+    });
+
+    try {
+      const contextData = realEvalData?.contextEvaluations?.find(
+        (e: { context: string }) =>
+          e.context.toLowerCase() === context.toLowerCase(),
+      );
+      const response = await authFetch('/api/pathway', {
+        method: 'POST',
+        body: JSON.stringify({
+          prospectName,
+          context,
+          alignmentScore: contextData?.alignmentScore ?? 0,
+          agentNote: note || 'No additional notes provided.',
+        }),
+      });
+
+      if (response.status === 402) {
+        setPathwayErrorByContext((prev) => ({
+          ...prev,
+          [contextKey]: 'Trial ended — choose a plan to continue.',
+        }));
+        return;
+      }
+
+      const data = await response.json();
+      if (response.ok && data.sections) {
+        const stored: StoredDevelopmentPathway = {
+          sections: data.sections,
+          summary: data.summary,
+          agentNote: note,
+          generatedAt: new Date().toISOString(),
+        };
+        setPathwaysByContext((prev) => ({ ...prev, [contextKey]: stored }));
+        if (evaluationId) {
+          savePathwayForContext(evaluationId, context, stored);
+        }
+      } else {
+        setPathwayErrorByContext((prev) => ({
+          ...prev,
+          [contextKey]: 'Unable to generate pathway. Try again.',
+        }));
+      }
+    } catch {
+      setPathwayErrorByContext((prev) => ({
+        ...prev,
+        [contextKey]: 'Unable to generate pathway. Try again.',
+      }));
+    } finally {
+      setPathwayLoadingContext(null);
+    }
+  };
 
   const removeEvaluationFromEntityState = async () => {
     if (!evaluationId) return;
@@ -1117,145 +1443,41 @@ export function Results() {
                         and get AI-powered development recommendations.
                       </p>
 
-                      <textarea
-                        value={devPathwayNote}
-                        onChange={(e) => setDevPathwayNote(e.target.value)}
-                        placeholder={`e.g. "Strong bone structure — I think he has potential for ${result.context} but needs work on posture and styling direction."`}
-                        rows={3}
-                        className="w-full px-[12px] py-[10px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none mb-[12px]"
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '11px',
-                          color: 'var(--cv-primary-text)',
-                          lineHeight: 1.6,
-                        }}
-                      />
-
                       <button
                         type="button"
-                        onClick={async () => {
-                          if (devPathwayLoading) return;
-                          setDevPathwayContext(result.context);
-                          setDevPathwayLoading(true);
-                          setDevPathwayData(null);
-                          setDevPathwayError(null);
-                          try {
-                            const contextData = realEvalData?.contextEvaluations?.find(
-                              (e: any) => e.context === result.context
-                            );
-                            const response = await authFetch('/api/pathway', {
-                              method: 'POST',
-                              body: JSON.stringify({
-                                prospectName,
-                                context: result.context,
-                                alignmentScore: contextData?.alignmentScore ?? 0,
-                                agentNote: devPathwayNote || 'No additional notes provided.',
-                              }),
-                            });
-                            if (response.status === 402) {
-                              setDevPathwayError(
-                                'Trial ended — choose a plan to continue.',
-                              );
-                              return;
-                            }
-                            const data = await response.json();
-                            if (response.ok && data.sections) {
-                              setDevPathwayData(data);
-                            } else {
-                              setDevPathwayError('Unable to generate pathway. Try again.');
-                            }
-                          } catch {
-                            setDevPathwayError('Unable to generate pathway. Try again.');
-                          } finally {
-                            setDevPathwayLoading(false);
+                        onClick={() => {
+                          const existingPathway = getPathwayForContext(
+                            pathwaysByContext,
+                            result.context,
+                          );
+                          if (existingPathway) {
+                            setPathwayModalContext(result.context);
+                            return;
                           }
+                          void generatePathway(result.context);
                         }}
-                        className="w-full py-[12px] border border-[#C8A96E] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#C8A96E] hover:text-[var(--cv-background)]"
+                        disabled={
+                          pathwayLoadingContext === result.context &&
+                          !getPathwayForContext(pathwaysByContext, result.context)
+                        }
+                        className="w-full py-[12px] border border-[#C8A96E] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[#C8A96E] hover:text-[var(--cv-background)] disabled:opacity-60"
                         style={{
                           fontFamily: 'var(--font-mono)',
                           color: '#C8A96E',
-                          cursor: 'pointer',
+                          cursor:
+                            pathwayLoadingContext === result.context &&
+                            !getPathwayForContext(pathwaysByContext, result.context)
+                              ? 'default'
+                              : 'pointer',
                         }}
                       >
-                        {devPathwayLoading && devPathwayContext === result.context
+                        {pathwayLoadingContext === result.context &&
+                        !getPathwayForContext(pathwaysByContext, result.context)
                           ? 'GENERATING...'
-                          : 'GENERATE DEVELOPMENT PATHWAY'}
+                          : getPathwayForContext(pathwaysByContext, result.context)
+                            ? 'VIEW DEVELOPMENT PATHWAY'
+                            : 'GENERATE DEVELOPMENT PATHWAY'}
                       </button>
-
-                      {devPathwayContext === result.context && (
-                        <div className="mt-[16px] p-[16px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px]">
-                          <div
-                            className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
-                            style={{
-                              fontFamily: 'var(--font-mono)',
-                              color: 'var(--cv-secondary-text)',
-                            }}
-                          >
-                            DEVELOPMENT RECOMMENDATIONS
-                          </div>
-
-                          <div
-                            className="text-[11px] mb-[16px]"
-                            style={{
-                              ...evalBodyTextStyle,
-                            }}
-                          >
-                            Based on the uploaded digitals and your notes, here is a
-                            suggested development pathway for {result.context}{' '}
-                            alignment:
-                          </div>
-
-                          {devPathwayLoading && devPathwayContext === result.context && (
-                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
-                              color: 'var(--cv-secondary-text)', padding: '16px 0' }}>
-                              Generating pathway...
-                            </div>
-                          )}
-
-                          {devPathwayError && devPathwayContext === result.context && (
-                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px',
-                              color: '#c87a7a', padding: '8px 0' }}>
-                              {devPathwayError}
-                            </div>
-                          )}
-
-                          {devPathwayData && devPathwayContext === result.context && (
-                            <>
-                              {devPathwayData.summary && (
-                                <p
-                                  style={{
-                                    ...evalBodyTextStyle,
-                                    fontSize: '11px',
-                                    marginBottom: '16px',
-                                  }}
-                                >
-                                  {devPathwayData.summary}
-                                </p>
-                              )}
-                              {devPathwayData.sections.map((section) => (
-                                <div key={section.label} className="mb-[14px]">
-                                  <div className="text-[8px] uppercase tracking-[0.1em] mb-[6px]"
-                                    style={{ fontFamily: 'var(--font-mono)', color: '#C8A96E' }}>
-                                    {section.label}
-                                  </div>
-                                  {section.items.map((item, i) => (
-                                    <div
-                                      key={i}
-                                      className="mb-[4px]"
-                                      style={{
-                                        ...evalBodyTextStyle,
-                                        fontSize: '11px',
-                                      }}
-                                    >
-                                      → {item}
-                                    </div>
-                                  ))}
-                                </div>
-                              ))}
-                            </>
-                          )}
-                        </div>
-                      )}
                     </div>
                     </>
                     )}
@@ -1503,6 +1725,36 @@ export function Results() {
           </div>
         </div>
       </div>
+
+      <DevelopmentPathwayModal
+        open={pathwayModalContext !== null}
+        context={pathwayModalContext}
+        note={
+          pathwayModalContext
+            ? pathwayNotesByContext[normalizePathwayContext(pathwayModalContext)] ?? ''
+            : ''
+        }
+        onNoteChange={(note) => {
+          if (!pathwayModalContext) return;
+          const key = normalizePathwayContext(pathwayModalContext);
+          setPathwayNotesByContext((prev) => ({ ...prev, [key]: note }));
+        }}
+        pathway={
+          pathwayModalContext
+            ? getPathwayForContext(pathwaysByContext, pathwayModalContext)
+            : null
+        }
+        loading={pathwayModalContext === pathwayLoadingContext}
+        error={
+          pathwayModalContext
+            ? pathwayErrorByContext[normalizePathwayContext(pathwayModalContext)]
+            : null
+        }
+        onClose={() => setPathwayModalContext(null)}
+        onGenerate={() => {
+          if (pathwayModalContext) void generatePathway(pathwayModalContext);
+        }}
+      />
     </div>
   );
 }
