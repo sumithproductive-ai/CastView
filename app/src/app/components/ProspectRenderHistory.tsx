@@ -707,7 +707,7 @@ export function ProspectRenderHistory({
                   marginBottom: '4px',
                 }}
               >
-                Digital Sets
+                DIGITALS
               </div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
                 {digitalSetCount} set{digitalSetCount !== 1 ? 's' : ''}
@@ -796,7 +796,7 @@ export function ProspectRenderHistory({
                 } else {
                   setCompareSelectMode(true);
                   setCompareSelectedIds([]);
-                  setDigitalSetsExpanded(true);
+                  setIsDigitalSetsModalOpen(true);
                 }
               }}
               className="w-full px-[16px] py-[10px] border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] transition-colors"
@@ -886,7 +886,7 @@ export function ProspectRenderHistory({
                   } else {
                     setCompareSelectMode(true);
                     setCompareSelectedIds([]);
-                    setDigitalSetsExpanded(true);
+                    setIsDigitalSetsModalOpen(true);
                   }
                 }}
                 className="flex-1 px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
@@ -947,431 +947,6 @@ export function ProspectRenderHistory({
           >
             UPLOAD NEW DIGITAL SET
           </button>
-
-          <button
-            type="button"
-            onClick={() => setDigitalSetsExpanded(prev => !prev)}
-            className="mt-[32px] mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
-            style={{ cursor: 'pointer' }}
-          >
-            <span style={sectionLabelStyle}>DIGITAL SETS</span>
-            <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
-              {digitalSetsExpanded ? '▲' : '▼'}
-            </span>
-          </button>
-
-          {digitalSetsExpanded && (
-          <>
-          <div data-tutorial="digital-sets-timeline">
-            {digitalSetsForDisplay.map((ds) => {
-              const digitalsOnFile = countDigitalsOnFile(ds);
-              const isOpen = openedSetId === ds.id;
-              const contextRows = (ds.evaluations ?? []).flatMap(getContextEvaluationRows);
-
-              return (
-                <div key={ds.id}>
-                  <div
-                    className="flex items-center gap-[24px] py-[16px]"
-                    style={{
-                      borderBottom: '1px solid var(--cv-elevated)',
-                      cursor: 'pointer',
-                      opacity:
-                        compareSelectMode &&
-                        compareSelectedIds.length === 2 &&
-                        !compareSelectedIds.includes(ds.id)
-                          ? 0.3
-                          : 1,
-                    }}
-                    onClick={() => {
-                      if (compareSelectMode) {
-                        if (compareSelectedIds.includes(ds.id)) {
-                          setCompareSelectedIds((prev) =>
-                            prev.filter((id) => id !== ds.id),
-                          );
-                        } else if (compareSelectedIds.length < 2) {
-                          setCompareSelectedIds((prev) => [...prev, ds.id]);
-                        }
-                      } else {
-                        toggleOpenSet(ds.id);
-                      }
-                    }}
-                  >
-                    {compareSelectMode && (
-                      <div
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '2px',
-                          border: `1px solid ${compareSelectedIds.includes(ds.id) ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)'}`,
-                          backgroundColor: compareSelectedIds.includes(ds.id)
-                            ? 'var(--cv-primary-text)'
-                            : 'transparent',
-                          flexShrink: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        {compareSelectedIds.includes(ds.id) && (
-                          <div
-                            style={{
-                              width: '10px',
-                              height: '10px',
-                              backgroundColor: 'var(--cv-background)',
-                              borderRadius: '1px',
-                            }}
-                          />
-                        )}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '12px',
-                          color: 'var(--cv-primary-text)',
-                          fontWeight: 700,
-                        }}
-                      >
-                        {ds.title && ds.title !== 'Untitled Set' ? ds.title : ds.uploadedAt}
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9px',
-                          color: 'var(--cv-secondary-text)',
-                          marginTop: '4px',
-                        }}
-                      >
-                        {ds.uploadedAt}
-                      </div>
-                    </div>
-
-                    <div
-                      className="flex-shrink-0"
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '9px',
-                        color: 'var(--cv-secondary-text)',
-                      }}
-                    >
-                      {digitalsOnFile} digital{digitalsOnFile !== 1 ? 's' : ''} ·{' '}
-                      {`${ds.evaluations?.length || 0} evaluation${ds.evaluations?.length !== 1 ? 's' : ''}`}
-                    </div>
-
-                    <div className="flex items-center gap-[8px] flex-shrink-0">
-                      {!compareSelectMode && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleOpenSet(ds.id);
-                        }}
-                        className={ghostButtonClass}
-                        style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
-                      >
-                        OPEN
-                      </button>
-                      )}
-                      {!compareSelectMode && (
-                      <button
-                        type="button"
-                        disabled={digitalsOnFile === 0}
-                        title={digitalsOnFile === 0 ? runEvaluationDisabledTitle : undefined}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (digitalsOnFile > 0) {
-                            navigate(
-                              `/profile?name=${encodeURIComponent(activeProfile.name)}&prospectId=${resolvedEntityId}&profileType=${profileType}`
-                            );
-                          }
-                        }}
-                        className={ghostButtonClass}
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          color: 'var(--cv-primary-text)',
-                          cursor: digitalsOnFile > 0 ? 'pointer' : 'not-allowed',
-                          opacity: digitalsOnFile > 0 ? 1 : 0.4,
-                        }}
-                      >
-                        RUN EVALUATION
-                      </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!window.confirm('Delete this digital set? This cannot be undone.')) return;
-                          const updatedSets = activeProfile.digitalSets.filter(
-                            (digitalSet) => digitalSet.id !== ds.id
-                          );
-                          if (profileType === 'prospect') {
-                            updateProspect(resolvedEntityId, { digitalSets: updatedSets });
-                          } else {
-                            updateModel(resolvedEntityId, { digitalSets: updatedSets });
-                          }
-                        }}
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10px',
-                          color: '#c87a7a',
-                          background: 'none',
-                          border: '1px solid #3a1a1a',
-                          borderRadius: '4px',
-                          padding: '6px 12px',
-                          cursor: 'pointer',
-                          letterSpacing: '0.05em',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        DELETE
-                      </button>
-                    </div>
-                  </div>
-
-                  {isOpen && (
-                    <div className="pb-[32px] pt-[24px]">
-                      <div
-                        data-tutorial="digital-grid"
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 1fr',
-                          gap: '2px',
-                          width: '100%',
-                          maxWidth: '600px',
-                          marginBottom: '12px',
-                        }}
-                      >
-                        {digitalGridSlots(ds).map((digital) => (
-                          <div key={digital.label} style={{ position: 'relative' }}>
-                            {digital.url && (
-                              <DigitalImage
-                                storageRef={digital.url}
-                                alt={digital.label}
-                                style={{
-                                  width: '100%',
-                                  aspectRatio: '3/4',
-                                  objectFit: 'cover',
-                                  objectPosition: 'center 15%',
-                                  display: 'block',
-                                }}
-                              />
-                            )}
-                            <div
-                              style={{
-                                fontFamily: 'var(--font-mono)',
-                                fontSize: '8px',
-                                color: 'var(--cv-secondary-text)',
-                                letterSpacing: '0.15em',
-                                textTransform: 'uppercase',
-                                marginTop: '4px',
-                              }}
-                            >
-                              {digital.label}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <p
-                        className="mb-[32px]"
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10px',
-                          color: 'var(--cv-secondary-text)',
-                        }}
-                      >
-                        {formatTagsLine(ds)}
-                      </p>
-
-                      {contextRows.length > 0 && (
-                        <div className="mb-[32px]">
-                          <div className="mb-[12px]" style={sectionLabelStyle}>
-                            EVALUATIONS
-                          </div>
-                          <div className="space-y-[8px]">
-                            {contextRows.map((row) => (
-                              <div
-                                key={`${row.evaluationId}-${row.context}`}
-                                className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px] hover:border-[var(--cv-elevated)] transition-colors"
-                                onClick={() => {
-                                  const contextsParam = row.allContexts.join(',');
-                                  navigate(
-                                    `/results?name=${encodeURIComponent(activeProfile.name)}&contexts=${contextsParam}&prospectId=${resolvedEntityId}&profileType=${profileType}&evaluationId=${row.evaluationId}`,
-                                  );
-                                }}
-                                style={{
-                                  minHeight: '64px',
-                                  maxHeight: '72px',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                <div className="w-[25%] flex-shrink-0">
-                                  <div
-                                    style={{
-                                      fontFamily: 'var(--font-mono)',
-                                      fontSize: '11px',
-                                      color: 'var(--cv-primary-text)',
-                                      textTransform: 'uppercase',
-                                      fontWeight: 700,
-                                    }}
-                                  >
-                                    {row.context}
-                                  </div>
-                                  <div
-                                    style={{
-                                      fontFamily: 'var(--font-mono)',
-                                      fontSize: '9px',
-                                      color: 'var(--cv-secondary-text)',
-                                      marginTop: '4px',
-                                    }}
-                                  >
-                                    {row.completedAt}
-                                  </div>
-                                </div>
-
-                                <div className="w-[50%] min-w-0">
-                                  <p
-                                    className="overflow-hidden"
-                                    style={{
-                                      fontFamily: 'var(--font-mono)',
-                                      fontSize: '10px',
-                                      color: 'var(--cv-secondary-text)',
-                                      lineHeight: 1.6,
-                                      display: '-webkit-box',
-                                      WebkitLineClamp: 2,
-                                      WebkitBoxOrient: 'vertical',
-                                    }}
-                                  >
-                                    {row.reasoning}
-                                  </p>
-                                </div>
-
-                                <div className="w-[25%] flex-shrink-0 text-right">
-                                  <div
-                                    style={{
-                                      fontFamily: 'Georgia, serif',
-                                      fontSize: '28px',
-                                      color: 'var(--cv-primary-text)',
-                                      lineHeight: 1,
-                                    }}
-                                  >
-                                    {row.alignmentScore}
-                                  </div>
-                                  <div
-                                    style={{
-                                      fontFamily: 'var(--font-mono)',
-                                      fontSize: '8px',
-                                      color: getFitLabelColor(row.fitLabel),
-                                      marginTop: '4px',
-                                      letterSpacing: '0.12em',
-                                      textTransform: 'uppercase',
-                                    }}
-                                  >
-                                    {row.fitLabel}
-                                  </div>
-                                </div>
-
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDeleteEvalTarget({
-                                      setId: ds.id,
-                                      evalId: row.evaluationId,
-                                    });
-                                  }}
-                                  className="flex-shrink-0 font-mono text-[9px] text-[#c87a7a] border border-[#c87a7a] bg-transparent px-[8px] py-[3px] rounded-[2px] hover:bg-[#c87a7a] hover:text-[var(--cv-background)] transition-colors cursor-pointer uppercase tracking-[0.1em]"
-                                >
-                                  DELETE
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      <div>
-                        <div
-                          className="mb-[8px]"
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '9px',
-                            color: 'var(--cv-secondary-text)',
-                            letterSpacing: '0.12em',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          NOTES
-                        </div>
-                        <textarea
-                          value={notesBySet[ds.id] ?? ds.notes}
-                          onChange={(e) =>
-                            setNotesBySet((prev) => ({
-                              ...prev,
-                              [ds.id]: e.target.value,
-                            }))
-                          }
-                          placeholder="Agent notes..."
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '11px',
-                            color: 'var(--cv-secondary-text)',
-                            backgroundColor: 'transparent',
-                            border: 'none',
-                            borderBottom: '1px solid var(--cv-elevated)',
-                            padding: '4px 0',
-                            width: '100%',
-                            resize: 'vertical',
-                            minHeight: '40px',
-                            outline: 'none',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {compareSelectMode && compareSelectedIds.length === 2 && (
-            <button
-              type="button"
-              onClick={() => {
-                setCompareSelectMode(false);
-                navigate(
-                  `/compare?prospectId=${resolvedEntityId}&profileType=${profileType}&previousSetId=${compareSelectedIds[0]}&currentSetId=${compareSelectedIds[1]}`,
-                );
-              }}
-              className="w-full mt-[16px] py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                backgroundColor: 'var(--cv-primary-text)',
-                color: 'var(--cv-background)',
-                cursor: 'pointer',
-                border: 'none',
-              }}
-            >
-              CONFIRM COMPARISON →
-            </button>
-          )}
-
-          {!canCompare && (
-            <p
-              className="mt-[8px] mb-[4px]"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '9px',
-                color: 'var(--cv-secondary-text)',
-                fontStyle: 'italic',
-              }}
-            >
-              Upload a second digital set to compare progression.
-            </p>
-          )}
-          </>
-          )}
         </div>
 
         {allEvaluations.length > 0 && (
@@ -1993,11 +1568,18 @@ export function ProspectRenderHistory({
         open={isDigitalSetsModalOpen}
         onOpenChange={(open) => {
           setIsDigitalSetsModalOpen(open);
-          if (!open) setSelectedDigitalSet(null);
+          if (!open) {
+            setSelectedDigitalSet(null);
+            setCompareSelectMode(false);
+            setCompareSelectedIds([]);
+          }
         }}
       >
         <DialogContent
-          className="max-w-[640px] p-0 overflow-hidden"
+          className={selectedDigitalSet
+            ? 'max-w-[80vw] w-[80vw] max-h-[90vh] p-0 overflow-y-auto'
+            : 'max-w-2xl p-0 overflow-hidden'}
+          overlayClassName="bg-black/70 backdrop-blur-md"
           style={{ background: 'var(--cv-background)', borderColor: 'var(--cv-subtle-border)' }}
         >
           {!selectedDigitalSet ? (
@@ -2013,7 +1595,7 @@ export function ProspectRenderHistory({
                   marginBottom: '24px',
                 }}
               >
-                Digital Sets
+                {compareSelectMode ? 'SELECT TWO DIGITALS TO COMPARE' : 'DIGITALS'}
               </div>
               {digitalSetsForDisplay.length === 0 ? (
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
@@ -2021,41 +1603,119 @@ export function ProspectRenderHistory({
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {digitalSetsForDisplay.map((ds) => (
-                    <button
-                      key={ds.id}
-                      type="button"
-                      onClick={() => setSelectedDigitalSet(ds)}
-                      style={{
-                        background: 'var(--cv-surface)',
-                        border: '1px solid var(--cv-subtle-border)',
-                        borderRadius: '4px',
-                        padding: '16px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        width: '100%',
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--cv-primary-text)';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--cv-subtle-border)';
-                      }}
-                    >
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', marginBottom: '4px' }}>
-                        {ds.title && ds.title !== 'Untitled Set' ? ds.title : ds.uploadedAt}
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
-                        {countDigitalsOnFile(ds)} digital{countDigitalsOnFile(ds) !== 1 ? 's' : ''} · {ds.uploadedAt}
-                      </div>
-                    </button>
-                  ))}
+                  {digitalSetsForDisplay.map((ds) => {
+                    const isSelected = compareSelectedIds.includes(ds.id);
+                    const isDisabled = compareSelectMode && compareSelectedIds.length === 2 && !isSelected;
+                    return (
+                      <button
+                        key={ds.id}
+                        type="button"
+                        onClick={() => {
+                          if (compareSelectMode) {
+                            if (isSelected) {
+                              setCompareSelectedIds((prev) => prev.filter((id) => id !== ds.id));
+                            } else if (compareSelectedIds.length < 2) {
+                              setCompareSelectedIds((prev) => [...prev, ds.id]);
+                            }
+                          } else {
+                            setSelectedDigitalSet(ds);
+                          }
+                        }}
+                        style={{
+                          background: isSelected ? 'var(--cv-elevated)' : 'var(--cv-surface)',
+                          border: `1px solid ${isSelected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)'}`,
+                          borderRadius: '4px',
+                          padding: '16px',
+                          cursor: isDisabled ? 'not-allowed' : 'pointer',
+                          textAlign: 'left',
+                          width: '100%',
+                          opacity: isDisabled ? 0.3 : 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isDisabled && !isSelected)
+                            (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--cv-primary-text)';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected)
+                            (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--cv-subtle-border)';
+                        }}
+                      >
+                        {compareSelectMode && (
+                          <div
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '2px',
+                              border: `1px solid ${isSelected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)'}`,
+                              backgroundColor: isSelected ? 'var(--cv-primary-text)' : 'transparent',
+                              flexShrink: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            {isSelected && (
+                              <div style={{ width: '10px', height: '10px', backgroundColor: 'var(--cv-background)', borderRadius: '1px' }} />
+                            )}
+                          </div>
+                        )}
+                        <div>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', marginBottom: '4px' }}>
+                            {ds.title && ds.title !== 'Untitled Set' ? ds.title : ds.uploadedAt}
+                          </div>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
+                            {countDigitalsOnFile(ds)} digital{countDigitalsOnFile(ds) !== 1 ? 's' : ''} · {ds.uploadedAt}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
+              )}
+              {compareSelectMode && compareSelectedIds.length === 2 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ids = compareSelectedIds;
+                    setIsDigitalSetsModalOpen(false);
+                    setCompareSelectMode(false);
+                    setCompareSelectedIds([]);
+                    navigate(
+                      `/compare?prospectId=${resolvedEntityId}&profileType=${profileType}&previousSetId=${ids[0]}&currentSetId=${ids[1]}`,
+                    );
+                  }}
+                  className="w-full mt-[16px] py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    backgroundColor: 'var(--cv-primary-text)',
+                    color: 'var(--cv-background)',
+                    cursor: 'pointer',
+                    border: 'none',
+                  }}
+                >
+                  CONFIRM COMPARISON →
+                </button>
+              )}
+              {compareSelectMode && !canCompare && (
+                <p
+                  className="mt-[8px] mb-[4px]"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '9px',
+                    color: 'var(--cv-secondary-text)',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  Upload a second digital set to compare progression.
+                </p>
               )}
             </div>
           ) : (
             /* Detail view */
-            <div style={{ padding: '32px', overflowY: 'auto', maxHeight: '80vh' }}>
+            <div style={{ padding: '32px', overflowY: 'auto', maxHeight: '90vh' }}>
               <button
                 type="button"
                 onClick={() => setSelectedDigitalSet(null)}
@@ -2082,17 +1742,20 @@ export function ProspectRenderHistory({
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', marginBottom: '24px' }}>
                 {selectedDigitalSet.uploadedAt}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="grid grid-cols-2 gap-4">
                 {digitalGridSlots(selectedDigitalSet).map((d) => (
                   <div key={d.label}>
                     <div
                       style={{
-                        aspectRatio: '3/4',
+                        height: '36vh',
                         background: 'var(--cv-surface)',
                         border: '1px solid var(--cv-subtle-border)',
                         borderRadius: '4px',
                         overflow: 'hidden',
                         marginBottom: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
                     >
                       {d.url && (
@@ -2102,8 +1765,7 @@ export function ProspectRenderHistory({
                           style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: 'cover',
-                            objectPosition: 'center 15%',
+                            objectFit: 'contain',
                           }}
                         />
                       )}
