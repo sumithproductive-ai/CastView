@@ -5,7 +5,6 @@ import { ChevronRight, Lock } from 'lucide-react';
 
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
-import { MessageThread } from './MessageThread';
 import { DigitalImage } from './DigitalImage';
 
 const contexts = [
@@ -14,13 +13,6 @@ const contexts = [
   'Swimwear', 'Couture', 'Street'
 ];
 
-const sectionLabelStyle = {
-  fontFamily: 'var(--font-mono)',
-  fontSize: '9px',
-  color: 'var(--cv-secondary-text)',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase' as const,
-};
 
 export function Profile() {
   const navigate = useNavigate();
@@ -33,7 +25,6 @@ export function Profile() {
   const { getProspectById, prospects, updateProspect, loading: prospectsLoading } = useProspects();
   const { models, loading: rosterLoading } = useRoster();
 
-  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
   const [signedStatusSaveConfirmed, setSignedStatusSaveConfirmed] = useState(false);
   const isLoading = (prospectsLoading || rosterLoading) && prospectId !== '';
   const prospect = getProspectById(prospectId);
@@ -143,7 +134,7 @@ export function Profile() {
 
       <div className="flex items-center gap-[8px] mb-[48px]">
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
-          Prospects
+          {profileType === 'model' ? 'Roster' : 'Prospects'}
         </span>
         <ChevronRight size={14} style={{ color: 'var(--cv-secondary-text)' }} />
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
@@ -199,14 +190,11 @@ export function Profile() {
               className="text-[11px]"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
             >
-              Digitals are stored securely and used only for evaluation.{' '}
-              <span className="underline cursor-pointer hover:opacity-70 transition-opacity">
-                View our data policy.
-              </span>
+              Digitals are stored securely and used only for evaluation.
             </div>
           </div>
 
-          {measurementData.length > 0 && (
+          {measurementData.filter((m) => m.value !== '—').length > 0 && (
             <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
               <div 
                 className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
@@ -309,28 +297,6 @@ export function Profile() {
             </select>
           </div>
 
-          <div>
-            <button
-              type="button"
-              onClick={() => setIsMessagesOpen((open) => !open)}
-              className="mt-[32px] mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
-              style={{ cursor: 'pointer' }}
-            >
-              <span style={sectionLabelStyle}>MESSAGES</span>
-              <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
-                {isMessagesOpen ? '▲' : '▼'}
-              </span>
-            </button>
-
-            {isMessagesOpen && (
-              <MessageThread
-                prospectId={prospectId}
-                prospectName={prospectName}
-                prospectEmail={entity?.email ?? ''}
-              />
-            )}
-          </div>
-
           <div className="mb-[32px]">
             <label 
               className="block mb-[16px] text-[11px] uppercase tracking-[0.1em]"
@@ -397,26 +363,6 @@ export function Profile() {
             Run Alignment Analysis
           </button>
 
-          {/* Status Row */}
-          <div className="flex items-center gap-[16px]">
-            <div 
-              className="px-[16px] py-[8px] rounded-full text-[9px] uppercase tracking-[0.1em]"
-              style={{ 
-                fontFamily: 'var(--font-label)', 
-                backgroundColor: '#7d6d4d33',
-                color: '#7d6d4d',
-                border: '1px solid #7d6d4d'
-              }}
-            >
-              In Review
-            </div>
-            <button
-              className="text-[13px] hover:opacity-70 transition-opacity"
-              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-            >
-              Change Status
-            </button>
-          </div>
         </div>
       </div>
 
