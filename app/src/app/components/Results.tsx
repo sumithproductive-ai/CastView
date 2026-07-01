@@ -1145,37 +1145,17 @@ export function Results() {
           {evalSaved ? '✓ SAVED' : savingEval ? 'SAVING…' : saveError ? 'SAVE FAILED — RETRY' : 'SAVE EVALUATION'}
         </button>
 
-        <div className="flex gap-[12px]">
-          <button
-            type="button"
-            onClick={generatePDF}
-            className="cv-btn-primary border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)] transition-colors"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--cv-secondary-text)',
-              cursor: 'pointer',
-            }}
-          >
-            EXPORT PDF
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              navigate(
-                profileType === 'model'
-                  ? `/roster/${prospectId}`
-                  : `/prospects/${prospectId}`,
-              )
-            }
-            className="bg-[var(--cv-primary-text)] text-[var(--cv-background)] rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              cursor: 'pointer',
-            }}
-          >
-            SHARE
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={generatePDF}
+          className="bg-[var(--cv-primary-text)] text-[var(--cv-background)] rounded-[4px] px-[20px] py-[10px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            cursor: 'pointer',
+          }}
+        >
+          EXPORT PDF
+        </button>
       </div>
 
       <h1 
