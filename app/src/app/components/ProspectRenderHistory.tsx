@@ -492,40 +492,21 @@ export function ProspectRenderHistory({
         </div>
       ) : (
         <>
-      <div className="flex items-center justify-between mb-[32px]">
-        <div className="flex items-center gap-[8px]">
-          <Link
-            to={isModel ? '/roster' : '/prospects'}
-            className="text-[13px] hover:opacity-70 transition-opacity"
-            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-          >
-            {isModel ? 'Roster' : 'Prospects'}
-          </Link>
-          <ChevronRight size={14} style={{ color: 'var(--cv-secondary-text)' }} />
-          <span
-            className="text-[13px]"
-            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
-          >
-            {activeProfile.name}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowTutorial(true)}
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '10px',
-            color: 'var(--cv-secondary-text)',
-            cursor: 'pointer',
-            textDecoration: 'underline',
-            textUnderlineOffset: '3px',
-            background: 'none',
-            border: 'none',
-            padding: 0,
-          }}
+      <div className="flex items-center gap-[8px] mb-[32px]">
+        <Link
+          to={isModel ? '/roster' : '/prospects'}
+          className="text-[13px] hover:opacity-70 transition-opacity"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
-          HOW TO USE DIGITAL SETS
-        </button>
+          {isModel ? 'Roster' : 'Prospects'}
+        </Link>
+        <ChevronRight size={14} style={{ color: 'var(--cv-secondary-text)' }} />
+        <span
+          className="text-[13px]"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
+        >
+          {activeProfile.name}
+        </span>
       </div>
 
       <div className="flex items-start gap-[24px] mb-[32px]">
@@ -703,7 +684,9 @@ export function ProspectRenderHistory({
                   className="flex items-center gap-[8px] bg-transparent border-none p-0"
                   style={{ cursor: 'pointer' }}
                 >
-                  <span style={sectionLabelStyle}>EVALUATIONS</span>
+                  <span style={sectionLabelStyle}>
+                    EVALUATIONS {allEvaluations.length > 0 ? `(${allEvaluations.length})` : ''}
+                  </span>
                   <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
                     {evaluationsExpanded ? '▲' : '▼'}
                   </span>
@@ -982,17 +965,21 @@ export function ProspectRenderHistory({
         >
           {/* Status section */}
           <div style={{ padding: '20px', borderBottom: '1px solid var(--cv-elevated)' }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '9px',
-                color: 'var(--cv-secondary-text)',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                marginBottom: '8px',
-              }}
-            >
-              Signed Status
+            <div style={{ marginBottom: '8px' }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  color: 'var(--cv-secondary-text)',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Signed Status
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cv-secondary-text)', opacity: 0.5, marginTop: '2px' }}>
+                Contract stage
+              </div>
             </div>
             <select
               value={activeProfile?.signed_status ?? 'pending'}
@@ -1034,18 +1021,21 @@ export function ProspectRenderHistory({
               <option value="passed">PASSED</option>
             </select>
 
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '9px',
-                color: 'var(--cv-secondary-text)',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                marginTop: '16px',
-                marginBottom: '6px',
-              }}
-            >
-              Current Status
+            <div style={{ marginTop: '16px', marginBottom: '6px' }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  color: 'var(--cv-secondary-text)',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Current Status
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cv-secondary-text)', opacity: 0.5, marginTop: '2px' }}>
+                Pipeline position
+              </div>
             </div>
             <div
               style={{
@@ -1082,17 +1072,36 @@ export function ProspectRenderHistory({
 
           {/* Digitals section */}
           <div style={{ padding: '20px', borderBottom: '1px solid var(--cv-elevated)' }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '9px',
-                color: 'var(--cv-secondary-text)',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                marginBottom: '6px',
-              }}
-            >
-              DIGITALS
+            <div className="flex items-center justify-between" style={{ marginBottom: '6px' }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  color: 'var(--cv-secondary-text)',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                DIGITALS
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTutorial(true)}
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  color: 'var(--cv-secondary-text)',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  textUnderlineOffset: '2px',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  opacity: 0.7,
+                }}
+              >
+                HOW TO USE
+              </button>
             </div>
             <div
               style={{

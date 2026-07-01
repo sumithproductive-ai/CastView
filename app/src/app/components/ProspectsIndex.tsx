@@ -135,17 +135,6 @@ export function ProspectsIndex() {
 
   const draftCount = prospects.filter(p => p.status === 'DRAFT').length;
 
-  const handleProspectStatus = (
-    prospectId: string,
-    newStatus: string,
-    newStatusColor: string
-  ) => {
-    updateProspect(prospectId, {
-      status: newStatus,
-      statusColor: newStatusColor,
-    });
-  };
-
   const handleToggleSelect = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -637,68 +626,6 @@ export function ProspectsIndex() {
                   {prospect.status}
                 </div>
 
-                {prospect.status !== 'DRAFT' && (
-                  <div onClick={(e) => e.preventDefault()}>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(
-                          `/profile?name=${encodeURIComponent(prospect.name)}&prospectId=${prospect.id}&profileType=prospect`
-                        );
-                      }}
-                      className="w-full mb-[8px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        backgroundColor: 'var(--cv-primary-text)',
-                        color: 'var(--cv-background)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      RUN EVALUATION
-                    </button>
-                    <div className="flex gap-[8px]">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleProspectStatus(prospect.id, 'SHORTLISTED', '#7d6d4d');
-                        }}
-                        className="flex-1 px-[10px] py-[6px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
-                        style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
-                      >
-                        SHORTLIST
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleProspectStatus(prospect.id, 'PASSED', '#5d3d3d');
-                        }}
-                        className="flex-1 px-[10px] py-[6px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
-                        style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
-                      >
-                        PASS
-                      </button>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDeleteTargetId(prospect.id);
-                      }}
-                      className="w-full mt-[8px] px-[10px] py-[6px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] transition-colors"
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        color: '#c87a7a',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      DELETE PROSPECT
-                    </button>
-                  </div>
-                )}
               </div>
             </Link>
           </div>

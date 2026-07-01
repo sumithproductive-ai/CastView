@@ -104,21 +104,33 @@ export function UploadDigitalSet() {
     });
   };
 
+  const backPath = profileType === 'model' ? `/roster/${entityId}` : `/prospects/${entityId}`;
+
   return (
     <div className="p-[20px] md:p-[32px]" style={{ backgroundColor: 'var(--cv-background)', minHeight: '100%' }}>
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="mb-[32px] bg-transparent border-none hover:opacity-70 transition-opacity"
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '11px',
-          color: 'var(--cv-secondary-text)',
-          cursor: 'pointer',
-        }}
-      >
-        ← BACK
-      </button>
+      <div className="flex items-center gap-[8px] mb-[32px]">
+        <button
+          type="button"
+          onClick={() => navigate(backPath)}
+          className="bg-transparent border-none hover:opacity-70 transition-opacity"
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)', cursor: 'pointer', padding: 0 }}
+        >
+          {profileType === 'model' ? 'Roster' : 'Prospects'}
+        </button>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>›</span>
+        <button
+          type="button"
+          onClick={() => navigate(backPath)}
+          className="bg-transparent border-none hover:opacity-70 transition-opacity"
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)', cursor: 'pointer', padding: 0 }}
+        >
+          {entityName}
+        </button>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>›</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
+          Upload Digital Set
+        </span>
+      </div>
 
       <h1
         className="mb-[8px]"
@@ -174,6 +186,9 @@ export function UploadDigitalSet() {
           </div>
         </div>
 
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', marginBottom: '10px', letterSpacing: '0.03em' }}>
+          JPG, PNG, or WebP · Max 5MB per image
+        </p>
         <div className="grid grid-cols-4 gap-[10px] mb-[16px]">
         {uploadFields.map((field) => {
           const fieldKey = field.key;
@@ -336,7 +351,7 @@ export function UploadDigitalSet() {
 
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(backPath)}
           className="w-full py-[12px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
           style={{
             fontFamily: 'var(--font-mono)',

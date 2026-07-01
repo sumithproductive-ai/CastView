@@ -134,7 +134,7 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
 }
 
 export function Roster() {
-  const { models, removeModel } = useRoster();
+  const { models } = useRoster();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [contextFilter, setContextFilter] = useState('all');
@@ -147,11 +147,6 @@ export function Roster() {
   const [briefMatchResults, setBriefMatchResults] = useState<
     Array<{ id: string; score: number; reasoning: string }>
   >([]);
-  const [showDevReportModal, setShowDevReportModal] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<RosterModel | null>(null);
-  const [showCopiedConfirmation, setShowCopiedConfirmation] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-  const modelToDelete = models.find((m) => m.id === deleteTargetId) ?? null;
   const navigate = useNavigate();
 
   const contextCodeMap: Record<string, string> = {
@@ -491,7 +486,7 @@ export function Roster() {
                     <div
                       className="text-[12px] cursor-pointer hover:opacity-70 transition-opacity"
                       style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-                      onClick={() => navigate(`/roster/${match.id}/history`)}
+                      onClick={() => navigate(`/roster/${match.id}`)}
                     >
                       VIEW →
                     </div>
@@ -565,7 +560,7 @@ export function Roster() {
           {filteredModels.map((model) => (
             <div
               key={model.id}
-              onClick={() => navigate(`/roster/${model.id}/history`)}
+              onClick={() => navigate(`/roster/${model.id}`)}
               className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] overflow-hidden hover:border-[var(--cv-elevated)] transition-colors cursor-pointer"
             >
               {/* Image with Badge */}
@@ -650,206 +645,12 @@ export function Roster() {
                   {model.status}
                 </div>
 
-                <div
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    navigate(`/compare?prospectId=${model.id}`);
-                  }}
-                  className="text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    color: 'var(--cv-secondary-text)',
-                  }}
-                >
-                  COMPARE DIGITALS
-                </div>
-
-                {/* Development Report Button */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSelectedModel(model);
-                    setShowDevReportModal(true);
-                  }}
-                  className="w-full mt-[12px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-all hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)]"
-                  style={{ 
-                    fontFamily: 'var(--font-mono)', 
-                    height: '36px',
-                    borderColor: 'var(--cv-subtle-border)',
-                    color: 'var(--cv-secondary-text)',
-                    backgroundColor: 'transparent',
-                    cursor: 'pointer'
-                  }}
-                >
-                  ↗ SHARE DEVELOPMENT REPORT
-                </button>
-
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setDeleteTargetId(model.id);
-                  }}
-                  className="w-full mt-[8px] border border-[#c87a7a] text-[#c87a7a] bg-transparent rounded-[4px] text-[9px] uppercase tracking-[0.1em] px-[10px] py-[6px] hover:bg-[#c87a7a] hover:text-[var(--cv-background)] transition-colors cursor-pointer"
-                  style={{ fontFamily: 'var(--font-mono)' }}
-                >
-                  DELETE MODEL
-                </button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Confirm Delete Modal */}
-      {deleteTargetId !== null && (
-        <div
-          className="fixed inset-0 bg-[rgba(8,8,8,0.85)] flex items-center justify-center z-50"
-          onClick={() => setDeleteTargetId(null)}
-        >
-          <div
-            className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[32px] max-w-[400px] w-full mx-[24px]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2
-              className="text-[28px] mb-[16px]"
-              style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
-            >
-              Remove from roster?
-            </h2>
-            <p
-              className="mb-[24px]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)', lineHeight: 1.8 }}
-            >
-              This will permanently remove {modelToDelete?.name} from your roster. Their digital sets and evaluation history will be deleted. This cannot be undone.
-            </p>
-            <div className="flex gap-[12px]">
-              <button
-                type="button"
-                onClick={() => setDeleteTargetId(null)}
-                className="flex-1 px-[16px] py-[10px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', backgroundColor: 'transparent' }}
-              >
-                CANCEL
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (deleteTargetId) {
-                    removeModel(deleteTargetId);
-                    if (selectedModel?.id === deleteTargetId) {
-                      setSelectedModel(null);
-                      setShowDevReportModal(false);
-                    }
-                    setDeleteTargetId(null);
-                  }
-                }}
-                className="flex-1 px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-                style={{ fontFamily: 'var(--font-mono)', backgroundColor: '#c87a7a', color: 'var(--cv-background)' }}
-              >
-                REMOVE MODEL
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Development Report Modal */}
-      {showDevReportModal && selectedModel && (
-        <>
-          {/* Modal Overlay */}
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
-            onClick={() => {
-              setShowDevReportModal(false);
-              setShowCopiedConfirmation(false);
-            }}
-          >
-            {/* Modal */}
-            <div 
-              className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[32px]"
-              style={{ width: '480px' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <h2 
-                className="text-[24px] mb-[24px]"
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
-              >
-                Development Report — {selectedModel.name}
-              </h2>
-
-              {/* Preview Summary - hardcoded for Sofia Andersen, generic for others */}
-              <div 
-                className="mb-[32px] text-[12px] leading-relaxed whitespace-pre-line"
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
-              >
-                {selectedModel.id === 'sofia-andersen' ? (
-                  `July 2025 (Prospect era)
-Fragrance 71% · Editorial 72%
-
-November 2025
-Fragrance 81% · Editorial 83% · Campaign 78%
-
-March 2026
-Fragrance 94% · Editorial 96% · Campaign 88% · Beauty 91%
-
-Overall trajectory: +23 points across primary contexts since signing.`
-                ) : (
-                  `Development data for ${selectedModel.name} will be available after multiple evaluation sessions.`
-                )}
-              </div>
-
-              {/* Buttons */}
-              <div className="flex justify-between gap-[12px]">
-                {/* Cancel Button */}
-                <button
-                  onClick={() => {
-                    setShowDevReportModal(false);
-                    setShowCopiedConfirmation(false);
-                  }}
-                  className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
-                  style={{ 
-                    fontFamily: 'var(--font-mono)',
-                    borderColor: 'var(--cv-subtle-border)',
-                    color: 'var(--cv-secondary-text)',
-                    backgroundColor: 'transparent'
-                  }}
-                >
-                  CANCEL
-                </button>
-
-                {/* Copy Share Link Button */}
-                <button
-                  onClick={() => {
-                    setShowCopiedConfirmation(true);
-                    setTimeout(() => {
-                      setShowCopiedConfirmation(false);
-                    }, 2000);
-                  }}
-                  className="px-[16px] py-[10px] rounded-[4px] text-[12px] transition-opacity hover:opacity-80"
-                  style={{ 
-                    fontFamily: 'var(--font-mono)',
-                    backgroundColor: 'var(--cv-primary-text)',
-                    color: 'var(--cv-background)'
-                  }}
-                >
-                  {showCopiedConfirmation ? (
-                    <span style={{ color: 'var(--cv-secondary-text)', backgroundColor: 'transparent', fontSize: '11px' }}>
-                      Link copied to clipboard
-                    </span>
-                  ) : (
-                    'COPY SHARE LINK'
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 }

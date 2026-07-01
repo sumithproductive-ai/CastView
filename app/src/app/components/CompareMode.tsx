@@ -159,6 +159,7 @@ export function CompareMode() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [isComparing, setIsComparing] = useState(false);
   const [comparingStatus, setComparingStatus] = useState('');
+  const [compareError, setCompareError] = useState('');
   const profileType = searchParams.get('profileType') || 'prospect';
 
   if (prospectDigitalSets.length === 0) {
@@ -233,6 +234,7 @@ export function CompareMode() {
 
   const handleRunComparison = async () => {
     if (isComparing || selectedContexts.length === 0) return;
+    setCompareError('');
     if (!previousSet || !currentSet) return;
 
     setIsComparing(true);
@@ -283,7 +285,7 @@ export function CompareMode() {
           beforeCompressed: prevImages.length,
           afterCompressed: currImages.length,
         });
-        alert(
+        setCompareError(
           prevImages.length === 0 && currImages.length === 0
             ? 'Could not load images from either digital set. Re-upload digitals for both sets, then try again.'
             : prevImages.length === 0
@@ -353,7 +355,7 @@ export function CompareMode() {
       if (comparisonResults.length === 0) {
         setIsComparing(false);
         setComparingStatus('');
-        alert('Evaluation failed for all selected contexts. Please try again.');
+        setCompareError('Evaluation failed for all selected contexts. Please try again.');
         return;
       }
 
@@ -387,7 +389,7 @@ export function CompareMode() {
       console.error('[CompareMode] comparison error:', err);
       setIsComparing(false);
       setComparingStatus('');
-      alert('Something went wrong during comparison. Please try again.');
+      setCompareError('Something went wrong during comparison. Please try again.');
     }
   };
 
@@ -683,6 +685,12 @@ export function CompareMode() {
       >
         {isComparing ? comparingStatus || 'COMPARING...' : 'RUN COMPARISON'}
       </button>
+
+      {compareError && (
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#c87a7a', marginTop: '-20px', marginBottom: '24px', lineHeight: 1.6 }}>
+          {compareError}
+        </p>
+      )}
 
       {showTutorial && (
         <TutorialOverlay

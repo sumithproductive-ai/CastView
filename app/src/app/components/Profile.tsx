@@ -25,9 +25,11 @@ export function Profile() {
   const { getProspectById, prospects, updateProspect, loading: prospectsLoading } = useProspects();
   const { models, loading: rosterLoading } = useRoster();
 
-  const [signedStatusSaveConfirmed, setSignedStatusSaveConfirmed] = useState(false);
-  const isLoading = (prospectsLoading || rosterLoading) && prospectId !== '';
   const prospect = getProspectById(prospectId);
+  const [signedStatusSaveConfirmed, setSignedStatusSaveConfirmed] = useState(false);
+  const [agentNotes, setAgentNotes] = useState(prospect?.notes ?? '');
+  const [notesSaved, setNotesSaved] = useState(false);
+  const isLoading = (prospectsLoading || rosterLoading) && prospectId !== '';
   const rosterModel = !prospect
     ? models.find((m) => m.id === prospectId)
     : null;
@@ -242,16 +244,32 @@ export function Profile() {
           </div>
           
           <div className="mb-[32px]">
-            <label 
-              className="block mb-[12px] text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-            >
-              Agent Notes
-            </label>
-            <textarea 
+            <div className="flex items-center justify-between mb-[12px]">
+              <label
+                className="text-[11px] uppercase tracking-[0.1em]"
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+              >
+                Agent Notes
+              </label>
+              {notesSaved && (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#4a7a4a', letterSpacing: '0.05em' }}>
+                  Saved
+                </span>
+              )}
+            </div>
+            <textarea
               className="w-full h-[120px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] resize-none"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}
               placeholder="Strong runway presence, versatile look..."
+              value={agentNotes}
+              onChange={(e) => setAgentNotes(e.target.value)}
+              onBlur={async () => {
+                if (prospect) {
+                  await updateProspect(prospectId, { notes: agentNotes });
+                  setNotesSaved(true);
+                  setTimeout(() => setNotesSaved(false), 2000);
+                }
+              }}
             />
           </div>
 

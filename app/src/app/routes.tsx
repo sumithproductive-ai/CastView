@@ -226,14 +226,6 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: '/roster/:modelId/history',
-    element: (
-      <ProtectedLayoutRoute>
-        <ProspectRenderHistory profileType="model" />
-      </ProtectedLayoutRoute>
-    ),
-  },
-  {
     path: '/prospects',
     element: (
       <ProtectedLayoutRoute>
