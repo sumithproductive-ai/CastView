@@ -492,7 +492,7 @@ export function ProspectRenderHistory({
         </div>
       ) : (
         <>
-      <div className="flex items-center justify-between mb-[48px]">
+      <div className="flex items-center justify-between mb-[32px]">
         <div className="flex items-center gap-[8px]">
           <Link
             to={isModel ? '/roster' : '/prospects'}
@@ -528,29 +528,12 @@ export function ProspectRenderHistory({
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={() =>
-          navigate(profileType === 'model' ? '/roster' : '/prospects')
-        }
-        className="mb-[24px] text-[11px] uppercase tracking-[0.1em] bg-transparent border-none hover:opacity-70 transition-opacity"
-        style={{
-          fontFamily: 'var(--font-mono)',
-          color: 'var(--cv-secondary-text)',
-          cursor: 'pointer',
-        }}
-      >
-        {profileType === 'model'
-          ? '← BACK TO ROSTER'
-          : '← BACK TO PROSPECTS'}
-      </button>
-
-      <div className="flex items-start gap-[24px] mb-[48px]">
+      <div className="flex items-start gap-[24px] mb-[32px]">
         <div style={{ position: 'relative', flexShrink: 0 }}>
           <div
             style={{
-              width: '72px',
-              height: '72px',
+              width: '96px',
+              height: '96px',
               borderRadius: '4px',
               overflow: 'hidden',
               border: '1px solid var(--cv-subtle-border)',
@@ -567,13 +550,12 @@ export function ProspectRenderHistory({
               <div style={{
                 width: '100%', height: '100%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--font-mono)', fontSize: '20px', color: 'var(--cv-subtle-border)',
+                fontFamily: 'var(--font-mono)', fontSize: '24px', color: 'var(--cv-subtle-border)',
               }}>
                 {activeProfile.name.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
-
           <label
             style={{ cursor: 'pointer', display: 'block', marginTop: '6px' }}
             title="Change profile photo"
@@ -609,7 +591,6 @@ export function ProspectRenderHistory({
             />
           </label>
         </div>
-
         <div className="flex-1 min-w-0">
           <p className="mb-[4px]" style={sectionLabelStyle}>
             {isModel ? 'ROSTER MODEL' : 'PROSPECT PROFILE'}
@@ -628,143 +609,11 @@ export function ProspectRenderHistory({
         </div>
       </div>
 
-          <div className="flex items-end justify-between mb-[24px]">
-            <div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '10px',
-                  color: 'var(--cv-secondary-text)',
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  marginBottom: '10px',
-                }}
-              >
-                Signed Status
-              </div>
-              <select
-                value={activeProfile?.signed_status ?? 'pending'}
-                onChange={async (e) => {
-                  const newStatus = e.target.value;
-                  if (isProspect && prospectId) {
-                    await updateProspect(prospectId, { signed_status: newStatus });
-                  } else if (isModel && modelId) {
-                    await updateModel(modelId, {
-                      signed_status: newStatus,
-                    } as Parameters<typeof updateModel>[1]);
-                  }
-                  await supabase.from('events').insert({
-                    agency_id: agencyId,
-                    event_type: 'signed_status_updated',
-                    metadata: {
-                      entityId: prospectId ?? modelId,
-                      status: newStatus,
-                    },
-                  });
-                  setSignedStatusSaveConfirmed(true);
-                  setTimeout(() => setSignedStatusSaveConfirmed(false), 1500);
-                }}
-                style={{
-                  background: 'var(--cv-surface)',
-                  border: `1px solid ${signedStatusSaveConfirmed ? '#4a7a4a' : 'var(--cv-subtle-border)'}`,
-                  borderRadius: '4px',
-                  padding: '8px 12px',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  color: 'var(--cv-primary-text)',
-                  letterSpacing: '0.05em',
-                  cursor: 'pointer',
-                  width: '100%',
-                  maxWidth: '200px',
-                }}
-              >
-                <option value="pending">PENDING</option>
-                <option value="signed">SIGNED</option>
-                <option value="passed">PASSED</option>
-              </select>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-[32px] items-start">
 
-            <button
-              type="button"
-              onClick={() => setIsDigitalSetsModalOpen(true)}
-              style={{
-                background: 'var(--cv-surface)',
-                border: '1px solid var(--cv-subtle-border)',
-                borderRadius: '4px',
-                padding: '10px 16px',
-                cursor: 'pointer',
-                textAlign: 'right',
-                flexShrink: 0,
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '9px',
-                  color: 'var(--cv-secondary-text)',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  marginBottom: '4px',
-                }}
-              >
-                DIGITALS
-              </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
-                {digitalSetCount} set{digitalSetCount !== 1 ? 's' : ''}
-              </div>
-            </button>
-          </div>
-
-      {((isProspect && prospectId) || (isModel && modelId)) && (
-        <>
-          <button
-            type="button"
-            onClick={() => setIsMessagesOpen((open) => !open)}
-            className="mt-[32px] mb-[16px] flex items-center gap-[8px] bg-transparent border-none p-0"
-            style={{ cursor: 'pointer' }}
-          >
-            <span style={sectionLabelStyle}>MESSAGES</span>
-            <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
-              {isMessagesOpen ? '▲' : '▼'}
-            </span>
-          </button>
-
-          {isMessagesOpen && (
-            <>
-              {isModel && modelId && (
-                <MessageThread
-                  prospectId={modelId}
-                  prospectName={activeProfile.name}
-                  prospectEmail={rosterModelForImage?.email ?? ''}
-                />
-              )}
-              {isProspect && prospectId && (
-                <MessageThread
-                  prospectId={prospectId}
-                  prospectName={activeProfile?.name ?? ''}
-                  prospectEmail={(activeProfile as { email?: string } | undefined)?.email ?? ''}
-                />
-              )}
-            </>
-          )}
-        </>
-      )}
-
-      <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] mb-[48px]">
-        <div
-          className="text-[10px] uppercase tracking-[0.12em] mb-[16px]"
-          style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-        >
-          CURRENT STATUS
-        </div>
-        <div
-          className="text-[16px] mb-[24px]"
-          style={{ fontFamily: 'var(--font-mono)', color: statusColor }}
-        >
-          {status}
-        </div>
-        {isProspect ? (
-          <div className="flex flex-col gap-[12px]">
+        {/* LEFT: primary workflow */}
+        <div>
+          <div className="flex flex-col gap-[12px] mb-[32px]">
             <button
               type="button"
               disabled={!canRunEvaluationOnSelected}
@@ -787,81 +636,7 @@ export function ProspectRenderHistory({
             >
               RUN EVALUATION
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (compareSelectMode) {
-                  setCompareSelectMode(false);
-                  setCompareSelectedIds([]);
-                } else {
-                  setCompareSelectMode(true);
-                  setCompareSelectedIds([]);
-                  setIsDigitalSetsModalOpen(true);
-                }
-              }}
-              className="w-full px-[16px] py-[10px] border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] transition-colors"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--cv-secondary-text)',
-                cursor: 'pointer',
-              }}
-            >
-              {compareSelectMode ? 'CANCEL COMPARE' : 'COMPARE DIGITALS'}
-            </button>
-            <div className="w-full h-[1px] bg-[var(--cv-subtle-border)] my-[4px]" />
-            <div
-              className="text-[9px] uppercase tracking-[0.1em]"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--cv-secondary-text)',
-              }}
-            >
-              PIPELINE DECISION
-            </div>
-            <div className="flex gap-[12px]">
-              <button
-                type="button"
-                onClick={() => handleStatusChange('SHORTLISTED', '#7d6d4d')}
-                className="flex-1 px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
-              >
-                SHORTLIST
-              </button>
-              <button
-                type="button"
-                onClick={() => handleStatusChange('PASSED', '#5d3d3d')}
-                className="flex-1 px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
-              >
-                PASS
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-[12px]">
-            <button
-              type="button"
-              disabled={!canRunEvaluationOnSelected}
-              title={!canRunEvaluationOnSelected ? runEvaluationDisabledTitle : undefined}
-              onClick={() => {
-                if (canRunEvaluationOnSelected) {
-                  navigate(
-                    `/profile?name=${encodeURIComponent(activeProfile.name)}&prospectId=${resolvedEntityId}&profileType=${profileType}`
-                  );
-                }
-              }}
-              className="w-full py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                backgroundColor: 'var(--cv-primary-text)',
-                color: 'var(--cv-background)',
-                cursor: canRunEvaluationOnSelected ? 'pointer' : 'not-allowed',
-                opacity: canRunEvaluationOnSelected ? 1 : 0.4,
-              }}
-            >
-              RUN EVALUATION
-            </button>
-            <div className="flex gap-[12px]">
+            {isModel && (
               <button
                 type="button"
                 onClick={() =>
@@ -871,10 +646,453 @@ export function ProspectRenderHistory({
                       : `/prospects/${prospectId ?? ''}`,
                   )
                 }
-                className="flex-1 px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                className="w-full px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
                 style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
               >
                 SHARE DEVELOPMENT REPORT
+              </button>
+            )}
+          </div>
+
+          <div className="w-full h-[1px] bg-[var(--cv-subtle-border)] mb-[32px]" />
+
+          {!hasDigitalSets ? (
+            <div className="py-[48px] text-center">
+              <p
+                className="mb-[24px]"
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
+              >
+                No digital sets uploaded yet.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate(
+                  `/${profileType === 'model' ? 'roster' : 'prospects'}/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
+                )}
+                className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
+              >
+                UPLOAD FIRST DIGITAL SET
+              </button>
+            </div>
+          ) : allEvaluations.length > 0 ? (
+            <div>
+              <div className="mb-[16px] flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setEvaluationsExpanded(prev => !prev)}
+                  className="flex items-center gap-[8px] bg-transparent border-none p-0"
+                  style={{ cursor: 'pointer' }}
+                >
+                  <span style={sectionLabelStyle}>EVALUATIONS</span>
+                  <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
+                    {evaluationsExpanded ? '▲' : '▼'}
+                  </span>
+                </button>
+                {evaluationsExpanded && allEvaluations.length > 0 && (
+                  <div className="flex items-center">
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const allIds = allEvaluations.map((r) => r.id);
+                        if (selectedEvalIds.size === allIds.length) {
+                          setSelectedEvalIds(new Set());
+                        } else {
+                          setSelectedEvalIds(new Set(allIds));
+                        }
+                      }}
+                      style={{
+                        fontFamily: 'DM Mono, monospace',
+                        fontSize: '11px',
+                        color: 'var(--cv-secondary-text)',
+                        cursor: 'pointer',
+                        marginRight: '12px',
+                      }}
+                    >
+                      {selectedEvalIds.size > 0 ? 'DESELECT ALL' : 'SELECT ALL'}
+                    </span>
+                    {selectedEvalIds.size > 0 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleBulkDelete();
+                        }}
+                        disabled={bulkDeleting}
+                        style={{
+                          fontFamily: 'DM Mono, monospace',
+                          fontSize: '11px',
+                          color: '#c87a7a',
+                          border: '1px solid #c87a7a',
+                          background: 'transparent',
+                          padding: '3px 10px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {bulkDeleting ? 'DELETING...' : `DELETE (${selectedEvalIds.size})`}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {evaluationsExpanded && (
+              <div>
+                {allEvaluations.map((ev) => {
+                  const isOpen = openEvalId === ev.id;
+                  const avgScore =
+                    ev.contexts.length > 0
+                      ? Math.round(
+                          ev.contexts.reduce(
+                            (sum, c) => sum + c.alignmentScore,
+                            0,
+                          ) / ev.contexts.length,
+                        )
+                      : null;
+
+                  return (
+                    <div key={ev.id} style={{ borderBottom: '1px solid var(--cv-elevated)' }}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenEvalId(isOpen ? null : ev.id)}
+                        className="w-full flex items-center gap-[24px] py-[16px] text-left"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedEvalIds.has(ev.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            setSelectedEvalIds((prev) => {
+                              const next = new Set(prev);
+                              if (e.target.checked) {
+                                next.add(ev.id);
+                              } else {
+                                next.delete(ev.id);
+                              }
+                              return next;
+                            });
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            accentColor: '#c8a96e',
+                            width: '14px',
+                            height: '14px',
+                            cursor: 'pointer',
+                            marginRight: '10px',
+                            flexShrink: 0,
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '12px',
+                              color: 'var(--cv-primary-text)',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {ev.completedAt}
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '9px',
+                              color: 'var(--cv-secondary-text)',
+                              marginTop: '4px',
+                            }}
+                          >
+                            {ev.allContextNames.join('  ·  ')}
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '9px',
+                            color: 'var(--cv-secondary-text)',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {ev.contexts.length} context
+                          {ev.contexts.length !== 1 ? 's' : ''}
+                          {avgScore != null ? `  ·  avg ${avgScore}%` : ''}
+                        </div>
+
+                        <div
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '9px',
+                            color: 'var(--cv-secondary-text)',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {isOpen ? '▲' : '▼'}
+                        </div>
+                      </button>
+
+                      {isOpen && (
+                        <div className="pb-[24px]">
+                          <div className="space-y-[8px] mb-[16px]">
+                            {ev.contexts.map((ctx) => (
+                              <div
+                                key={ctx.context}
+                                className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px]"
+                              >
+                                <div className="w-[30%] flex-shrink-0">
+                                  <div
+                                    style={{
+                                      fontFamily: 'var(--font-mono)',
+                                      fontSize: '11px',
+                                      color: 'var(--cv-primary-text)',
+                                      textTransform: 'uppercase',
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    {ctx.context}
+                                  </div>
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                  <p
+                                    style={{
+                                      fontFamily: 'var(--font-mono)',
+                                      fontSize: '10px',
+                                      color: 'var(--cv-secondary-text)',
+                                      lineHeight: 1.6,
+                                      overflow: 'hidden',
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                    }}
+                                  >
+                                    {ctx.reasoning}
+                                  </p>
+                                </div>
+
+                                <div className="flex-shrink-0 text-right">
+                                  <div
+                                    style={{
+                                      fontFamily: 'Georgia, serif',
+                                      fontSize: '24px',
+                                      color: 'var(--cv-primary-text)',
+                                      lineHeight: 1,
+                                    }}
+                                  >
+                                    {ctx.alignmentScore}
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontFamily: 'var(--font-mono)',
+                                      fontSize: '8px',
+                                      color: getFitLabelColor(ctx.fitLabel),
+                                      marginTop: '4px',
+                                      letterSpacing: '0.12em',
+                                      textTransform: 'uppercase',
+                                    }}
+                                  >
+                                    {ctx.fitLabel}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const contextsParam = ev.allContextNames.join(',');
+                              navigate(
+                                `/results?name=${encodeURIComponent(activeProfile.name)}&contexts=${contextsParam}&prospectId=${resolvedEntityId}&profileType=${profileType}&evaluationId=${ev.id}`,
+                              );
+                            }}
+                            className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              color: 'var(--cv-primary-text)',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            VIEW FULL REPORT →
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!window.confirm('Delete this evaluation? This cannot be undone.')) return;
+                              await removeEvaluationFromProfile(ev.id);
+                            }}
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '10px',
+                              color: '#c87a7a',
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              letterSpacing: '0.05em',
+                              padding: 0,
+                              marginLeft: '16px',
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            DELETE
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        {/* RIGHT: management sidebar */}
+        <div
+          style={{
+            background: 'var(--cv-surface)',
+            border: '1px solid var(--cv-subtle-border)',
+            borderRadius: '4px',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Status section */}
+          <div style={{ padding: '20px', borderBottom: '1px solid var(--cv-elevated)' }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9px',
+                color: 'var(--cv-secondary-text)',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                marginBottom: '8px',
+              }}
+            >
+              Signed Status
+            </div>
+            <select
+              value={activeProfile?.signed_status ?? 'pending'}
+              onChange={async (e) => {
+                const newStatus = e.target.value;
+                if (isProspect && prospectId) {
+                  await updateProspect(prospectId, { signed_status: newStatus });
+                } else if (isModel && modelId) {
+                  await updateModel(modelId, {
+                    signed_status: newStatus,
+                  } as Parameters<typeof updateModel>[1]);
+                }
+                await supabase.from('events').insert({
+                  agency_id: agencyId,
+                  event_type: 'signed_status_updated',
+                  metadata: {
+                    entityId: prospectId ?? modelId,
+                    status: newStatus,
+                  },
+                });
+                setSignedStatusSaveConfirmed(true);
+                setTimeout(() => setSignedStatusSaveConfirmed(false), 1500);
+              }}
+              style={{
+                background: 'var(--cv-elevated)',
+                border: `1px solid ${signedStatusSaveConfirmed ? '#4a7a4a' : 'var(--cv-subtle-border)'}`,
+                borderRadius: '4px',
+                padding: '8px 12px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: 'var(--cv-primary-text)',
+                letterSpacing: '0.05em',
+                cursor: 'pointer',
+                width: '100%',
+              }}
+            >
+              <option value="pending">PENDING</option>
+              <option value="signed">SIGNED</option>
+              <option value="passed">PASSED</option>
+            </select>
+
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9px',
+                color: 'var(--cv-secondary-text)',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                marginTop: '16px',
+                marginBottom: '6px',
+              }}
+            >
+              Current Status
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '14px',
+                color: statusColor,
+                marginBottom: isProspect ? '16px' : '0',
+              }}
+            >
+              {status}
+            </div>
+
+            {isProspect && (
+              <div className="flex gap-[8px]">
+                <button
+                  type="button"
+                  onClick={() => handleStatusChange('SHORTLISTED', '#7d6d4d')}
+                  className="flex-1 px-[12px] py-[8px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
+                >
+                  SHORTLIST
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleStatusChange('PASSED', '#5d3d3d')}
+                  className="flex-1 px-[12px] py-[8px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
+                >
+                  PASS
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Digitals section */}
+          <div style={{ padding: '20px', borderBottom: '1px solid var(--cv-elevated)' }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9px',
+                color: 'var(--cv-secondary-text)',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                marginBottom: '6px',
+              }}
+            >
+              DIGITALS
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '13px',
+                color: 'var(--cv-primary-text)',
+                marginBottom: '14px',
+              }}
+            >
+              {digitalSetCount} set{digitalSetCount !== 1 ? 's' : ''}
+            </div>
+            <div className="flex flex-col gap-[8px]">
+              <button
+                type="button"
+                onClick={() => setIsDigitalSetsModalOpen(true)}
+                className="w-full px-[12px] py-[8px] border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
+              >
+                VIEW DIGITALS
               </button>
               <button
                 type="button"
@@ -889,343 +1107,91 @@ export function ProspectRenderHistory({
                     setIsDigitalSetsModalOpen(true);
                   }
                 }}
-                className="flex-1 px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                className="w-full px-[12px] py-[8px] border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] transition-colors"
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  color: 'var(--cv-primary-text)',
+                  color: compareSelectMode ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)',
                   cursor: canCompare ? 'pointer' : 'not-allowed',
                   opacity: canCompare ? 1 : 0.4,
                 }}
               >
                 {compareSelectMode ? 'CANCEL COMPARE' : 'COMPARE DIGITALS'}
               </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate('/roster')}
-              className="w-full px-[16px] py-[10px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
-              style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a', cursor: 'pointer' }}
-            >
-              DELETE MODEL
-            </button>
-          </div>
-        )}
-      </div>
-
-      {!hasDigitalSets ? (
-        <div className="text-center py-[80px]">
-          <p
-            className="mb-[24px]"
-            style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
-          >
-            No digital sets uploaded yet.
-          </p>
-          {!showUploadForm && (
-            <button
-              type="button"
-              onClick={() => navigate(
-                `/${profileType === 'model' ? 'roster' : 'prospects'}/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
-              )}
-              className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
-              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
-            >
-              UPLOAD FIRST DIGITAL SET
-            </button>
-          )}
-        </div>
-      ) : (
-        <>
-        <div>
-          <button
-            type="button"
-            onClick={() => navigate(
-              `/${profileType === 'model' ? 'roster' : 'prospects'}/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
-            )}
-            data-tutorial="upload-new-set"
-            className="w-full mt-[16px] px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
-            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
-          >
-            UPLOAD NEW DIGITAL SET
-          </button>
-        </div>
-
-        {allEvaluations.length > 0 && (
-          <div className="mt-[48px]">
-            <div className="mb-[16px] flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => setEvaluationsExpanded(prev => !prev)}
-                className="flex items-center gap-[8px] bg-transparent border-none p-0"
+                data-tutorial="upload-new-set"
+                onClick={() => navigate(
+                  `/${profileType === 'model' ? 'roster' : 'prospects'}/${resolvedEntityId}/upload-digitals?profileType=${profileType}`
+                )}
+                className="w-full px-[12px] py-[8px] border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}
+              >
+                UPLOAD NEW DIGITAL SET
+              </button>
+            </div>
+          </div>
+
+          {/* Messages section */}
+          {((isProspect && prospectId) || (isModel && modelId)) && (
+            <div style={{ padding: '20px', borderBottom: isModel ? '1px solid var(--cv-elevated)' : 'none' }}>
+              <button
+                type="button"
+                onClick={() => setIsMessagesOpen((open) => !open)}
+                className="flex items-center gap-[8px] bg-transparent border-none p-0 w-full"
                 style={{ cursor: 'pointer' }}
               >
-                <span style={sectionLabelStyle}>EVALUATIONS</span>
+                <span style={sectionLabelStyle}>MESSAGES</span>
                 <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
-                  {evaluationsExpanded ? '▲' : '▼'}
+                  {isMessagesOpen ? '▲' : '▼'}
                 </span>
               </button>
-              {evaluationsExpanded && allEvaluations.length > 0 && (
-                <div className="flex items-center">
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const allIds = allEvaluations.map((r) => r.id);
-                      if (selectedEvalIds.size === allIds.length) {
-                        setSelectedEvalIds(new Set());
-                      } else {
-                        setSelectedEvalIds(new Set(allIds));
-                      }
-                    }}
-                    style={{
-                      fontFamily: 'DM Mono, monospace',
-                      fontSize: '11px',
-                      color: 'var(--cv-secondary-text)',
-                      cursor: 'pointer',
-                      marginRight: '12px',
-                    }}
-                  >
-                    {selectedEvalIds.size > 0 ? 'DESELECT ALL' : 'SELECT ALL'}
-                  </span>
-                  {selectedEvalIds.size > 0 && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handleBulkDelete();
-                      }}
-                      disabled={bulkDeleting}
-                      style={{
-                        fontFamily: 'DM Mono, monospace',
-                        fontSize: '11px',
-                        color: '#c87a7a',
-                        border: '1px solid #c87a7a',
-                        background: 'transparent',
-                        padding: '3px 10px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {bulkDeleting ? 'DELETING...' : `DELETE (${selectedEvalIds.size})`}
-                    </button>
+              {isMessagesOpen && (
+                <div className="mt-[16px]">
+                  {isModel && modelId && (
+                    <MessageThread
+                      prospectId={modelId}
+                      prospectName={activeProfile.name}
+                      prospectEmail={rosterModelForImage?.email ?? ''}
+                    />
+                  )}
+                  {isProspect && prospectId && (
+                    <MessageThread
+                      prospectId={prospectId}
+                      prospectName={activeProfile?.name ?? ''}
+                      prospectEmail={(activeProfile as { email?: string } | undefined)?.email ?? ''}
+                    />
                   )}
                 </div>
               )}
             </div>
+          )}
 
-            {evaluationsExpanded && (
-            <div>
-              {allEvaluations.map((ev) => {
-                const isOpen = openEvalId === ev.id;
-                const avgScore =
-                  ev.contexts.length > 0
-                    ? Math.round(
-                        ev.contexts.reduce(
-                          (sum, c) => sum + c.alignmentScore,
-                          0,
-                        ) / ev.contexts.length,
-                      )
-                    : null;
-
-                return (
-                  <div key={ev.id} style={{ borderBottom: '1px solid var(--cv-elevated)' }}>
-                    <button
-                      type="button"
-                      onClick={() => setOpenEvalId(isOpen ? null : ev.id)}
-                      className="w-full flex items-center gap-[24px] py-[16px] text-left"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedEvalIds.has(ev.id)}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          setSelectedEvalIds((prev) => {
-                            const next = new Set(prev);
-                            if (e.target.checked) {
-                              next.add(ev.id);
-                            } else {
-                              next.delete(ev.id);
-                            }
-                            return next;
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                          accentColor: '#c8a96e',
-                          width: '14px',
-                          height: '14px',
-                          cursor: 'pointer',
-                          marginRight: '10px',
-                          flexShrink: 0,
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '12px',
-                            color: 'var(--cv-primary-text)',
-                            fontWeight: 700,
-                          }}
-                        >
-                          {ev.completedAt}
-                        </div>
-                        <div
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '9px',
-                            color: 'var(--cv-secondary-text)',
-                            marginTop: '4px',
-                          }}
-                        >
-                          {ev.allContextNames.join('  ·  ')}
-                        </div>
-                      </div>
-
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9px',
-                          color: 'var(--cv-secondary-text)',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {ev.contexts.length} context
-                        {ev.contexts.length !== 1 ? 's' : ''}
-                        {avgScore != null ? `  ·  avg ${avgScore}%` : ''}
-                      </div>
-
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9px',
-                          color: 'var(--cv-secondary-text)',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {isOpen ? '▲' : '▼'}
-                      </div>
-                    </button>
-
-                    {isOpen && (
-                      <div className="pb-[24px]">
-                        <div className="space-y-[8px] mb-[16px]">
-                          {ev.contexts.map((ctx) => (
-                            <div
-                              key={ctx.context}
-                              className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] px-[16px] py-[12px] flex items-center gap-[16px]"
-                            >
-                              <div className="w-[30%] flex-shrink-0">
-                                <div
-                                  style={{
-                                    fontFamily: 'var(--font-mono)',
-                                    fontSize: '11px',
-                                    color: 'var(--cv-primary-text)',
-                                    textTransform: 'uppercase',
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {ctx.context}
-                                </div>
-                              </div>
-
-                              <div className="flex-1 min-w-0">
-                                <p
-                                  style={{
-                                    fontFamily: 'var(--font-mono)',
-                                    fontSize: '10px',
-                                    color: 'var(--cv-secondary-text)',
-                                    lineHeight: 1.6,
-                                    overflow: 'hidden',
-                                    display: '-webkit-box',
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: 'vertical',
-                                  }}
-                                >
-                                  {ctx.reasoning}
-                                </p>
-                              </div>
-
-                              <div className="flex-shrink-0 text-right">
-                                <div
-                                  style={{
-                                    fontFamily: 'Georgia, serif',
-                                    fontSize: '24px',
-                                    color: 'var(--cv-primary-text)',
-                                    lineHeight: 1,
-                                  }}
-                                >
-                                  {ctx.alignmentScore}
-                                </div>
-                                <div
-                                  style={{
-                                    fontFamily: 'var(--font-mono)',
-                                    fontSize: '8px',
-                                    color: getFitLabelColor(ctx.fitLabel),
-                                    marginTop: '4px',
-                                    letterSpacing: '0.12em',
-                                    textTransform: 'uppercase',
-                                  }}
-                                >
-                                  {ctx.fitLabel}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const contextsParam = ev.allContextNames.join(',');
-                            navigate(
-                              `/results?name=${encodeURIComponent(activeProfile.name)}&contexts=${contextsParam}&prospectId=${resolvedEntityId}&profileType=${profileType}&evaluationId=${ev.id}`,
-                            );
-                          }}
-                          className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            color: 'var(--cv-primary-text)',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          VIEW FULL REPORT →
-                        </button>
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            if (!window.confirm('Delete this evaluation? This cannot be undone.')) return;
-                            await removeEvaluationFromProfile(ev.id);
-                          }}
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '10px',
-                            color: '#c87a7a',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            letterSpacing: '0.05em',
-                            padding: 0,
-                            marginLeft: '16px',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          DELETE
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+          {/* Delete model (model only) */}
+          {isModel && (
+            <div style={{ padding: '14px 20px' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/roster')}
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  color: '#c87a7a',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  letterSpacing: '0.05em',
+                  padding: 0,
+                  textTransform: 'uppercase',
+                  opacity: 0.7,
+                }}
+              >
+                delete model
+              </button>
             </div>
-            )}
-          </div>
-        )}
-        </>
-      )}
+          )}
+        </div>
+
+      </div>
 
       {showUploadForm && (
             <div className="mt-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[20px]">
