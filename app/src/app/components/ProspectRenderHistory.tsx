@@ -636,23 +636,42 @@ export function ProspectRenderHistory({
             >
               RUN EVALUATION
             </button>
-            {isModel && (
+          </div>
+
+          {/* Messages */}
+          {((isProspect && prospectId) || (isModel && modelId)) && (
+            <div className="mb-[32px]">
               <button
                 type="button"
-                onClick={() =>
-                  navigate(
-                    isModel && modelId
-                      ? `/roster/${modelId}`
-                      : `/prospects/${prospectId ?? ''}`,
-                  )
-                }
-                className="w-full px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
+                onClick={() => setIsMessagesOpen((open) => !open)}
+                className="flex items-center gap-[8px] bg-transparent border-none p-0 w-full mb-[0px]"
+                style={{ cursor: 'pointer' }}
               >
-                SHARE DEVELOPMENT REPORT
+                <span style={sectionLabelStyle}>MESSAGES</span>
+                <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
+                  {isMessagesOpen ? '▲' : '▼'}
+                </span>
               </button>
-            )}
-          </div>
+              {isMessagesOpen && (
+                <div className="mt-[16px]">
+                  {isModel && modelId && (
+                    <MessageThread
+                      prospectId={modelId}
+                      prospectName={activeProfile.name}
+                      prospectEmail={rosterModelForImage?.email ?? ''}
+                    />
+                  )}
+                  {isProspect && prospectId && (
+                    <MessageThread
+                      prospectId={prospectId}
+                      prospectName={activeProfile?.name ?? ''}
+                      prospectEmail={(activeProfile as { email?: string } | undefined)?.email ?? ''}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="w-full h-[1px] bg-[var(--cv-subtle-border)] mb-[32px]" />
 
@@ -1117,6 +1136,21 @@ export function ProspectRenderHistory({
               >
                 {compareSelectMode ? 'CANCEL COMPARE' : 'COMPARE DIGITALS'}
               </button>
+              {!canCompare && (
+                <p
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '10px',
+                    color: 'var(--cv-secondary-text)',
+                    letterSpacing: '0.03em',
+                    margin: '0',
+                    lineHeight: '1.5',
+                    opacity: 0.6,
+                  }}
+                >
+                  Add another set to compare progress.
+                </p>
+              )}
               <button
                 type="button"
                 data-tutorial="upload-new-set"
@@ -1131,44 +1165,42 @@ export function ProspectRenderHistory({
             </div>
           </div>
 
-          {/* Messages section */}
-          {((isProspect && prospectId) || (isModel && modelId)) && (
-            <div style={{ padding: '20px', borderBottom: isModel ? '1px solid var(--cv-elevated)' : 'none' }}>
+          {/* Share Development Report (model only) */}
+          {isModel && (
+            <div style={{ padding: '20px', borderBottom: '1px solid var(--cv-elevated)' }}>
               <button
                 type="button"
-                onClick={() => setIsMessagesOpen((open) => !open)}
-                className="flex items-center gap-[8px] bg-transparent border-none p-0 w-full"
-                style={{ cursor: 'pointer' }}
+                onClick={() =>
+                  navigate(
+                    isModel && modelId
+                      ? `/roster/${modelId}`
+                      : `/prospects/${prospectId ?? ''}`,
+                  )
+                }
+                className="w-full px-[12px] py-[8px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
+                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
               >
-                <span style={sectionLabelStyle}>MESSAGES</span>
-                <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
-                  {isMessagesOpen ? '▲' : '▼'}
-                </span>
+                SHARE DEVELOPMENT REPORT
               </button>
-              {isMessagesOpen && (
-                <div className="mt-[16px]">
-                  {isModel && modelId && (
-                    <MessageThread
-                      prospectId={modelId}
-                      prospectName={activeProfile.name}
-                      prospectEmail={rosterModelForImage?.email ?? ''}
-                    />
-                  )}
-                  {isProspect && prospectId && (
-                    <MessageThread
-                      prospectId={prospectId}
-                      prospectName={activeProfile?.name ?? ''}
-                      prospectEmail={(activeProfile as { email?: string } | undefined)?.email ?? ''}
-                    />
-                  )}
-                </div>
-              )}
             </div>
           )}
 
-          {/* Delete model (model only) */}
+          {/* Danger Zone */}
           {isModel && (
-            <div style={{ padding: '14px 20px' }}>
+            <div style={{ padding: '20px' }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  color: '#c87a7a',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  marginBottom: '12px',
+                  opacity: 0.6,
+                }}
+              >
+                DANGER ZONE
+              </div>
               <button
                 type="button"
                 onClick={() => navigate('/roster')}
