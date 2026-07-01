@@ -164,6 +164,7 @@ export function Rendering() {
 
   const finalizeCalledRef = useRef(false);
   const pendingTimersRef = useRef<number[]>([]);
+  const hasStartedRef = useRef(false);
 
   const queueProgress =
     selectedContexts.length > 0
@@ -698,6 +699,8 @@ export function Rendering() {
   ]);
 
   useEffect(() => {
+    if (hasStartedRef.current) return;
+    hasStartedRef.current = true;
     let cancelled = false;
     (async () => {
       await runEvaluation();
