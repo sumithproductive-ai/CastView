@@ -2,6 +2,7 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ChevronRight, Upload, X } from 'lucide-react';
+import { Dialog, DialogContent } from './ui/dialog';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
 import { useRoster, type RosterModel } from '../context/RosterContext';
 import { getRosterModelById } from './Roster';
@@ -230,6 +231,8 @@ export function ProspectRenderHistory({
   const [compareSelectMode, setCompareSelectMode] = useState(false);
   const [compareSelectedIds, setCompareSelectedIds] = useState<string[]>([]);
   const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
+  const [isDigitalSetsModalOpen, setIsDigitalSetsModalOpen] = useState(false);
+  const [selectedDigitalSet, setSelectedDigitalSet] = useState<DigitalSet | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -625,59 +628,91 @@ export function ProspectRenderHistory({
         </div>
       </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '10px',
-                color: 'var(--cv-secondary-text)',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                marginBottom: '10px',
-              }}
-            >
-              Signed Status
+          <div className="flex items-end justify-between mb-[24px]">
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  color: 'var(--cv-secondary-text)',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  marginBottom: '10px',
+                }}
+              >
+                Signed Status
+              </div>
+              <select
+                value={activeProfile?.signed_status ?? 'pending'}
+                onChange={async (e) => {
+                  const newStatus = e.target.value;
+                  if (isProspect && prospectId) {
+                    await updateProspect(prospectId, { signed_status: newStatus });
+                  } else if (isModel && modelId) {
+                    await updateModel(modelId, {
+                      signed_status: newStatus,
+                    } as Parameters<typeof updateModel>[1]);
+                  }
+                  await supabase.from('events').insert({
+                    agency_id: agencyId,
+                    event_type: 'signed_status_updated',
+                    metadata: {
+                      entityId: prospectId ?? modelId,
+                      status: newStatus,
+                    },
+                  });
+                  setSignedStatusSaveConfirmed(true);
+                  setTimeout(() => setSignedStatusSaveConfirmed(false), 1500);
+                }}
+                style={{
+                  background: 'var(--cv-surface)',
+                  border: `1px solid ${signedStatusSaveConfirmed ? '#4a7a4a' : 'var(--cv-subtle-border)'}`,
+                  borderRadius: '4px',
+                  padding: '8px 12px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  color: 'var(--cv-primary-text)',
+                  letterSpacing: '0.05em',
+                  cursor: 'pointer',
+                  width: '100%',
+                  maxWidth: '200px',
+                }}
+              >
+                <option value="pending">PENDING</option>
+                <option value="signed">SIGNED</option>
+                <option value="passed">PASSED</option>
+              </select>
             </div>
-            <select
-              value={activeProfile?.signed_status ?? 'pending'}
-              onChange={async (e) => {
-                const newStatus = e.target.value;
-                if (isProspect && prospectId) {
-                  await updateProspect(prospectId, { signed_status: newStatus });
-                } else if (isModel && modelId) {
-                  await updateModel(modelId, { 
-                    signed_status: newStatus 
-                  } as Parameters<typeof updateModel>[1]);
-                }
-                await supabase.from('events').insert({
-                  agency_id: agencyId,
-                  event_type: 'signed_status_updated',
-                  metadata: { 
-                    entityId: prospectId ?? modelId, 
-                    status: newStatus 
-                  },
-                });
-                setSignedStatusSaveConfirmed(true);
-                setTimeout(() => setSignedStatusSaveConfirmed(false), 1500);
-              }}
+
+            <button
+              type="button"
+              onClick={() => setIsDigitalSetsModalOpen(true)}
               style={{
                 background: 'var(--cv-surface)',
-                border: `1px solid ${signedStatusSaveConfirmed ? '#4a7a4a' : 'var(--cv-subtle-border)'}`,
+                border: '1px solid var(--cv-subtle-border)',
                 borderRadius: '4px',
-                padding: '8px 12px',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                color: 'var(--cv-primary-text)',
-                letterSpacing: '0.05em',
+                padding: '10px 16px',
                 cursor: 'pointer',
-                width: '100%',
-                maxWidth: '200px',
+                textAlign: 'right',
+                flexShrink: 0,
               }}
             >
-              <option value="pending">PENDING</option>
-              <option value="signed">SIGNED</option>
-              <option value="passed">PASSED</option>
-            </select>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  color: 'var(--cv-secondary-text)',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  marginBottom: '4px',
+                }}
+              >
+                Digital Sets
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
+                {digitalSetCount} set{digitalSetCount !== 1 ? 's' : ''}
+              </div>
+            </button>
           </div>
 
       {((isProspect && prospectId) || (isModel && modelId)) && (
@@ -1953,6 +1988,144 @@ export function ProspectRenderHistory({
           steps={uploadTutorialSteps}
         />
       )}
+
+      <Dialog
+        open={isDigitalSetsModalOpen}
+        onOpenChange={(open) => {
+          setIsDigitalSetsModalOpen(open);
+          if (!open) setSelectedDigitalSet(null);
+        }}
+      >
+        <DialogContent
+          className="max-w-[640px] p-0 overflow-hidden"
+          style={{ background: 'var(--cv-background)', borderColor: 'var(--cv-subtle-border)' }}
+        >
+          {!selectedDigitalSet ? (
+            /* List view */
+            <div style={{ padding: '32px' }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  color: 'var(--cv-secondary-text)',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  marginBottom: '24px',
+                }}
+              >
+                Digital Sets
+              </div>
+              {digitalSetsForDisplay.length === 0 ? (
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
+                  No digital sets uploaded yet.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {digitalSetsForDisplay.map((ds) => (
+                    <button
+                      key={ds.id}
+                      type="button"
+                      onClick={() => setSelectedDigitalSet(ds)}
+                      style={{
+                        background: 'var(--cv-surface)',
+                        border: '1px solid var(--cv-subtle-border)',
+                        borderRadius: '4px',
+                        padding: '16px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        width: '100%',
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--cv-primary-text)';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--cv-subtle-border)';
+                      }}
+                    >
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', marginBottom: '4px' }}>
+                        {ds.title && ds.title !== 'Untitled Set' ? ds.title : ds.uploadedAt}
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
+                        {countDigitalsOnFile(ds)} digital{countDigitalsOnFile(ds) !== 1 ? 's' : ''} · {ds.uploadedAt}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Detail view */
+            <div style={{ padding: '32px', overflowY: 'auto', maxHeight: '80vh' }}>
+              <button
+                type="button"
+                onClick={() => setSelectedDigitalSet(null)}
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  color: 'var(--cv-secondary-text)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  letterSpacing: '0.05em',
+                  padding: 0,
+                  marginBottom: '24px',
+                  display: 'block',
+                }}
+              >
+                ← BACK
+              </button>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', marginBottom: '4px' }}>
+                {selectedDigitalSet.title && selectedDigitalSet.title !== 'Untitled Set'
+                  ? selectedDigitalSet.title
+                  : selectedDigitalSet.uploadedAt}
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', marginBottom: '24px' }}>
+                {selectedDigitalSet.uploadedAt}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {digitalGridSlots(selectedDigitalSet).map((d) => (
+                  <div key={d.label}>
+                    <div
+                      style={{
+                        aspectRatio: '3/4',
+                        background: 'var(--cv-surface)',
+                        border: '1px solid var(--cv-subtle-border)',
+                        borderRadius: '4px',
+                        overflow: 'hidden',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      {d.url && (
+                        <DigitalImage
+                          storageRef={d.url}
+                          alt={d.label}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            objectPosition: 'center 15%',
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '9px',
+                        color: 'var(--cv-secondary-text)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.12em',
+                      }}
+                    >
+                      {d.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
         </>
       )}
     </div>
