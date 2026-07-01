@@ -225,7 +225,7 @@ export function ProspectRenderHistory({
   );
   const [signedStatusSaveConfirmed, setSignedStatusSaveConfirmed] = useState(false);
   const [digitalSetsExpanded, setDigitalSetsExpanded] = useState(false);
-  const [evaluationsExpanded, setEvaluationsExpanded] = useState(false);
+  const [evaluationsExpanded, setEvaluationsExpanded] = useState(true);
   const [selectedEvalIds, setSelectedEvalIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [compareSelectMode, setCompareSelectMode] = useState(false);
