@@ -1151,6 +1151,7 @@ export function Results() {
           )}
         </div>
 
+        <div className="flex items-center gap-[12px]">
         <button
           type="button"
           className="cv-btn-primary"
@@ -1242,9 +1243,10 @@ export function Results() {
         >
           SEND TO PROSPECT
         </button>
+        </div>
       </div>
 
-      <h1 
+      <h1
         className="text-[48px] mb-[12px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
