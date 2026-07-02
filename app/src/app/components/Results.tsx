@@ -396,7 +396,7 @@ function DevelopmentPathwayModal({
 export function Results() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { agencyId } = useAuth();
+  const { agencyId, agencyName } = useAuth();
   const { prospects, updateProspect } = useProspects();
   const { models, updateModel, getModelById } = useRoster();
   const { getProspectById } = useProspects();
@@ -659,6 +659,13 @@ export function Results() {
   const [evalSaved, setEvalSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savingEval, setSavingEval] = useState(false);
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [sendModalEmail, setSendModalEmail] = useState('');
+  const [sendModalSubject, setSendModalSubject] = useState('');
+  const [sendModalBody, setSendModalBody] = useState('');
+  const [sendingSend, setSendingSend] = useState(false);
+  const [sendSendError, setSendSendError] = useState<string | null>(null);
+  const [sendSendSuccess, setSendSendSuccess] = useState(false);
 
   useEffect(() => {
     if (!evaluationId) {
@@ -1028,7 +1035,64 @@ export function Results() {
     pdfDrawPageNumbers(pdf);
     pdfSave(pdf, `CastView-${pdfSafeText(prospectName)}-Evaluation.pdf`);
   };
-  
+
+  const buildEvalSummaryMessage = (name: string, evals: any[]): string => {
+    const lines = evals
+      .filter((e) => e.alignmentScore != null)
+      .map((e) => `· ${e.context} — ${e.alignmentScore}%`)
+      .join('\n');
+    return `Hi ${name},\n\nHere are your latest alignment scores from your recent CastView evaluation:\n\n${lines}\n\nThese scores reflect alignment with industry benchmarks across the selected contexts. Feel free to reach out with any questions.`;
+  };
+
+  const handleOpenSendModal = () => {
+    const prospect = getProspectById(prospectId);
+    setSendModalEmail(prospect?.email ?? '');
+    setSendModalSubject(`${prospectName} — Evaluation Results`);
+    setSendModalBody(buildEvalSummaryMessage(prospectName, realEvalData?.contextEvaluations ?? []));
+    setSendSendError(null);
+    setSendSendSuccess(false);
+    setShowSendModal(true);
+  };
+
+  const handleSendToProspect = async () => {
+    const emailTrimmed = sendModalEmail.trim();
+    const subjectTrimmed = sendModalSubject.trim();
+    const bodyTrimmed = sendModalBody.trim();
+    if (!emailTrimmed || !subjectTrimmed || !bodyTrimmed || !agencyId) return;
+
+    setSendingSend(true);
+    setSendSendError(null);
+    try {
+      const res = await authFetch('/api/send-message', {
+        method: 'POST',
+        body: JSON.stringify({
+          prospectId,
+          toEmail: emailTrimmed,
+          toName: prospectName,
+          subject: subjectTrimmed,
+          body: bodyTrimmed,
+          agencyName: agencyName?.trim() || 'CastView Agency',
+        }),
+      });
+      if (res.ok) {
+        setSendSendSuccess(true);
+        setTimeout(() => {
+          setShowSendModal(false);
+          setSendSendSuccess(false);
+        }, 1500);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSendSendError(
+          (data as { error?: string }).error ?? 'Message could not be sent. Please try again.',
+        );
+      }
+    } catch {
+      setSendSendError('Message could not be sent. Please try again.');
+    } finally {
+      setSendingSend(false);
+    }
+  };
+
   return (
     <div className="p-[20px] md:p-[48px] pb-[96px] md:pb-[120px] overflow-x-hidden">
       <div className="flex flex-col gap-[16px] sm:flex-row sm:justify-between sm:items-center mb-[24px]">
@@ -1155,6 +1219,28 @@ export function Results() {
           }}
         >
           EXPORT PDF
+        </button>
+
+        <button
+          type="button"
+          onClick={handleOpenSendModal}
+          disabled={!hasRealEvaluation || profileType === 'model'}
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            color: '#C8A96E',
+            background: 'none',
+            border: '1px solid #C8A96E',
+            borderRadius: '4px',
+            padding: '8px 16px',
+            cursor: !hasRealEvaluation || profileType === 'model' ? 'default' : 'pointer',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase' as const,
+            whiteSpace: 'nowrap',
+            opacity: !hasRealEvaluation || profileType === 'model' ? 0.4 : 1,
+          }}
+        >
+          SEND TO PROSPECT
         </button>
       </div>
 
@@ -1787,6 +1873,98 @@ export function Results() {
           if (pathwayModalContext) void generatePathway(pathwayModalContext);
         }}
       />
+
+      <Dialog open={showSendModal} onOpenChange={(open) => { if (!open) setShowSendModal(false); }}>
+        <DialogContent
+          hideClose
+          overlayClassName="bg-[var(--cv-background)]/70 backdrop-blur-md"
+          className="flex w-[calc(100%-2rem)] max-w-[560px] flex-col gap-0 overflow-hidden rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-surface)] p-0 shadow-2xl sm:max-w-[560px]"
+        >
+          <div className="flex shrink-0 items-center gap-[16px] border-b border-[var(--cv-subtle-border)] px-[20px] py-[16px]">
+            <DialogClose
+              className="flex h-[36px] w-[36px] items-center justify-center rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-elevated)] text-[var(--cv-primary-text)] transition-opacity hover:opacity-80 focus:outline-none"
+              aria-label="Close"
+            >
+              <ArrowLeft size={18} />
+            </DialogClose>
+            <DialogTitle
+              className="text-[11px] uppercase tracking-[0.1em]"
+              style={{ fontFamily: 'var(--font-mono)', color: '#C8A96E', fontWeight: 400 }}
+            >
+              Send to Prospect
+            </DialogTitle>
+          </div>
+
+          <div className="flex flex-col gap-[16px] p-[20px]">
+            <div>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: '6px' }}>To</label>
+              <input
+                type="email"
+                value={sendModalEmail}
+                onChange={(e) => setSendModalEmail(e.target.value)}
+                placeholder="name@example.com"
+                style={{ width: '100%', background: 'var(--cv-elevated)', border: '1px solid var(--cv-subtle-border)', borderRadius: '4px', padding: '8px 12px', fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', boxSizing: 'border-box' as const, outline: 'none' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: '6px' }}>Subject</label>
+              <input
+                type="text"
+                value={sendModalSubject}
+                onChange={(e) => setSendModalSubject(e.target.value)}
+                style={{ width: '100%', background: 'var(--cv-elevated)', border: '1px solid var(--cv-subtle-border)', borderRadius: '4px', padding: '8px 12px', fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', boxSizing: 'border-box' as const, outline: 'none' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: '6px' }}>Message</label>
+              <textarea
+                value={sendModalBody}
+                onChange={(e) => setSendModalBody(e.target.value)}
+                rows={10}
+                style={{ width: '100%', background: 'var(--cv-elevated)', border: '1px solid var(--cv-subtle-border)', borderRadius: '4px', padding: '8px 12px', fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', boxSizing: 'border-box' as const, outline: 'none', resize: 'vertical', lineHeight: 1.6 }}
+              />
+            </div>
+
+            {sendSendError && (
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#c87a7a', margin: 0 }}>
+                {sendSendError}
+              </p>
+            )}
+
+            <div className="flex items-center gap-[16px]">
+              <button
+                type="button"
+                onClick={() => void handleSendToProspect()}
+                disabled={sendingSend || !sendModalEmail.trim() || !sendModalSubject.trim() || !sendModalBody.trim()}
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase' as const,
+                  padding: '10px 24px',
+                  background: sendSendSuccess ? '#4a7a4a' : 'var(--cv-primary-text)',
+                  color: 'var(--cv-background)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: sendingSend || !sendModalEmail.trim() || !sendModalSubject.trim() || !sendModalBody.trim() ? 'not-allowed' : 'pointer',
+                  opacity: !sendModalEmail.trim() || !sendModalSubject.trim() || !sendModalBody.trim() ? 0.5 : 1,
+                }}
+              >
+                {sendSendSuccess ? '✓ SENT' : sendingSend ? 'SENDING...' : 'SEND MESSAGE →'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSendModal(false)}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                cancel
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
