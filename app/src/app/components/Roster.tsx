@@ -619,16 +619,20 @@ export function Roster() {
 
                 {/* Score and Date */}
                 <div className="flex items-center justify-between mb-[16px]">
-                  <div 
-                    style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: 'var(--cv-primary-text)' }}
-                  >
-                    {model.topScore}%
-                  </div>
-                  <div 
-                    style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
-                  >
-                    {model.lastEvaluation}
-                  </div>
+                  {model.topScore > 0 || model.lastEvaluation !== '—' ? (
+                    <>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: 'var(--cv-primary-text)' }}>
+                        {model.topScore}%
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}>
+                        {model.lastEvaluation}
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', opacity: 0.6 }}>
+                      Not evaluated yet
+                    </div>
+                  )}
                 </div>
 
                 {/* Separator */}

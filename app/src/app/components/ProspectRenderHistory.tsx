@@ -616,6 +616,9 @@ export function ProspectRenderHistory({
               }}
             >
               RUN EVALUATION
+              <span style={{ display: 'block', fontSize: '9px', opacity: 0.6, marginTop: '2px', letterSpacing: '0.08em' }}>
+                Select contexts →
+              </span>
             </button>
           </div>
 
@@ -1194,42 +1197,6 @@ export function ProspectRenderHistory({
             </div>
           )}
 
-          {/* Danger Zone */}
-          {isModel && (
-            <div style={{ padding: '20px' }}>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '9px',
-                  color: '#c87a7a',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  marginBottom: '12px',
-                  opacity: 0.6,
-                }}
-              >
-                DANGER ZONE
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/roster')}
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '10px',
-                  color: '#c87a7a',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  letterSpacing: '0.05em',
-                  padding: 0,
-                  textTransform: 'uppercase',
-                  opacity: 0.7,
-                }}
-              >
-                delete model
-              </button>
-            </div>
-          )}
         </div>
 
       </div>

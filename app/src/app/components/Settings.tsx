@@ -167,6 +167,7 @@ export function Settings() {
   const [supportError, setSupportError] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [agencySaveError, setAgencySaveError] = useState<string | null>(null);
+  const [showMarketSuggestions, setShowMarketSuggestions] = useState(false);
 
   const { openTutorial } = useTutorial();
   const { agencyId, user, plan, planStatus, signOut, loading: authLoading } = useAuth();
@@ -627,139 +628,75 @@ export function Settings() {
                 </div>
               </>
             )}
-          </div>
-        </div>
-
-        {/* Your Plan Block */}
-        <div style={!isPageLoading ? sectionFade(2) : undefined}>
-          <div
-            className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-          >
-            YOUR PLAN
-          </div>
-          <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
-            <div className="flex items-center justify-between mb-[24px]">
-              <div
-                className="text-[9px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-              >
-                YOUR PLAN
-              </div>
-              {isPageLoading ? (
-                <PulseBar width={120} height={30} />
-              ) : (
-                <div
-                  className="px-[12px] py-[6px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
-                >
-                  {planLabel || '—'}
+            <div className="mt-[24px] pt-[24px] border-t border-[var(--cv-subtle-border)]">
+              <div className="border-b border-[var(--cv-subtle-border)] py-[14px]">
+                <div className="flex items-center justify-between mb-[12px]">
+                  <label className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
+                    Agent seats
+                  </label>
+                  {isPageLoading ? (
+                    <PulseBar width={120} height={13} />
+                  ) : (
+                    <div className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}>
+                      {`${activeProfileCount} of ${formatSeatLimit(seatLimit)} active`}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-
-            <div className="border-b border-[var(--cv-subtle-border)] py-[14px]">
-              <div className="flex items-center justify-between mb-[12px]">
-                <label
-                  className="text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-                >
-                  Agent seats
+                <div className="w-full h-[4px] bg-[var(--cv-subtle-border)] rounded-[4px] overflow-hidden">
+                  {isPageLoading ? (
+                    <PulseBar width="100%" height={4} />
+                  ) : (
+                    <div className="h-full rounded-[4px]" style={{ width: `${seatProgress}%`, backgroundColor: 'var(--cv-primary-text)' }} />
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center justify-between border-b border-[var(--cv-subtle-border)] py-[14px]">
+                <label className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
+                  Evaluations this month
                 </label>
                 {isPageLoading ? (
-                  <PulseBar width={120} height={13} />
+                  <PulseBar width={32} height={13} />
                 ) : (
-                  <div
-                    className="text-[13px]"
-                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
-                  >
-                    {`${activeProfileCount} of ${formatSeatLimit(seatLimit)} active`}
+                  <div className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}>
+                    {String(evaluationsThisMonth)}
                   </div>
                 )}
               </div>
-              <div className="w-full h-[4px] bg-[var(--cv-subtle-border)] rounded-[4px] overflow-hidden">
+              <div className="flex items-center justify-between py-[14px]">
+                <label className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
+                  Renewal date
+                </label>
                 {isPageLoading ? (
-                  <PulseBar width="100%" height={4} />
+                  <PulseBar width={180} height={13} />
                 ) : (
-                  <div
-                    className="h-full rounded-[4px]"
-                    style={{ width: `${seatProgress}%`, backgroundColor: 'var(--cv-primary-text)' }}
-                  />
+                  <div className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}>
+                    {renewalDate}
+                  </div>
                 )}
               </div>
-            </div>
-
-            <div className="flex items-center justify-between border-b border-[var(--cv-subtle-border)] py-[14px]">
-              <label
-                className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-              >
-                Evaluations this month
-              </label>
-              {isPageLoading ? (
-                <PulseBar width={32} height={13} />
-              ) : (
-                <div
-                  className="text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
+              <div className="flex justify-end gap-[12px] mt-[8px]">
+                <a
+                  href="mailto:hello@castview.org?subject=Seat%20Management%20Request"
+                  className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] no-underline inline-block"
+                  style={{ fontFamily: 'var(--font-label)', borderColor: 'var(--cv-subtle-border)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}
                 >
-                  {String(evaluationsThisMonth)}
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between border-b border-[var(--cv-subtle-border)] py-[14px]">
-              <label
-                className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-              >
-                Renewal date
-              </label>
-              {isPageLoading ? (
-                <PulseBar width={180} height={13} />
-              ) : (
-                <div
-                  className="text-[13px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
+                  MANAGE SEATS
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handleSubscribe('studio')}
+                  className="px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+                  style={{ fontFamily: 'var(--font-label)', backgroundColor: 'var(--cv-primary-text)', color: 'var(--cv-background)', cursor: 'pointer', border: 'none' }}
                 >
-                  {renewalDate}
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end gap-[12px] mt-[24px]">
-              <a
-                href="mailto:hello@castview.org?subject=Seat%20Management%20Request"
-                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] no-underline inline-block"
-                style={{
-                  fontFamily: 'var(--font-label)',
-                  borderColor: 'var(--cv-subtle-border)',
-                  color: 'var(--cv-secondary-text)',
-                  cursor: 'pointer',
-                }}
-              >
-                MANAGE SEATS
-              </a>
-              <button
-                type="button"
-                onClick={() => handleSubscribe('studio')}
-                className="px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-                style={{
-                  fontFamily: 'var(--font-label)',
-                  backgroundColor: 'var(--cv-primary-text)',
-                  color: 'var(--cv-background)',
-                  cursor: 'pointer',
-                  border: 'none',
-                }}
-              >
-                UPGRADE PLAN
-              </button>
+                  UPGRADE PLAN
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Team Activity Block */}
-        <div style={!isPageLoading ? sectionFade(3) : undefined}>
+        <div style={!isPageLoading ? sectionFade(2) : undefined}>
           <div
             className="text-[11px] uppercase tracking-[0.12em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
@@ -871,7 +808,7 @@ export function Settings() {
         </div>
 
         {/* Agency Block */}
-        <div style={!isPageLoading ? sectionFade(4) : undefined}>
+        <div style={!isPageLoading ? sectionFade(3) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
@@ -935,33 +872,38 @@ export function Settings() {
                   />
                 )}
               </div>
-              <div className="flex justify-end mt-[10px]">
-                <div className="w-[320px] flex flex-wrap gap-[8px]">
-                  {isPageLoading
-                    ? Array.from({ length: 8 }).map((_, index) => (
-                        <PulseBar key={index} width={index % 2 === 0 ? 72 : 88} height={28} />
-                      ))
-                    : MARKET_SUGGESTIONS.map((suggestion) => (
+              {!isPageLoading && (
+                <div className="flex justify-end mt-[10px]">
+                  <div className="w-[320px]">
                     <button
-                      key={suggestion}
                       type="button"
-                      onClick={() => {
-                        setPrimaryMarket(suggestion);
-                        setAgencySaved(false);
-                      }}
-                      className="border border-[var(--cv-subtle-border)] text-[var(--cv-secondary-text)] hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)] rounded-[4px] cursor-pointer transition-colors"
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '11px',
-                        padding: '4px 10px',
-                        background: 'transparent',
-                      }}
+                      onClick={() => setShowMarketSuggestions(p => !p)}
+                      className="text-[11px] mb-[8px] transition-colors hover:opacity-80"
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                     >
-                      {suggestion}
+                      Suggestions {showMarketSuggestions ? '▴' : '▾'}
                     </button>
-                  ))}
+                    {showMarketSuggestions && (
+                      <div className="flex flex-wrap gap-[8px]">
+                        {MARKET_SUGGESTIONS.map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onClick={() => {
+                              setPrimaryMarket(suggestion);
+                              setAgencySaved(false);
+                            }}
+                            className="border border-[var(--cv-subtle-border)] text-[var(--cv-secondary-text)] hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)] rounded-[4px] cursor-pointer transition-colors"
+                            style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', padding: '4px 10px', background: 'transparent' }}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="flex justify-end pt-[8px]">
@@ -996,41 +938,8 @@ export function Settings() {
           </div>
         </div>
 
-        {/* Help Block */}
-        <div style={!isPageLoading ? sectionFade(5) : undefined}>
-          <div
-            className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-          >
-            HELP
-          </div>
-          <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
-            <div className="flex items-center justify-between">
-              <label
-                className="text-[13px]"
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-              >
-                Product Tutorial
-              </label>
-              <button
-                onClick={openTutorial}
-                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  borderColor: 'var(--cv-subtle-border)',
-                  color: 'var(--cv-primary-text)',
-                  cursor: 'pointer',
-                  background: 'transparent',
-                }}
-              >
-                LAUNCH TUTORIAL
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Support Block */}
-        <div style={!isPageLoading ? sectionFade(6) : undefined}>
+        <div style={!isPageLoading ? sectionFade(4) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
@@ -1038,6 +947,18 @@ export function Settings() {
             SUPPORT
           </div>
           <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
+            <div className="flex items-center justify-between pb-[20px] mb-[20px] border-b border-[var(--cv-subtle-border)]">
+              <label className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
+                Product Tutorial
+              </label>
+              <button
+                onClick={openTutorial}
+                className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
+                style={{ fontFamily: 'var(--font-mono)', borderColor: 'var(--cv-subtle-border)', color: 'var(--cv-primary-text)', cursor: 'pointer', background: 'transparent' }}
+              >
+                LAUNCH TUTORIAL
+              </button>
+            </div>
             {supportSuccess ? (
               <p
                 className="text-center py-[24px]"
@@ -1149,7 +1070,7 @@ export function Settings() {
           </div>
         )}
 
-        <div className="pt-[48px]" style={!isPageLoading ? sectionFade(7) : undefined}>
+        <div className="pt-[48px]" style={!isPageLoading ? sectionFade(5) : undefined}>
           <button
             type="button"
             onClick={async () => {

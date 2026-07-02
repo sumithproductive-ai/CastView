@@ -316,12 +316,19 @@ export function Profile() {
           </div>
 
           <div className="mb-[32px]">
-            <label 
-              className="block mb-[16px] text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-            >
-              Select Alignment Contexts
-            </label>
+            <div className="flex items-center justify-between mb-[16px]">
+              <label
+                className="text-[11px] uppercase tracking-[0.1em]"
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+              >
+                Select Alignment Contexts
+              </label>
+              {selectedContexts.length > 0 && (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#C8A96E', letterSpacing: '0.05em' }}>
+                  {selectedContexts.length} SELECTED
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-[8px] md:gap-[12px]" data-tutorial="context-grid">
               {contexts.map((context) => {
                 const isSelected = selectedContexts.includes(context);
