@@ -49,7 +49,7 @@ export function Login() {
           zIndex: 10,
         }}
       >
-        ← Back
+        ← BACK
       </a>
       <div
       className="min-h-screen flex items-center justify-center px-[20px]"

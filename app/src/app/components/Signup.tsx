@@ -49,7 +49,7 @@ export function Signup() {
           zIndex: 10,
         }}
       >
-        ← Back
+        ← BACK
       </a>
       <div className="min-h-screen flex items-center justify-center px-[20px]" style={{ backgroundColor: 'var(--cv-background)' }}>
       <div className="w-full max-w-[400px]">

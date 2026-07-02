@@ -54,7 +54,7 @@ export function OnboardingAgencySetup() {
         setSavedAgencyName(trimmedName);
       }
     }
-    navigate('/onboarding/invite');
+    navigate('/onboarding/first-prospect');
   };
 
   return (
@@ -64,75 +64,28 @@ export function OnboardingAgencySetup() {
         <div className="flex items-center justify-center mb-[48px]">
           {/* Step 1 - Active */}
           <div className="flex flex-col items-center">
-            <div 
+            <div
               className="w-[32px] h-[32px] rounded-full flex items-center justify-center mb-[8px]"
               style={{ backgroundColor: 'var(--cv-primary-text)' }}
             >
-              <span 
-                className="text-[13px]" 
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)', fontWeight: 500 }}
-              >
-                1
-              </span>
+              <span className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)', fontWeight: 500 }}>1</span>
             </div>
-            <span 
-              className="text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-primary-text)' }}
-            >
+            <span className="text-[11px] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-primary-text)' }}>
               Agency
             </span>
           </div>
 
-          {/* Connecting Line */}
-          <div 
-            className="w-[80px] h-[1px] mx-[16px] mb-[24px]"
-            style={{ backgroundColor: 'var(--cv-subtle-border)' }}
-          />
+          <div className="w-[80px] h-[1px] mx-[16px] mb-[24px]" style={{ backgroundColor: 'var(--cv-subtle-border)' }} />
 
-          {/* Step 2 - Inactive */}
+          {/* Step 2 - Upcoming */}
           <div className="flex flex-col items-center">
-            <div 
+            <div
               className="w-[32px] h-[32px] rounded-full flex items-center justify-center mb-[8px]"
-              style={{ backgroundColor: 'var(--cv-elevated)', border: '1px solid var(--cv-subtle-border)' }}
+              style={{ backgroundColor: 'transparent', border: '1px solid var(--cv-subtle-border)' }}
             >
-              <span 
-                className="text-[13px]" 
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-              >
-                2
-              </span>
+              <span className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>2</span>
             </div>
-            <span 
-              className="text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-            >
-              Team
-            </span>
-          </div>
-
-          {/* Connecting Line */}
-          <div 
-            className="w-[80px] h-[1px] mx-[16px] mb-[24px]"
-            style={{ backgroundColor: 'var(--cv-subtle-border)' }}
-          />
-
-          {/* Step 3 - Inactive */}
-          <div className="flex flex-col items-center">
-            <div 
-              className="w-[32px] h-[32px] rounded-full flex items-center justify-center mb-[8px]"
-              style={{ backgroundColor: 'var(--cv-elevated)', border: '1px solid var(--cv-subtle-border)' }}
-            >
-              <span 
-                className="text-[13px]" 
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-              >
-                3
-              </span>
-            </div>
-            <span 
-              className="text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-            >
+            <span className="text-[11px] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}>
               First Prospect
             </span>
           </div>

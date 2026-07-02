@@ -91,11 +91,6 @@ const OnboardingAgencySetup = lazy(() =>
     default: m.OnboardingAgencySetup,
   })),
 );
-const OnboardingInviteTeam = lazy(() =>
-  import('./components/OnboardingInviteTeam').then((m) => ({
-    default: m.OnboardingInviteTeam,
-  })),
-);
 const OnboardingFirstProspect = lazy(() =>
   import('./components/OnboardingFirstProspect').then((m) => ({
     default: m.OnboardingFirstProspect,
@@ -358,14 +353,6 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedLayoutRoute>
         <OnboardingAgencySetup />
-      </ProtectedLayoutRoute>
-    ),
-  },
-  {
-    path: '/onboarding/invite',
-    element: (
-      <ProtectedLayoutRoute>
-        <OnboardingInviteTeam />
       </ProtectedLayoutRoute>
     ),
   },

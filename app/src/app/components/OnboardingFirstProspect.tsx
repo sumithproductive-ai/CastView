@@ -26,75 +26,28 @@ export function OnboardingFirstProspect() {
         <div className="flex items-center justify-center mb-[48px]">
           {/* Step 1 - Complete */}
           <div className="flex flex-col items-center">
-            <div 
+            <div
               className="w-[32px] h-[32px] rounded-full flex items-center justify-center mb-[8px]"
-              style={{ backgroundColor: 'var(--cv-subtle-border)' }}
+              style={{ backgroundColor: 'transparent', border: '1px solid var(--cv-subtle-border)' }}
             >
-              <span 
-                className="text-[13px]" 
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-              >
-                1
-              </span>
+              <span className="text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>✓</span>
             </div>
-            <span 
-              className="text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-            >
+            <span className="text-[11px] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}>
               Agency
             </span>
           </div>
 
-          {/* Connecting Line */}
-          <div 
-            className="w-[80px] h-[1px] mx-[16px] mb-[24px]"
-            style={{ backgroundColor: 'var(--cv-subtle-border)' }}
-          />
+          <div className="w-[80px] h-[1px] mx-[16px] mb-[24px]" style={{ backgroundColor: 'var(--cv-subtle-border)' }} />
 
-          {/* Step 2 - Complete */}
+          {/* Step 2 - Active */}
           <div className="flex flex-col items-center">
-            <div 
-              className="w-[32px] h-[32px] rounded-full flex items-center justify-center mb-[8px]"
-              style={{ backgroundColor: 'var(--cv-subtle-border)' }}
-            >
-              <span 
-                className="text-[13px]" 
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
-              >
-                2
-              </span>
-            </div>
-            <span 
-              className="text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-            >
-              Team
-            </span>
-          </div>
-
-          {/* Connecting Line */}
-          <div 
-            className="w-[80px] h-[1px] mx-[16px] mb-[24px]"
-            style={{ backgroundColor: 'var(--cv-subtle-border)' }}
-          />
-
-          {/* Step 3 - Active */}
-          <div className="flex flex-col items-center">
-            <div 
+            <div
               className="w-[32px] h-[32px] rounded-full flex items-center justify-center mb-[8px]"
               style={{ backgroundColor: 'var(--cv-primary-text)' }}
             >
-              <span 
-                className="text-[13px]" 
-                style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)', fontWeight: 500 }}
-              >
-                3
-              </span>
+              <span className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)', fontWeight: 500 }}>2</span>
             </div>
-            <span 
-              className="text-[11px] uppercase tracking-[0.1em]"
-              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-primary-text)' }}
-            >
+            <span className="text-[11px] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-primary-text)' }}>
               First Prospect
             </span>
           </div>
