@@ -234,40 +234,41 @@ export default async function handler(
     payloadKb: Math.round(payloadBytes / 1024),
   });
 
-  const prompt = `You are an expert modeling agency director. A booker has evaluated ${prospectName} for the "${context}" market and received an alignment score of ${alignmentScore}/100.
+  const prompt = `You are the development director at a boutique modeling agency, building a working plan a booker will use to guide a prospect over the coming weeks and months.
 
+Prospect: ${prospectName}
+Market: ${context}
+Alignment score: ${alignmentScore}/100
 Booker's note: "${agentNote}"
 
-Generate a detailed, actionable development pathway. Return ONLY valid JSON:
+You have not seen this prospect's digitals. The score and the booker's note are your ground truth — build from them. Treat the note as the booker's professional read: let it shape priorities, and reflect it visibly in the plan. Never invent physical observations; physical guidance comes from the note where it gives specifics, and from standard ${context} preparation where it doesn't.
+
+The score determines the architecture of the plan:
+- 80-100: near board-ready. The plan is refinement and positioning — the portfolio gaps to close, package polish, which client tiers to approach in what order, and pace (a look this ready should be moving toward submissions, not more development).
+- 60-79: real potential with named gaps. The plan is targeted — identify the 2-3 specific things standing between this prospect and submissions, sequence them, and define the test that proves each one is closed.
+- 40-59: foundational. Open with an honest checkpoint: what would have to change for this market to open, how long that realistically takes, and the early milestone that tells the booker whether to keep investing. Consider whether an adjacent market is the smarter first move, and say so if it is.
+- Below 40: help the booker redirect. Name what this prospect's stronger lane likely is, and the minimal development that keeps options open without burning months against a market that isn't going to open.
+
+Every item must pass one test: could the booker hand it to the prospect and have them know exactly what to do this week? "Improve portfolio" fails. "Shoot a 3-look TFP with hard directional light to build out the profile side of the book" passes. Name shoot types, practice reps, timeframes, submission targets by tier (never fabricated agency or client names), and checkpoints.
+
+Physical development guidance stays professional and sustainable — conditioning, posture, grooming, skin, movement practice. Never prescribe rapid weight change, restrictive eating, or target measurements.
+
+TIMELINE items sequence the rest of the plan into real timeframes ("Weeks 1-2: ...", "Month 2: ...") and end with a defined review point where booker and prospect assess progress against this plan.
+
+Write it so the prospect could read it over the booker's shoulder: direct about gaps, respectful in tone, zero filler.
+
+Return ONLY valid JSON:
 {
   "sections": [
-    {
-      "label": "IMMEDIATE FOCUS",
-      "items": ["action 1", "action 2", "action 3"]
-    },
-    {
-      "label": "PHYSICAL DEVELOPMENT", 
-      "items": ["action 1", "action 2", "action 3"]
-    },
-    {
-      "label": "PORTFOLIO DIRECTION",
-      "items": ["action 1", "action 2", "action 3"]
-    },
-    {
-      "label": "MARKET APPROACH",
-      "items": ["action 1", "action 2", "action 3"]
-    },
-    {
-      "label": "TIMELINE",
-      "items": ["milestone 1", "milestone 2", "milestone 3"]
-    }
+    {"label": "IMMEDIATE FOCUS", "items": ["3-4 items"]},
+    {"label": "PHYSICAL DEVELOPMENT", "items": ["2-4 items"]},
+    {"label": "PORTFOLIO DIRECTION", "items": ["3-4 items"]},
+    {"label": "MARKET APPROACH", "items": ["2-4 items"]},
+    {"label": "TIMELINE", "items": ["3-4 items"]}
   ],
-  "summary": "One paragraph summary of the development strategy."
+  "summary": "One paragraph the booker could read aloud to the prospect: where they stand for ${context} today, what this plan does, and what success looks like at the review point."
 }
-
-Make every item specific to the ${context} market and the score of ${alignmentScore}. 
-Low scores need foundational work. High scores need refinement and market positioning.
-Return ONLY the JSON.`;
+No preamble, no markdown fences.`;
 
   const anthropicRequestBody = {
     model: ANTHROPIC_MODEL,
