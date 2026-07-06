@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "http";
 import { requireEntitledAgency } from "./_auth";
+import { checkAiQuota } from "./_aiQuota";
 
 type BriefMatchModelInput = {
   id: string;
@@ -179,6 +180,7 @@ export default async function handler(
   }
 
   const requestStartMs = Date.now();
+  const debug = process.env.CASTVIEW_DEBUG_API === '1';
   console.log("[API] request received");
   console.log("[API] provider: Anthropic");
 
@@ -199,6 +201,20 @@ export default async function handler(
   if (entitlement.ok === false) {
     const { status, error } = entitlement;
     finish(requestStartMs, { error }, status, res);
+    return;
+  }
+
+  const quota = await checkAiQuota(entitlement.auth.agencyId, entitlement.auth.plan);
+  if (quota.allowed === false) {
+    finish(
+      requestStartMs,
+      {
+        error: 'Too many AI requests. Please slow down and try again shortly.',
+        reason: quota.reason,
+      },
+      429,
+      res,
+    );
     return;
   }
 
@@ -409,20 +425,21 @@ Rules:
     return;
   }
 
-  console.log(
-    "[API] Anthropic response preview:",
-    JSON.stringify(anthropicData).slice(0, 1000),
-  );
+  if (debug) {
+    console.log(
+      "[API] Anthropic response preview:",
+      JSON.stringify(anthropicData).slice(0, 1000),
+    );
+  }
 
   const responseText =
     typeof anthropicData.content?.[0]?.text === "string"
       ? anthropicData.content[0].text
       : "";
 
-  console.log(
-    "[API] Anthropic model text preview:",
-    responseText.slice(0, 1000),
-  );
+  if (debug) {
+    console.log("[API] Anthropic model text preview:", responseText.slice(0, 1000));
+  }
 
   let matches: BriefMatchResult[];
   try {

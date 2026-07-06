@@ -23,27 +23,12 @@ type SupabaseEnv = {
   url: string | undefined;
   serviceKey: string | undefined;
   anonKey: string | undefined;
-  urlSource: string;
-  anonKeySource: string;
 };
 
 function getRequestHeaders(
   req: HeadersCarrier,
 ): Record<string, string | string[] | undefined> {
   return (req.headers ?? {}) as Record<string, string | string[] | undefined>;
-}
-
-function headerValue(
-  headers: Record<string, string | string[] | undefined>,
-  name: string,
-): string | undefined {
-  const target = name.toLowerCase();
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() === target) {
-      return Array.isArray(value) ? value[0] : value;
-    }
-  }
-  return undefined;
 }
 
 function serverSupabaseUrl(): string | undefined {
@@ -69,12 +54,6 @@ function normalizeSupabaseHost(url: string | undefined): string | null {
   } catch {
     return null;
   }
-}
-
-function hostsMatch(a: string | undefined, b: string | undefined): boolean {
-  const hostA = normalizeSupabaseHost(a);
-  const hostB = normalizeSupabaseHost(b);
-  return Boolean(hostA && hostB && hostA === hostB);
 }
 
 type JwtDebugInfo = {
@@ -108,54 +87,16 @@ function decodeJwtDebugInfo(token: string): JwtDebugInfo | null {
 
 /**
  * Resolve Supabase project for JWT verification.
- * Prefer client headers — the token was minted by that project.
+ * SECURITY: this must never honor a client-supplied Supabase URL/key. Doing so
+ * previously let a caller point verification at a Supabase project they control,
+ * mint their own JWT + profiles/agencies rows, and impersonate any agency_id.
+ * Always verify against this server's own configured project.
  */
-function resolveSupabaseEnv(req: HeadersCarrier): SupabaseEnv {
-  const headers = getRequestHeaders(req);
-  const clientUrl = headerValue(headers, 'x-supabase-url');
-  const clientAnonKey =
-    headerValue(headers, 'apikey') ?? headerValue(headers, 'x-supabase-anon-key');
-  const serverUrl = serverSupabaseUrl();
-  const serverAnonKey = serverSupabaseAnonKey();
-  const serverServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  let url: string | undefined;
-  let urlSource = 'none';
-  if (clientUrl) {
-    url = clientUrl;
-    urlSource = 'request_header';
-  } else if (serverUrl) {
-    url = serverUrl;
-    urlSource = process.env.SUPABASE_URL
-      ? 'SUPABASE_URL'
-      : process.env.VITE_SUPABASE_URL
-        ? 'VITE_SUPABASE_URL'
-        : 'NEXT_PUBLIC_SUPABASE_URL';
-  }
-
-  let anonKey: string | undefined;
-  let anonKeySource = 'none';
-  if (clientAnonKey) {
-    anonKey = clientAnonKey;
-    anonKeySource = 'request_header';
-  } else if (serverAnonKey) {
-    anonKey = serverAnonKey;
-    anonKeySource = process.env.SUPABASE_ANON_KEY
-      ? 'SUPABASE_ANON_KEY'
-      : process.env.VITE_SUPABASE_ANON_KEY
-        ? 'VITE_SUPABASE_ANON_KEY'
-        : 'NEXT_PUBLIC_SUPABASE_ANON_KEY';
-  }
-
-  const serviceKey =
-    serverServiceKey && hostsMatch(serverUrl, url) ? serverServiceKey : undefined;
-
+function resolveSupabaseEnv(): SupabaseEnv {
   return {
-    url,
-    serviceKey,
-    anonKey,
-    urlSource,
-    anonKeySource,
+    url: serverSupabaseUrl(),
+    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    anonKey: serverSupabaseAnonKey(),
   };
 }
 
@@ -255,41 +196,31 @@ export async function getAuthedAgency(
   req: HeadersCarrier,
 ): Promise<AuthedAgency | AuthFailure> {
   const headers = getRequestHeaders(req);
-  const authHeader = headers?.authorization ?? headers?.Authorization;
-  console.log('[API auth] authorization header exists:', Boolean(authHeader));
+  const debug = process.env.CASTVIEW_DEBUG_AUTH === '1';
 
   const token = bearerTokenFromHeaders(headers);
-  console.log('[API auth] token extracted:', Boolean(token), {
-    tokenPrefix: token ? `${token.slice(0, 12)}...` : null,
-  });
   if (!token) {
-    console.log('[API auth] 401: missing bearer token');
     return { status: 401, error: 'Missing authorization token', reason: 'missing_header' };
   }
 
-  const env = resolveSupabaseEnv(req);
+  const env = resolveSupabaseEnv();
   const jwtInfo = decodeJwtDebugInfo(token);
-  const serverUrl = serverSupabaseUrl();
   const projectMismatch =
     Boolean(jwtInfo?.issHost) &&
     Boolean(env.url) &&
     jwtInfo!.issHost !== normalizeSupabaseHost(env.url);
 
-  console.log('[API auth] env resolved', {
-    hasSupabaseUrl: Boolean(env.url),
-    urlSource: env.urlSource,
-    urlHost: env.url ? new URL(env.url).host : null,
-    serverUrlHost: normalizeSupabaseHost(serverUrl),
-    jwtIssHost: jwtInfo?.issHost ?? null,
-    projectMismatch,
-    hasServiceRoleKey: Boolean(env.serviceKey),
-    hasAnonKey: Boolean(env.anonKey),
-    anonKeySource: env.anonKeySource,
-    verifyWith: env.serviceKey ? 'service_role' : env.anonKey ? 'anon' : 'none',
-    jwtSub: jwtInfo?.sub ?? null,
-    jwtExpiresInSec: jwtInfo?.expiresInSec ?? null,
-    jwtExpired: jwtInfo?.expired ?? null,
-  });
+  if (debug) {
+    console.log('[API auth] env resolved', {
+      hasSupabaseUrl: Boolean(env.url),
+      jwtIssHost: jwtInfo?.issHost ?? null,
+      projectMismatch,
+      hasServiceRoleKey: Boolean(env.serviceKey),
+      hasAnonKey: Boolean(env.anonKey),
+      verifyWith: env.serviceKey ? 'service_role' : env.anonKey ? 'anon' : 'none',
+      jwtExpired: jwtInfo?.expired ?? null,
+    });
+  }
 
   if (!env.url || (!env.serviceKey && !env.anonKey)) {
     console.error('[API auth] 401: missing server env', {
@@ -305,18 +236,14 @@ export async function getAuthedAgency(
   }
 
   const verifiedUser = await verifyUserToken(env, token);
-  console.log('[API auth] user verified:', Boolean(verifiedUser), {
-    userId: verifiedUser?.id ?? null,
-  });
+  if (debug) {
+    console.log('[API auth] user verified:', Boolean(verifiedUser), {
+      userId: verifiedUser?.id ?? null,
+    });
+  }
   if (!verifiedUser) {
     const reason = projectMismatch ? 'project_mismatch' : 'invalid_token';
-    console.log('[API auth] 401: invalid or expired token', {
-      reason,
-      jwtIssHost: jwtInfo?.issHost ?? null,
-      verifyUrlHost: normalizeSupabaseHost(env.url),
-      jwtExpired: jwtInfo?.expired ?? null,
-      jwtExpiresInSec: jwtInfo?.expiresInSec ?? null,
-    });
+    console.log('[API auth] 401: invalid or expired token', { reason });
     return {
       status: 401,
       error: projectMismatch

@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "http";
 import { requireEntitledAgency } from "./_auth";
+import { checkAiQuota } from "./_aiQuota";
 
 type EvaluateRequestBody = {
   prospectName?: string;
@@ -204,18 +205,9 @@ export default async function handler(req: IncomingMessage & { body?: unknown; m
   }
 
   const requestStartMs = Date.now();
-  console.log("[API] request received");
-  console.log("[API] provider: Anthropic");
-
-  const authHeader =
-    (req.headers as Record<string, string | string[] | undefined> | undefined)
-      ?.authorization ??
-    (req.headers as Record<string, string | string[] | undefined> | undefined)
-      ?.Authorization;
-  console.log("[API evaluate] authorization header exists:", Boolean(authHeader));
+  const debug = process.env.CASTVIEW_DEBUG_API === '1';
 
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  console.log("[API] KEY_STATE:", JSON.stringify({ exists: 'ANTHROPIC_API_KEY' in process.env, length: (process.env.ANTHROPIC_API_KEY || '').length, trimmedLength: (process.env.ANTHROPIC_API_KEY || '').trim().length }));
 
   logEvent("environment_checked", {
     provider: "Anthropic",
@@ -232,6 +224,20 @@ export default async function handler(req: IncomingMessage & { body?: unknown; m
   if (entitlement.ok === false) {
     const { status, error, reason } = entitlement;
     finish(requestStartMs, { error, reason: reason ?? 'auth_failed' }, status, res);
+    return;
+  }
+
+  const quota = await checkAiQuota(entitlement.auth.agencyId, entitlement.auth.plan);
+  if (quota.allowed === false) {
+    finish(
+      requestStartMs,
+      {
+        error: 'Too many AI evaluation requests. Please slow down and try again shortly.',
+        reason: quota.reason,
+      },
+      429,
+      res,
+    );
     return;
   }
 
@@ -479,20 +485,21 @@ Rules:
     return;
   }
 
-  console.log(
-    "[API] Anthropic response preview:",
-    JSON.stringify(anthropicData).slice(0, 1000),
-  );
+  if (debug) {
+    console.log(
+      "[API] Anthropic response preview:",
+      JSON.stringify(anthropicData).slice(0, 1000),
+    );
+  }
 
   const responseText =
     typeof anthropicData.content?.[0]?.text === "string"
       ? anthropicData.content[0].text
       : "";
 
-  console.log(
-    "[API] Anthropic model text preview:",
-    responseText.slice(0, 1000),
-  );
+  if (debug) {
+    console.log("[API] Anthropic model text preview:", responseText.slice(0, 1000));
+  }
 
   let evaluations: ContextEvaluationResult[];
   try {

@@ -2,6 +2,9 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 import { ENTITLEMENT_ERROR, getAuthedAgency, isAuthFailure, isEntitled } from './_auth';
+import { checkRateLimit } from './_rateLimit';
+
+const SEND_MESSAGE_HOURLY_MAX = 50;
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -46,6 +49,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const { agencyId } = auth;
+
+  const rateLimit = await checkRateLimit(`send-message:${agencyId}`, 3600, SEND_MESSAGE_HOURLY_MAX);
+  if (!rateLimit.allowed) {
+    return res.status(429).json({ error: 'Too many messages sent recently. Please try again later.' });
+  }
+
   const { prospectId, toEmail, toName, subject, body, agencyName, thread_id } = req.body;
 
   if (!prospectId || !toEmail || !subject || !body) {
