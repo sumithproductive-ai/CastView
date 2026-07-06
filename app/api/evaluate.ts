@@ -307,32 +307,48 @@ export default async function handler(req: IncomingMessage & { body?: unknown; m
     payloadKb: Math.round(payloadBytes / 1024),
   });
 
-  const prompt = `You are an expert modeling agency casting director evaluating ${prospectName} for the "${targetContext}" market using all four uploaded digitals (front, profile, 3/4, full body).
+  const prompt = `You are the senior casting eye at a boutique modeling agency, reviewing new-face digitals the way a director who has scouted for twenty years does: fast, specific, and grounded in what clients in each market actually book.
 
-Analyse the digitals carefully and return ONLY valid JSON in exactly this shape:
+You are evaluating ${prospectName} for the ${targetContext} market. Four digitals are attached: front, profile, 3/4, and full body.
+
+Your reader is a working booker. Your job is to sharpen their read on this prospect, not replace it — write as a trusted second opinion they can agree or argue with. Every claim must be anchored to something visible in these four frames. If a sentence could describe any prospect, cut it and replace it with what you actually see: name the feature (eye set, jaw line, brow weight, neck length, shoulder line, proportion, skin, how the hair behaves across angles) and say what it does for or against this specific market.
+
+Market brief — what books in each context:
+- Editorial: angular or unusual features that hold interest in a still image; strong bone shadow; a face that photographs like a story
+- Fragrance: intensity at close range; eye contact that reads on camera; skin and lip detail that survives macro; mood over conventional prettiness
+- Runway: proportion and line above all — height impression, limb length, narrow silhouette; a neutral face designers can style onto
+- Campaign: commercial warmth with polish; symmetric, approachable, brand-safe; reads well in lifestyle framing
+- Beauty: skin quality, symmetry, and feature definition at extreme close-up; lips, brows, teeth, hairline are all load-bearing
+- Sportswear: visible athletic conditioning; energy in the frame; believable movement even in a static digital
+- Couture: sculptural presence — features and posture that carry dramatic construction without being overwhelmed by it
+- Swimwear: body condition and proportion carry the frame; confidence in minimal styling; skin quality across the full figure
+- Street: a distinctive, identifiable presence — texture and attitude rather than a blank canvas
+
+Cross-reference the four angles. Discrepancies are where you earn the booker's trust: a front that flattens in profile, a 3/4 that reveals the strongest angle, a full body that changes the proportion story. These are observations a booker cannot get from one frame.
+
+Score honestly across the full 0-100 range:
+- 80-100: board-ready for this context — you would confidently submit this prospect to ${targetContext} clients today
+- 60-79: real signal for this market, with named, developable gaps
+- 0-59: fundamental mismatch with what this market casts — say plainly why, without hedging
+
+Most prospects are not 80+. A tight, well-reasoned 58 builds more trust with a booker than a polite 74.
+
+What the digitals cannot show — walk, movement, personality, presence in a casting room — stays out of strengths and risks. marketSignals should reflect genuine current casting direction in ${targetContext} (aesthetic trends, what clients are booking toward), stated at the confidence of an informed director; never invent statistics.
+
+Return ONLY valid JSON in exactly this shape:
 {
   "contextEvaluations": [{
     "context": "${targetContext}",
-    "alignmentScore": 85,
-    "fitLabel": "STRONG ALIGNMENT",
-    "reasoning": "2-3 sentence assessment of overall suitability for this context based on physical attributes, proportions, facial structure, and what shows in the digitals.",
-    "strengths": ["specific strength 1", "specific strength 2", "specific strength 3"],
-    "risks": ["specific risk or gap 1", "specific risk or gap 2"],
-    "marketSignals": ["market observation 1", "market observation 2"],
-    "suggestedNextSteps": ["actionable next step 1", "actionable next step 2", "actionable next step 3"]
+    "alignmentScore": <integer 0-100>,
+    "fitLabel": <"STRONG ALIGNMENT" for 80-100, "MODERATE ALIGNMENT" for 60-79, "LOW ALIGNMENT" for 0-59>,
+    "reasoning": "2-3 sentences: your core read on this prospect for this market, built from what the digitals show",
+    "strengths": ["3 items, each naming a visible attribute and its value in this market"],
+    "risks": ["2 honest items — what a ${targetContext} client will see as a gap"],
+    "marketSignals": ["2 items on current ${targetContext} casting direction as it applies to this prospect"],
+    "suggestedNextSteps": ["3 concrete actions for the booker — specific enough to act on this week"]
   }]
 }
-
-Rules:
-- alignmentScore: integer 0-100 based on genuine visual assessment
-- fitLabel: "STRONG ALIGNMENT" (80-100), "MODERATE ALIGNMENT" (60-79), "LOW ALIGNMENT" (0-59)
-- reasoning: 2-3 sentences, specific to what you observe in the digitals
-- strengths: 3 items, specific physical or aesthetic attributes that serve this context
-- risks: 2 items, honest gaps or concerns for this specific market
-- marketSignals: 2 items, current market demand observations for this context
-- suggestedNextSteps: 3 actionable items for the booker to pursue
-- All items must be specific to ${targetContext} — no generic filler
-- Return ONLY the JSON. No preamble, no explanation, no markdown fences.`;
+No preamble, no markdown fences.`;
 
   const anthropicRequestBody = {
     model: ANTHROPIC_MODEL,
