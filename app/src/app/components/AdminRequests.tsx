@@ -183,7 +183,7 @@ export function AdminRequests() {
     const trialEndsAt = new Date(base + days * 86_400_000).toISOString();
 
     try {
-      const res = await authFetch('/api/admin/extend-trial', {
+      const res = await authFetch('/api/admin/agencies', {
         method: 'POST',
         body: JSON.stringify({ agencyId: row.id, trialEndsAt }),
       });
