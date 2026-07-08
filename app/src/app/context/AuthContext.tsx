@@ -1,5 +1,4 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { clearOnboardingSkipped } from '../../lib/onboarding';
 import { supabase } from '../../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -21,6 +20,8 @@ type AuthContextType = {
   plan: string;
   planStatus: string;
   trialEndsAt: string | null;
+  tutorialShownAt: string | null;
+  markTutorialShown: () => Promise<void>;
   setAgencyName: (name: string) => void;
 };
 
@@ -101,6 +102,8 @@ const AuthContext = createContext<AuthContextType>({
   plan: 'trial',
   planStatus: 'trialing',
   trialEndsAt: null,
+  tutorialShownAt: null,
+  markTutorialShown: async () => {},
   setAgencyName: () => {},
 });
 
@@ -128,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [plan, setPlan] = useState<string>('trial');
   const [planStatus, setPlanStatus] = useState<string>('trialing');
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
+  const [tutorialShownAt, setTutorialShownAt] = useState<string | null>(null);
   const [setupError, setSetupError] = useState<string | null>(null);
 
   const applyAgencyPlan = async (resolvedAgencyId: string) => {
@@ -135,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSetupError(null);
     const { data: agency } = await supabase
       .from('agencies')
-      .select('name, plan, plan_status, trial_ends_at')
+      .select('name, plan, plan_status, trial_ends_at, tutorial_shown_at')
       .eq('id', resolvedAgencyId)
       .single();
     if (agency) {
@@ -143,6 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setPlan(agency.plan ?? 'trial');
       setPlanStatus(agency.plan_status ?? 'trialing');
       setTrialEndsAt(agency.trial_ends_at ?? null);
+      setTutorialShownAt(agency.tutorial_shown_at ?? null);
     }
   };
 
@@ -224,8 +229,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setPlan('trial');
           setPlanStatus('trialing');
           setTrialEndsAt(null);
+          setTutorialShownAt(null);
           setSetupError(null);
-          clearOnboardingSkipped();
           setLoading(false);
         }
       },
@@ -311,8 +316,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAgencyId(null);
     setAgencyName(null);
     setTrialEndsAt(null);
+    setTutorialShownAt(null);
     setSetupError(null);
-    clearOnboardingSkipped();
+  };
+
+  const markTutorialShown = async () => {
+    if (!agencyId) return;
+    const shownAt = new Date().toISOString();
+    setTutorialShownAt(shownAt);
+    const { error } = await supabase
+      .from('agencies')
+      .update({ tutorial_shown_at: shownAt })
+      .eq('id', agencyId);
+    if (error) {
+      console.error('[AuthContext] markTutorialShown failed:', error.message);
+    }
   };
 
   return (
@@ -330,6 +348,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         plan,
         planStatus,
         trialEndsAt,
+        tutorialShownAt,
+        markTutorialShown,
         setAgencyName,
       }}
     >

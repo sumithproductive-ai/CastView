@@ -86,16 +86,6 @@ const ClientLayout = lazy(() =>
 const ClientPortal = lazy(() =>
   import('./components/ClientPortal').then((m) => ({ default: m.ClientPortal })),
 );
-const OnboardingAgencySetup = lazy(() =>
-  import('./components/OnboardingAgencySetup').then((m) => ({
-    default: m.OnboardingAgencySetup,
-  })),
-);
-const OnboardingFirstProspect = lazy(() =>
-  import('./components/OnboardingFirstProspect').then((m) => ({
-    default: m.OnboardingFirstProspect,
-  })),
-);
 const Notifications = lazy(() =>
   import('./components/Notifications').then((m) => ({ default: m.Notifications })),
 );
@@ -346,22 +336,6 @@ export const router = createBrowserRouter([
           </ClientLayout>
         </LazySuspense>
       </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/onboarding',
-    element: (
-      <ProtectedLayoutRoute>
-        <OnboardingAgencySetup />
-      </ProtectedLayoutRoute>
-    ),
-  },
-  {
-    path: '/onboarding/first-prospect',
-    element: (
-      <ProtectedLayoutRoute>
-        <OnboardingFirstProspect />
-      </ProtectedLayoutRoute>
     ),
   },
   {

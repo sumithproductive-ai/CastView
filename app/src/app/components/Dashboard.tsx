@@ -5,7 +5,6 @@ import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
 import { useTutorial } from '../context/TutorialContext';
-import { needsOnboarding } from '../../lib/onboarding';
 import { messagePreviewText, resolveMessageTabPath } from '../../lib/messageEntity';
 import { supabase } from '../../lib/supabase';
 import { DigitalImage } from './DigitalImage';
@@ -67,35 +66,17 @@ export function Dashboard() {
     prospectName?: string;
   }>>([]);
 
-  const { agencyId, agencyName, loading: authLoading } = useAuth();
+  const { agencyId, agencyName, loading: authLoading, tutorialShownAt, markTutorialShown } = useAuth();
   const { openTutorial } = useTutorial();
 
   useEffect(() => {
-    if (authLoading || !agencyId || prospectsLoading || rosterLoading) return;
-    if (needsOnboarding(agencyName, prospects.length, models.length)) {
-      navigate('/onboarding', { replace: true });
-    }
-  }, [
-    agencyId,
-    agencyName,
-    authLoading,
-    prospectsLoading,
-    rosterLoading,
-    prospects.length,
-    models.length,
-    navigate,
-  ]);
-
-  useEffect(() => {
-    if (!agencyId || !agencyName?.trim()) return;
-    const key = `castview-tutorial-shown-${agencyId}`;
-    const alreadyShown = localStorage.getItem(key);
-    if (!alreadyShown && prospects.length === 0 && !prospectsLoading) {
-      localStorage.setItem(key, '1');
-      const timer = setTimeout(() => openTutorial(), 800);
-      return () => clearTimeout(timer);
-    }
-  }, [agencyId, agencyName, prospects.length, prospectsLoading, openTutorial]);
+    if (authLoading || !agencyId || !agencyName?.trim() || tutorialShownAt) return;
+    const timer = setTimeout(() => {
+      void markTutorialShown();
+      openTutorial();
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [agencyId, agencyName, authLoading, tutorialShownAt, markTutorialShown, openTutorial]);
 
   useEffect(() => {
     if (!agencyId) return;
