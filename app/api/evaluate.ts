@@ -5,6 +5,7 @@ import { checkAiQuota } from "./_aiQuota";
 type EvaluateRequestBody = {
   prospectName?: string;
   selectedContexts?: string[];
+  location?: string;
   images?: Array<{
     data?: string;
     mediaType?: string;
@@ -298,6 +299,7 @@ export default async function handler(req: IncomingMessage & { body?: unknown; m
   }
 
   const prospectName = body.prospectName?.trim() || "Prospect";
+  const location = typeof body.location === "string" ? body.location.trim() : "";
   const targetContext = selectedContexts[0];
 
   console.log("[API] evaluation request", {
@@ -310,7 +312,7 @@ export default async function handler(req: IncomingMessage & { body?: unknown; m
   const prompt = `You are the senior casting eye at a boutique modeling agency, reviewing new-face digitals the way a director who has scouted for twenty years does: fast, specific, and grounded in what clients in each market actually book.
 
 You are evaluating ${prospectName} for the ${targetContext} market. Four digitals are attached: front, profile, 3/4, and full body.
-
+${location ? `\n${prospectName} is based in ${location}. Ground your read — especially marketSignals — in the booking realities of that specific market (regional fashion weeks, campaign/commercial casting norms, agencies and clients active there), layered on top of the ${targetContext} brief below, not instead of it.\n` : ""}
 Your reader is a working booker. Your job is to sharpen their read on this prospect, not replace it — write as a trusted second opinion they can agree or argue with. Every claim must be anchored to something visible in these four frames. If a sentence could describe any prospect, cut it and replace it with what you actually see: name the feature (eye set, jaw line, brow weight, neck length, shoulder line, proportion, skin, how the hair behaves across angles) and say what it does for or against this specific market.
 
 Market brief — what books in each context:

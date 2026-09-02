@@ -183,6 +183,7 @@ export async function fetchEvaluateContext(
   requestBody: {
     prospectName: string;
     selectedContexts: string[];
+    location?: string;
     images: CompressedEvaluationImage[];
   },
   timeoutMs: number = EVALUATION_REQUEST_TIMEOUT_MS,
@@ -226,6 +227,7 @@ export async function fetchEvaluateContext(
       body: JSON.stringify({
         prospectName: requestBody.prospectName,
         selectedContexts: requestBody.selectedContexts,
+        location: requestBody.location,
         images: requestBody.images.map((img) => ({
           data: stripBase64Payload(img.data),
           mediaType: 'image/jpeg',

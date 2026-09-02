@@ -147,6 +147,8 @@ export function Rendering() {
 
   const prospectId = searchParams.get('prospectId') || '';
   const profileType = searchParams.get('profileType') || 'prospect';
+  const rosterModel = profileType === 'model' ? getModelById(prospectId) : undefined;
+  const location = rosterModel?.location?.trim() || '';
   const resultsPath = `/results?name=${encodeURIComponent(prospectName)}&contexts=${contextsParam}&prospectId=${prospectId}&profileType=${profileType}`;
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -490,6 +492,7 @@ export function Rendering() {
         const requestBody = {
           prospectName,
           selectedContexts: [context],
+          location: location || undefined,
           images,
         };
 
