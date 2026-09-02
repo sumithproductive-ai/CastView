@@ -3,13 +3,15 @@ import React from 'react';
 export const MARKET_SUGGESTIONS = [
   'New York',
   'Los Angeles',
-  'Miami',
-  'Atlanta',
-  'Dallas',
-  'Chicago',
   'London',
   'Paris',
   'Milan',
+  'Lagos',
+  'Johannesburg',
+  'Dubai',
+  'São Paulo',
+  'Mumbai',
+  'Tokyo',
   'Sydney',
 ];
 

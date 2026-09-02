@@ -17,6 +17,7 @@ export type RosterModel = {
   name: string;
   email: string;
   image: string | null;
+  location: string;
   primaryContext: string;
   contexts: string[];
   renderedContexts: string[];
@@ -104,6 +105,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
     name: string;
     email?: string | null;
     image?: string | null;
+    location?: string | null;
     contexts?: string[];
     status?: string;
   }, digitalSets: DigitalSet[]): RosterModel => {
@@ -118,6 +120,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
       name: row.name,
       email: row.email ?? '',
       image: row.image ?? null,
+      location: row.location ?? '',
       primaryContext: (row.contexts ?? [])[0] ?? '',
       contexts: row.contexts ?? [],
       renderedContexts: deriveRenderedContexts(digitalSets),
@@ -342,6 +345,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
           markets: model.contexts,
           contexts: model.contexts,
           image: model.image ?? null,
+          location: model.location || null,
         })
         .select()
         .single();
@@ -383,6 +387,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
             contexts: modelFields.contexts,
             markets: modelFields.contexts,
             image: imageToSave,
+            location: modelFields.location,
           })
           .eq('id', id);
 

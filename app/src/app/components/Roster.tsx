@@ -2,7 +2,7 @@ import React from 'react';
 import { authFetch } from '../../lib/apiAuth';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Search, ChevronDown, Sparkles, X } from 'lucide-react';
+import { Search, ChevronDown, Sparkles, X, MapPin } from 'lucide-react';
 import { useRoster, type RosterModel } from '../context/RosterContext';
 import type { DigitalSet } from '../types/talent';
 import { DigitalImage } from './DigitalImage';
@@ -225,6 +225,8 @@ export function Roster() {
   const filteredModels = models.filter(model => {
     const matchesSearch = search.trim() === ''
       || model.name.toLowerCase()
+          .includes(search.trim().toLowerCase())
+      || (model.location ?? '').toLowerCase()
           .includes(search.trim().toLowerCase());
 
     const normalizedStatus = model.status.toLowerCase().replace(/\s+/g, '-');
@@ -305,7 +307,7 @@ export function Roster() {
               />
               <input
                 type="text"
-                placeholder="Search models..."
+                placeholder="Search models or location..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-[44px] pr-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]"
@@ -605,6 +607,16 @@ export function Roster() {
                 >
                   {model.name}
                 </div>
+
+                {model.location && (
+                  <div
+                    className="flex items-center gap-[4px] mb-[12px] -mt-[8px]"
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
+                  >
+                    <MapPin size={11} />
+                    {model.location}
+                  </div>
+                )}
 
                 {/* Context Chips */}
                 <div className="flex gap-[8px] mb-[16px]">

@@ -33,8 +33,7 @@ export function NewModelReview() {
 
   const modelData = {
     name: modelName,
-    markets:
-      marketsFromParams.length > 0 ? marketsFromParams : ['NEW YORK', 'LONDON'],
+    markets: marketsFromParams,
     digitals: [
       { label: 'FRONT', url: front || null },
       { label: 'PROFILE', url: profile || null },
@@ -64,6 +63,7 @@ export function NewModelReview() {
       name,
       email: '',
       image: front || null,
+      location: marketsFromParams.join(', '),
       primaryContext: 'EDITORIAL',
       contexts: ['ED'],
       renderedContexts: [],
