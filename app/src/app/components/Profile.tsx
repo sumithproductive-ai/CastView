@@ -6,6 +6,7 @@ import { ChevronRight, Lock } from 'lucide-react';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { DigitalImage } from './DigitalImage';
+import { MARKET_SUGGESTIONS } from './LocationMarketField';
 
 const contexts = [
   'Fragrance', 'Editorial', 'Runway', 
@@ -61,19 +62,28 @@ export function Profile() {
   ].filter((m) => m.value !== '—');
 
   const [selectedContexts, setSelectedContexts] = useState<string[]>(['Fragrance', 'Editorial']);
-  
+
   const toggleContext = (context: string) => {
-    setSelectedContexts(prev => 
-      prev.includes(context) 
+    setSelectedContexts(prev =>
+      prev.includes(context)
         ? prev.filter(c => c !== context)
         : [...prev, context]
     );
   };
-  
+
+  const homeLocation = rosterModel?.location?.trim() ?? '';
+  const defaultTargetRegion =
+    MARKET_SUGGESTIONS.find((m) => m.toLowerCase() === homeLocation.toLowerCase()) ?? '';
+  const [targetRegion, setTargetRegion] = useState<string>(defaultTargetRegion);
+
+  const toggleTargetRegion = (region: string) => {
+    setTargetRegion(prev => (prev === region ? '' : region));
+  };
+
   const handleGenerate = () => {
     const contextsParam = selectedContexts.join(',');
     navigate(
-      `/rendering?name=${encodeURIComponent(prospectName)}&contexts=${contextsParam}&prospectId=${prospectId}&profileType=${profileType}`
+      `/rendering?name=${encodeURIComponent(prospectName)}&contexts=${contextsParam}&targetRegion=${encodeURIComponent(targetRegion)}&prospectId=${prospectId}&profileType=${profileType}`
     );
   };
   
@@ -367,14 +377,57 @@ export function Profile() {
                 );
               })}
             </div>
-            <p 
+            <p
               className="mt-[12px]"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
             >
               CastView analyses uploaded digitals against market context indicators. Results are alignment guidance — not objective judgments.
             </p>
           </div>
-          
+
+          <div className="mb-[32px]">
+            <div className="flex items-center justify-between mb-[16px]">
+              <label
+                className="text-[11px] uppercase tracking-[0.1em]"
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+              >
+                Target Region
+              </label>
+              {homeLocation && (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.05em' }}>
+                  Home market: {homeLocation}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-[8px] md:gap-[12px]">
+              {MARKET_SUGGESTIONS.map((region) => {
+                const isSelected = targetRegion === region;
+                return (
+                  <button
+                    key={region}
+                    type="button"
+                    onClick={() => toggleTargetRegion(region)}
+                    className="px-[16px] py-[10px] border rounded-[4px] transition-all text-[11px] uppercase tracking-[0.1em] w-full cursor-pointer"
+                    style={{
+                      fontFamily: 'var(--font-label)',
+                      backgroundColor: isSelected ? 'var(--cv-primary-text)' : 'transparent',
+                      borderColor: isSelected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
+                      color: isSelected ? 'var(--cv-background)' : 'var(--cv-secondary-text)',
+                    }}
+                  >
+                    {region}
+                  </button>
+                );
+              })}
+            </div>
+            <p
+              className="mt-[12px]"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
+            >
+              Optional — ground this read in the market you're pitching her to. Leave unselected to evaluate without a specific target market.
+            </p>
+          </div>
+
           <button
             onClick={handleGenerate}
             className="cv-btn-primary w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-colors mb-[24px]"

@@ -132,6 +132,7 @@ export function Rendering() {
     () => contextsParam.split(',').filter(Boolean),
     [contextsParam],
   );
+  const targetRegion = (searchParams.get('targetRegion') || '').trim();
 
   const steps = useMemo(
     () => [
@@ -493,6 +494,7 @@ export function Rendering() {
           prospectName,
           selectedContexts: [context],
           location: location || undefined,
+          targetRegion: targetRegion || undefined,
           images,
         };
 
