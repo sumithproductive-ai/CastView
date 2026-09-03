@@ -424,7 +424,7 @@ export function Profile() {
               className="mt-[12px]"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
             >
-              Optional — ground this read in the market you're pitching her to. Leave unselected to evaluate without a specific target market.
+              Optional — ground this read in the market you're pitching them to. Leave unselected to evaluate without a specific target market.
             </p>
           </div>
 
