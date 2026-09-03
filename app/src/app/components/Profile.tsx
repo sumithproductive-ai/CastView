@@ -385,6 +385,8 @@ export function Profile() {
             </p>
           </div>
 
+          <div className="h-[1px] mb-[32px]" style={{ backgroundColor: 'var(--cv-subtle-border)' }} />
+
           <div className="mb-[32px]">
             <div className="flex items-center justify-between mb-[16px]">
               <label
@@ -393,9 +395,9 @@ export function Profile() {
               >
                 Target Region
               </label>
-              {homeLocation && (
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.05em' }}>
-                  Home market: {homeLocation}
+              {targetRegion && (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#C8A96E', letterSpacing: '0.05em' }}>
+                  1 SELECTED
                 </span>
               )}
             </div>
@@ -424,7 +426,8 @@ export function Profile() {
               className="mt-[12px]"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
             >
-              Optional — ground this read in the market you're pitching them to. Leave unselected to evaluate without a specific target market.
+              Optional — ground this read in the market you're pitching them to.
+              {homeLocation ? ` Home market: ${homeLocation}.` : ''} Leave unselected to evaluate without a specific target market.
             </p>
           </div>
 
