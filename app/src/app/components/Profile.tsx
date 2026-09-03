@@ -325,124 +325,133 @@ export function Profile() {
             </select>
           </div>
 
-          <div className="mb-[32px]">
-            <div className="flex items-center justify-between mb-[16px]">
-              <label
-                className="text-[11px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-              >
-                Select Alignment Contexts
-              </label>
-              {selectedContexts.length > 0 && (
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#C8A96E', letterSpacing: '0.05em' }}>
-                  {selectedContexts.length} SELECTED
-                </span>
-              )}
+          <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] mb-[24px]">
+            <div
+              className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+            >
+              Run Evaluation
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-[8px] md:gap-[12px]" data-tutorial="context-grid">
-              {contexts.map((context) => {
-                const isSelected = selectedContexts.includes(context);
-                return (
-                  <div key={context} className="relative group">
+
+            <div className="mb-[32px]">
+              <div className="flex items-center justify-between mb-[16px]">
+                <label
+                  className="text-[11px] uppercase tracking-[0.1em]"
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+                >
+                  Select Alignment Contexts
+                </label>
+                {selectedContexts.length > 0 && (
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#C8A96E', letterSpacing: '0.05em' }}>
+                    {selectedContexts.length} SELECTED
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-[8px] md:gap-[12px]" data-tutorial="context-grid">
+                {contexts.map((context) => {
+                  const isSelected = selectedContexts.includes(context);
+                  return (
+                    <div key={context} className="relative group">
+                      <button
+                        title={contextDescriptions[context] || ''}
+                        onClick={() => toggleContext(context)}
+                        className="px-[16px] py-[10px] border rounded-[4px] transition-all text-[11px] uppercase tracking-[0.1em] w-full cursor-pointer"
+                        style={{
+                          fontFamily: 'var(--font-label)',
+                          backgroundColor: isSelected ? 'var(--cv-primary-text)' : 'transparent',
+                          borderColor: isSelected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
+                          color: isSelected ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
+                        }}
+                      >
+                        {context}
+                      </button>
+
+                      <div
+                        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-[8px] px-[10px] py-[6px] rounded-[4px] text-center pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '10px',
+                          color: 'var(--cv-accent)',
+                          backgroundColor: 'var(--cv-elevated)',
+                          border: '1px solid var(--cv-subtle-border)',
+                          width: '180px',
+                          lineHeight: '1.5',
+                          whiteSpace: 'normal'
+                        }}
+                      >
+                        {contextDescriptions[context]}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p
+                className="mt-[12px]"
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
+              >
+                CastView analyses uploaded digitals against market context indicators. Results are alignment guidance — not objective judgments.
+              </p>
+            </div>
+
+            <div className="h-[1px] mb-[32px]" style={{ backgroundColor: 'var(--cv-subtle-border)' }} />
+
+            <div className="mb-[32px]">
+              <div className="flex items-center justify-between mb-[16px]">
+                <label
+                  className="text-[11px] uppercase tracking-[0.1em]"
+                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+                >
+                  Target Region
+                </label>
+                {targetRegion && (
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#C8A96E', letterSpacing: '0.05em' }}>
+                    1 SELECTED
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-[8px] md:gap-[12px]">
+                {MARKET_SUGGESTIONS.map((region) => {
+                  const isSelected = targetRegion === region;
+                  return (
                     <button
-                      title={contextDescriptions[context] || ''}
-                      onClick={() => toggleContext(context)}
+                      key={region}
+                      type="button"
+                      onClick={() => toggleTargetRegion(region)}
                       className="px-[16px] py-[10px] border rounded-[4px] transition-all text-[11px] uppercase tracking-[0.1em] w-full cursor-pointer"
-                      style={{ 
+                      style={{
                         fontFamily: 'var(--font-label)',
                         backgroundColor: isSelected ? 'var(--cv-primary-text)' : 'transparent',
                         borderColor: isSelected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
-                        color: isSelected ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
+                        color: isSelected ? 'var(--cv-background)' : 'var(--cv-secondary-text)',
                       }}
                     >
-                      {context}
+                      {region}
                     </button>
-                    
-                    <div 
-                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-[8px] px-[10px] py-[6px] rounded-[4px] text-center pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '10px',
-                        color: 'var(--cv-accent)',
-                        backgroundColor: 'var(--cv-elevated)',
-                        border: '1px solid var(--cv-subtle-border)',
-                        width: '180px',
-                        lineHeight: '1.5',
-                        whiteSpace: 'normal'
-                      }}
-                    >
-                      {contextDescriptions[context]}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <p
-              className="mt-[12px]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
-            >
-              CastView analyses uploaded digitals against market context indicators. Results are alignment guidance — not objective judgments.
-            </p>
-          </div>
-
-          <div className="h-[1px] mb-[32px]" style={{ backgroundColor: 'var(--cv-subtle-border)' }} />
-
-          <div className="mb-[32px]">
-            <div className="flex items-center justify-between mb-[16px]">
-              <label
-                className="text-[11px] uppercase tracking-[0.1em]"
-                style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+                  );
+                })}
+              </div>
+              <p
+                className="mt-[12px]"
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
               >
-                Target Region
-              </label>
-              {targetRegion && (
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#C8A96E', letterSpacing: '0.05em' }}>
-                  1 SELECTED
-                </span>
-              )}
+                Optional — ground this read in the market you're pitching them to.
+                {homeLocation ? ` Home market: ${homeLocation}.` : ''} Leave unselected to evaluate without a specific target market.
+              </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-[8px] md:gap-[12px]">
-              {MARKET_SUGGESTIONS.map((region) => {
-                const isSelected = targetRegion === region;
-                return (
-                  <button
-                    key={region}
-                    type="button"
-                    onClick={() => toggleTargetRegion(region)}
-                    className="px-[16px] py-[10px] border rounded-[4px] transition-all text-[11px] uppercase tracking-[0.1em] w-full cursor-pointer"
-                    style={{
-                      fontFamily: 'var(--font-label)',
-                      backgroundColor: isSelected ? 'var(--cv-primary-text)' : 'transparent',
-                      borderColor: isSelected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
-                      color: isSelected ? 'var(--cv-background)' : 'var(--cv-secondary-text)',
-                    }}
-                  >
-                    {region}
-                  </button>
-                );
-              })}
-            </div>
-            <p
-              className="mt-[12px]"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
-            >
-              Optional — ground this read in the market you're pitching them to.
-              {homeLocation ? ` Home market: ${homeLocation}.` : ''} Leave unselected to evaluate without a specific target market.
-            </p>
-          </div>
 
-          <button
-            onClick={handleGenerate}
-            className="cv-btn-primary w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-colors mb-[24px]"
-            style={{ 
-              fontFamily: 'var(--font-label)',
-              backgroundColor: 'var(--cv-primary-text)',
-              color: 'var(--cv-background)',
-              cursor: 'pointer'
-            }}
-          >
-            Run Alignment Analysis
-          </button>
+            <button
+              onClick={handleGenerate}
+              className="cv-btn-primary w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-colors"
+              style={{
+                fontFamily: 'var(--font-label)',
+                backgroundColor: 'var(--cv-primary-text)',
+                color: 'var(--cv-background)',
+                cursor: 'pointer'
+              }}
+            >
+              Run Alignment Analysis
+            </button>
+          </div>
 
         </div>
       </div>
