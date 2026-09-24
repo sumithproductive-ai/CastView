@@ -22,7 +22,15 @@ import {
 // entirely: it's the same plain-file routing every other route here uses.
 
 const GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
-const SETTINGS_URL = "https://app.castview.org/settings";
+
+/** Derives the Settings URL from the request's own host, so the
+ * post-OAuth redirect lands back on whichever deployment (preview or
+ * production) actually initiated the flow, instead of a hardcoded domain. */
+function settingsUrlFor(req: VercelRequest): string {
+  const host = req.headers["x-forwarded-host"] ?? req.headers.host ?? "app.castview.org";
+  const hostname = Array.isArray(host) ? host[0] : host;
+  return `https://${hostname}/settings`;
+}
 
 function oauthEnv() {
   const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
@@ -118,6 +126,7 @@ async function handleOauthStart(req: VercelRequest, res: VercelResponse) {
 
 // ---- oauth-callback: GET, public redirect target from Google ----
 async function handleOauthCallback(req: VercelRequest, res: VercelResponse) {
+  const SETTINGS_URL = settingsUrlFor(req);
   const { code, state, error: oauthError } = req.query as {
     code?: string;
     state?: string;

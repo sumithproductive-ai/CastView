@@ -1159,36 +1159,66 @@ export function Settings() {
                   </p>
                 )}
 
-                <label
-                  className="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
-                  style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-                >
-                  Watching label
-                </label>
-                <select
-                  value={gmailLabel}
-                  disabled={gmailLabelSaving || gmailStatus === 'needs_reauth'}
-                  onChange={(e) => handleChangeGmailLabel(e.target.value)}
-                  className="w-full px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
-                >
-                  {!gmailAvailableLabels.includes(gmailLabel) && gmailLabel && (
-                    <option value={gmailLabel}>{gmailLabel}</option>
-                  )}
-                  {gmailAvailableLabels.map((label) => (
-                    <option key={label} value={label}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-                <p
-                  className="mt-[12px] text-[11px]"
-                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
-                >
-                  {gmailLastSyncedAt
-                    ? `Last synced ${new Date(gmailLastSyncedAt).toLocaleString()}.`
-                    : 'Not synced yet — runs once daily.'}
-                </p>
+                <div className="flex items-center justify-between mb-[8px]">
+                  <label
+                    className="text-[9px] uppercase tracking-[0.1em]"
+                    style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+                  >
+                    Watching label
+                  </label>
+                  <button
+                    onClick={loadGmailStatus}
+                    className="text-[10px] uppercase tracking-[0.1em]"
+                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer', background: 'transparent', border: 'none' }}
+                  >
+                    Refresh
+                  </button>
+                </div>
+                {gmailAvailableLabels.length === 0 ? (
+                  <>
+                    <select
+                      disabled
+                      className="w-full px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
+                    >
+                      <option>No labels found in this Gmail account</option>
+                    </select>
+                    <p
+                      className="mt-[12px] text-[11px]"
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
+                    >
+                      Create a label in Gmail (e.g. "CastView Submissions") for the
+                      emails you want processed, then click Refresh above.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <select
+                      value={gmailLabel}
+                      disabled={gmailLabelSaving || gmailStatus === 'needs_reauth'}
+                      onChange={(e) => handleChangeGmailLabel(e.target.value)}
+                      className="w-full px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
+                    >
+                      {!gmailAvailableLabels.includes(gmailLabel) && gmailLabel && (
+                        <option value={gmailLabel}>{gmailLabel}</option>
+                      )}
+                      {gmailAvailableLabels.map((label) => (
+                        <option key={label} value={label}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    <p
+                      className="mt-[12px] text-[11px]"
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
+                    >
+                      {gmailLastSyncedAt
+                        ? `Last synced ${new Date(gmailLastSyncedAt).toLocaleString()}.`
+                        : 'Not synced yet — runs once daily.'}
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </div>
