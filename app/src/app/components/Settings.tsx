@@ -457,7 +457,7 @@ export function Settings() {
   const loadGmailStatus = async () => {
     setGmailLoading(true);
     try {
-      const res = await authFetch('/api/gmail/status');
+      const res = await authFetch('/api/gmail?action=status');
       const data = await res.json();
       if (!res.ok) {
         setGmailConnected(false);
@@ -506,7 +506,7 @@ export function Settings() {
     setGmailConnecting(true);
     setGmailNotice(null);
     try {
-      const res = await authFetch('/api/gmail/oauth-start', {
+      const res = await authFetch('/api/gmail?action=oauth-start', {
         method: 'POST',
         body: JSON.stringify({}),
       });
@@ -527,7 +527,7 @@ export function Settings() {
     setGmailLabel(labelName);
     setGmailLabelSaving(true);
     try {
-      const res = await authFetch('/api/gmail/set-label', {
+      const res = await authFetch('/api/gmail?action=set-label', {
         method: 'POST',
         body: JSON.stringify({ labelName }),
       });
@@ -544,7 +544,7 @@ export function Settings() {
   const handleDisconnectGmail = async () => {
     setGmailNotice(null);
     try {
-      const res = await authFetch('/api/gmail/disconnect', {
+      const res = await authFetch('/api/gmail?action=disconnect', {
         method: 'POST',
         body: JSON.stringify({}),
       });

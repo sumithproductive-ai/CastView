@@ -2,21 +2,24 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { OAuth2Client } from "google-auth-library";
-import { requireEntitledAgency } from "../_auth";
-import { encryptToken } from "../_emailCrypto";
+import { requireEntitledAgency } from "./_auth";
+import { encryptToken } from "./_emailCrypto";
 import {
   createServiceRoleClient,
   getValidAccessToken,
   type EmailConnectionRow,
-} from "../_gmailAuth";
+} from "./_gmailAuth";
 
-// Single catch-all serverless function for every Gmail-intake route
-// (/api/gmail/oauth-start, /oauth-callback, /status, /set-label,
-// /disconnect) — consolidated into one file deliberately, not for
-// style: Vercel Hobby caps a deployment at 12 serverless functions,
-// this project is already at that cap, and 5 separate route files
-// would have pushed it to 17. See PR discussion for the alternative
-// (upgrade to Pro) if more routes are needed later.
+// Single serverless function for every Gmail-intake route, dispatched via
+// ?action= query param rather than a path-based dynamic route — consolidated
+// deliberately, not for style: Vercel Hobby caps a deployment at 12
+// serverless functions, this project is already at that cap, and 5 separate
+// route files would have pushed it to 17 (see PR #15 history; also tried a
+// path-based [...action].ts catch-all first, but that Next.js-style dynamic
+// route convention isn't honored for this project's plain Vite + Vercel
+// Functions setup — it silently fell through to the SPA's index.html
+// instead of this function. Query-param dispatch avoids that ambiguity
+// entirely: it's the same plain-file routing every other route here uses.
 
 const GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
 const SETTINGS_URL = "https://app.castview.org/settings";
@@ -88,7 +91,7 @@ async function handleOauthStart(req: VercelRequest, res: VercelResponse) {
 
   const env = oauthEnv();
   if (!env) {
-    console.error("[gmail/oauth-start] missing Google OAuth env vars");
+    console.error("[gmail?oauth-start] missing Google OAuth env vars");
     return res.status(500).json({ error: "Gmail connect is not configured" });
   }
 
@@ -131,7 +134,7 @@ async function handleOauthCallback(req: VercelRequest, res: VercelResponse) {
 
   const env = oauthEnv();
   if (!env) {
-    console.error("[gmail/oauth-callback] missing Google OAuth env vars");
+    console.error("[gmail?oauth-callback] missing Google OAuth env vars");
     return res.redirect(302, `${SETTINGS_URL}?gmail_connect=error&reason=not_configured`);
   }
 
@@ -140,7 +143,7 @@ async function handleOauthCallback(req: VercelRequest, res: VercelResponse) {
     const { tokens } = await oauth2Client.getToken(code);
 
     if (!tokens.access_token || !tokens.refresh_token || !tokens.expiry_date) {
-      console.error("[gmail/oauth-callback] incomplete token response", {
+      console.error("[gmail?oauth-callback] incomplete token response", {
         hasAccessToken: Boolean(tokens.access_token),
         hasRefreshToken: Boolean(tokens.refresh_token),
       });
@@ -170,14 +173,14 @@ async function handleOauthCallback(req: VercelRequest, res: VercelResponse) {
       );
 
     if (upsertError) {
-      console.error("[gmail/oauth-callback] upsert failed:", upsertError.message);
+      console.error("[gmail?oauth-callback] upsert failed:", upsertError.message);
       return res.redirect(302, `${SETTINGS_URL}?gmail_connect=error&reason=save_failed`);
     }
 
     return res.redirect(302, `${SETTINGS_URL}?gmail_connect=success`);
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown";
-    console.error("[gmail/oauth-callback] token exchange failed:", message);
+    console.error("[gmail?oauth-callback] token exchange failed:", message);
     return res.redirect(302, `${SETTINGS_URL}?gmail_connect=error&reason=exchange_failed`);
   }
 }
@@ -201,7 +204,7 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
     .maybeSingle<EmailConnectionRow>();
 
   if (error) {
-    console.error("[gmail/status] query failed:", error.message);
+    console.error("[gmail?status] query failed:", error.message);
     return res.status(500).json({ error: "Failed to load connection status" });
   }
 
@@ -261,7 +264,7 @@ async function handleSetLabel(req: VercelRequest, res: VercelResponse) {
     .eq("agency_id", entitlement.auth.agencyId);
 
   if (error) {
-    console.error("[gmail/set-label] update failed:", error.message);
+    console.error("[gmail?set-label] update failed:", error.message);
     return res.status(500).json({ error: "Failed to update label" });
   }
 
@@ -284,7 +287,7 @@ async function handleDisconnect(req: VercelRequest, res: VercelResponse) {
     .eq("agency_id", entitlement.auth.agencyId);
 
   if (error) {
-    console.error("[gmail/disconnect] update failed:", error.message);
+    console.error("[gmail?disconnect] update failed:", error.message);
     return res.status(500).json({ error: "Failed to disconnect" });
   }
 
