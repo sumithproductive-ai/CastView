@@ -94,6 +94,10 @@ async function handleOauthStart(req: VercelRequest, res: VercelResponse) {
     console.error("[gmail?oauth-start] missing Google OAuth env vars");
     return res.status(500).json({ error: "Gmail connect is not configured" });
   }
+  if (!process.env.EMAIL_TOKEN_ENCRYPTION_KEY) {
+    console.error("[gmail?oauth-start] missing EMAIL_TOKEN_ENCRYPTION_KEY");
+    return res.status(500).json({ error: "Gmail connect is not configured" });
+  }
 
   const { agencyId, userId } = entitlement.auth;
   const nonce = randomBytes(9).toString("base64url");
