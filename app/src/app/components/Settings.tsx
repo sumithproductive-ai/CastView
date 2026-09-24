@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { authFetch } from '../../lib/apiAuth';
 import { isAdminUser } from '../../lib/admin';
 import { useAuth } from '../context/AuthContext';
@@ -168,6 +168,17 @@ export function Settings() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [agencySaveError, setAgencySaveError] = useState<string | null>(null);
   const [showMarketSuggestions, setShowMarketSuggestions] = useState(false);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [gmailLoading, setGmailLoading] = useState(true);
+  const [gmailConnecting, setGmailConnecting] = useState(false);
+  const [gmailConnected, setGmailConnected] = useState(false);
+  const [gmailStatus, setGmailStatus] = useState<'active' | 'needs_reauth' | 'error' | null>(null);
+  const [gmailLabel, setGmailLabel] = useState('');
+  const [gmailAvailableLabels, setGmailAvailableLabels] = useState<string[]>([]);
+  const [gmailLastSyncedAt, setGmailLastSyncedAt] = useState<string | null>(null);
+  const [gmailLabelSaving, setGmailLabelSaving] = useState(false);
+  const [gmailNotice, setGmailNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const { openTutorial } = useTutorial();
   const { agencyId, user, plan, planStatus, signOut, loading: authLoading } = useAuth();
@@ -440,6 +451,113 @@ export function Settings() {
       setSupportError(err instanceof Error ? err.message : 'Failed to send message');
     } finally {
       setSupportSending(false);
+    }
+  };
+
+  const loadGmailStatus = async () => {
+    setGmailLoading(true);
+    try {
+      const res = await authFetch('/api/gmail?action=status');
+      const data = await res.json();
+      if (!res.ok) {
+        setGmailConnected(false);
+        return;
+      }
+      setGmailConnected(Boolean(data.connected));
+      setGmailStatus(data.status ?? null);
+      setGmailLabel(data.labelName ?? '');
+      setGmailAvailableLabels(data.availableLabels ?? []);
+      setGmailLastSyncedAt(data.lastSyncedAt ?? null);
+    } catch {
+      setGmailConnected(false);
+    } finally {
+      setGmailLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (authLoading || !agencyId) return;
+    void loadGmailStatus();
+  }, [authLoading, agencyId]);
+
+  useEffect(() => {
+    const gmailConnect = searchParams.get('gmail_connect');
+    if (!gmailConnect) return;
+
+    if (gmailConnect === 'success') {
+      setGmailNotice({ type: 'success', text: 'Gmail connected.' });
+      void loadGmailStatus();
+    } else {
+      const reason = searchParams.get('reason') ?? 'unknown_error';
+      setGmailNotice({
+        type: 'error',
+        text: `Couldn't connect Gmail (${reason.replace(/_/g, ' ')}). Try again.`,
+      });
+    }
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('gmail_connect');
+    next.delete('reason');
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleConnectGmail = async () => {
+    setGmailConnecting(true);
+    setGmailNotice(null);
+    try {
+      const res = await authFetch('/api/gmail?action=oauth-start', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.authorizeUrl) {
+        setGmailNotice({ type: 'error', text: data.error ?? 'Unable to start Gmail connection.' });
+        return;
+      }
+      window.location.href = data.authorizeUrl;
+    } catch {
+      setGmailNotice({ type: 'error', text: 'Unable to start Gmail connection.' });
+    } finally {
+      setGmailConnecting(false);
+    }
+  };
+
+  const handleChangeGmailLabel = async (labelName: string) => {
+    setGmailLabel(labelName);
+    setGmailLabelSaving(true);
+    try {
+      const res = await authFetch('/api/gmail?action=set-label', {
+        method: 'POST',
+        body: JSON.stringify({ labelName }),
+      });
+      if (!res.ok) {
+        setGmailNotice({ type: 'error', text: 'Unable to save label. Try again.' });
+      }
+    } catch {
+      setGmailNotice({ type: 'error', text: 'Unable to save label. Try again.' });
+    } finally {
+      setGmailLabelSaving(false);
+    }
+  };
+
+  const handleDisconnectGmail = async () => {
+    setGmailNotice(null);
+    try {
+      const res = await authFetch('/api/gmail?action=disconnect', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        setGmailNotice({ type: 'error', text: 'Unable to disconnect. Try again.' });
+        return;
+      }
+      setGmailConnected(false);
+      setGmailStatus(null);
+      setGmailLabel('');
+      setGmailAvailableLabels([]);
+    } catch {
+      setGmailNotice({ type: 'error', text: 'Unable to disconnect. Try again.' });
     }
   };
 
@@ -938,8 +1056,176 @@ export function Settings() {
           </div>
         </div>
 
-        {/* Support Block */}
+        {/* Email Intake Block */}
         <div style={!isPageLoading ? sectionFade(4) : undefined}>
+          <div
+            className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+          >
+            EMAIL INTAKE
+          </div>
+          <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
+            {gmailNotice && (
+              <p
+                className="text-[12px] mb-[16px]"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  color: gmailNotice.type === 'success' ? '#4a7a4a' : '#e8a8a8',
+                }}
+              >
+                {gmailNotice.type === 'success' ? '✓ ' : ''}
+                {gmailNotice.text}
+              </p>
+            )}
+
+            {gmailLoading ? (
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
+                Loading…
+              </p>
+            ) : !gmailConnected ? (
+              <div className="flex items-center justify-between">
+                <p
+                  className="text-[13px] max-w-[420px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
+                >
+                  Connect Gmail and CastView will watch a label you choose for new
+                  prospect submissions — extracting names, measurements, and
+                  digitals into a review queue automatically.
+                </p>
+                <button
+                  onClick={handleConnectGmail}
+                  disabled={gmailConnecting}
+                  className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] shrink-0 ml-[16px]"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    borderColor: 'var(--cv-subtle-border)',
+                    color: 'var(--cv-primary-text)',
+                    cursor: gmailConnecting ? 'not-allowed' : 'pointer',
+                    background: 'transparent',
+                  }}
+                >
+                  {gmailConnecting ? 'CONNECTING…' : 'CONNECT GMAIL'}
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center justify-between pb-[20px] mb-[20px] border-b border-[var(--cv-subtle-border)]">
+                  <div className="flex items-center gap-[10px]">
+                    <span
+                      className="w-[8px] h-[8px] rounded-full"
+                      style={{
+                        backgroundColor: gmailStatus === 'needs_reauth' ? '#d4a24a' : '#4a7a4a',
+                        display: 'inline-block',
+                      }}
+                    />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
+                      {gmailStatus === 'needs_reauth' ? 'Reconnect needed' : 'Connected'}
+                    </span>
+                  </div>
+                  {gmailStatus === 'needs_reauth' ? (
+                    <button
+                      onClick={handleConnectGmail}
+                      disabled={gmailConnecting}
+                      className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors"
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        borderColor: '#d4a24a',
+                        color: '#d4a24a',
+                        cursor: gmailConnecting ? 'not-allowed' : 'pointer',
+                        background: 'transparent',
+                      }}
+                    >
+                      {gmailConnecting ? 'CONNECTING…' : 'RECONNECT GMAIL'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleDisconnectGmail}
+                      className="text-[11px] uppercase tracking-[0.1em]"
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer', background: 'transparent', border: 'none' }}
+                    >
+                      Disconnect
+                    </button>
+                  )}
+                </div>
+
+                {gmailStatus === 'needs_reauth' && (
+                  <p
+                    className="text-[12px] mb-[16px]"
+                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
+                  >
+                    Google requires reconnecting roughly weekly while this integration
+                    is in review — labeled emails won&apos;t be processed until you
+                    reconnect.
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between mb-[8px]">
+                  <label
+                    className="text-[9px] uppercase tracking-[0.1em]"
+                    style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+                  >
+                    Watching label
+                  </label>
+                  <button
+                    onClick={loadGmailStatus}
+                    className="text-[10px] uppercase tracking-[0.1em]"
+                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer', background: 'transparent', border: 'none' }}
+                  >
+                    Refresh
+                  </button>
+                </div>
+                {gmailAvailableLabels.length === 0 ? (
+                  <>
+                    <select
+                      disabled
+                      className="w-full px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
+                    >
+                      <option>No labels found in this Gmail account</option>
+                    </select>
+                    <p
+                      className="mt-[12px] text-[11px]"
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
+                    >
+                      Create a label in Gmail (e.g. "CastView Submissions") for the
+                      emails you want processed, then click Refresh above.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <select
+                      value={gmailLabel}
+                      disabled={gmailLabelSaving || gmailStatus === 'needs_reauth'}
+                      onChange={(e) => handleChangeGmailLabel(e.target.value)}
+                      className="w-full px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
+                    >
+                      {!gmailAvailableLabels.includes(gmailLabel) && gmailLabel && (
+                        <option value={gmailLabel}>{gmailLabel}</option>
+                      )}
+                      {gmailAvailableLabels.map((label) => (
+                        <option key={label} value={label}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    <p
+                      className="mt-[12px] text-[11px]"
+                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
+                    >
+                      {gmailLastSyncedAt
+                        ? `Last synced ${new Date(gmailLastSyncedAt).toLocaleString()}.`
+                        : 'Not synced yet — runs once daily.'}
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Support Block */}
+        <div style={!isPageLoading ? sectionFade(5) : undefined}>
           <div
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
@@ -1070,7 +1356,7 @@ export function Settings() {
           </div>
         )}
 
-        <div className="pt-[48px]" style={!isPageLoading ? sectionFade(5) : undefined}>
+        <div className="pt-[48px]" style={!isPageLoading ? sectionFade(6) : undefined}>
           <button
             type="button"
             onClick={async () => {
