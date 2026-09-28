@@ -51,7 +51,12 @@ function parseFromEmail(fromHeader: string): string {
   return (match?.[1] ?? fromHeader).trim().toLowerCase();
 }
 
-type Attachment = { attachmentId: string; filename: string; mimeType: string };
+type Attachment = { attachmentId: string; filename: string; mimeType: string; sizeBytes: number };
+
+// Claude's image input has its own limits, and a giant base64 payload in
+// the request body isn't worth the extraction call anyway — skip rather
+// than download+discard.
+const MAX_ATTACHMENT_BYTES = 8 * 1024 * 1024;
 
 /** Walks the (possibly nested) MIME part tree for body text + image attachments. */
 function walkParts(
@@ -61,11 +66,17 @@ function walkParts(
   if (!part) return;
 
   if (part.filename && part.body?.attachmentId && part.mimeType?.startsWith("image/")) {
-    acc.attachments.push({
-      attachmentId: part.body.attachmentId,
-      filename: part.filename,
-      mimeType: part.mimeType,
-    });
+    const sizeBytes = part.body.size ?? 0;
+    if (sizeBytes > MAX_ATTACHMENT_BYTES) {
+      console.warn("[email-intake] skipping oversized attachment:", part.filename, sizeBytes);
+    } else {
+      acc.attachments.push({
+        attachmentId: part.body.attachmentId,
+        filename: part.filename,
+        mimeType: part.mimeType,
+        sizeBytes,
+      });
+    }
   } else if (part.mimeType === "text/plain" && part.body?.data && !acc.bodyText) {
     acc.bodyText = decodeBase64Url(part.body.data);
   } else if (part.mimeType === "text/html" && part.body?.data && !acc.bodyHtml) {
@@ -437,10 +448,27 @@ async function processConnection(connection: EmailConnectionRow): Promise<{ proc
     }
   }
 
-  await supabaseAdmin
+  // last_sync_failed_count reflects only this run, not a running total —
+  // Settings surfaces it as "N emails failed to process last run", which
+  // resets to 0 on the next clean sync rather than accumulating forever.
+  const syncUpdate = await supabaseAdmin
     .from("email_connections")
-    .update({ last_synced_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .update({
+      last_synced_at: new Date().toISOString(),
+      last_sync_failed_count: failed,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", connection.id);
+
+  // Falls back if the Sprint 5 migration hasn't run yet in this
+  // environment — never let a missing column stop last_synced_at from
+  // advancing (that would cause the same emails to be reprocessed daily).
+  if (syncUpdate.error?.message.includes("last_sync_failed_count")) {
+    await supabaseAdmin
+      .from("email_connections")
+      .update({ last_synced_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("id", connection.id);
+  }
 
   return { processed, failed };
 }
