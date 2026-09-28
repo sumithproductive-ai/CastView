@@ -10,6 +10,7 @@ export type EmailConnectionRow = {
   refresh_token_enc: string;
   token_expires_at: string;
   last_synced_at: string | null;
+  last_sync_failed_count?: number;
   status: "active" | "needs_reauth" | "disconnected";
 };
 

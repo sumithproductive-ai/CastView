@@ -177,6 +177,7 @@ export function Settings() {
   const [gmailLabel, setGmailLabel] = useState('');
   const [gmailAvailableLabels, setGmailAvailableLabels] = useState<string[]>([]);
   const [gmailLastSyncedAt, setGmailLastSyncedAt] = useState<string | null>(null);
+  const [gmailLastSyncFailedCount, setGmailLastSyncFailedCount] = useState(0);
   const [gmailLabelSaving, setGmailLabelSaving] = useState(false);
   const [gmailNotice, setGmailNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -468,6 +469,7 @@ export function Settings() {
       setGmailLabel(data.labelName ?? '');
       setGmailAvailableLabels(data.availableLabels ?? []);
       setGmailLastSyncedAt(data.lastSyncedAt ?? null);
+      setGmailLastSyncFailedCount(data.lastSyncFailedCount ?? 0);
     } catch {
       setGmailConnected(false);
     } finally {
@@ -1216,6 +1218,12 @@ export function Settings() {
                       {gmailLastSyncedAt
                         ? `Last synced ${new Date(gmailLastSyncedAt).toLocaleString()}.`
                         : 'Not synced yet — runs once daily.'}
+                      {gmailLastSyncFailedCount > 0 && (
+                        <span style={{ color: '#d4a24a' }}>
+                          {' '}
+                          {gmailLastSyncFailedCount} email{gmailLastSyncFailedCount !== 1 ? 's' : ''} failed to process last run.
+                        </span>
+                      )}
                     </p>
                   </>
                 )}

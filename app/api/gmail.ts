@@ -208,13 +208,25 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
   }
 
   const supabaseAdmin = createServiceRoleClient();
-  const { data: connection, error } = await supabaseAdmin
+  const STATUS_COLUMNS_BASE =
+    "id, agency_id, label_name, access_token_enc, refresh_token_enc, token_expires_at, last_synced_at, status";
+
+  let statusResult = await supabaseAdmin
     .from("email_connections")
-    .select(
-      "id, agency_id, label_name, access_token_enc, refresh_token_enc, token_expires_at, last_synced_at, status",
-    )
+    .select(`${STATUS_COLUMNS_BASE}, last_sync_failed_count`)
     .eq("agency_id", entitlement.auth.agencyId)
     .maybeSingle<EmailConnectionRow>();
+
+  // Falls back if the Sprint 5 migration hasn't run yet in this environment.
+  if (statusResult.error?.message.includes("last_sync_failed_count")) {
+    statusResult = await supabaseAdmin
+      .from("email_connections")
+      .select(STATUS_COLUMNS_BASE)
+      .eq("agency_id", entitlement.auth.agencyId)
+      .maybeSingle<EmailConnectionRow>();
+  }
+
+  const { data: connection, error } = statusResult;
 
   if (error) {
     console.error("[gmail?status] query failed:", error.message);
@@ -231,6 +243,7 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
       status: "needs_reauth",
       labelName: connection.label_name,
       lastSyncedAt: connection.last_synced_at,
+      lastSyncFailedCount: connection.last_sync_failed_count ?? 0,
     });
   }
 
@@ -241,6 +254,7 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
       status: tokenResult.reason === "needs_reauth" ? "needs_reauth" : "error",
       labelName: connection.label_name,
       lastSyncedAt: connection.last_synced_at,
+      lastSyncFailedCount: connection.last_sync_failed_count ?? 0,
     });
   }
 
@@ -251,6 +265,7 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
     status: "active",
     labelName: connection.label_name,
     lastSyncedAt: connection.last_synced_at,
+    lastSyncFailedCount: connection.last_sync_failed_count ?? 0,
     availableLabels,
   });
 }
