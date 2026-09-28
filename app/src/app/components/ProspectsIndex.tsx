@@ -211,7 +211,12 @@ export function ProspectsIndex() {
   // Filter prospects based on source filter
   const filteredProspects = prospects
     .filter(p => {
-      const matchesSource = sourceFilters.size === 0 
+      // Unreviewed email drafts live in the Inbox until a booker confirms
+      // them (Sprint 4 promotes PENDING_REVIEW -> IN REVIEW) — keep them out
+      // of the main Prospects list until then.
+      if (p.status === 'PENDING_REVIEW') return false;
+
+      const matchesSource = sourceFilters.size === 0
         || (p.source && sourceFilters.has(p.source))
         || (!p.source);
       const matchesSearch = search.trim() === '' 

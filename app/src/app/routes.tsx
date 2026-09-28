@@ -34,6 +34,9 @@ const ProspectRenderHistory = lazy(() =>
 const Settings = lazy(() =>
   import('./components/Settings').then((m) => ({ default: m.Settings })),
 );
+const InboxReview = lazy(() =>
+  import('./components/InboxReview').then((m) => ({ default: m.InboxReview })),
+);
 const NewProspectBasicInfo = lazy(() =>
   import('./components/NewProspectBasicInfo').then((m) => ({
     default: m.NewProspectBasicInfo,
@@ -299,6 +302,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedLayoutRoute>
         <UploadDigitalSet />
+      </ProtectedLayoutRoute>
+    ),
+  },
+  {
+    path: '/inbox',
+    element: (
+      <ProtectedLayoutRoute>
+        <InboxReview />
       </ProtectedLayoutRoute>
     ),
   },

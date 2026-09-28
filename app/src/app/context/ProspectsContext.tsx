@@ -34,6 +34,7 @@ export type Prospect = {
   signed_status?: string;
   consent_at?: string | null;
   consent_by?: string | null;
+  possibleDuplicateOf?: string | null;
   measurements?: {
     chest: string;
     waist: string;
@@ -139,6 +140,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     signed_status?: string;
     consent_at?: string | null;
     consent_by?: string | null;
+    possible_duplicate_of?: string | null;
   }, digitalSets: DigitalSet[]): Prospect => ({
     id: row.id,
     name: row.name,
@@ -160,6 +162,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
     signed_status: row.signed_status ?? 'pending',
     consent_at: row.consent_at ?? null,
     consent_by: row.consent_by ?? null,
+    possibleDuplicateOf: row.possible_duplicate_of ?? null,
     measurements: {
       chest: row.bust ?? '',
       waist: row.waist ?? '',
@@ -171,7 +174,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
 
   const PROSPECT_LIST_COLUMNS_BASIC =
     'id, name, status, status_color, created_at, source, markets, height, signed_status';
-  const PROSPECT_LIST_COLUMNS_FULL = `${PROSPECT_LIST_COLUMNS_BASIC}, bust, waist, hips, shoe, hair, notes, consent_at, consent_by`;
+  const PROSPECT_LIST_COLUMNS_FULL = `${PROSPECT_LIST_COLUMNS_BASIC}, bust, waist, hips, shoe, hair, notes, consent_at, consent_by, possible_duplicate_of`;
 
   const fetchProspectRows = async (resolvedAgencyId: string) => {
     const full = await supabase
@@ -182,7 +185,11 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
 
     if (!full.error) return full;
 
-    if (full.error.message.includes('consent_') || full.error.message.includes('bust')) {
+    if (
+      full.error.message.includes('consent_') ||
+      full.error.message.includes('bust') ||
+      full.error.message.includes('possible_duplicate_of')
+    ) {
       return supabase
         .from('prospects')
         .select(PROSPECT_LIST_COLUMNS_BASIC)
@@ -679,7 +686,8 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       if (
         reloadResult.error &&
         (reloadResult.error.message.includes('consent_') ||
-          reloadResult.error.message.includes('bust'))
+          reloadResult.error.message.includes('bust') ||
+          reloadResult.error.message.includes('possible_duplicate_of'))
       ) {
         reloadResult = await supabase
           .from('prospects')

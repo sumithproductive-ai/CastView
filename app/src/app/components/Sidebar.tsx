@@ -1,10 +1,11 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, Link } from 'react-router';
-import { LayoutDashboard, Users, Image, Settings, Bell, Sun, Moon, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users, Image, Inbox, Settings, Bell, Sun, Moon, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useProspects } from '../context/ProspectsContext';
 import { useTheme } from '../context/ThemeContext';
 import { NotificationsPanel } from './NotificationsPanel';
 import { CastviewWordmark } from './CastviewWordmark';
@@ -14,6 +15,7 @@ type NavItem = { name: string; icon: LucideIcon; path: string };
 const coreNavItems: NavItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
   { name: 'Prospects', icon: Users, path: '/prospects' },
+  { name: 'Inbox', icon: Inbox, path: '/inbox' },
   { name: 'Roster', icon: Image, path: '/roster' },
   { name: 'Settings', icon: Settings, path: '/settings' },
 ];
@@ -37,6 +39,9 @@ export function Sidebar() {
     if (itemName === 'Prospects') {
       return path === '/prospects' || path.startsWith('/prospects/') || path === '/profile' || path === '/rendering';
     }
+    if (itemName === 'Inbox') {
+      return path === '/inbox';
+    }
     if (itemName === 'Roster') {
       return path === '/roster' || path.startsWith('/roster/');
     }
@@ -50,6 +55,9 @@ export function Sidebar() {
   const [unreadCount, setUnreadCount] = useState(0);
   const { agencyId, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { prospects } = useProspects();
+
+  const pendingReviewCount = prospects.filter((p) => p.status === 'PENDING_REVIEW').length;
 
   const accountLabel = user?.email
     ? user.email.length > 22
@@ -204,6 +212,20 @@ export function Sidebar() {
                   <span style={{ letterSpacing: active ? '0.08em' : '0.05em' }}>
                     {item.name}
                   </span>
+                  {item.name === 'Inbox' && pendingReviewCount > 0 && (
+                    <span
+                      className="ml-auto min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-[4px]"
+                      style={{
+                        backgroundColor: 'var(--cv-primary-text)',
+                        color: 'var(--cv-background)',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '10px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {pendingReviewCount}
+                    </span>
+                  )}
                 </Link>
               </div>
             );
@@ -356,10 +378,26 @@ export function Sidebar() {
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  <Icon
-                    size={20}
-                    style={{ color: active ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)' }}
-                  />
+                  <div className="relative">
+                    <Icon
+                      size={20}
+                      style={{ color: active ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)' }}
+                    />
+                    {item.name === 'Inbox' && pendingReviewCount > 0 && (
+                      <div
+                        className="absolute -top-[4px] -right-[8px] min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-[3px]"
+                        style={{
+                          backgroundColor: 'var(--cv-primary-text)',
+                          color: 'var(--cv-background)',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {pendingReviewCount}
+                      </div>
+                    )}
+                  </div>
                   <span
                     className="text-[9px] uppercase tracking-[0.05em] flex items-center"
                     style={{
