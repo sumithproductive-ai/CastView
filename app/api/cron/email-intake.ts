@@ -255,12 +255,52 @@ async function uploadDigitalBuffer(
   return path;
 }
 
-const ANGLE_TO_COLUMN: Record<string, "front" | "profile" | "three_quarter" | "full_body"> = {
+type DigitalColumn = "front" | "profile" | "three_quarter" | "full_body";
+const ALL_COLUMNS: DigitalColumn[] = ["front", "profile", "three_quarter", "full_body"];
+const ANGLE_TO_COLUMN: Record<string, DigitalColumn> = {
   front: "front",
   profile: "profile",
   threeQuarter: "three_quarter",
   fullBody: "full_body",
 };
+
+/**
+ * Assigns each downloaded image (up to 4) to one of the four digital_sets
+ * columns. AI guesses are honored highest-confidence-first; an "unknown"
+ * guess or a collision (two images both guessing "front") falls through to
+ * fill whatever columns are left, in attachment order — every image still
+ * lands in a real, reviewable column rather than being silently dropped
+ * from digital_sets. The booker corrects any wrong guess in the Inbox
+ * review queue (Sprint 3).
+ */
+function assignImagesToColumns(
+  imageCount: number,
+  guesses: ExtractedAngleGuess[],
+): Partial<Record<DigitalColumn, number>> {
+  const assignment: Partial<Record<DigitalColumn, number>> = {};
+  const assignedIndexes = new Set<number>();
+
+  const candidates = guesses
+    .filter((g) => g.index < imageCount && ANGLE_TO_COLUMN[g.suggestedAngle])
+    .sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0));
+
+  for (const guess of candidates) {
+    const column = ANGLE_TO_COLUMN[guess.suggestedAngle];
+    if (assignment[column] !== undefined || assignedIndexes.has(guess.index)) continue;
+    assignment[column] = guess.index;
+    assignedIndexes.add(guess.index);
+  }
+
+  const leftoverColumns = ALL_COLUMNS.filter((c) => assignment[c] === undefined);
+  const leftoverIndexes = Array.from({ length: imageCount }, (_, i) => i).filter(
+    (i) => !assignedIndexes.has(i),
+  );
+  for (let i = 0; i < Math.min(leftoverColumns.length, leftoverIndexes.length); i++) {
+    assignment[leftoverColumns[i]] = leftoverIndexes[i];
+  }
+
+  return assignment;
+}
 
 async function processMessage(
   connection: EmailConnectionRow,
@@ -301,15 +341,17 @@ async function processMessage(
   const prospectId = crypto.randomUUID();
   const digitalSetId = crypto.randomUUID();
 
-  const digitalColumns: Record<string, string> = {};
-  for (let i = 0; i < downloadedImages.length; i++) {
-    const guess = extraction.imageGuesses.find((g) => g.index === i);
-    const column = guess ? ANGLE_TO_COLUMN[guess.suggestedAngle] : undefined;
-    const ext = downloadedImages[i].mediaType === "image/png" ? "png" : "jpg";
-    const path = `prospects/${prospectId}/${digitalSetId}/${column ?? `unassigned_${i}`}.${ext}`;
-    const buffer = Buffer.from(downloadedImages[i].data, "base64");
-    const uploaded = await uploadDigitalBuffer(buffer, path, downloadedImages[i].mediaType);
-    if (uploaded && column) {
+  const columnAssignment = assignImagesToColumns(downloadedImages.length, extraction.imageGuesses);
+  const digitalColumns: Partial<Record<DigitalColumn, string>> = {};
+  for (const column of ALL_COLUMNS) {
+    const imageIndex = columnAssignment[column];
+    if (imageIndex === undefined) continue;
+    const image = downloadedImages[imageIndex];
+    const ext = image.mediaType === "image/png" ? "png" : "jpg";
+    const path = `prospects/${prospectId}/${digitalSetId}/${column}.${ext}`;
+    const buffer = Buffer.from(image.data, "base64");
+    const uploaded = await uploadDigitalBuffer(buffer, path, image.mediaType);
+    if (uploaded) {
       digitalColumns[column] = uploaded;
     }
   }
