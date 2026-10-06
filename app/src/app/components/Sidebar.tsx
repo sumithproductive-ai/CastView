@@ -1,11 +1,12 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, Link } from 'react-router';
-import { LayoutDashboard, Users, Image, Settings, Bell, Sun, Moon, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users, Image, Inbox, Settings, Bell, Sun, Moon, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { authFetch } from '../../lib/apiAuth';
 import { useAuth } from '../context/AuthContext';
+import { useProspects } from '../context/ProspectsContext';
 import { useTheme } from '../context/ThemeContext';
 import { NotificationsPanel } from './NotificationsPanel';
 import { CastviewWordmark } from './CastviewWordmark';
@@ -15,6 +16,7 @@ type NavItem = { name: string; icon: LucideIcon; path: string };
 const coreNavItems: NavItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
   { name: 'Prospects', icon: Users, path: '/prospects' },
+  { name: 'Inbox', icon: Inbox, path: '/inbox' },
   { name: 'Roster', icon: Image, path: '/roster' },
   { name: 'Settings', icon: Settings, path: '/settings' },
 ];
@@ -38,6 +40,9 @@ export function Sidebar() {
     if (itemName === 'Prospects') {
       return path === '/prospects' || path.startsWith('/prospects/') || path === '/profile' || path === '/rendering';
     }
+    if (itemName === 'Inbox') {
+      return path === '/inbox';
+    }
     if (itemName === 'Roster') {
       return path === '/roster' || path.startsWith('/roster/');
     }
@@ -52,6 +57,9 @@ export function Sidebar() {
   const [gmailNeedsReauth, setGmailNeedsReauth] = useState(false);
   const { agencyId, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { prospects } = useProspects();
+
+  const pendingReviewCount = prospects.filter((p) => p.status === 'PENDING_REVIEW').length;
 
   // Google expires refresh tokens ~weekly while this integration is in
   // Testing mode (see _gmailAuth.ts) — that's an expected, recurring event,
@@ -250,6 +258,20 @@ export function Sidebar() {
                       RECONNECT
                     </span>
                   )}
+                  {item.name === 'Inbox' && pendingReviewCount > 0 && (
+                    <span
+                      className="ml-auto min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-[4px]"
+                      style={{
+                        backgroundColor: 'var(--cv-primary-text)',
+                        color: 'var(--cv-background)',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '10px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {pendingReviewCount}
+                    </span>
+                  )}
                 </Link>
               </div>
             );
@@ -413,6 +435,20 @@ export function Sidebar() {
                         style={{ backgroundColor: '#d4a24a', border: '1.5px solid var(--cv-surface)' }}
                         aria-label="Gmail reconnect needed"
                       />
+                    )}
+                    {item.name === 'Inbox' && pendingReviewCount > 0 && (
+                      <div
+                        className="absolute -top-[4px] -right-[8px] min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-[3px]"
+                        style={{
+                          backgroundColor: 'var(--cv-primary-text)',
+                          color: 'var(--cv-background)',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {pendingReviewCount}
+                      </div>
                     )}
                   </div>
                   <span
