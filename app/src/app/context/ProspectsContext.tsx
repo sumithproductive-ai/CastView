@@ -173,7 +173,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
   });
 
   const PROSPECT_LIST_COLUMNS_BASIC =
-    'id, name, status, status_color, created_at, source, markets, height, signed_status';
+    'id, name, status, status_color, created_at, source, email, markets, height, signed_status';
   const PROSPECT_LIST_COLUMNS_FULL = `${PROSPECT_LIST_COLUMNS_BASIC}, bust, waist, hips, shoe, hair, notes, consent_at, consent_by, possible_duplicate_of`;
 
   const fetchProspectRows = async (resolvedAgencyId: string) => {
