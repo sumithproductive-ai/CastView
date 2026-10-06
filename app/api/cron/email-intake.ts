@@ -574,9 +574,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { data: latest } = await supabaseAdmin
       .from("prospects")
       .select(
-        "id, name, status, source, email, height, bust, waist, hips, shoe, hair, notes, source_email_message_id, possible_duplicate_of, created_at",
+        "id, name, status, source, email, height, bust, waist, hips, shoe, hair, notes, source_email_message_id, possible_duplicate_of, consent_at, consent_by, created_at",
       )
-      .eq("status", "PENDING_REVIEW")
+      .eq("source", "EMAIL")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
