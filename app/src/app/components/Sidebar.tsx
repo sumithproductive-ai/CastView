@@ -4,10 +4,10 @@ import { useNavigate, useLocation, Link } from 'react-router';
 import { LayoutDashboard, Users, Image, Inbox, Settings, Bell, Sun, Moon, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { authFetch } from '../../lib/apiAuth';
 import { useAuth } from '../context/AuthContext';
 import { useProspects } from '../context/ProspectsContext';
 import { useTheme } from '../context/ThemeContext';
+import { useGmailConnectionStatus } from '../hooks/useGmailConnectionStatus';
 import { NotificationsPanel } from './NotificationsPanel';
 import { CastviewWordmark } from './CastviewWordmark';
 
@@ -54,39 +54,12 @@ export function Sidebar() {
   
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [gmailNeedsReauth, setGmailNeedsReauth] = useState(false);
   const { agencyId, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { prospects } = useProspects();
+  const { needsReauth: gmailNeedsReauth } = useGmailConnectionStatus(agencyId);
 
   const pendingReviewCount = prospects.filter((p) => p.status === 'PENDING_REVIEW').length;
-
-  // Google expires refresh tokens ~weekly while this integration is in
-  // Testing mode (see _gmailAuth.ts) — that's an expected, recurring event,
-  // not an edge case, so the reconnect prompt needs to be visible from
-  // anywhere in the app, not just inside the Settings page itself.
-  useEffect(() => {
-    if (!agencyId) return;
-    let cancelled = false;
-
-    const checkGmailStatus = async () => {
-      try {
-        const res = await authFetch('/api/gmail?action=status');
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled) setGmailNeedsReauth(data.status === 'needs_reauth');
-      } catch {
-        /* non-critical — Settings page surfaces the same state with more detail */
-      }
-    };
-
-    checkGmailStatus();
-    const interval = setInterval(checkGmailStatus, 15 * 60 * 1000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, [agencyId]);
 
   const accountLabel = user?.email
     ? user.email.length > 22
