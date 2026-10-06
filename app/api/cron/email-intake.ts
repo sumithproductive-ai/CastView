@@ -147,11 +147,11 @@ type ExtractionResult = {
 async function extractProspectData(
   bodyText: string,
   images: Array<{ mediaType: string; data: string }>,
-): Promise<{ result: ExtractionResult | null; errorReason?: string }> {
+): Promise<ExtractionResult | null> {
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!anthropicApiKey) {
     console.error("[email-intake] missing ANTHROPIC_API_KEY");
-    return { result: null, errorReason: "missing ANTHROPIC_API_KEY" };
+    return null;
   }
 
   const prompt = `You are a casting assistant extracting a new-face model submission from an email for a booking agency. Read the email body and look at the attached images.
@@ -196,9 +196,8 @@ No preamble, no markdown fences.`;
   });
 
   if (!response.ok) {
-    const bodyText2 = await response.text().catch(() => "");
-    console.error("[email-intake] extraction call failed:", response.status, bodyText2);
-    return { result: null, errorReason: `Anthropic API ${response.status}: ${bodyText2.slice(0, 300)}` };
+    console.error("[email-intake] extraction call failed:", response.status, await response.text().catch(() => ""));
+    return null;
   }
 
   const data = (await response.json()) as { content?: Array<{ text?: string }> };
@@ -207,7 +206,8 @@ No preamble, no markdown fences.`;
   const start = withoutFences.indexOf("{");
   const end = withoutFences.lastIndexOf("}");
   if (start < 0 || end < 0) {
-    return { result: null, errorReason: `No JSON object found in response: ${text.slice(0, 300)}` };
+    console.error("[email-intake] no JSON object found in extraction response:", text.slice(0, 300));
+    return null;
   }
 
   try {
@@ -218,15 +218,14 @@ No preamble, no markdown fences.`;
       notes?: string;
     };
     return {
-      result: {
-        name: parsed.name?.trim() || "New Submission",
-        measurements: parsed.measurements ?? {},
-        imageGuesses: Array.isArray(parsed.images) ? parsed.images : [],
-        notes: parsed.notes?.trim() ?? "",
-      },
+      name: parsed.name?.trim() || "New Submission",
+      measurements: parsed.measurements ?? {},
+      imageGuesses: Array.isArray(parsed.images) ? parsed.images : [],
+      notes: parsed.notes?.trim() ?? "",
     };
   } catch (err) {
-    return { result: null, errorReason: `JSON parse failed: ${err instanceof Error ? err.message : "unknown"}` };
+    console.error("[email-intake] extraction JSON parse failed:", err instanceof Error ? err.message : "unknown");
+    return null;
   }
 }
 
@@ -319,15 +318,11 @@ function assignImagesToColumns(
   return assignment;
 }
 
-type ProcessMessageResult =
-  | { status: "created" | "skipped_duplicate_message" }
-  | { status: "failed"; reason: string };
-
 async function processMessage(
   connection: EmailConnectionRow,
   accessToken: string,
   messageId: string,
-): Promise<ProcessMessageResult> {
+): Promise<"created" | "skipped_duplicate_message" | "failed"> {
   // Cheap existence check before spending a Claude call — this is what
   // actually makes it safe to re-list the same messages run over run (see
   // processConnection's lookback comment), not the time filter alone.
@@ -337,7 +332,7 @@ async function processMessage(
     .eq("agency_id", connection.agency_id)
     .eq("source_email_message_id", messageId)
     .maybeSingle();
-  if (existing) return { status: "skipped_duplicate_message" };
+  if (existing) return "skipped_duplicate_message";
 
   const message = await getMessage(accessToken, messageId);
   const acc = { bodyText: "", bodyHtml: "", attachments: [] as Attachment[] };
@@ -362,10 +357,10 @@ async function processMessage(
     }
   }
 
-  const { result: extraction, errorReason } = await extractProspectData(bodyText, downloadedImages);
+  const extraction = await extractProspectData(bodyText, downloadedImages);
   if (!extraction) {
-    console.error("[email-intake] extraction failed for message:", messageId, errorReason);
-    return { status: "failed", reason: errorReason ?? "unknown extraction failure" };
+    console.error("[email-intake] extraction failed for message:", messageId);
+    return "failed";
   }
 
   const duplicateOf = await findPossibleDuplicate(connection.agency_id, extraction.name, senderEmail);
@@ -414,7 +409,7 @@ async function processMessage(
 
   if (prospectError) {
     console.error("[email-intake] prospect upsert failed:", messageId, prospectError.message);
-    return { status: "failed", reason: `prospect upsert: ${prospectError.message}` };
+    return "failed";
   }
 
   if (Object.keys(digitalColumns).length > 0) {
@@ -437,22 +432,19 @@ async function processMessage(
     }
   }
 
-  return { status: "created" };
+  return "created";
 }
 
-async function processConnection(
-  connection: EmailConnectionRow,
-): Promise<{ processed: number; failed: number; failureReasons: string[] }> {
+async function processConnection(connection: EmailConnectionRow): Promise<{ processed: number; failed: number }> {
   let processed = 0;
   let failed = 0;
-  const failureReasons: string[] = [];
 
-  if (!connection.label_name) return { processed, failed, failureReasons };
+  if (!connection.label_name) return { processed, failed };
 
   const tokenResult = await getValidAccessToken(supabaseAdmin, connection);
   if (!tokenResult.ok) {
     console.error("[email-intake] skipping connection, token invalid:", connection.agency_id, tokenResult.reason);
-    return { processed, failed, failureReasons };
+    return { processed, failed };
   }
 
   // A booker may label an email well after it arrives (triaging a backlog),
@@ -470,15 +462,10 @@ async function processConnection(
   for (const messageId of messageIds) {
     try {
       const result = await processMessage(connection, tokenResult.accessToken, messageId);
-      if (result.status === "created") processed++;
-      else if (result.status === "failed") {
-        failed++;
-        failureReasons.push(result.reason);
-      }
+      if (result === "created") processed++;
+      else if (result === "failed") failed++;
     } catch (err) {
       failed++;
-      const message = err instanceof Error ? err.message : "unknown";
-      failureReasons.push(`threw: ${message}`);
       console.error("[email-intake] message processing threw:", connection.agency_id, messageId, err);
     }
   }
@@ -505,7 +492,7 @@ async function processConnection(
       .eq("id", connection.id);
   }
 
-  return { processed, failed, failureReasons };
+  return { processed, failed };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -531,80 +518,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Failed to list connections" });
   }
 
-  // Diagnostic-only path, same CRON_SECRET auth as above, gated behind an
-  // explicit query param so it never runs during the real scheduled job.
-  // Not meant to ship long-term — remove before merge once the live test
-  // passes.
-  if (req.query.debug === "1") {
-    const debugInfo = [];
-    for (const connection of (connections ?? []) as EmailConnectionRow[]) {
-      const tokenResult = await getValidAccessToken(supabaseAdmin, connection);
-      if (!tokenResult.ok) {
-        debugInfo.push({ agencyId: connection.agency_id, tokenStatus: tokenResult.reason });
-        continue;
-      }
-      const labelsRes = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/labels", {
-        headers: { Authorization: `Bearer ${tokenResult.accessToken}` },
-      });
-      const labelsData = (await labelsRes.json()) as { labels?: Array<{ name?: string }> };
-      const allMessagesRes = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?${new URLSearchParams({
-          q: `label:"${connection.label_name}"`,
-          maxResults: "10",
-        })}`,
-        { headers: { Authorization: `Bearer ${tokenResult.accessToken}` } },
-      );
-      const allMessagesData = (await allMessagesRes.json()) as { messages?: Array<{ id: string }>; resultSizeEstimate?: number };
-      debugInfo.push({
-        agencyId: connection.agency_id,
-        configuredLabel: connection.label_name,
-        lastSyncedAt: connection.last_synced_at,
-        availableLabels: (labelsData.labels ?? []).map((l) => l.name),
-        messagesFoundWithLabelNoTimeFilter: allMessagesData.resultSizeEstimate ?? 0,
-        sampleMessageIds: (allMessagesData.messages ?? []).map((m) => m.id),
-      });
-    }
-    return res.status(200).json({ debug: debugInfo });
-  }
-
-  // Temporary — remove before merge. Shows the most recently drafted
-  // PENDING_REVIEW prospect + its digital_sets row, for verifying the
-  // extraction landed correctly without direct DB access.
-  if (req.query.debug === "2") {
-    const { data: latest } = await supabaseAdmin
-      .from("prospects")
-      .select(
-        "id, name, status, source, email, height, bust, waist, hips, shoe, hair, notes, source_email_message_id, possible_duplicate_of, consent_at, consent_by, created_at",
-      )
-      .eq("source", "EMAIL")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    let digitalSet = null;
-    if (latest) {
-      const { data } = await supabaseAdmin
-        .from("digital_sets")
-        .select("id, front, profile, three_quarter, full_body, notes, tags")
-        .eq("entity_id", latest.id)
-        .maybeSingle();
-      digitalSet = data;
-    }
-
-    return res.status(200).json({ latestProspect: latest, digitalSet });
-  }
-
   let totalProcessed = 0;
   let totalFailed = 0;
   let agenciesFailed = 0;
-  const allFailureReasons: string[] = [];
 
   for (const connection of (connections ?? []) as EmailConnectionRow[]) {
     try {
-      const { processed, failed, failureReasons } = await processConnection(connection);
+      const { processed, failed } = await processConnection(connection);
       totalProcessed += processed;
       totalFailed += failed;
-      allFailureReasons.push(...failureReasons);
     } catch (err) {
       agenciesFailed++;
       console.error("[email-intake] connection processing threw:", connection.agency_id, err);
@@ -616,8 +538,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     prospectsCreated: totalProcessed,
     messagesFailed: totalFailed,
     agenciesFailed,
-    // Temporary — remove before merge. Safe to leave in only because this
-    // route already requires CRON_SECRET bearer auth.
-    failureReasons: allFailureReasons,
   });
 }
