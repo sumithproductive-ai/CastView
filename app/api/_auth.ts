@@ -13,6 +13,7 @@ export type AuthedAgency = {
   plan: string;
   plan_status: string;
   trial_ends_at: string | null;
+  preferred_language: string;
 };
 
 export type AuthFailure = { status: 401 | 403; error: string; reason?: string };
@@ -281,11 +282,23 @@ export async function getAuthedAgency(
     return { status: 403, error: 'No agency associated with this account', reason: 'no_agency' };
   }
 
-  const { data: agency, error: agencyError } = await db
+  let { data: agency, error: agencyError } = await db
     .from('agencies')
-    .select('plan, plan_status, trial_ends_at')
+    .select('plan, plan_status, trial_ends_at, preferred_language')
     .eq('id', profile.agency_id)
     .maybeSingle();
+
+  // Falls back if the preferred_language migration hasn't run yet in this
+  // environment.
+  if (agencyError?.message?.includes('preferred_language')) {
+    const fallback = await db
+      .from('agencies')
+      .select('plan, plan_status, trial_ends_at')
+      .eq('id', profile.agency_id)
+      .maybeSingle();
+    agency = fallback.data as typeof agency;
+    agencyError = fallback.error;
+  }
 
   if (agencyError) {
     console.error('[API auth] agency lookup failed:', agencyError.message);
@@ -298,6 +311,7 @@ export async function getAuthedAgency(
     plan: agency?.plan ?? 'trial',
     plan_status: agency?.plan_status ?? 'trialing',
     trial_ends_at: agency?.trial_ends_at ?? null,
+    preferred_language: (agency as { preferred_language?: string } | null)?.preferred_language ?? 'English',
   };
 }
 

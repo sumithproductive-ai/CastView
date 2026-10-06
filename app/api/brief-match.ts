@@ -261,6 +261,12 @@ export default async function handler(
     payloadKb: Math.round(payloadBytes / 1024),
   });
 
+  const preferredLanguage = entitlement.auth.preferred_language;
+  const languageInstruction =
+    preferredLanguage && preferredLanguage !== "English"
+      ? `\n- reasoning must be written in ${preferredLanguage}; keep "id" and all other keys untranslated`
+      : "";
+
   const prompt = `You are an expert modeling agency casting director. A booker has described a brief and you must rank the agency's roster models by fit.
 
 Brief: "${brief}"
@@ -284,7 +290,7 @@ Rules:
 - score: integer 0-100 based on how well the model fits the brief description
 - reasoning: exactly one sentence, specific to why this model fits or doesn't fit
 - Sort by score descending
-- Return ONLY the JSON, no preamble`;
+- Return ONLY the JSON, no preamble${languageInstruction}`;
 
   const anthropicRequestBody = {
     model: ANTHROPIC_MODEL,
