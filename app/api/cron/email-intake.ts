@@ -514,6 +514,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Failed to list connections" });
   }
 
+  // Diagnostic-only path, same CRON_SECRET auth as above, gated behind an
+  // explicit query param so it never runs during the real scheduled job.
+  // Not meant to ship long-term — remove before merge once the live test
+  // passes.
+  if (req.query.debug === "1") {
+    const debugInfo = [];
+    for (const connection of (connections ?? []) as EmailConnectionRow[]) {
+      const tokenResult = await getValidAccessToken(supabaseAdmin, connection);
+      if (!tokenResult.ok) {
+        debugInfo.push({ agencyId: connection.agency_id, tokenStatus: tokenResult.reason });
+        continue;
+      }
+      const labelsRes = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/labels", {
+        headers: { Authorization: `Bearer ${tokenResult.accessToken}` },
+      });
+      const labelsData = (await labelsRes.json()) as { labels?: Array<{ name?: string }> };
+      const allMessagesRes = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?${new URLSearchParams({
+          q: `label:"${connection.label_name}"`,
+          maxResults: "10",
+        })}`,
+        { headers: { Authorization: `Bearer ${tokenResult.accessToken}` } },
+      );
+      const allMessagesData = (await allMessagesRes.json()) as { messages?: Array<{ id: string }>; resultSizeEstimate?: number };
+      debugInfo.push({
+        agencyId: connection.agency_id,
+        configuredLabel: connection.label_name,
+        lastSyncedAt: connection.last_synced_at,
+        availableLabels: (labelsData.labels ?? []).map((l) => l.name),
+        messagesFoundWithLabelNoTimeFilter: allMessagesData.resultSizeEstimate ?? 0,
+        sampleMessageIds: (allMessagesData.messages ?? []).map((m) => m.id),
+      });
+    }
+    return res.status(200).json({ debug: debugInfo });
+  }
+
   let totalProcessed = 0;
   let totalFailed = 0;
   let agenciesFailed = 0;
