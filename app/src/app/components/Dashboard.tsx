@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useMemo, useState, useEffect } from 'react';
+import { Inbox, Copy, MailWarning, RefreshCw, CheckCircle2, type LucideIcon } from 'lucide-react';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { useAuth } from '../context/AuthContext';
 import { useTutorial } from '../context/TutorialContext';
+import { useGmailConnectionStatus } from '../hooks/useGmailConnectionStatus';
 import { messagePreviewText, resolveMessageTabPath } from '../../lib/messageEntity';
 import { supabase } from '../../lib/supabase';
 import { DigitalImage } from './DigitalImage';
@@ -48,6 +50,15 @@ type RosterActivityItem = {
   activity: string;
   timeAgo: string;
   image: string;
+};
+
+type AttentionItem = {
+  id: string;
+  icon: LucideIcon;
+  label: string;
+  detail: string;
+  path: string;
+  tone: 'warning' | 'neutral';
 };
 
 export function Dashboard() {
@@ -127,6 +138,95 @@ export function Dashboard() {
     };
   }, [agencyId, prospects, models]);
 
+  const { needsReauth: gmailNeedsReauth } = useGmailConnectionStatus(agencyId);
+
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    if (!agencyId) return;
+    let cancelled = false;
+
+    const loadUnread = async () => {
+      const { count: eventCount } = await supabase
+        .from('events')
+        .select('*', { count: 'exact', head: true })
+        .eq('agency_id', agencyId)
+        .is('read_at', null);
+
+      const { count: messageCount } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('agency_id', agencyId)
+        .eq('direction', 'inbound')
+        .is('read_at', null);
+
+      if (!cancelled) setUnreadCount((eventCount ?? 0) + (messageCount ?? 0));
+    };
+
+    void loadUnread();
+    return () => {
+      cancelled = true;
+    };
+  }, [agencyId]);
+
+  // "Needs your attention" — the point of this list is to replace checking
+  // Inbox, Settings, and Notifications separately just to find out what's
+  // outstanding. Only built from data that already exists elsewhere in the
+  // app (no new AI calls, no new tables) — brief-matching isn't included
+  // here since there's no persisted "open briefs" concept to check against
+  // yet, just an on-demand matching tool.
+  const pendingReviewProspects = prospects.filter((p) => p.status === 'PENDING_REVIEW');
+  const duplicateFlagCount = pendingReviewProspects.filter((p) => p.possibleDuplicateOf).length;
+
+  const attentionItems: AttentionItem[] = useMemo(() => {
+    const items: AttentionItem[] = [];
+
+    if (pendingReviewProspects.length > 0) {
+      items.push({
+        id: 'inbox',
+        icon: Inbox,
+        label: `${pendingReviewProspects.length} new submission${pendingReviewProspects.length !== 1 ? 's' : ''} waiting in Inbox`,
+        detail: 'Review and confirm to add to Prospects',
+        path: '/inbox',
+        tone: 'neutral',
+      });
+    }
+
+    if (duplicateFlagCount > 0) {
+      items.push({
+        id: 'duplicates',
+        icon: Copy,
+        label: `${duplicateFlagCount} possible duplicate${duplicateFlagCount !== 1 ? 's' : ''} flagged`,
+        detail: 'Check before confirming in Inbox',
+        path: '/inbox',
+        tone: 'warning',
+      });
+    }
+
+    if (gmailNeedsReauth) {
+      items.push({
+        id: 'gmail',
+        icon: RefreshCw,
+        label: 'Gmail needs reconnecting',
+        detail: 'Labeled emails won’t be processed until you reconnect',
+        path: '/settings',
+        tone: 'warning',
+      });
+    }
+
+    if (unreadCount > 0) {
+      items.push({
+        id: 'unread',
+        icon: MailWarning,
+        label: `${unreadCount} unread message${unreadCount !== 1 ? 's' : ''}`,
+        detail: 'In your notifications',
+        path: '/notifications',
+        tone: 'neutral',
+      });
+    }
+
+    return items;
+  }, [pendingReviewProspects.length, duplicateFlagCount, gmailNeedsReauth, unreadCount]);
+
   const activeModelsCount = models.filter(
     (m) => m.status === 'ACTIVE'
   ).length;
@@ -186,12 +286,60 @@ export function Dashboard() {
   
   return (
     <div className="p-[20px] md:p-[48px]">
-      <h1 
-        className="text-[48px] mb-[48px]" 
+      <h1
+        className="text-[48px] mb-[32px]"
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
         Briefing
       </h1>
+
+      {/* Needs Your Attention — the point is replacing "check Inbox, check
+          Settings, check Notifications separately" with one list. */}
+      <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] mb-[48px]">
+        <div
+          className="text-[10px] uppercase tracking-[0.12em] mb-[16px]"
+          style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+        >
+          NEEDS YOUR ATTENTION
+        </div>
+
+        {attentionItems.length === 0 ? (
+          <div className="flex items-center gap-[10px] py-[8px]">
+            <CheckCircle2 size={16} style={{ color: '#4a7a4a' }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
+              You're all caught up.
+            </span>
+          </div>
+        ) : (
+          <div className="space-y-[4px]">
+            {attentionItems.map((item, index) => {
+              const Icon = item.icon;
+              const toneColor = item.tone === 'warning' ? '#d4a24a' : 'var(--cv-primary-text)';
+              return (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  className="flex items-center gap-[14px] py-[10px] px-[12px] -mx-[12px] rounded-[4px] hover:bg-[var(--cv-elevated)] transition-colors"
+                  style={rowStagger(index, 0.04)}
+                >
+                  <Icon size={16} style={{ color: toneColor, flexShrink: 0 }} />
+                  <div className="flex-1 min-w-0">
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
+                      {item.label}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
+                      {item.detail}
+                    </div>
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
+                    →
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Stats Sections */}
       <div className="mb-[48px]" data-tutorial="stats-row">
