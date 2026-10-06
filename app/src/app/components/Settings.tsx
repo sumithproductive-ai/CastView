@@ -468,6 +468,15 @@ export function Settings() {
       setGmailLabel(data.labelName ?? '');
       setGmailAvailableLabels(data.availableLabels ?? []);
       setGmailLastSyncedAt(data.lastSyncedAt ?? null);
+
+      // A single-option <select> renders as already "selected" even though
+      // nothing was ever actually saved — a booker has no interaction left
+      // that would trigger onChange to persist it. Auto-save in that one
+      // case so the dropdown's visual state matches the stored state.
+      const availableLabels: string[] = data.availableLabels ?? [];
+      if (!data.labelName && availableLabels.length === 1) {
+        void handleChangeGmailLabel(availableLabels[0]);
+      }
     } catch {
       setGmailConnected(false);
     } finally {
