@@ -611,6 +611,8 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
       if (prospectFields.markets !== undefined) prospectUpdate.markets = prospectFields.markets;
       if (prospectFields.hair !== undefined) prospectUpdate.hair = prospectFields.hair;
       if (prospectFields.notes !== undefined) prospectUpdate.notes = prospectFields.notes;
+      if (prospectFields.consent_at !== undefined) prospectUpdate.consent_at = prospectFields.consent_at;
+      if (prospectFields.consent_by !== undefined) prospectUpdate.consent_by = prospectFields.consent_by;
       if (prospectFields.measurements?.chest !== undefined) prospectUpdate.bust = prospectFields.measurements.chest;
       if (prospectFields.measurements?.waist !== undefined) prospectUpdate.waist = prospectFields.measurements.waist;
       if (prospectFields.measurements?.hips !== undefined) prospectUpdate.hips = prospectFields.measurements.hips;

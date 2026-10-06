@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
-import { Inbox as InboxIcon, AlertTriangle } from 'lucide-react';
+import { Inbox as InboxIcon, AlertTriangle, X } from 'lucide-react';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
+import { useAuth } from '../context/AuthContext';
 import { DigitalImage } from './DigitalImage';
 import type { DigitalSet } from '../types/talent';
 
-// Sprint 3 of the email intake agent: a booker reviews and corrects what
-// the extraction cron (Sprint 2) drafted before it becomes a real prospect.
-// Read + correct only — no promotion/consent action here, that's Sprint 4.
+// Email intake agent review queue. Sprint 3 built the read + correct flow;
+// Sprint 4 added batch consent + promotion — selecting drafts and
+// confirming moves them from PENDING_REVIEW to IN REVIEW (the same status
+// a manually-added prospect gets after "Save and Render"), writing the
+// same consent_at/consent_by fields the single-prospect consent flow
+// writes (lib/prospectConsent.ts / ProspectConsent.tsx), just applied to
+// every selected row in one action instead of via sessionStorage handoff.
 // PENDING_REVIEW prospects are deliberately excluded from the main
 // Prospects list (see ProspectsIndex.tsx) so they only live here until
-// confirmed.
+// confirmed. Unconfirmed drafts stay in the queue indefinitely — no
+// expiry, nothing promotes itself silently.
+
+const IN_REVIEW_COLOR = '#4d3d5d';
 
 type AngleKey = 'front' | 'profile' | 'threeQuarter' | 'fullBody';
 
@@ -66,9 +74,13 @@ function FieldInput({
 function InboxDraftCard({
   prospect,
   duplicateName,
+  selected,
+  onToggleSelect,
 }: {
   prospect: Prospect;
   duplicateName: string | null;
+  selected: boolean;
+  onToggleSelect: () => void;
 }) {
   const { updateProspect, removeProspect } = useProspects();
   const digitalSet: DigitalSet | undefined = prospect.digitalSets[0];
@@ -152,10 +164,20 @@ function InboxDraftCard({
 
   return (
     <div
-      className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] mb-[20px]"
+      className="bg-[var(--cv-surface)] border rounded-[4px] p-[24px] mb-[20px] transition-colors"
+      style={{ borderColor: selected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)' }}
     >
       <div className="flex items-start justify-between gap-[16px] mb-[20px]">
-        <div className="flex-1 min-w-0">
+        <div className="flex items-start gap-[12px] flex-1 min-w-0">
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={onToggleSelect}
+            className="mt-[3px] cursor-pointer flex-shrink-0"
+            style={{ width: '16px', height: '16px', accentColor: 'var(--cv-primary-text)' }}
+            aria-label={`Select ${prospect.name}`}
+          />
+          <div className="flex-1 min-w-0">
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', marginBottom: '4px' }}>
             {prospect.email || 'UNKNOWN SENDER'} · {prospect.submissionDate}
           </div>
@@ -176,6 +198,7 @@ function InboxDraftCard({
               Possible duplicate of {duplicateName}
             </Link>
           )}
+          </div>
         </div>
         {prospect.notes && (
           <div
@@ -300,24 +323,172 @@ function InboxDraftCard({
   );
 }
 
+function BatchConsentModal({
+  count,
+  agentEmail,
+  onCancel,
+  onConfirm,
+}: {
+  count: number;
+  agentEmail: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const [isChecked, setIsChecked] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+
+  const handleConfirm = async () => {
+    if (!isChecked || confirming) return;
+    setConfirming(true);
+    await onConfirm();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center px-[24px]"
+      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+    >
+      <div
+        className="w-full max-w-[480px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[32px]"
+        style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+      >
+        <h2
+          className="mb-[16px]"
+          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, fontSize: '28px', color: 'var(--cv-primary-text)' }}
+        >
+          Confirm consent
+        </h2>
+        <p
+          className="mb-[24px]"
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)', lineHeight: '1.7' }}
+        >
+          CastView analyses uploaded digitals to generate structured context alignment evaluations for internal agency use only. Evaluations are not shared with clients until you choose to share them.
+        </p>
+
+        <div className="flex items-start gap-[12px] mb-[28px]">
+          <input
+            type="checkbox"
+            id="batch-consent-checkbox"
+            checked={isChecked}
+            onChange={(e) => setIsChecked(e.target.checked)}
+            className="mt-[3px] cursor-pointer"
+            style={{ width: '16px', height: '16px', accentColor: 'var(--cv-primary-text)' }}
+          />
+          <label
+            htmlFor="batch-consent-checkbox"
+            className="cursor-pointer"
+            style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-primary-text)' }}
+          >
+            I've confirmed each of the {count} selected submission{count !== 1 ? 's' : ''} has consented to their photos being used for internal evaluation.
+          </label>
+        </div>
+
+        <div className="flex gap-[12px] mb-[16px]">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-[24px] py-[12px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
+            style={{
+              fontFamily: 'var(--font-label)',
+              borderColor: 'var(--cv-subtle-border)',
+              color: 'var(--cv-secondary-text)',
+              backgroundColor: 'transparent',
+              cursor: 'pointer',
+            }}
+          >
+            CANCEL
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={!isChecked || confirming}
+            className="px-[24px] py-[12px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity"
+            style={{
+              fontFamily: 'var(--font-label)',
+              backgroundColor: isChecked ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)',
+              color: isChecked ? 'var(--cv-background)' : 'var(--cv-secondary-text)',
+              cursor: isChecked && !confirming ? 'pointer' : 'not-allowed',
+              opacity: !isChecked ? 0.5 : confirming ? 0.7 : 1,
+            }}
+          >
+            {confirming ? 'ADDING…' : 'CONFIRM & ADD TO PROSPECTS'}
+          </button>
+        </div>
+
+        <div
+          className="italic"
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
+        >
+          Stored: {new Date().toLocaleDateString()} · Agent: {agentEmail || 'Agent'}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function InboxReview() {
-  const { prospects, loading } = useProspects();
+  const { prospects, loading, updateProspect } = useProspects();
+  const { user } = useAuth();
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [showConsentModal, setShowConsentModal] = useState(false);
 
   const drafts = prospects.filter((p) => p.status === 'PENDING_REVIEW');
   const nameById = new Map(prospects.map((p) => [p.id, p.name]));
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => setSelected(new Set(drafts.map((d) => d.id)));
+  const deselectAll = () => setSelected(new Set());
+
+  const handleConfirmBatch = async () => {
+    if (!user) return;
+    const confirmedAt = new Date().toISOString();
+    await Promise.all(
+      Array.from(selected).map((id) =>
+        updateProspect(id, {
+          status: 'IN REVIEW',
+          statusColor: IN_REVIEW_COLOR,
+          consent_at: confirmedAt,
+          consent_by: user.id,
+        }),
+      ),
+    );
+    setSelected(new Set());
+    setShowConsentModal(false);
+  };
+
   return (
-    <div className="p-[20px] md:p-[48px]">
-      <div className="mb-[16px]">
-        <h1
-          className="text-[48px] mb-[8px]"
-          style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
-        >
-          Inbox
-        </h1>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
-          Drafts pulled from your connected inbox — correct anything the agent got wrong, then confirm to add to Prospects.
-        </p>
+    <div className="p-[20px] md:p-[48px]" style={{ paddingBottom: selected.size > 0 ? '100px' : undefined }}>
+      <div className="flex items-start justify-between mb-[16px]">
+        <div>
+          <h1
+            className="text-[48px] mb-[8px]"
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
+          >
+            Inbox
+          </h1>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
+            Drafts pulled from your connected inbox — correct anything the agent got wrong, then confirm to add to Prospects.
+          </p>
+        </div>
+        {drafts.length > 0 && (
+          <button
+            type="button"
+            onClick={selected.size === drafts.length ? deselectAll : selectAll}
+            className="text-[11px] uppercase tracking-[0.1em] hover:opacity-70 transition-opacity flex-shrink-0"
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}
+          >
+            {selected.size === drafts.length ? 'DESELECT ALL' : 'SELECT ALL'}
+          </button>
+        )}
       </div>
 
       <div className="mb-[40px]" style={{ borderBottom: '1px solid var(--cv-subtle-border)' }} />
@@ -345,8 +516,43 @@ export function InboxReview() {
             key={draft.id}
             prospect={draft}
             duplicateName={draft.possibleDuplicateOf ? nameById.get(draft.possibleDuplicateOf) ?? 'a prospect' : null}
+            selected={selected.has(draft.id)}
+            onToggleSelect={() => toggleSelect(draft.id)}
           />
         ))
+      )}
+
+      {/* Batch Action Bar */}
+      {selected.size > 0 && (
+        <div
+          className="fixed bottom-0 left-0 right-0 h-[64px] bg-[var(--cv-elevated)] border-t border-[var(--cv-subtle-border)] flex items-center px-[48px] z-50"
+        >
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
+            {selected.size} selected
+          </div>
+          <div className="ml-auto flex items-center gap-[12px]">
+            <button
+              type="button"
+              onClick={() => setShowConsentModal(true)}
+              className="px-[20px] py-[10px] bg-[var(--cv-primary-text)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)', border: 'none', cursor: 'pointer' }}
+            >
+              CONFIRM CONSENT & ADD TO PROSPECTS
+            </button>
+            <button type="button" onClick={deselectAll} className="p-[8px] hover:opacity-70 transition-opacity">
+              <X size={20} color="var(--cv-primary-text)" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showConsentModal && (
+        <BatchConsentModal
+          count={selected.size}
+          agentEmail={user?.email ?? ''}
+          onCancel={() => setShowConsentModal(false)}
+          onConfirm={handleConfirmBatch}
+        />
       )}
     </div>
   );
