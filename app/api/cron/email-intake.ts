@@ -567,6 +567,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ debug: debugInfo });
   }
 
+  // Temporary — remove before merge. Shows the most recently drafted
+  // PENDING_REVIEW prospect + its digital_sets row, for verifying the
+  // extraction landed correctly without direct DB access.
+  if (req.query.debug === "2") {
+    const { data: latest } = await supabaseAdmin
+      .from("prospects")
+      .select(
+        "id, name, status, source, email, height, bust, waist, hips, shoe, hair, notes, source_email_message_id, possible_duplicate_of, created_at",
+      )
+      .eq("status", "PENDING_REVIEW")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    let digitalSet = null;
+    if (latest) {
+      const { data } = await supabaseAdmin
+        .from("digital_sets")
+        .select("id, front, profile, three_quarter, full_body, notes, tags")
+        .eq("entity_id", latest.id)
+        .maybeSingle();
+      digitalSet = data;
+    }
+
+    return res.status(200).json({ latestProspect: latest, digitalSet });
+  }
+
   let totalProcessed = 0;
   let totalFailed = 0;
   let agenciesFailed = 0;
