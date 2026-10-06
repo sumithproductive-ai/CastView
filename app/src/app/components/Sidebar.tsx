@@ -4,6 +4,7 @@ import { useNavigate, useLocation, Link } from 'react-router';
 import { LayoutDashboard, Users, Image, Inbox, Settings, Bell, Sun, Moon, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { authFetch } from '../../lib/apiAuth';
 import { useAuth } from '../context/AuthContext';
 import { useProspects } from '../context/ProspectsContext';
 import { useTheme } from '../context/ThemeContext';
@@ -53,11 +54,39 @@ export function Sidebar() {
   
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [gmailNeedsReauth, setGmailNeedsReauth] = useState(false);
   const { agencyId, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { prospects } = useProspects();
 
   const pendingReviewCount = prospects.filter((p) => p.status === 'PENDING_REVIEW').length;
+
+  // Google expires refresh tokens ~weekly while this integration is in
+  // Testing mode (see _gmailAuth.ts) — that's an expected, recurring event,
+  // not an edge case, so the reconnect prompt needs to be visible from
+  // anywhere in the app, not just inside the Settings page itself.
+  useEffect(() => {
+    if (!agencyId) return;
+    let cancelled = false;
+
+    const checkGmailStatus = async () => {
+      try {
+        const res = await authFetch('/api/gmail?action=status');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setGmailNeedsReauth(data.status === 'needs_reauth');
+      } catch {
+        /* non-critical — Settings page surfaces the same state with more detail */
+      }
+    };
+
+    checkGmailStatus();
+    const interval = setInterval(checkGmailStatus, 15 * 60 * 1000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [agencyId]);
 
   const accountLabel = user?.email
     ? user.email.length > 22
@@ -201,17 +230,34 @@ export function Sidebar() {
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  <Icon
-                    size={16}
-                    style={{
-                      filter: active
-                        ? 'drop-shadow(0 0 4px rgba(200, 169, 110, 0.3))'
-                        : 'none',
-                    }}
-                  />
+                  <div className="relative">
+                    <Icon
+                      size={16}
+                      style={{
+                        filter: active
+                          ? 'drop-shadow(0 0 4px rgba(200, 169, 110, 0.3))'
+                          : 'none',
+                      }}
+                    />
+                    {item.name === 'Settings' && gmailNeedsReauth && (
+                      <span
+                        className="absolute -top-[2px] -right-[2px] w-[7px] h-[7px] rounded-full"
+                        style={{ backgroundColor: '#d4a24a', border: '1.5px solid var(--cv-surface)' }}
+                        aria-label="Gmail reconnect needed"
+                      />
+                    )}
+                  </div>
                   <span style={{ letterSpacing: active ? '0.08em' : '0.05em' }}>
                     {item.name}
                   </span>
+                  {item.name === 'Settings' && gmailNeedsReauth && (
+                    <span
+                      className="ml-auto"
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#d4a24a', letterSpacing: '0.05em' }}
+                    >
+                      RECONNECT
+                    </span>
+                  )}
                   {item.name === 'Inbox' && pendingReviewCount > 0 && (
                     <span
                       className="ml-auto min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-[4px]"
@@ -383,6 +429,13 @@ export function Sidebar() {
                       size={20}
                       style={{ color: active ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)' }}
                     />
+                    {item.name === 'Settings' && gmailNeedsReauth && (
+                      <span
+                        className="absolute -top-[1px] -right-[1px] w-[8px] h-[8px] rounded-full"
+                        style={{ backgroundColor: '#d4a24a', border: '1.5px solid var(--cv-surface)' }}
+                        aria-label="Gmail reconnect needed"
+                      />
+                    )}
                     {item.name === 'Inbox' && pendingReviewCount > 0 && (
                       <div
                         className="absolute -top-[4px] -right-[8px] min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-[3px]"
