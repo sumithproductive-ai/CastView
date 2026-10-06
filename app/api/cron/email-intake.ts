@@ -147,11 +147,11 @@ type ExtractionResult = {
 async function extractProspectData(
   bodyText: string,
   images: Array<{ mediaType: string; data: string }>,
-): Promise<ExtractionResult | null> {
+): Promise<{ result: ExtractionResult | null; errorReason?: string }> {
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!anthropicApiKey) {
     console.error("[email-intake] missing ANTHROPIC_API_KEY");
-    return null;
+    return { result: null, errorReason: "missing ANTHROPIC_API_KEY" };
   }
 
   const prompt = `You are a casting assistant extracting a new-face model submission from an email for a booking agency. Read the email body and look at the attached images.
@@ -196,8 +196,9 @@ No preamble, no markdown fences.`;
   });
 
   if (!response.ok) {
-    console.error("[email-intake] extraction call failed:", response.status, await response.text().catch(() => ""));
-    return null;
+    const bodyText2 = await response.text().catch(() => "");
+    console.error("[email-intake] extraction call failed:", response.status, bodyText2);
+    return { result: null, errorReason: `Anthropic API ${response.status}: ${bodyText2.slice(0, 300)}` };
   }
 
   const data = (await response.json()) as { content?: Array<{ text?: string }> };
@@ -205,7 +206,9 @@ No preamble, no markdown fences.`;
   const withoutFences = text.replace(/```json|```/gi, "").trim();
   const start = withoutFences.indexOf("{");
   const end = withoutFences.lastIndexOf("}");
-  if (start < 0 || end < 0) return null;
+  if (start < 0 || end < 0) {
+    return { result: null, errorReason: `No JSON object found in response: ${text.slice(0, 300)}` };
+  }
 
   try {
     const parsed = JSON.parse(withoutFences.slice(start, end + 1)) as {
@@ -215,13 +218,15 @@ No preamble, no markdown fences.`;
       notes?: string;
     };
     return {
-      name: parsed.name?.trim() || "New Submission",
-      measurements: parsed.measurements ?? {},
-      imageGuesses: Array.isArray(parsed.images) ? parsed.images : [],
-      notes: parsed.notes?.trim() ?? "",
+      result: {
+        name: parsed.name?.trim() || "New Submission",
+        measurements: parsed.measurements ?? {},
+        imageGuesses: Array.isArray(parsed.images) ? parsed.images : [],
+        notes: parsed.notes?.trim() ?? "",
+      },
     };
-  } catch {
-    return null;
+  } catch (err) {
+    return { result: null, errorReason: `JSON parse failed: ${err instanceof Error ? err.message : "unknown"}` };
   }
 }
 
@@ -314,11 +319,15 @@ function assignImagesToColumns(
   return assignment;
 }
 
+type ProcessMessageResult =
+  | { status: "created" | "skipped_duplicate_message" }
+  | { status: "failed"; reason: string };
+
 async function processMessage(
   connection: EmailConnectionRow,
   accessToken: string,
   messageId: string,
-): Promise<"created" | "skipped_duplicate_message" | "failed"> {
+): Promise<ProcessMessageResult> {
   // Cheap existence check before spending a Claude call — this is what
   // actually makes it safe to re-list the same messages run over run (see
   // processConnection's lookback comment), not the time filter alone.
@@ -328,7 +337,7 @@ async function processMessage(
     .eq("agency_id", connection.agency_id)
     .eq("source_email_message_id", messageId)
     .maybeSingle();
-  if (existing) return "skipped_duplicate_message";
+  if (existing) return { status: "skipped_duplicate_message" };
 
   const message = await getMessage(accessToken, messageId);
   const acc = { bodyText: "", bodyHtml: "", attachments: [] as Attachment[] };
@@ -353,10 +362,10 @@ async function processMessage(
     }
   }
 
-  const extraction = await extractProspectData(bodyText, downloadedImages);
+  const { result: extraction, errorReason } = await extractProspectData(bodyText, downloadedImages);
   if (!extraction) {
-    console.error("[email-intake] extraction failed for message:", messageId);
-    return "failed";
+    console.error("[email-intake] extraction failed for message:", messageId, errorReason);
+    return { status: "failed", reason: errorReason ?? "unknown extraction failure" };
   }
 
   const duplicateOf = await findPossibleDuplicate(connection.agency_id, extraction.name, senderEmail);
@@ -405,7 +414,7 @@ async function processMessage(
 
   if (prospectError) {
     console.error("[email-intake] prospect upsert failed:", messageId, prospectError.message);
-    return "failed";
+    return { status: "failed", reason: `prospect upsert: ${prospectError.message}` };
   }
 
   if (Object.keys(digitalColumns).length > 0) {
@@ -428,19 +437,22 @@ async function processMessage(
     }
   }
 
-  return "created";
+  return { status: "created" };
 }
 
-async function processConnection(connection: EmailConnectionRow): Promise<{ processed: number; failed: number }> {
+async function processConnection(
+  connection: EmailConnectionRow,
+): Promise<{ processed: number; failed: number; failureReasons: string[] }> {
   let processed = 0;
   let failed = 0;
+  const failureReasons: string[] = [];
 
-  if (!connection.label_name) return { processed, failed };
+  if (!connection.label_name) return { processed, failed, failureReasons };
 
   const tokenResult = await getValidAccessToken(supabaseAdmin, connection);
   if (!tokenResult.ok) {
     console.error("[email-intake] skipping connection, token invalid:", connection.agency_id, tokenResult.reason);
-    return { processed, failed };
+    return { processed, failed, failureReasons };
   }
 
   // A booker may label an email well after it arrives (triaging a backlog),
@@ -458,10 +470,15 @@ async function processConnection(connection: EmailConnectionRow): Promise<{ proc
   for (const messageId of messageIds) {
     try {
       const result = await processMessage(connection, tokenResult.accessToken, messageId);
-      if (result === "created") processed++;
-      else if (result === "failed") failed++;
+      if (result.status === "created") processed++;
+      else if (result.status === "failed") {
+        failed++;
+        failureReasons.push(result.reason);
+      }
     } catch (err) {
       failed++;
+      const message = err instanceof Error ? err.message : "unknown";
+      failureReasons.push(`threw: ${message}`);
       console.error("[email-intake] message processing threw:", connection.agency_id, messageId, err);
     }
   }
@@ -488,7 +505,7 @@ async function processConnection(connection: EmailConnectionRow): Promise<{ proc
       .eq("id", connection.id);
   }
 
-  return { processed, failed };
+  return { processed, failed, failureReasons };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -553,12 +570,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let totalProcessed = 0;
   let totalFailed = 0;
   let agenciesFailed = 0;
+  const allFailureReasons: string[] = [];
 
   for (const connection of (connections ?? []) as EmailConnectionRow[]) {
     try {
-      const { processed, failed } = await processConnection(connection);
+      const { processed, failed, failureReasons } = await processConnection(connection);
       totalProcessed += processed;
       totalFailed += failed;
+      allFailureReasons.push(...failureReasons);
     } catch (err) {
       agenciesFailed++;
       console.error("[email-intake] connection processing threw:", connection.agency_id, err);
@@ -570,5 +589,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     prospectsCreated: totalProcessed,
     messagesFailed: totalFailed,
     agenciesFailed,
+    // Temporary — remove before merge. Safe to leave in only because this
+    // route already requires CRON_SECRET bearer auth.
+    failureReasons: allFailureReasons,
   });
 }
