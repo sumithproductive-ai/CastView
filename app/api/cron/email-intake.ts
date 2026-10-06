@@ -19,6 +19,7 @@ const supabaseAdmin = createClient(
 const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 const MAX_EMAILS_PER_AGENCY_PER_RUN = 15;
 const DRAFT_STATUS_COLOR = "#5d7d8a";
+const SYNC_LOOKBACK_BUFFER_SECONDS = 7 * 24 * 60 * 60;
 
 type GmailHeader = { name?: string; value?: string };
 type GmailPart = {
@@ -318,6 +319,17 @@ async function processMessage(
   accessToken: string,
   messageId: string,
 ): Promise<"created" | "skipped_duplicate_message" | "failed"> {
+  // Cheap existence check before spending a Claude call — this is what
+  // actually makes it safe to re-list the same messages run over run (see
+  // processConnection's lookback comment), not the time filter alone.
+  const { data: existing } = await supabaseAdmin
+    .from("prospects")
+    .select("id")
+    .eq("agency_id", connection.agency_id)
+    .eq("source_email_message_id", messageId)
+    .maybeSingle();
+  if (existing) return "skipped_duplicate_message";
+
   const message = await getMessage(accessToken, messageId);
   const acc = { bodyText: "", bodyHtml: "", attachments: [] as Attachment[] };
   walkParts(message.payload, acc);
@@ -431,8 +443,14 @@ async function processConnection(connection: EmailConnectionRow): Promise<{ proc
     return { processed, failed };
   }
 
+  // A booker may label an email well after it arrives (triaging a backlog),
+  // so last_synced_at alone is too strict a cutoff — it advances on every
+  // run even when nothing was found, which would permanently hide an email
+  // labeled after that point. Look back further than the last run and lean
+  // on processMessage's own already-drafted check (cheap, no Claude call)
+  // to make re-listing the same messages safe and free.
   const sinceUnixSeconds = connection.last_synced_at
-    ? Math.floor(new Date(connection.last_synced_at).getTime() / 1000)
+    ? Math.floor(new Date(connection.last_synced_at).getTime() / 1000) - SYNC_LOOKBACK_BUFFER_SECONDS
     : null;
 
   const messageIds = await listLabeledMessageIds(tokenResult.accessToken, connection.label_name, sinceUnixSeconds);
