@@ -362,17 +362,17 @@ Work in this order, and let each step constrain the next:
 
 What the digitals cannot show — walk, movement, personality, presence in a casting room — stays out of strengths and risks. marketSignals should reflect genuine current casting direction in ${targetContext} (aesthetic trends, what clients are booking toward), stated at the confidence of an informed director; never invent statistics or cite a source that doesn't exist.
 ${languageInstruction}
-Every field below is required and every item in every list must be anchored to something actually visible in these four frames — if you cannot support a claim from the images, cut it rather than pad the count. Return ONLY valid JSON in exactly this shape:
+Every list below has an exact required length — not a maximum, not a suggestion. Four real photos and the market brief above give you enough to find that many genuine, specific observations every time; do not under-fill. Every item must still be anchored to something actually visible in these four frames — specific and true, never generic filler, but always present in the exact count asked for. Return ONLY valid JSON in exactly this shape:
 {
   "contextEvaluations": [{
     "context": "${targetContext}",
     "alignmentScore": <integer 0-100, the output of step 2 above>,
     "fitLabel": <"STRONG ALIGNMENT" for 80-100, "MODERATE ALIGNMENT" for 60-79, "LOW ALIGNMENT" for 0-59>,
     "reasoning": "2-3 sentences, written last per step 4: your core read on this prospect for this market, built from what the digitals show",
-    "strengths": ["exactly 3 items, each naming one visible attribute and its value in this market"],
-    "risks": ["exactly 2 items, honest — what a ${targetContext} client will see as a gap"],
-    "marketSignals": ["exactly 2 items on current ${targetContext} casting direction as it applies to this prospect"],
-    "suggestedNextSteps": ["exactly 3 concrete actions for the booker — specific enough to act on this week"]
+    "strengths": ["1st distinct visible attribute and its value in this market", "2nd distinct attribute", "3rd distinct attribute — exactly 3 items total, no more, no fewer"],
+    "risks": ["1st honest gap a ${targetContext} client will see", "2nd distinct gap — exactly 2 items total, no more, no fewer"],
+    "marketSignals": ["1st item on current ${targetContext} casting direction as it applies to this prospect", "2nd distinct item — exactly 2 items total, no more, no fewer"],
+    "suggestedNextSteps": ["1st concrete action for the booker, specific enough to act on this week", "2nd distinct action", "3rd distinct action — exactly 3 items total, no more, no fewer"]
   }]
 }
 No preamble, no markdown fences.`;
