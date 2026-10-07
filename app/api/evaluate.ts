@@ -299,6 +299,12 @@ export default async function handler(req: IncomingMessage & { body?: unknown; m
     return;
   }
 
+  const preferredLanguage = entitlement.auth.preferred_language;
+  const languageInstruction =
+    preferredLanguage && preferredLanguage !== "English"
+      ? `\nWrite reasoning, strengths, risks, marketSignals, and suggestedNextSteps in ${preferredLanguage}. Keep JSON keys, "context", and "fitLabel" values exactly as specified below, untranslated.\n`
+      : "";
+
   const prospectName = body.prospectName?.trim() || "Prospect";
   const location = typeof body.location === "string" ? body.location.trim() : "";
   const targetRegion = typeof body.targetRegion === "string" ? body.targetRegion.trim() : "";
@@ -350,7 +356,7 @@ Score honestly across the full 0-100 range:
 Most prospects are not 80+. A tight, well-reasoned 58 builds more trust with a booker than a polite 74.
 
 What the digitals cannot show — walk, movement, personality, presence in a casting room — stays out of strengths and risks. marketSignals should reflect genuine current casting direction in ${targetContext} (aesthetic trends, what clients are booking toward), stated at the confidence of an informed director; never invent statistics.
-
+${languageInstruction}
 Return ONLY valid JSON in exactly this shape:
 {
   "contextEvaluations": [{

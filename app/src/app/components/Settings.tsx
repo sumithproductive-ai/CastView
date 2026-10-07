@@ -8,6 +8,26 @@ import { supabase } from '../../lib/supabase';
 import { useTutorial } from '../context/TutorialContext';
 import { MARKET_SUGGESTIONS } from './LocationMarketField';
 
+// Only affects AI-generated content (evaluation reasoning, brief-match
+// reasoning, email-intake extraction notes) — the app UI itself stays
+// English. See api/_auth.ts, api/evaluate.ts, api/brief-match.ts,
+// api/cron/email-intake.ts.
+const PREFERRED_LANGUAGES = [
+  'English',
+  'Spanish',
+  'French',
+  'Italian',
+  'Portuguese',
+  'German',
+  'Dutch',
+  'Turkish',
+  'Russian',
+  'Arabic',
+  'Mandarin Chinese',
+  'Japanese',
+  'Korean',
+];
+
 const BILLING_TIERS = [
   { id: 'solo' as const, name: 'SOLO', price: '$49', description: 'For independent agents' },
   { id: 'studio' as const, name: 'STUDIO', price: '$99', description: 'For growing agencies', recommended: true },
@@ -146,6 +166,7 @@ export function Settings() {
 
   const [agencyName, setAgencyName] = useState('');
   const [primaryMarket, setPrimaryMarket] = useState('');
+  const [preferredLanguage, setPreferredLanguage] = useState('English');
   const [savingAgency, setSavingAgency] = useState(false);
   const [agencySaved, setAgencySaved] = useState(false);
 
@@ -249,6 +270,19 @@ export function Settings() {
           console.error('[Settings] agency fetch failed:', agencyWithSeatsError.message);
         } else {
           agency = agencyWithSeats;
+        }
+
+        // Own independent fetch rather than folded into the seat_count
+        // select above — keeps that select's existing fallback logic
+        // simple (a single missing column there shouldn't also risk
+        // losing preferred_language, or vice versa).
+        const { data: languageRow, error: languageError } = await supabase
+          .from('agencies')
+          .select('preferred_language')
+          .eq('id', agencyId)
+          .maybeSingle();
+        if (!languageError && !cancelled) {
+          setPreferredLanguage((languageRow as { preferred_language?: string } | null)?.preferred_language ?? 'English');
         }
 
         if (!cancelled && agency) {
@@ -397,10 +431,21 @@ export function Settings() {
     if (!agencyId || savingAgency) return;
     setSavingAgency(true);
     setAgencySaveError(null);
-    const { error } = await supabase
+    let { error } = await supabase
       .from('agencies')
-      .update({ name: agencyName.trim(), primary_market: primaryMarket.trim() })
+      .update({ name: agencyName.trim(), primary_market: primaryMarket.trim(), preferred_language: preferredLanguage })
       .eq('id', agencyId);
+
+    // Falls back if the preferred_language migration hasn't run yet in
+    // this environment.
+    if (error?.message?.includes('preferred_language')) {
+      const retry = await supabase
+        .from('agencies')
+        .update({ name: agencyName.trim(), primary_market: primaryMarket.trim() })
+        .eq('id', agencyId);
+      error = retry.error;
+    }
+
     setSavingAgency(false);
     if (error) {
       console.error('[Settings] agency save failed:', error.message);
@@ -1032,6 +1077,46 @@ export function Settings() {
                     )}
                   </div>
                 </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label
+                  className="text-[13px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
+                >
+                  AI Output Language
+                </label>
+                <p
+                  className="text-[11px] mt-[4px] max-w-[280px]"
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', opacity: 0.7 }}
+                >
+                  Applies to AI-written evaluation notes and extraction summaries. The app itself stays English.
+                </p>
+              </div>
+              {isPageLoading ? (
+                <PulseBar width={320} height={40} />
+              ) : (
+                <select
+                  value={preferredLanguage}
+                  onChange={(e) => {
+                    setPreferredLanguage(e.target.value);
+                    setAgencySaved(false);
+                  }}
+                  className="px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] w-[320px] cursor-pointer"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '13px',
+                    color: 'var(--cv-primary-text)',
+                  }}
+                >
+                  {PREFERRED_LANGUAGES.map((language) => (
+                    <option key={language} value={language}>
+                      {language}
+                    </option>
+                  ))}
+                </select>
               )}
             </div>
 

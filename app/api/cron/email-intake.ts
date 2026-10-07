@@ -147,12 +147,18 @@ type ExtractionResult = {
 async function extractProspectData(
   bodyText: string,
   images: Array<{ mediaType: string; data: string }>,
+  preferredLanguage: string,
 ): Promise<ExtractionResult | null> {
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!anthropicApiKey) {
     console.error("[email-intake] missing ANTHROPIC_API_KEY");
     return null;
   }
+
+  const languageInstruction =
+    preferredLanguage && preferredLanguage !== "English"
+      ? ` Write "notes" in ${preferredLanguage}; keep "name" as stated in the email and all JSON keys untranslated.`
+      : "";
 
   const prompt = `You are a casting assistant extracting a new-face model submission from an email for a booking agency. Read the email body and look at the attached images.
 
@@ -173,7 +179,7 @@ Return ONLY valid JSON in exactly this shape:
   ],
   "notes": "one sentence: anything notable an agent should know (e.g. 'no measurements stated', 'photos appear to be a full body set')"
 }
-"images" must have exactly one entry per attached image, in the same order they were attached, index starting at 0. Guess the angle from what's visible — a close-up face shot is likely "front" or "profile", a waist-up 3/4 turn is "threeQuarter", a head-to-toe shot is "fullBody". If you cannot tell, use "unknown" with low confidence.
+"images" must have exactly one entry per attached image, in the same order they were attached, index starting at 0. Guess the angle from what's visible — a close-up face shot is likely "front" or "profile", a waist-up 3/4 turn is "threeQuarter", a head-to-toe shot is "fullBody". If you cannot tell, use "unknown" with low confidence.${languageInstruction}
 No preamble, no markdown fences.`;
 
   const imageBlocks = images.map((img) => ({
@@ -322,6 +328,7 @@ async function processMessage(
   connection: EmailConnectionRow,
   accessToken: string,
   messageId: string,
+  preferredLanguage: string,
 ): Promise<"created" | "skipped_duplicate_message" | "failed"> {
   // Cheap existence check before spending a Claude call — this is what
   // actually makes it safe to re-list the same messages run over run (see
@@ -357,7 +364,7 @@ async function processMessage(
     }
   }
 
-  const extraction = await extractProspectData(bodyText, downloadedImages);
+  const extraction = await extractProspectData(bodyText, downloadedImages, preferredLanguage);
   if (!extraction) {
     console.error("[email-intake] extraction failed for message:", messageId);
     return "failed";
@@ -459,9 +466,16 @@ async function processConnection(connection: EmailConnectionRow): Promise<{ proc
 
   const messageIds = await listLabeledMessageIds(tokenResult.accessToken, connection.label_name, sinceUnixSeconds);
 
+  const { data: agencyRow } = await supabaseAdmin
+    .from("agencies")
+    .select("preferred_language")
+    .eq("id", connection.agency_id)
+    .maybeSingle();
+  const preferredLanguage = (agencyRow as { preferred_language?: string } | null)?.preferred_language ?? "English";
+
   for (const messageId of messageIds) {
     try {
-      const result = await processMessage(connection, tokenResult.accessToken, messageId);
+      const result = await processMessage(connection, tokenResult.accessToken, messageId, preferredLanguage);
       if (result === "created") processed++;
       else if (result === "failed") failed++;
     } catch (err) {
