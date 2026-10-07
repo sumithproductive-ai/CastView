@@ -335,6 +335,8 @@ You are evaluating ${prospectName} for the ${targetContext} market. Four digital
 ${regionalGuidance}
 Your reader is a working booker. Your job is to sharpen their read on this prospect, not replace it — write as a trusted second opinion they can agree or argue with. Every claim must be anchored to something visible in these four frames. If a sentence could describe any prospect, cut it and replace it with what you actually see: name the feature (eye set, jaw line, brow weight, neck length, shoulder line, proportion, skin, how the hair behaves across angles) and say what it does for or against this specific market.
 
+If any of the four frames is too blurry, poorly lit, or cropped to judge confidently, say so plainly in reasoning and base your read on the frames that are usable — do not silently guess at what an unusable frame might show.
+
 Market brief — what books in each context:
 - Editorial: angular or unusual features that hold interest in a still image; strong bone shadow; a face that photographs like a story
 - Fragrance: intensity at close range; eye contact that reads on camera; skin and lip detail that survives macro; mood over conventional prettiness
@@ -348,26 +350,29 @@ Market brief — what books in each context:
 
 Cross-reference the four angles. Discrepancies are where you earn the booker's trust: a front that flattens in profile, a 3/4 that reveals the strongest angle, a full body that changes the proportion story. These are observations a booker cannot get from one frame.
 
-Score honestly across the full 0-100 range:
-- 80-100: board-ready for this context — you would confidently submit this prospect to ${targetContext} clients today
-- 60-79: real signal for this market, with named, developable gaps
-- 0-59: fundamental mismatch with what this market casts — say plainly why, without hedging
+Work in this order, and let each step constrain the next:
+1. Identify the specific visible strengths and risks first, before you commit to a number. These become your strengths/risks lists.
+2. Only then assign alignmentScore — it must be a direct, defensible consequence of what you just listed. If you listed three real strengths and one minor, non-disqualifying risk, that is not a 60. If you listed a risk a ${targetContext} client would treat as disqualifying, that is not an 80, regardless of how strong the rest of the read is.
+3. Score honestly across the full 0-100 range:
+   - 80-100: board-ready for this context — you would confidently submit this prospect to ${targetContext} clients today
+   - 60-79: real signal for this market, with named, developable gaps
+   - 0-59: fundamental mismatch with what this market casts — say plainly why, without hedging
+   Most prospects are not 80+. A tight, well-reasoned 58 builds more trust with a booker than a polite 74.
+4. Write reasoning last, as a 2-3 sentence synthesis of the strengths/risks/score you already determined — it should read as the summary of your analysis, not a new pass at it.
 
-Most prospects are not 80+. A tight, well-reasoned 58 builds more trust with a booker than a polite 74.
-
-What the digitals cannot show — walk, movement, personality, presence in a casting room — stays out of strengths and risks. marketSignals should reflect genuine current casting direction in ${targetContext} (aesthetic trends, what clients are booking toward), stated at the confidence of an informed director; never invent statistics.
+What the digitals cannot show — walk, movement, personality, presence in a casting room — stays out of strengths and risks. marketSignals should reflect genuine current casting direction in ${targetContext} (aesthetic trends, what clients are booking toward), stated at the confidence of an informed director; never invent statistics or cite a source that doesn't exist.
 ${languageInstruction}
-Return ONLY valid JSON in exactly this shape:
+Every field below is required and every item in every list must be anchored to something actually visible in these four frames — if you cannot support a claim from the images, cut it rather than pad the count. Return ONLY valid JSON in exactly this shape:
 {
   "contextEvaluations": [{
     "context": "${targetContext}",
-    "alignmentScore": <integer 0-100>,
+    "alignmentScore": <integer 0-100, the output of step 2 above>,
     "fitLabel": <"STRONG ALIGNMENT" for 80-100, "MODERATE ALIGNMENT" for 60-79, "LOW ALIGNMENT" for 0-59>,
-    "reasoning": "2-3 sentences: your core read on this prospect for this market, built from what the digitals show",
-    "strengths": ["3 items, each naming a visible attribute and its value in this market"],
-    "risks": ["2 honest items — what a ${targetContext} client will see as a gap"],
-    "marketSignals": ["2 items on current ${targetContext} casting direction as it applies to this prospect"],
-    "suggestedNextSteps": ["3 concrete actions for the booker — specific enough to act on this week"]
+    "reasoning": "2-3 sentences, written last per step 4: your core read on this prospect for this market, built from what the digitals show",
+    "strengths": ["exactly 3 items, each naming one visible attribute and its value in this market"],
+    "risks": ["exactly 2 items, honest — what a ${targetContext} client will see as a gap"],
+    "marketSignals": ["exactly 2 items on current ${targetContext} casting direction as it applies to this prospect"],
+    "suggestedNextSteps": ["exactly 3 concrete actions for the booker — specific enough to act on this week"]
   }]
 }
 No preamble, no markdown fences.`;
@@ -375,6 +380,13 @@ No preamble, no markdown fences.`;
   const anthropicRequestBody = {
     model: ANTHROPIC_MODEL,
     max_tokens: MAX_OUTPUT_TOKENS,
+    // Lower than the API default (1.0) specifically for run-to-run
+    // consistency: the same prospect evaluated twice should land on close
+    // to the same score and reasoning, not drift on sampling variance.
+    // Not 0 — that would flatten phrasing across different prospects,
+    // which isn't the goal; this keeps natural variation between
+    // different prospects while tightening variation for the same one.
+    temperature: 0.3,
     messages: [
       {
         role: "user",
