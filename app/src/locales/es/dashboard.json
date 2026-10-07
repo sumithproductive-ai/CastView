@@ -1,0 +1,46 @@
+{
+  "title": "Resumen",
+  "attention": {
+    "heading": "REQUIERE TU ATENCIÓN",
+    "allCaughtUp": "Estás al día.",
+    "inboxWaiting_one": "{{count}} solicitud nueva en espera en la Bandeja de entrada",
+    "inboxWaiting_other": "{{count}} solicitudes nuevas en espera en la Bandeja de entrada",
+    "inboxWaitingDetail": "Revisa y confirma para añadir a Prospectos",
+    "duplicatesFlagged_one": "{{count}} posible duplicado marcado",
+    "duplicatesFlagged_other": "{{count}} posibles duplicados marcados",
+    "duplicatesFlaggedDetail": "Verifica antes de confirmar en la Bandeja de entrada",
+    "gmailReconnect": "Gmail necesita reconectarse",
+    "gmailReconnectDetail": "Los correos etiquetados no se procesarán hasta que te reconectes",
+    "unreadMessages_one": "{{count}} mensaje sin leer",
+    "unreadMessages_other": "{{count}} mensajes sin leer",
+    "unreadMessagesDetail": "En tus notificaciones"
+  },
+  "stats": {
+    "prospects": "PROSPECTOS",
+    "totalProspects": "TOTAL DE PROSPECTOS",
+    "shortlisted": "PRESELECCIONADOS",
+    "awaitingReview": "EN ESPERA DE REVISIÓN",
+    "evaluationsRun": "EVALUACIONES REALIZADAS",
+    "roster": "ELENCO",
+    "activeModels": "MODELOS ACTIVOS",
+    "evaluations": "EVALUACIONES",
+    "onHold": "EN PAUSA"
+  },
+  "messages": {
+    "recent": "MENSAJES RECIENTES ({{count}})",
+    "empty": "Aún no hay mensajes. Envía tu primer mensaje desde el perfil de un prospecto o modelo.",
+    "reply": "RESPUESTA",
+    "sent": "ENVIADO"
+  },
+  "recentProspects": {
+    "heading": "PROSPECTOS RECIENTES",
+    "viewAll": "Ver todos los prospectos →"
+  },
+  "rosterActivity": {
+    "heading": "ACTIVIDAD RECIENTE DEL ELENCO",
+    "empty": "Aún no hay actividad en el elenco.",
+    "viewAll": "Ver elenco completo →",
+    "evaluationCompleted": "Evaluación completada",
+    "evaluationCompletedWithScore": "Evaluación completada — {{context}} {{score}}%"
+  }
+}

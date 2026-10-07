@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useMemo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Inbox, Copy, MailWarning, RefreshCw, CheckCircle2, type LucideIcon } from 'lucide-react';
 import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
@@ -63,6 +64,7 @@ type AttentionItem = {
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
   const { prospects, loading: prospectsLoading } = useProspects();
   const { models, loading: rosterLoading } = useRoster();
   const [recentMessages, setRecentMessages] = useState<Array<{
@@ -184,8 +186,8 @@ export function Dashboard() {
       items.push({
         id: 'inbox',
         icon: Inbox,
-        label: `${pendingReviewProspects.length} new submission${pendingReviewProspects.length !== 1 ? 's' : ''} waiting in Inbox`,
-        detail: 'Review and confirm to add to Prospects',
+        label: t('attention.inboxWaiting', { count: pendingReviewProspects.length }),
+        detail: t('attention.inboxWaitingDetail'),
         path: '/inbox',
         tone: 'neutral',
       });
@@ -195,8 +197,8 @@ export function Dashboard() {
       items.push({
         id: 'duplicates',
         icon: Copy,
-        label: `${duplicateFlagCount} possible duplicate${duplicateFlagCount !== 1 ? 's' : ''} flagged`,
-        detail: 'Check before confirming in Inbox',
+        label: t('attention.duplicatesFlagged', { count: duplicateFlagCount }),
+        detail: t('attention.duplicatesFlaggedDetail'),
         path: '/inbox',
         tone: 'warning',
       });
@@ -206,8 +208,8 @@ export function Dashboard() {
       items.push({
         id: 'gmail',
         icon: RefreshCw,
-        label: 'Gmail needs reconnecting',
-        detail: 'Labeled emails won’t be processed until you reconnect',
+        label: t('attention.gmailReconnect'),
+        detail: t('attention.gmailReconnectDetail'),
         path: '/settings',
         tone: 'warning',
       });
@@ -217,15 +219,15 @@ export function Dashboard() {
       items.push({
         id: 'unread',
         icon: MailWarning,
-        label: `${unreadCount} unread message${unreadCount !== 1 ? 's' : ''}`,
-        detail: 'In your notifications',
+        label: t('attention.unreadMessages', { count: unreadCount }),
+        detail: t('attention.unreadMessagesDetail'),
         path: '/notifications',
         tone: 'neutral',
       });
     }
 
     return items;
-  }, [pendingReviewProspects.length, duplicateFlagCount, gmailNeedsReauth, unreadCount]);
+  }, [t, pendingReviewProspects.length, duplicateFlagCount, gmailNeedsReauth, unreadCount]);
 
   const activeModelsCount = models.filter(
     (m) => m.status === 'ACTIVE'
@@ -274,15 +276,15 @@ export function Dashboard() {
             name: model.name,
             image: model.image,
             activity: ev.contexts.length > 0
-              ? `Evaluation completed — ${ev.contexts[0].context} ${ev.contexts[0].alignmentScore}%`
-              : 'Evaluation completed',
+              ? t('rosterActivity.evaluationCompletedWithScore', { context: ev.contexts[0].context, score: ev.contexts[0].alignmentScore })
+              : t('rosterActivity.evaluationCompleted'),
             timeAgo: ev.completedAt,
           }))
         )
       )
       .sort((a, b) => b.timeAgo.localeCompare(a.timeAgo))
       .slice(0, 3);
-  }, [models]);
+  }, [models, t]);
   
   return (
     <div className="p-[20px] md:p-[48px]">
@@ -290,7 +292,7 @@ export function Dashboard() {
         className="text-[48px] mb-[32px]"
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
-        Briefing
+        {t('title')}
       </h1>
 
       {/* Needs Your Attention — the point is replacing "check Inbox, check
@@ -300,14 +302,14 @@ export function Dashboard() {
           className="text-[10px] uppercase tracking-[0.12em] mb-[16px]"
           style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
-          NEEDS YOUR ATTENTION
+          {t('attention.heading')}
         </div>
 
         {attentionItems.length === 0 ? (
           <div className="flex items-center gap-[10px] py-[8px]">
             <CheckCircle2 size={16} style={{ color: '#4a7a4a' }} />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
-              You're all caught up.
+              {t('attention.allCaughtUp')}
             </span>
           </div>
         ) : (
@@ -350,7 +352,7 @@ export function Dashboard() {
               className="mb-[12px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
             >
-              PROSPECTS
+              {t('stats.prospects')}
             </div>
             <div className="flex flex-wrap items-stretch gap-[12px]">
               <div
@@ -364,7 +366,7 @@ export function Dashboard() {
                   className="text-[10px] uppercase tracking-[0.12em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  TOTAL PROSPECTS
+                  {t('stats.totalProspects')}
                 </div>
               </div>
 
@@ -379,7 +381,7 @@ export function Dashboard() {
                   className="text-[10px] uppercase tracking-[0.12em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  SHORTLISTED
+                  {t('stats.shortlisted')}
                 </div>
               </div>
 
@@ -394,7 +396,7 @@ export function Dashboard() {
                   className="text-[10px] uppercase tracking-[0.12em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  AWAITING REVIEW
+                  {t('stats.awaitingReview')}
                 </div>
               </div>
 
@@ -409,7 +411,7 @@ export function Dashboard() {
                   className="text-[10px] uppercase tracking-[0.12em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  EVALUATIONS RUN
+                  {t('stats.evaluationsRun')}
                 </div>
               </div>
             </div>
@@ -421,7 +423,7 @@ export function Dashboard() {
               className="mb-[12px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
             >
-              ROSTER
+              {t('stats.roster')}
             </div>
             <div className="flex flex-wrap items-stretch gap-[12px]">
               <div
@@ -435,7 +437,7 @@ export function Dashboard() {
                   className="text-[10px] uppercase tracking-[0.12em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  ACTIVE MODELS
+                  {t('stats.activeModels')}
                 </div>
               </div>
 
@@ -450,7 +452,7 @@ export function Dashboard() {
                   className="text-[10px] uppercase tracking-[0.12em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  EVALUATIONS
+                  {t('stats.evaluations')}
                 </div>
               </div>
 
@@ -465,7 +467,7 @@ export function Dashboard() {
                   className="text-[10px] uppercase tracking-[0.12em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  ON HOLD
+                  {t('stats.onHold')}
                 </div>
               </div>
             </div>
@@ -478,7 +480,7 @@ export function Dashboard() {
           className="text-[10px] uppercase tracking-[0.12em] mb-[24px] flex items-center"
           style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
-          RECENT MESSAGES ({recentMessages.length})
+          {t('messages.recent', { count: recentMessages.length })}
           {recentMessages.some(m => m.direction === 'inbound') && (
             <span
               className="w-[6px] h-[6px] rounded-full inline-block ml-[8px] mb-[1px]"
@@ -492,7 +494,7 @@ export function Dashboard() {
             className="text-center py-[32px] text-[12px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            No messages yet. Send your first message from a prospect or roster profile.
+            {t('messages.empty')}
           </div>
         ) : (
           <div
@@ -545,7 +547,7 @@ export function Dashboard() {
                     color: msg.direction === 'inbound' ? '#C8A96E' : 'var(--cv-secondary-text)',
                   }}
                 >
-                  {msg.direction === 'inbound' ? 'REPLY' : 'SENT'}
+                  {msg.direction === 'inbound' ? t('messages.reply') : t('messages.sent')}
                 </div>
               </div>
             ))}
@@ -561,7 +563,7 @@ export function Dashboard() {
             className="text-[9px] uppercase tracking-[0.1em] mb-[24px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
-            RECENT PROSPECTS
+            {t('recentProspects.heading')}
           </div>
           
           <div className="space-y-[16px] mb-[24px]">
@@ -618,7 +620,7 @@ export function Dashboard() {
             className="block text-center py-[8px] hover:opacity-70 transition-opacity"
             style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
           >
-            View all prospects →
+            {t('recentProspects.viewAll')}
           </Link>
         </div>
 
@@ -628,7 +630,7 @@ export function Dashboard() {
             className="text-[9px] uppercase tracking-[0.1em] mb-[24px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
-            RECENT ROSTER ACTIVITY
+            {t('rosterActivity.heading')}
           </div>
           
           <div className="mb-[24px]">
@@ -637,7 +639,7 @@ export function Dashboard() {
                 className="text-center py-[32px] text-[12px]"
                 style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
-                No roster activity yet.
+                {t('rosterActivity.empty')}
               </div>
             ) : (
               <div className="space-y-[16px]">
@@ -690,7 +692,7 @@ export function Dashboard() {
             className="block text-center py-[8px] hover:opacity-70 transition-opacity"
             style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
           >
-            View full roster →
+            {t('rosterActivity.viewAll')}
           </Link>
         </div>
       </div>
