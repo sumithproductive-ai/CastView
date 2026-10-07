@@ -1,29 +1,40 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, Link } from 'react-router';
-import { LayoutDashboard, Users, Image, Inbox, Settings, Bell, Sun, Moon, type LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { LayoutDashboard, Users, Image, Inbox, Settings, Bell, Sun, Moon, Languages, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useProspects } from '../context/ProspectsContext';
 import { useTheme } from '../context/ThemeContext';
 import { useGmailConnectionStatus } from '../hooks/useGmailConnectionStatus';
+import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '../../lib/i18n';
 import { NotificationsPanel } from './NotificationsPanel';
 import { CastviewWordmark } from './CastviewWordmark';
 
-type NavItem = { name: string; icon: LucideIcon; path: string };
+// `id` is the stable identifier used for active-state/conditional checks
+// (isActive, needs_reauth badge targeting, etc.) — never shown to the
+// user. `labelKey` is the i18n key for the displayed text.
+type NavItem = { id: string; labelKey: string; icon: LucideIcon; path: string };
 
 const coreNavItems: NavItem[] = [
-  { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
-  { name: 'Prospects', icon: Users, path: '/prospects' },
-  { name: 'Inbox', icon: Inbox, path: '/inbox' },
-  { name: 'Roster', icon: Image, path: '/roster' },
-  { name: 'Settings', icon: Settings, path: '/settings' },
+  { id: 'Dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/' },
+  { id: 'Prospects', labelKey: 'nav.prospects', icon: Users, path: '/prospects' },
+  { id: 'Inbox', labelKey: 'nav.inbox', icon: Inbox, path: '/inbox' },
+  { id: 'Roster', labelKey: 'nav.roster', icon: Image, path: '/roster' },
+  { id: 'Settings', labelKey: 'nav.settings', icon: Settings, path: '/settings' },
 ];
+
+const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
+  en: 'EN',
+  es: 'ES',
+};
 
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   
   // Check if in onboarding mode
   const isOnboarding = location.pathname.startsWith('/onboarding');
@@ -164,12 +175,12 @@ export function Sidebar() {
         <nav className="flex-1 space-y-[4px]">
           {coreNavItems.map((item) => {
             const Icon = item.icon;
-            const active = isActive(item.name);
+            const active = isActive(item.id);
             
             // During onboarding, render as disabled div instead of Link
             if (isOnboarding) {
               return (
-                <div key={item.name}>
+                <div key={item.id}>
                   <div
                     className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px]"
                     style={{
@@ -181,14 +192,14 @@ export function Sidebar() {
                     }}
                   >
                     <Icon size={16} />
-                    <span>{item.name}</span>
+                    <span>{t(item.labelKey)}</span>
                   </div>
                 </div>
               );
             }
             
             return (
-              <div key={item.name}>
+              <div key={item.id}>
                 <Link
                   to={item.path}
                   className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[4px] transition-all duration-200 hover:bg-[var(--cv-elevated)]"
@@ -212,7 +223,7 @@ export function Sidebar() {
                           : 'none',
                       }}
                     />
-                    {item.name === 'Settings' && gmailNeedsReauth && (
+                    {item.id === 'Settings' && gmailNeedsReauth && (
                       <span
                         className="absolute -top-[2px] -right-[2px] w-[7px] h-[7px] rounded-full"
                         style={{ backgroundColor: '#d4a24a', border: '1.5px solid var(--cv-surface)' }}
@@ -221,17 +232,17 @@ export function Sidebar() {
                     )}
                   </div>
                   <span style={{ letterSpacing: active ? '0.08em' : '0.05em' }}>
-                    {item.name}
+                    {t(item.labelKey)}
                   </span>
-                  {item.name === 'Settings' && gmailNeedsReauth && (
+                  {item.id === 'Settings' && gmailNeedsReauth && (
                     <span
                       className="ml-auto"
                       style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#d4a24a', letterSpacing: '0.05em' }}
                     >
-                      RECONNECT
+                      {t('sidebar.reconnect')}
                     </span>
                   )}
-                  {item.name === 'Inbox' && pendingReviewCount > 0 && (
+                  {item.id === 'Inbox' && pendingReviewCount > 0 && (
                     <span
                       className="ml-auto min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-[4px]"
                       style={{
@@ -276,6 +287,40 @@ export function Sidebar() {
         >
           <button
             type="button"
+            onClick={() => {
+              const next = i18n.language === 'en' ? 'es' : 'en';
+              void i18n.changeLanguage(next);
+            }}
+            aria-label={t('sidebar.language')}
+            className="mb-[8px] px-[12px] py-[8px] rounded-[4px] flex items-center justify-between w-full transition-colors hover:opacity-80"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: 'var(--cv-secondary-text)',
+              backgroundColor: 'var(--cv-elevated)',
+              border: '1px solid var(--cv-subtle-border)',
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ color: 'var(--cv-primary-text)' }}>{t('sidebar.language')}</span>
+            <span className="flex items-center gap-[6px]">
+              <Languages size={14} style={{ color: 'var(--cv-accent)' }} />
+              {SUPPORTED_LANGUAGES.map((lng) => (
+                <span
+                  key={lng}
+                  style={{
+                    color: i18n.language === lng ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)',
+                    fontWeight: i18n.language === lng ? 600 : 400,
+                  }}
+                >
+                  {LANGUAGE_LABELS[lng]}
+                </span>
+              ))}
+            </span>
+          </button>
+
+          <button
+            type="button"
             onClick={toggleTheme}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             className="mb-[12px] px-[12px] py-[8px] rounded-[4px] flex items-center justify-between w-full transition-colors hover:opacity-80"
@@ -289,7 +334,7 @@ export function Sidebar() {
             }}
           >
             <span style={{ color: 'var(--cv-primary-text)' }}>
-              {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+              {theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}
             </span>
             {theme === 'dark' ? (
               <Sun size={14} style={{ color: 'var(--cv-accent)' }} />
@@ -329,7 +374,7 @@ export function Sidebar() {
                 </div>
               )}
             </div>
-            <span>Notifications</span>
+            <span>{t('sidebar.notifications')}</span>
           </button>
           
           <Link
@@ -358,11 +403,11 @@ export function Sidebar() {
         <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[var(--cv-surface)] border-t border-[var(--cv-subtle-border)] flex items-center justify-around h-[64px] z-50">
           {coreNavItems.map((item) => {
             const Icon = item.icon;
-            const active = isActive(item.name);
+            const active = isActive(item.id);
 
             if (isOnboarding) {
               return (
-                <div key={item.name} className="flex items-center flex-1">
+                <div key={item.id} className="flex items-center flex-1">
                   <div
                     className="flex flex-col items-center justify-center gap-[4px] flex-1"
                     style={{
@@ -378,7 +423,7 @@ export function Sidebar() {
                         color: 'var(--cv-secondary-text)',
                       }}
                     >
-                      {item.name}
+                      {t(item.labelKey)}
                     </span>
                   </div>
                 </div>
@@ -386,7 +431,7 @@ export function Sidebar() {
             }
 
             return (
-              <div key={item.name} className="flex items-center flex-1">
+              <div key={item.id} className="flex items-center flex-1">
                 <Link
                   to={item.path}
                   className="flex flex-col items-center justify-center gap-[4px] flex-1 transition-all duration-200"
@@ -402,14 +447,14 @@ export function Sidebar() {
                       size={20}
                       style={{ color: active ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)' }}
                     />
-                    {item.name === 'Settings' && gmailNeedsReauth && (
+                    {item.id === 'Settings' && gmailNeedsReauth && (
                       <span
                         className="absolute -top-[1px] -right-[1px] w-[8px] h-[8px] rounded-full"
                         style={{ backgroundColor: '#d4a24a', border: '1.5px solid var(--cv-surface)' }}
                         aria-label="Gmail reconnect needed"
                       />
                     )}
-                    {item.name === 'Inbox' && pendingReviewCount > 0 && (
+                    {item.id === 'Inbox' && pendingReviewCount > 0 && (
                       <div
                         className="absolute -top-[4px] -right-[8px] min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-[3px]"
                         style={{
@@ -431,7 +476,7 @@ export function Sidebar() {
                       color: active ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)',
                     }}
                   >
-                    {item.name}
+                    {t(item.labelKey)}
                   </span>
                 </Link>
               </div>

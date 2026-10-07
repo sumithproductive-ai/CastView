@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "prospects": "Prospects",
+    "inbox": "Inbox",
+    "roster": "Roster",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "notifications": "Notifications",
+    "reconnect": "RECONNECT",
+    "language": "Language"
+  }
+}

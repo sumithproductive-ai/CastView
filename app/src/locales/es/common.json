@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "dashboard": "Panel",
+    "prospects": "Prospectos",
+    "inbox": "Bandeja de entrada",
+    "roster": "Elenco",
+    "settings": "Configuración"
+  },
+  "sidebar": {
+    "lightMode": "Modo claro",
+    "darkMode": "Modo oscuro",
+    "notifications": "Notificaciones",
+    "reconnect": "RECONECTAR",
+    "language": "Idioma"
+  }
+}
