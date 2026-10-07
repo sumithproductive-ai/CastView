@@ -1,0 +1,40 @@
+{
+  "title": "Roster",
+  "addModel": "+ ADD MODEL",
+  "exportCsv": "EXPORT CSV",
+  "searchPlaceholder": "Search models or location...",
+  "filters": {
+    "allStatuses": "All Statuses",
+    "allContexts": "All Contexts",
+    "allDivisions": "All Divisions",
+    "women": "Women",
+    "men": "Men",
+    "contextFragrance": "Fragrance",
+    "contextEditorial": "Editorial",
+    "contextRunway": "Runway",
+    "contextCampaign": "Campaign",
+    "sortLastRendered": "Sort: Last Rendered",
+    "sortTopScore": "Sort: Top Score",
+    "sortEvaluations": "Sort: Evaluations",
+    "sortName": "Sort: Name"
+  },
+  "briefMatch": {
+    "button": "BRIEF MATCH",
+    "placeholder": "Describe the brief — e.g. luxury fragrance, aspirational, European market, strong bone structure...",
+    "matching": "MATCHING...",
+    "match": "MATCH",
+    "topMatches": "TOP MATCHES",
+    "view": "VIEW →"
+  },
+  "zeroState": {
+    "noMatchSearch": "No models match \"{{search}}\"",
+    "noMatchFilters": "No models match your filters",
+    "noModelsYet": "No models on the roster yet.",
+    "signProspect": "Sign a prospect to get started.",
+    "goToProspects": "Go to Prospects"
+  },
+  "card": {
+    "newToRoster": "NEW TO ROSTER",
+    "notEvaluatedYet": "Not evaluated yet"
+  }
+}

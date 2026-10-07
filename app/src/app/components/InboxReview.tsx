@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Inbox as InboxIcon, AlertTriangle, X } from 'lucide-react';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
@@ -22,12 +23,14 @@ const IN_REVIEW_COLOR = '#4d3d5d';
 
 type AngleKey = 'front' | 'profile' | 'threeQuarter' | 'fullBody';
 
-const ANGLE_SLOTS: { key: AngleKey; label: string }[] = [
-  { key: 'front', label: 'FRONT' },
-  { key: 'profile', label: 'PROFILE' },
-  { key: 'threeQuarter', label: '3/4' },
-  { key: 'fullBody', label: 'FULL BODY' },
-];
+function getAngleSlots(t: (key: string) => string): { key: AngleKey; label: string }[] {
+  return [
+    { key: 'front', label: t('card.angleFront') },
+    { key: 'profile', label: t('card.angleProfile') },
+    { key: 'threeQuarter', label: t('card.angleThreeQuarter') },
+    { key: 'fullBody', label: t('card.angleFullBody') },
+  ];
+}
 
 const formFieldLabelStyle = {
   fontFamily: 'var(--font-mono)',
@@ -82,8 +85,10 @@ function InboxDraftCard({
   selected: boolean;
   onToggleSelect: () => void;
 }) {
+  const { t } = useTranslation('inbox');
   const { updateProspect, removeProspect } = useProspects();
   const digitalSet: DigitalSet | undefined = prospect.digitalSets[0];
+  const angleSlots = getAngleSlots(t);
 
   const [name, setName] = useState(prospect.name);
   const [height, setHeight] = useState(prospect.height ?? '');
@@ -152,7 +157,7 @@ function InboxDraftCard({
   };
 
   const handleDismiss = async () => {
-    if (!window.confirm(`Discard the draft for "${prospect.name}"? This can't be undone.`)) return;
+    if (!window.confirm(t('card.discardConfirm', { name: prospect.name }))) return;
     setDismissing(true);
     try {
       await removeProspect(prospect.id);
@@ -175,11 +180,11 @@ function InboxDraftCard({
             onChange={onToggleSelect}
             className="mt-[3px] cursor-pointer flex-shrink-0"
             style={{ width: '16px', height: '16px', accentColor: 'var(--cv-primary-text)' }}
-            aria-label={`Select ${prospect.name}`}
+            aria-label={t('card.selectAria', { name: prospect.name })}
           />
           <div className="flex-1 min-w-0">
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', marginBottom: '4px' }}>
-            {prospect.email || 'UNKNOWN SENDER'} · {prospect.submissionDate}
+            {prospect.email || t('card.unknownSender')} · {prospect.submissionDate}
           </div>
           {duplicateName && (
             <Link
@@ -195,7 +200,7 @@ function InboxDraftCard({
               }}
             >
               <AlertTriangle size={11} />
-              Possible duplicate of {duplicateName}
+              {t('card.possibleDuplicate', { name: duplicateName })}
             </Link>
           )}
           </div>
@@ -213,9 +218,9 @@ function InboxDraftCard({
       <div className="grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-[24px]">
         {/* Digitals with reassignable angles */}
         <div className="grid grid-cols-2 gap-[10px]">
-          {ANGLE_SLOTS.map(({ key, label }) => {
+          {angleSlots.map(({ key, label }) => {
             const imageRef = images[key];
-            const otherSlots = ANGLE_SLOTS.filter((s) => s.key !== key);
+            const otherSlots = angleSlots.filter((s) => s.key !== key);
             return (
               <div key={key}>
                 <div
@@ -233,7 +238,7 @@ function InboxDraftCard({
                       className="bg-transparent border-none text-right cursor-pointer"
                       style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cv-secondary-text)' }}
                     >
-                      <option value="">Move to…</option>
+                      <option value="">{t('card.moveTo')}</option>
                       {otherSlots.map((s) => (
                         <option key={s.key} value={s.key}>
                           {s.label}
@@ -259,7 +264,7 @@ function InboxDraftCard({
                     style={{ borderColor: 'var(--cv-subtle-border)', height: '160px' }}
                   >
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cv-secondary-text)' }}>
-                      No image
+                      {t('card.noImage')}
                     </span>
                   </div>
                 )}
@@ -271,17 +276,17 @@ function InboxDraftCard({
         {/* Editable extracted fields */}
         <div>
           <div className="mb-[12px]">
-            <FieldInput label="NAME" value={name} onChange={markDirty(setName)} placeholder="Full name" />
+            <FieldInput label={t('card.fieldName')} value={name} onChange={markDirty(setName)} placeholder={t('card.namePlaceholder')} />
           </div>
           <div className="grid grid-cols-3 gap-[10px] mb-[12px]">
-            <FieldInput label="HEIGHT" value={height} onChange={markDirty(setHeight)} placeholder="e.g. 177cm" />
-            <FieldInput label="HAIR" value={hair} onChange={markDirty(setHair)} placeholder="e.g. Brown" />
-            <FieldInput label="SHOE" value={shoe} onChange={markDirty(setShoe)} placeholder="e.g. 9" />
+            <FieldInput label={t('card.fieldHeight')} value={height} onChange={markDirty(setHeight)} placeholder={t('card.heightPlaceholder')} />
+            <FieldInput label={t('card.fieldHair')} value={hair} onChange={markDirty(setHair)} placeholder={t('card.hairPlaceholder')} />
+            <FieldInput label={t('card.fieldShoe')} value={shoe} onChange={markDirty(setShoe)} placeholder={t('card.shoePlaceholder')} />
           </div>
           <div className="grid grid-cols-3 gap-[10px] mb-[20px]">
-            <FieldInput label="BUST/CHEST" value={chest} onChange={markDirty(setChest)} placeholder="—" />
-            <FieldInput label="WAIST" value={waist} onChange={markDirty(setWaist)} placeholder="—" />
-            <FieldInput label="HIPS" value={hips} onChange={markDirty(setHips)} placeholder="—" />
+            <FieldInput label={t('card.fieldChest')} value={chest} onChange={markDirty(setChest)} placeholder="—" />
+            <FieldInput label={t('card.fieldWaist')} value={waist} onChange={markDirty(setWaist)} placeholder="—" />
+            <FieldInput label={t('card.fieldHips')} value={hips} onChange={markDirty(setHips)} placeholder="—" />
           </div>
 
           <div className="flex items-center gap-[12px]">
@@ -299,7 +304,7 @@ function InboxDraftCard({
                 opacity: saving ? 0.6 : 1,
               }}
             >
-              {saving ? 'SAVING…' : justSaved ? 'SAVED' : 'SAVE CHANGES'}
+              {saving ? t('card.saving') : justSaved ? t('card.saved') : t('card.saveChanges')}
             </button>
             <button
               type="button"
@@ -314,7 +319,7 @@ function InboxDraftCard({
                 opacity: dismissing ? 0.6 : 1,
               }}
             >
-              {dismissing ? 'DISCARDING…' : 'DISCARD'}
+              {dismissing ? t('card.discarding') : t('card.discard')}
             </button>
           </div>
         </div>
@@ -334,6 +339,7 @@ function BatchConsentModal({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation('inbox');
   const [isChecked, setIsChecked] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
@@ -356,13 +362,13 @@ function BatchConsentModal({
           className="mb-[16px]"
           style={{ fontFamily: 'var(--font-display)', fontWeight: 300, fontSize: '28px', color: 'var(--cv-primary-text)' }}
         >
-          Confirm consent
+          {t('consentModal.title')}
         </h2>
         <p
           className="mb-[24px]"
           style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)', lineHeight: '1.7' }}
         >
-          CastView analyses uploaded digitals to generate structured context alignment evaluations for internal agency use only. Evaluations are not shared with clients until you choose to share them.
+          {t('consentModal.body')}
         </p>
 
         <div className="flex items-start gap-[12px] mb-[28px]">
@@ -379,7 +385,7 @@ function BatchConsentModal({
             className="cursor-pointer"
             style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-primary-text)' }}
           >
-            I've confirmed each of the {count} selected submission{count !== 1 ? 's' : ''} has consented to their photos being used for internal evaluation.
+            {t('consentModal.checkboxLabel', { count })}
           </label>
         </div>
 
@@ -396,7 +402,7 @@ function BatchConsentModal({
               cursor: 'pointer',
             }}
           >
-            CANCEL
+            {t('consentModal.cancel')}
           </button>
           <button
             type="button"
@@ -411,7 +417,7 @@ function BatchConsentModal({
               opacity: !isChecked ? 0.5 : confirming ? 0.7 : 1,
             }}
           >
-            {confirming ? 'ADDING…' : 'CONFIRM & ADD TO PROSPECTS'}
+            {confirming ? t('consentModal.adding') : t('consentModal.confirm')}
           </button>
         </div>
 
@@ -419,7 +425,7 @@ function BatchConsentModal({
           className="italic"
           style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
         >
-          Stored: {new Date().toLocaleDateString()} · Agent: {agentEmail || 'Agent'}
+          {t('consentModal.storedLabel', { date: new Date().toLocaleDateString(), agent: agentEmail || t('consentModal.agentFallback') })}
         </div>
       </div>
     </div>
@@ -427,6 +433,7 @@ function BatchConsentModal({
 }
 
 export function InboxReview() {
+  const { t } = useTranslation('inbox');
   const { prospects, loading, updateProspect } = useProspects();
   const { user } = useAuth();
 
@@ -473,10 +480,10 @@ export function InboxReview() {
             className="text-[48px] mb-[8px]"
             style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
           >
-            Inbox
+            {t('title')}
           </h1>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
-            Drafts pulled from your connected inbox — correct anything the agent got wrong, then confirm to add to Prospects.
+            {t('subtitle')}
           </p>
         </div>
         {drafts.length > 0 && (
@@ -486,7 +493,7 @@ export function InboxReview() {
             className="text-[11px] uppercase tracking-[0.1em] hover:opacity-70 transition-opacity flex-shrink-0"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}
           >
-            {selected.size === drafts.length ? 'DESELECT ALL' : 'SELECT ALL'}
+            {selected.size === drafts.length ? t('deselectAll') : t('selectAll')}
           </button>
         )}
       </div>
@@ -495,7 +502,7 @@ export function InboxReview() {
 
       {loading ? (
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
-          Loading…
+          {t('loading')}
         </div>
       ) : drafts.length === 0 ? (
         <div
@@ -504,10 +511,10 @@ export function InboxReview() {
         >
           <InboxIcon size={32} style={{ marginBottom: '16px', opacity: 0.5 }} />
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
-            No drafts waiting on review.
+            {t('zeroState.noDrafts')}
           </div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', marginTop: '6px', opacity: 0.7 }}>
-            New submissions land here once your labeled Gmail inbox is synced.
+            {t('zeroState.hint')}
           </div>
         </div>
       ) : (
@@ -515,7 +522,7 @@ export function InboxReview() {
           <InboxDraftCard
             key={draft.id}
             prospect={draft}
-            duplicateName={draft.possibleDuplicateOf ? nameById.get(draft.possibleDuplicateOf) ?? 'a prospect' : null}
+            duplicateName={draft.possibleDuplicateOf ? nameById.get(draft.possibleDuplicateOf) ?? t('card.unknownDuplicateName') : null}
             selected={selected.has(draft.id)}
             onToggleSelect={() => toggleSelect(draft.id)}
           />
@@ -528,7 +535,7 @@ export function InboxReview() {
           className="fixed bottom-0 left-0 right-0 h-[64px] bg-[var(--cv-elevated)] border-t border-[var(--cv-subtle-border)] flex items-center px-[48px] z-50"
         >
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
-            {selected.size} selected
+            {t('batchBar.selected', { count: selected.size })}
           </div>
           <div className="ml-auto flex items-center gap-[12px]">
             <button
@@ -537,7 +544,7 @@ export function InboxReview() {
               className="px-[20px] py-[10px] bg-[var(--cv-primary-text)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)', border: 'none', cursor: 'pointer' }}
             >
-              CONFIRM CONSENT & ADD TO PROSPECTS
+              {t('batchBar.confirmButton')}
             </button>
             <button type="button" onClick={deselectAll} className="p-[8px] hover:opacity-70 transition-opacity">
               <X size={20} color="var(--cv-primary-text)" />

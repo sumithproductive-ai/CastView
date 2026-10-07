@@ -1,0 +1,56 @@
+{
+  "title": "Inbox",
+  "subtitle": "Drafts pulled from your connected inbox — correct anything the agent got wrong, then confirm to add to Prospects.",
+  "selectAll": "SELECT ALL",
+  "deselectAll": "DESELECT ALL",
+  "loading": "Loading…",
+  "zeroState": {
+    "noDrafts": "No drafts waiting on review.",
+    "hint": "New submissions land here once your labeled Gmail inbox is synced."
+  },
+  "card": {
+    "unknownSender": "UNKNOWN SENDER",
+    "possibleDuplicate": "Possible duplicate of {{name}}",
+    "unknownDuplicateName": "a prospect",
+    "selectAria": "Select {{name}}",
+    "angleFront": "FRONT",
+    "angleProfile": "PROFILE",
+    "angleThreeQuarter": "3/4",
+    "angleFullBody": "FULL BODY",
+    "moveTo": "Move to…",
+    "noImage": "No image",
+    "fieldName": "NAME",
+    "fieldHeight": "HEIGHT",
+    "fieldHair": "HAIR",
+    "fieldShoe": "SHOE",
+    "fieldChest": "BUST/CHEST",
+    "fieldWaist": "WAIST",
+    "fieldHips": "HIPS",
+    "namePlaceholder": "Full name",
+    "heightPlaceholder": "e.g. 177cm",
+    "hairPlaceholder": "e.g. Brown",
+    "shoePlaceholder": "e.g. 9",
+    "saving": "SAVING…",
+    "saved": "SAVED",
+    "saveChanges": "SAVE CHANGES",
+    "discarding": "DISCARDING…",
+    "discard": "DISCARD",
+    "discardConfirm": "Discard the draft for \"{{name}}\"? This can't be undone."
+  },
+  "batchBar": {
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "confirmButton": "CONFIRM CONSENT & ADD TO PROSPECTS"
+  },
+  "consentModal": {
+    "title": "Confirm consent",
+    "body": "CastView analyses uploaded digitals to generate structured context alignment evaluations for internal agency use only. Evaluations are not shared with clients until you choose to share them.",
+    "checkboxLabel_one": "I've confirmed the selected submission has consented to their photos being used for internal evaluation.",
+    "checkboxLabel_other": "I've confirmed each of the {{count}} selected submissions has consented to their photos being used for internal evaluation.",
+    "cancel": "CANCEL",
+    "adding": "ADDING…",
+    "confirm": "CONFIRM & ADD TO PROSPECTS",
+    "storedLabel": "Stored: {{date}} · Agent: {{agent}}",
+    "agentFallback": "Agent"
+  }
+}
