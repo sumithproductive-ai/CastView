@@ -1,0 +1,61 @@
+{
+  "title": "Prospects",
+  "draftCount_one": "{{count}} draft",
+  "draftCount_other": "{{count}} drafts",
+  "exportCsv": "EXPORT CSV",
+  "quickAdd": "QUICK ADD",
+  "addProspect": "ADD PROSPECT",
+  "searchPlaceholder": "Search prospects...",
+  "filters": {
+    "allStatuses": "All Statuses",
+    "allContexts": "All Contexts",
+    "contextFragrance": "Fragrance",
+    "contextEditorial": "Editorial",
+    "contextRunway": "Runway",
+    "contextCampaign": "Campaign",
+    "sortNewest": "Sort: Newest",
+    "sortName": "Sort: Name",
+    "sortEvaluations": "Sort: Evaluations",
+    "filterBySource": "FILTER BY SOURCE:",
+    "all": "ALL"
+  },
+  "selectAll": "SELECT ALL",
+  "card": {
+    "noEvaluationsYet": "NO EVALUATIONS YET",
+    "completeProfile": "COMPLETE PROFILE →",
+    "deleteDraft": "DELETE DRAFT",
+    "evaluations_one": "{{count}} evaluation",
+    "evaluations_other": "{{count}} evaluations"
+  },
+  "zeroState": {
+    "noMatchSearch": "No prospects match \"{{search}}\"",
+    "noMatchFilters": "No prospects match your filters",
+    "noProspectsYet": "No prospects yet"
+  },
+  "bulkBar": {
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "moveToShortlisted": "MOVE TO SHORTLISTED",
+    "moveToInReview": "MOVE TO IN REVIEW",
+    "markAsPassed": "MARK AS PASSED",
+    "deleteSelected": "DELETE SELECTED"
+  },
+  "undoToast": {
+    "moved_one": "{{count}} prospect moved to {{status}}",
+    "moved_other": "{{count}} prospects moved to {{status}}",
+    "undo": "UNDO"
+  },
+  "quickAddModal": {
+    "title": "Quick add prospect",
+    "subtitle": "Name only — fill details later",
+    "namePlaceholder": "Prospect name",
+    "cancel": "CANCEL",
+    "addToDrafts": "ADD TO DRAFTS →"
+  },
+  "deleteModal": {
+    "title": "Delete prospect?",
+    "body": "This will permanently remove {{name}} and all their digital sets and evaluations. This cannot be undone.",
+    "cancel": "CANCEL",
+    "delete": "DELETE"
+  }
+}

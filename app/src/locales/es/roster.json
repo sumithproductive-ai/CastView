@@ -1,0 +1,40 @@
+{
+  "title": "Elenco",
+  "addModel": "+ AÑADIR MODELO",
+  "exportCsv": "EXPORTAR CSV",
+  "searchPlaceholder": "Buscar modelos o ubicación...",
+  "filters": {
+    "allStatuses": "Todos los estados",
+    "allContexts": "Todos los contextos",
+    "allDivisions": "Todas las divisiones",
+    "women": "Mujeres",
+    "men": "Hombres",
+    "contextFragrance": "Fragancia",
+    "contextEditorial": "Editorial",
+    "contextRunway": "Pasarela",
+    "contextCampaign": "Campaña",
+    "sortLastRendered": "Ordenar: Última evaluación",
+    "sortTopScore": "Ordenar: Mejor puntuación",
+    "sortEvaluations": "Ordenar: Evaluaciones",
+    "sortName": "Ordenar: Nombre"
+  },
+  "briefMatch": {
+    "button": "COINCIDENCIA DE BRIEF",
+    "placeholder": "Describe el brief — p. ej. fragancia de lujo, aspiracional, mercado europeo, estructura ósea marcada...",
+    "matching": "BUSCANDO...",
+    "match": "BUSCAR",
+    "topMatches": "MEJORES COINCIDENCIAS",
+    "view": "VER →"
+  },
+  "zeroState": {
+    "noMatchSearch": "Ningún modelo coincide con \"{{search}}\"",
+    "noMatchFilters": "Ningún modelo coincide con tus filtros",
+    "noModelsYet": "Aún no hay modelos en el elenco.",
+    "signProspect": "Firma a un prospecto para empezar.",
+    "goToProspects": "Ir a Prospectos"
+  },
+  "card": {
+    "newToRoster": "NUEVO EN EL ELENCO",
+    "notEvaluatedYet": "Aún no evaluado"
+  }
+}

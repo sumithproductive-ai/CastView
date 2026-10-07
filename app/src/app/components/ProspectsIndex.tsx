@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { Search, ChevronDown, Plus, X } from 'lucide-react';
 import { CONTEXT_FILTER_CODE_MAP } from '../../lib/contextCodes';
@@ -85,6 +86,7 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
 }
 
 export function ProspectsIndex() {
+  const { t } = useTranslation('prospects');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [contextFilter, setContextFilter] = useState('all');
@@ -111,7 +113,7 @@ export function ProspectsIndex() {
   const [quickName, setQuickName] = useState('');
   
   const statusOptions = [
-    { value: 'all', label: 'All Statuses' },
+    { value: 'all', label: t('filters.allStatuses') },
     { value: 'draft', label: 'DRAFT' },
     { value: 'new', label: 'NEW' },
     { value: 'in-review', label: 'IN REVIEW' },
@@ -120,17 +122,17 @@ export function ProspectsIndex() {
   ];
 
   const contextOptions = [
-    { value: 'all', label: 'All Contexts' },
-    { value: 'fragrance', label: 'Fragrance' },
-    { value: 'editorial', label: 'Editorial' },
-    { value: 'runway', label: 'Runway' },
-    { value: 'campaign', label: 'Campaign' }
+    { value: 'all', label: t('filters.allContexts') },
+    { value: 'fragrance', label: t('filters.contextFragrance') },
+    { value: 'editorial', label: t('filters.contextEditorial') },
+    { value: 'runway', label: t('filters.contextRunway') },
+    { value: 'campaign', label: t('filters.contextCampaign') }
   ];
 
   const sortOptions = [
-    { value: 'submission-date', label: 'Sort: Newest' },
-    { value: 'name', label: 'Sort: Name' },
-    { value: 'evaluations', label: 'Sort: Evaluations' },
+    { value: 'submission-date', label: t('filters.sortNewest') },
+    { value: 'name', label: t('filters.sortName') },
+    { value: 'evaluations', label: t('filters.sortEvaluations') },
   ];
 
   const draftCount = prospects.filter(p => p.status === 'DRAFT').length;
@@ -312,40 +314,40 @@ export function ProspectsIndex() {
           className="text-[48px]" 
           style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
         >
-          Prospects
+          {t('title')}
         </h1>
         <button
           onClick={() => setStatusFilter('draft')}
           className="ml-auto mr-[16px] text-[13px] transition-opacity hover:opacity-70"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
-          {draftCount} draft{draftCount !== 1 ? 's' : ''}
+          {t('draftCount', { count: draftCount })}
         </button>
         <button
           onClick={handleExportCSV}
           className="px-[16px] py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)] mr-[16px]"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
-          EXPORT CSV
+          {t('exportCsv')}
         </button>
         <button
           onClick={() => setQuickAddOpen(true)}
           className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity mr-[12px]"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}
         >
-          QUICK ADD
+          {t('quickAdd')}
         </button>
         <button
           onClick={() => navigate('/prospects/new')}
           className="flex items-center gap-[8px] px-[20px] py-[12px] bg-[var(--cv-primary-text)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
-          style={{ 
-            fontFamily: 'var(--font-mono)', 
+          style={{
+            fontFamily: 'var(--font-mono)',
             color: 'var(--cv-background)'
           }}
           data-tutorial="add-prospect-button"
         >
           <Plus size={14} />
-          ADD PROSPECT
+          {t('addProspect')}
         </button>
       </div>
 
@@ -363,7 +365,7 @@ export function ProspectsIndex() {
           />
           <input
             type="text"
-            placeholder="Search prospects..."
+            placeholder={t('searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-[44px] pr-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]"
@@ -380,7 +382,7 @@ export function ProspectsIndex() {
           value={statusFilter}
           onChange={(value) => setStatusFilter(value)}
           options={statusOptions}
-          currentLabel={statusOptions.find(opt => opt.value === statusFilter)?.label || 'All Statuses'}
+          currentLabel={statusOptions.find(opt => opt.value === statusFilter)?.label || t('filters.allStatuses')}
         />
 
         {/* Context Filter */}
@@ -388,7 +390,7 @@ export function ProspectsIndex() {
           value={contextFilter}
           onChange={(value) => setContextFilter(value)}
           options={contextOptions}
-          currentLabel={contextOptions.find(opt => opt.value === contextFilter)?.label || 'All Contexts'}
+          currentLabel={contextOptions.find(opt => opt.value === contextFilter)?.label || t('filters.allContexts')}
         />
 
         {/* Sort Selector */}
@@ -396,7 +398,7 @@ export function ProspectsIndex() {
           value={sortBy}
           onChange={(value) => setSortBy(value)}
           options={sortOptions}
-          currentLabel={sortOptions.find(opt => opt.value === sortBy)?.label || 'Sort: Submission Date'}
+          currentLabel={sortOptions.find(opt => opt.value === sortBy)?.label || t('filters.sortNewest')}
         />
       </div>
 
@@ -406,7 +408,7 @@ export function ProspectsIndex() {
           className="text-[9px] uppercase tracking-[0.1em]"
           style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
-          FILTER BY SOURCE:
+          {t('filters.filterBySource')}
         </span>
         <button
           onClick={() => toggleSourceFilter('ALL')}
@@ -418,7 +420,7 @@ export function ProspectsIndex() {
             color: sourceFilters.size === 0 ? 'var(--cv-background)' : 'var(--cv-secondary-text)'
           }}
         >
-          ALL
+          {t('filters.all')}
         </button>
         {(['SCOUT', 'INSTAGRAM', 'EMAIL', 'OPEN CALL', 'REFERRAL'] as Source[]).map((source) => (
           <button
@@ -452,7 +454,7 @@ export function ProspectsIndex() {
             cursor: 'pointer'
           }}
         >
-          SELECT ALL
+          {t('selectAll')}
         </button>
       </div>
 
@@ -518,7 +520,7 @@ export function ProspectsIndex() {
                         letterSpacing: '0.05em'
                       }}
                     >
-                      NO EVALUATIONS YET
+                      {t('card.noEvaluationsYet')}
                     </div>
                   </div>
                 )}
@@ -581,7 +583,7 @@ export function ProspectsIndex() {
                       className="text-[12px] uppercase tracking-[0.05em]"
                       style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                     >
-                      COMPLETE PROFILE →
+                      {t('card.completeProfile')}
                     </div>
                     <div onClick={(e) => e.preventDefault()}>
                       <button
@@ -598,7 +600,7 @@ export function ProspectsIndex() {
                           cursor: 'pointer',
                         }}
                       >
-                        DELETE DRAFT
+                        {t('card.deleteDraft')}
                       </button>
                     </div>
                   </div>
@@ -607,7 +609,7 @@ export function ProspectsIndex() {
                     <div 
                       style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
                     >
-                      {prospect.evaluations} evaluation{prospect.evaluations !== 1 ? 's' : ''}
+                      {t('card.evaluations', { count: prospect.evaluations })}
                     </div>
                     <div 
                       style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
@@ -648,10 +650,10 @@ export function ProspectsIndex() {
           }}
         >
           {search.trim()
-            ? `No prospects match "${search}"`
+            ? t('zeroState.noMatchSearch', { search })
             : hasActiveFilters
-              ? 'No prospects match your filters'
-              : 'No prospects yet'}
+              ? t('zeroState.noMatchFilters')
+              : t('zeroState.noProspectsYet')}
         </div>
       )}
 
@@ -679,7 +681,7 @@ export function ProspectsIndex() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            {selected.size} selected
+            {t('bulkBar.selected', { count: selected.size })}
           </div>
 
           {/* Action Buttons */}
@@ -689,7 +691,7 @@ export function ProspectsIndex() {
               className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
-              MOVE TO SHORTLISTED
+              {t('bulkBar.moveToShortlisted')}
             </button>
 
             <button
@@ -697,7 +699,7 @@ export function ProspectsIndex() {
               className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
-              MOVE TO IN REVIEW
+              {t('bulkBar.moveToInReview')}
             </button>
 
             <button
@@ -705,7 +707,7 @@ export function ProspectsIndex() {
               className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
-              MARK AS PASSED
+              {t('bulkBar.markAsPassed')}
             </button>
 
             <button
@@ -716,7 +718,7 @@ export function ProspectsIndex() {
               className="px-[16px] py-[10px] border border-[#c87a7a] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[#c87a7a] hover:text-[var(--cv-background)] transition-colors"
               style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a', cursor: 'pointer' }}
             >
-              DELETE SELECTED
+              {t('bulkBar.deleteSelected')}
             </button>
 
             {/* Close Button */}
@@ -743,7 +745,7 @@ export function ProspectsIndex() {
           }}
         >
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
-            {pendingBulkAction.ids.length} prospect{pendingBulkAction.ids.length !== 1 ? 's' : ''} moved to {pendingBulkAction.status}
+            {t('undoToast.moved', { count: pendingBulkAction.ids.length, status: pendingBulkAction.status })}
           </span>
           <button
             onClick={handleUndoBulkAction}
@@ -755,7 +757,7 @@ export function ProspectsIndex() {
               cursor: 'pointer' 
             }}
           >
-            UNDO
+            {t('undoToast.undo')}
           </button>
         </div>
       )}
@@ -781,15 +783,15 @@ export function ProspectsIndex() {
               className="text-[24px] mb-[8px]"
               style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
             >
-              Quick add prospect
+              {t('quickAddModal.title')}
             </h2>
 
             {/* Sub-label */}
-            <p 
+            <p
               className="mb-[20px]"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}
             >
-              Name only — fill details later
+              {t('quickAddModal.subtitle')}
             </p>
 
             {/* Name Input */}
@@ -804,7 +806,7 @@ export function ProspectsIndex() {
                   setQuickAddOpen(false);
                 }
               }}
-              placeholder="Prospect name"
+              placeholder={t('quickAddModal.namePlaceholder')}
               autoFocus
               className="w-full px-[16px] py-[12px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px] mb-[24px]"
               style={{ 
@@ -824,14 +826,14 @@ export function ProspectsIndex() {
                 className="flex-1 px-[16px] py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
                 style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
-                CANCEL
+                {t('quickAddModal.cancel')}
               </button>
               <button
                 onClick={handleQuickAdd}
                 className="flex-1 px-[16px] py-[12px] bg-[var(--cv-primary-text)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
                 style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)' }}
               >
-                ADD TO DRAFTS →
+                {t('quickAddModal.addToDrafts')}
               </button>
             </div>
           </div>
@@ -857,7 +859,7 @@ export function ProspectsIndex() {
                 color: 'var(--cv-primary-text)',
               }}
             >
-              Delete prospect?
+              {t('deleteModal.title')}
             </h3>
             <p
               className="mb-[24px]"
@@ -868,8 +870,7 @@ export function ProspectsIndex() {
                 lineHeight: 1.8,
               }}
             >
-              This will permanently remove {prospectToDelete.name} and all their
-              digital sets and evaluations. This cannot be undone.
+              {t('deleteModal.body', { name: prospectToDelete.name })}
             </p>
             <div className="flex gap-[12px]">
               <button
@@ -881,7 +882,7 @@ export function ProspectsIndex() {
                   color: 'var(--cv-secondary-text)',
                 }}
               >
-                CANCEL
+                {t('deleteModal.cancel')}
               </button>
               <button
                 type="button"
@@ -896,7 +897,7 @@ export function ProspectsIndex() {
                   color: 'var(--cv-background)',
                 }}
               >
-                DELETE
+                {t('deleteModal.delete')}
               </button>
             </div>
           </div>

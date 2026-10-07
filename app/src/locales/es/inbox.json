@@ -1,0 +1,56 @@
+{
+  "title": "Bandeja de entrada",
+  "subtitle": "Borradores extraídos de tu bandeja conectada — corrige lo que el agente haya hecho mal y confirma para añadir a Prospectos.",
+  "selectAll": "SELECCIONAR TODO",
+  "deselectAll": "DESELECCIONAR TODO",
+  "loading": "Cargando…",
+  "zeroState": {
+    "noDrafts": "No hay borradores esperando revisión.",
+    "hint": "Las nuevas solicitudes aparecerán aquí cuando se sincronice tu bandeja de Gmail etiquetada."
+  },
+  "card": {
+    "unknownSender": "REMITENTE DESCONOCIDO",
+    "possibleDuplicate": "Posible duplicado de {{name}}",
+    "unknownDuplicateName": "un prospecto",
+    "selectAria": "Seleccionar {{name}}",
+    "angleFront": "FRENTE",
+    "angleProfile": "PERFIL",
+    "angleThreeQuarter": "3/4",
+    "angleFullBody": "CUERPO COMPLETO",
+    "moveTo": "Mover a…",
+    "noImage": "Sin imagen",
+    "fieldName": "NOMBRE",
+    "fieldHeight": "ALTURA",
+    "fieldHair": "CABELLO",
+    "fieldShoe": "CALZADO",
+    "fieldChest": "BUSTO/PECHO",
+    "fieldWaist": "CINTURA",
+    "fieldHips": "CADERA",
+    "namePlaceholder": "Nombre completo",
+    "heightPlaceholder": "p. ej. 177cm",
+    "hairPlaceholder": "p. ej. Castaño",
+    "shoePlaceholder": "p. ej. 9",
+    "saving": "GUARDANDO…",
+    "saved": "GUARDADO",
+    "saveChanges": "GUARDAR CAMBIOS",
+    "discarding": "DESCARTANDO…",
+    "discard": "DESCARTAR",
+    "discardConfirm": "¿Descartar el borrador de \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "batchBar": {
+    "selected_one": "{{count}} seleccionado",
+    "selected_other": "{{count}} seleccionados",
+    "confirmButton": "CONFIRMAR CONSENTIMIENTO Y AÑADIR A PROSPECTOS"
+  },
+  "consentModal": {
+    "title": "Confirmar consentimiento",
+    "body": "CastView analiza los digitales subidos para generar evaluaciones estructuradas de alineación de contexto solo para uso interno de la agencia. Las evaluaciones no se comparten con clientes hasta que decidas compartirlas.",
+    "checkboxLabel_one": "He confirmado que el envío seleccionado ha dado su consentimiento para que sus fotos se usen en la evaluación interna.",
+    "checkboxLabel_other": "He confirmado que cada uno de los {{count}} envíos seleccionados ha dado su consentimiento para que sus fotos se usen en la evaluación interna.",
+    "cancel": "CANCELAR",
+    "adding": "AÑADIENDO…",
+    "confirm": "CONFIRMAR Y AÑADIR A PROSPECTOS",
+    "storedLabel": "Guardado: {{date}} · Agente: {{agent}}",
+    "agentFallback": "Agente"
+  }
+}

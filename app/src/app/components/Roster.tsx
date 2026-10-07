@@ -1,6 +1,7 @@
 import React from 'react';
 import { authFetch } from '../../lib/apiAuth';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { Search, ChevronDown, Sparkles, X, MapPin } from 'lucide-react';
 import { useRoster, type RosterModel } from '../context/RosterContext';
@@ -134,6 +135,7 @@ function Dropdown({ value, onChange, options, currentLabel }: DropdownProps) {
 }
 
 export function Roster() {
+  const { t } = useTranslation('roster');
   const { models } = useRoster();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -162,30 +164,30 @@ export function Roster() {
   };
 
   const contextOptions = [
-    { value: 'all', label: 'All Contexts' },
-    { value: 'fragrance', label: 'Fragrance' },
-    { value: 'editorial', label: 'Editorial' },
-    { value: 'runway', label: 'Runway' },
-    { value: 'campaign', label: 'Campaign' }
+    { value: 'all', label: t('filters.allContexts') },
+    { value: 'fragrance', label: t('filters.contextFragrance') },
+    { value: 'editorial', label: t('filters.contextEditorial') },
+    { value: 'runway', label: t('filters.contextRunway') },
+    { value: 'campaign', label: t('filters.contextCampaign') }
   ];
 
   const divisionOptions = [
-    { value: 'all', label: 'All Divisions' },
-    { value: 'women', label: 'Women' },
-    { value: 'men', label: 'Men' }
+    { value: 'all', label: t('filters.allDivisions') },
+    { value: 'women', label: t('filters.women') },
+    { value: 'men', label: t('filters.men') }
   ];
 
   const statusOptions = [
-    { value: 'all', label: 'All Statuses' },
+    { value: 'all', label: t('filters.allStatuses') },
     { value: 'active', label: 'ACTIVE' },
     { value: 'on-hold', label: 'ON HOLD' },
   ];
 
   const sortOptions = [
-    { value: 'last-rendered', label: 'Sort: Last Rendered' },
-    { value: 'top-score', label: 'Sort: Top Score' },
-    { value: 'evaluations', label: 'Sort: Evaluations' },
-    { value: 'name', label: 'Sort: Name' },
+    { value: 'last-rendered', label: t('filters.sortLastRendered') },
+    { value: 'top-score', label: t('filters.sortTopScore') },
+    { value: 'evaluations', label: t('filters.sortEvaluations') },
+    { value: 'name', label: t('filters.sortName') },
   ];
 
   const modelEvaluationCount = (model: RosterModel) =>
@@ -271,7 +273,7 @@ export function Roster() {
           className="text-[48px]" 
           style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
         >
-          Roster
+          {t('title')}
         </h1>
         <button
           type="button"
@@ -279,7 +281,7 @@ export function Roster() {
           className="ml-auto mr-[12px] px-[20px] py-[12px] bg-[var(--cv-primary-text)] text-[var(--cv-background)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:opacity-80 transition-opacity"
           style={{ fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
         >
-          + ADD MODEL
+          {t('addModel')}
         </button>
         <button
           type="button"
@@ -287,7 +289,7 @@ export function Roster() {
           className="px-[16px] py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)]"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
-          EXPORT CSV
+          {t('exportCsv')}
         </button>
       </div>
 
@@ -307,7 +309,7 @@ export function Roster() {
               />
               <input
                 type="text"
-                placeholder="Search models or location..."
+                placeholder={t('searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-[44px] pr-[16px] py-[10px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]"
@@ -324,7 +326,7 @@ export function Roster() {
               value={statusFilter}
               onChange={(value) => setStatusFilter(value)}
               options={statusOptions}
-              currentLabel={statusOptions.find(opt => opt.value === statusFilter)?.label || 'All Statuses'}
+              currentLabel={statusOptions.find(opt => opt.value === statusFilter)?.label || t('filters.allStatuses')}
             />
 
             {/* Context Filter */}
@@ -332,7 +334,7 @@ export function Roster() {
               value={contextFilter}
               onChange={(value) => setContextFilter(value)}
               options={contextOptions}
-              currentLabel={contextOptions.find(opt => opt.value === contextFilter)?.label || 'All Contexts'}
+              currentLabel={contextOptions.find(opt => opt.value === contextFilter)?.label || t('filters.allContexts')}
             />
 
             {/* Division Filter */}
@@ -340,7 +342,7 @@ export function Roster() {
               value={divisionFilter}
               onChange={(value) => setDivisionFilter(value)}
               options={divisionOptions}
-              currentLabel={divisionOptions.find(opt => opt.value === divisionFilter)?.label || 'All Divisions'}
+              currentLabel={divisionOptions.find(opt => opt.value === divisionFilter)?.label || t('filters.allDivisions')}
             />
 
             {/* Sort Selector */}
@@ -348,7 +350,7 @@ export function Roster() {
               value={sortBy}
               onChange={(value) => setSortBy(value)}
               options={sortOptions}
-              currentLabel={sortOptions.find(opt => opt.value === sortBy)?.label || 'Sort: Last Rendered'}
+              currentLabel={sortOptions.find(opt => opt.value === sortBy)?.label || t('filters.sortLastRendered')}
             />
 
             {/* Brief Match Button */}
@@ -362,7 +364,7 @@ export function Roster() {
               }}
             >
               <Sparkles size={14} style={{ color: 'var(--cv-primary-text)' }} />
-              BRIEF MATCH
+              {t('briefMatch.button')}
             </button>
           </>
         ) : (
@@ -371,7 +373,7 @@ export function Roster() {
             <div className="flex-1">
               <input
                 type="text"
-                placeholder="Describe the brief — e.g. luxury fragrance, aspirational, European market, strong bone structure..."
+                placeholder={t('briefMatch.placeholder')}
                 value={briefQuery}
                 onChange={(e) => setBriefQuery(e.target.value)}
                 className="w-full px-[16px] py-[10px] bg-[var(--cv-surface)] border rounded-[4px]"
@@ -423,7 +425,7 @@ export function Roster() {
                 color: 'var(--cv-background)'
               }}
             >
-              {briefMatchLoading ? 'MATCHING...' : 'MATCH'}
+              {briefMatchLoading ? t('briefMatch.matching') : t('briefMatch.match')}
             </button>
 
             {/* Cancel Button */}
@@ -451,7 +453,7 @@ export function Roster() {
             className="text-[11px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
-            TOP MATCHES
+            {t('briefMatch.topMatches')}
           </div>
 
           {/* Match Results */}
@@ -490,7 +492,7 @@ export function Roster() {
                       style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                       onClick={() => navigate(`/roster/${match.id}`)}
                     >
-                      VIEW →
+                      {t('briefMatch.view')}
                     </div>
                   </div>
                   {match.reasoning && (
@@ -526,8 +528,8 @@ export function Roster() {
             }}
           >
             {search.trim()
-              ? `No models match "${search}"`
-              : 'No models match your filters'}
+              ? t('zeroState.noMatchSearch', { search })
+              : t('zeroState.noMatchFilters')}
           </div>
         ) : (
           <div 
@@ -537,23 +539,23 @@ export function Roster() {
               className="text-[14px] mb-[8px]"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
-              No models on the roster yet.
+              {t('zeroState.noModelsYet')}
             </div>
-            <div 
+            <div
               className="text-[13px] mb-[24px]"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
             >
-              Sign a prospect to get started.
+              {t('zeroState.signProspect')}
             </div>
             <button
               onClick={() => navigate('/prospects')}
               className="px-[24px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-primary-text)] rounded-[4px] text-[13px] transition-opacity hover:opacity-80"
-              style={{ 
-                fontFamily: 'var(--font-mono)', 
+              style={{
+                fontFamily: 'var(--font-mono)',
                 color: 'var(--cv-primary-text)'
               }}
             >
-              Go to Prospects
+              {t('zeroState.goToProspects')}
             </button>
           </div>
         )
@@ -584,7 +586,7 @@ export function Roster() {
                       color: 'var(--cv-background)'
                     }}
                   >
-                    NEW TO ROSTER
+                    {t('card.newToRoster')}
                   </div>
                 )}
                 
@@ -642,7 +644,7 @@ export function Roster() {
                     </>
                   ) : (
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', opacity: 0.6 }}>
-                      Not evaluated yet
+                      {t('card.notEvaluatedYet')}
                     </div>
                   )}
                 </div>

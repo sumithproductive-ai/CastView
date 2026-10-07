@@ -1,0 +1,61 @@
+{
+  "title": "Prospectos",
+  "draftCount_one": "{{count}} borrador",
+  "draftCount_other": "{{count}} borradores",
+  "exportCsv": "EXPORTAR CSV",
+  "quickAdd": "AÑADIR RÁPIDO",
+  "addProspect": "AÑADIR PROSPECTO",
+  "searchPlaceholder": "Buscar prospectos...",
+  "filters": {
+    "allStatuses": "Todos los estados",
+    "allContexts": "Todos los contextos",
+    "contextFragrance": "Fragancia",
+    "contextEditorial": "Editorial",
+    "contextRunway": "Pasarela",
+    "contextCampaign": "Campaña",
+    "sortNewest": "Ordenar: Más recientes",
+    "sortName": "Ordenar: Nombre",
+    "sortEvaluations": "Ordenar: Evaluaciones",
+    "filterBySource": "FILTRAR POR ORIGEN:",
+    "all": "TODOS"
+  },
+  "selectAll": "SELECCIONAR TODO",
+  "card": {
+    "noEvaluationsYet": "SIN EVALUACIONES AÚN",
+    "completeProfile": "COMPLETAR PERFIL →",
+    "deleteDraft": "ELIMINAR BORRADOR",
+    "evaluations_one": "{{count}} evaluación",
+    "evaluations_other": "{{count}} evaluaciones"
+  },
+  "zeroState": {
+    "noMatchSearch": "Ningún prospecto coincide con \"{{search}}\"",
+    "noMatchFilters": "Ningún prospecto coincide con tus filtros",
+    "noProspectsYet": "Aún no hay prospectos"
+  },
+  "bulkBar": {
+    "selected_one": "{{count}} seleccionado",
+    "selected_other": "{{count}} seleccionados",
+    "moveToShortlisted": "MOVER A PRESELECCIONADOS",
+    "moveToInReview": "MOVER A EN REVISIÓN",
+    "markAsPassed": "MARCAR COMO DESCARTADO",
+    "deleteSelected": "ELIMINAR SELECCIONADOS"
+  },
+  "undoToast": {
+    "moved_one": "{{count}} prospecto movido a {{status}}",
+    "moved_other": "{{count}} prospectos movidos a {{status}}",
+    "undo": "DESHACER"
+  },
+  "quickAddModal": {
+    "title": "Añadir prospecto rápido",
+    "subtitle": "Solo el nombre — completa los detalles después",
+    "namePlaceholder": "Nombre del prospecto",
+    "cancel": "CANCELAR",
+    "addToDrafts": "AÑADIR A BORRADORES →"
+  },
+  "deleteModal": {
+    "title": "¿Eliminar prospecto?",
+    "body": "Esto eliminará permanentemente a {{name}} y todos sus conjuntos digitales y evaluaciones. Esta acción no se puede deshacer.",
+    "cancel": "CANCELAR",
+    "delete": "ELIMINAR"
+  }
+}
