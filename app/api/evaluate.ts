@@ -139,10 +139,17 @@ function normalizeContextEvaluation(
     alignmentScore: Math.round(score),
     fitLabel,
     reasoning,
-    strengths: asStringArray(raw.strengths).slice(0, 2),
-    risks: asStringArray(raw.risks).slice(0, 1),
-    marketSignals: asStringArray(raw.marketSignals).slice(0, 1),
-    suggestedNextSteps: asStringArray(raw.suggestedNextSteps).slice(0, 1),
+    // Caps match the prompt's exact-count schema (3/2/2/3) — this was
+    // previously slicing to 2/1/1/1, silently truncating correctly-sized
+    // AI responses before they ever reached the frontend. Caught via live
+    // testing: the prompt's "exactly N" wording had zero effect on
+    // observed output counts across repeated runs, which only made sense
+    // if something downstream was truncating regardless of what the AI
+    // actually returned.
+    strengths: asStringArray(raw.strengths).slice(0, 3),
+    risks: asStringArray(raw.risks).slice(0, 2),
+    marketSignals: asStringArray(raw.marketSignals).slice(0, 2),
+    suggestedNextSteps: asStringArray(raw.suggestedNextSteps).slice(0, 3),
   };
 }
 
