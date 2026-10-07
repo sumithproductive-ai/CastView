@@ -1,0 +1,46 @@
+{
+  "title": "Briefing",
+  "attention": {
+    "heading": "NEEDS YOUR ATTENTION",
+    "allCaughtUp": "You're all caught up.",
+    "inboxWaiting_one": "{{count}} new submission waiting in Inbox",
+    "inboxWaiting_other": "{{count}} new submissions waiting in Inbox",
+    "inboxWaitingDetail": "Review and confirm to add to Prospects",
+    "duplicatesFlagged_one": "{{count}} possible duplicate flagged",
+    "duplicatesFlagged_other": "{{count}} possible duplicates flagged",
+    "duplicatesFlaggedDetail": "Check before confirming in Inbox",
+    "gmailReconnect": "Gmail needs reconnecting",
+    "gmailReconnectDetail": "Labeled emails won’t be processed until you reconnect",
+    "unreadMessages_one": "{{count}} unread message",
+    "unreadMessages_other": "{{count}} unread messages",
+    "unreadMessagesDetail": "In your notifications"
+  },
+  "stats": {
+    "prospects": "PROSPECTS",
+    "totalProspects": "TOTAL PROSPECTS",
+    "shortlisted": "SHORTLISTED",
+    "awaitingReview": "AWAITING REVIEW",
+    "evaluationsRun": "EVALUATIONS RUN",
+    "roster": "ROSTER",
+    "activeModels": "ACTIVE MODELS",
+    "evaluations": "EVALUATIONS",
+    "onHold": "ON HOLD"
+  },
+  "messages": {
+    "recent": "RECENT MESSAGES ({{count}})",
+    "empty": "No messages yet. Send your first message from a prospect or roster profile.",
+    "reply": "REPLY",
+    "sent": "SENT"
+  },
+  "recentProspects": {
+    "heading": "RECENT PROSPECTS",
+    "viewAll": "View all prospects →"
+  },
+  "rosterActivity": {
+    "heading": "RECENT ROSTER ACTIVITY",
+    "empty": "No roster activity yet.",
+    "viewAll": "View full roster →",
+    "evaluationCompleted": "Evaluation completed",
+    "evaluationCompletedWithScore": "Evaluation completed — {{context}} {{score}}%"
+  }
+}

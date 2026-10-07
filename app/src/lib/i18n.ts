@@ -2,6 +2,10 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import enCommon from '../locales/en/common.json';
 import esCommon from '../locales/es/common.json';
+import enDashboard from '../locales/en/dashboard.json';
+import esDashboard from '../locales/es/dashboard.json';
+import enSettings from '../locales/en/settings.json';
+import esSettings from '../locales/es/settings.json';
 
 // Per-user display language — deliberately separate from the agency-level
 // "AI Output Language" setting (Settings → Agency), which only affects
@@ -23,8 +27,8 @@ export function readStoredLanguage(): SupportedLanguage {
 
 void i18n.use(initReactI18next).init({
   resources: {
-    en: { common: enCommon },
-    es: { common: esCommon },
+    en: { common: enCommon, dashboard: enDashboard, settings: enSettings },
+    es: { common: esCommon, dashboard: esDashboard, settings: esSettings },
   },
   lng: readStoredLanguage(),
   fallbackLng: 'en',

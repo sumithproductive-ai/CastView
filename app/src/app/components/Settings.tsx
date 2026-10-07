@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { authFetch } from '../../lib/apiAuth';
 import { isAdminUser } from '../../lib/admin';
@@ -75,15 +76,15 @@ function getPlanStatusDisplay(plan: string, planStatus: string): { label: string
   return { label: planStatus.replace(/_/g, ' ').toUpperCase(), color: 'var(--cv-secondary-text)' };
 }
 
-function formatLastActive(iso: string | null): string {
+function formatLastActive(iso: string | null, t: (key: string, opts?: Record<string, unknown>) => string): string {
   if (!iso) return '—';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '—';
   const diffMs = Date.now() - date.getTime();
-  if (diffMs < 24 * 60 * 60 * 1000) return 'Active now';
+  if (diffMs < 24 * 60 * 60 * 1000) return t('team.activeNow');
   const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-  if (days === 1) return '1 day ago';
-  if (days < 7) return `${days} days ago`;
+  if (days === 1) return t('team.oneDayAgo');
+  if (days < 7) return t('team.daysAgo', { count: days });
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
@@ -91,6 +92,7 @@ function formatRenewalDate(
   plan: string,
   trialEndsAt: string | null,
   stripeSubscriptionId: string | null,
+  t: (key: string, opts?: Record<string, unknown>) => string,
 ): string {
   const normalizedPlan = plan.toLowerCase();
   const trialPlan = normalizedPlan === 'trial' || normalizedPlan === 'founding_beta';
@@ -103,7 +105,7 @@ function formatRenewalDate(
         day: 'numeric',
         year: 'numeric',
       });
-      return `Trial ends ${formatted}`;
+      return t('billing.trialEnds', { date: formatted });
     }
   }
 
@@ -118,7 +120,7 @@ function formatRenewalDate(
         });
       }
     }
-    return 'Active subscription';
+    return t('billing.activeSubscription');
   }
 
   return '—';
@@ -159,6 +161,7 @@ function PulseBar({
 
 export function Settings() {
   const navigate = useNavigate();
+  const { t } = useTranslation('settings');
   const [loading, setLoading] = useState(true);
   const [stripeCustomerId, setStripeCustomerId] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -303,6 +306,7 @@ export function Settings() {
               rawPlan,
               agency.trial_ends_at ?? null,
               agency.stripe_subscription_id ?? null,
+              t,
             ),
           );
         }
@@ -394,7 +398,7 @@ export function Settings() {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.url) {
-      setCheckoutError(data.error ?? 'Unable to start checkout. Please try again.');
+      setCheckoutError(data.error ?? t('billing.checkoutError'));
       return;
     }
     window.location.href = data.url;
@@ -411,17 +415,17 @@ export function Settings() {
       const data = await res.json().catch(() => ({}));
       if (res.status === 400) {
         setPortalError(
-          data.error ?? 'No active billing account — start a subscription first.',
+          data.error ?? t('billing.noActiveBilling'),
         );
         return;
       }
       if (!res.ok || !data.url) {
-        setPortalError(data.error ?? 'Unable to open billing portal. Try again.');
+        setPortalError(data.error ?? t('billing.portalError'));
         return;
       }
       window.location.href = data.url;
     } catch {
-      setPortalError('Unable to open billing portal. Try again.');
+      setPortalError(t('billing.portalError'));
     } finally {
       setPortalLoading(false);
     }
@@ -449,7 +453,7 @@ export function Settings() {
     setSavingAgency(false);
     if (error) {
       console.error('[Settings] agency save failed:', error.message);
-      setAgencySaveError('Could not save agency details. Please try again.');
+      setAgencySaveError(t('agency.saveError'));
       return;
     }
     setAgencySaved(true);
@@ -489,12 +493,12 @@ export function Settings() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setSupportError(data.error ?? 'Failed to send message');
+        setSupportError(data.error ?? t('support.failedToSend'));
         return;
       }
       setSupportSuccess(true);
     } catch (err) {
-      setSupportError(err instanceof Error ? err.message : 'Failed to send message');
+      setSupportError(err instanceof Error ? err.message : t('support.failedToSend'));
     } finally {
       setSupportSending(false);
     }
@@ -541,13 +545,13 @@ export function Settings() {
     if (!gmailConnect) return;
 
     if (gmailConnect === 'success') {
-      setGmailNotice({ type: 'success', text: 'Gmail connected.' });
+      setGmailNotice({ type: 'success', text: t('emailIntake.gmailConnected') });
       void loadGmailStatus();
     } else {
       const reason = searchParams.get('reason') ?? 'unknown_error';
       setGmailNotice({
         type: 'error',
-        text: `Couldn't connect Gmail (${reason.replace(/_/g, ' ')}). Try again.`,
+        text: t('emailIntake.gmailConnectError', { reason: reason.replace(/_/g, ' ') }),
       });
     }
 
@@ -568,12 +572,12 @@ export function Settings() {
       });
       const data = await res.json();
       if (!res.ok || !data.authorizeUrl) {
-        setGmailNotice({ type: 'error', text: data.error ?? 'Unable to start Gmail connection.' });
+        setGmailNotice({ type: 'error', text: data.error ?? t('emailIntake.startConnectError') });
         return;
       }
       window.location.href = data.authorizeUrl;
     } catch {
-      setGmailNotice({ type: 'error', text: 'Unable to start Gmail connection.' });
+      setGmailNotice({ type: 'error', text: t('emailIntake.startConnectError') });
     } finally {
       setGmailConnecting(false);
     }
@@ -588,10 +592,10 @@ export function Settings() {
         body: JSON.stringify({ labelName }),
       });
       if (!res.ok) {
-        setGmailNotice({ type: 'error', text: 'Unable to save label. Try again.' });
+        setGmailNotice({ type: 'error', text: t('emailIntake.saveLabelError') });
       }
     } catch {
-      setGmailNotice({ type: 'error', text: 'Unable to save label. Try again.' });
+      setGmailNotice({ type: 'error', text: t('emailIntake.saveLabelError') });
     } finally {
       setGmailLabelSaving(false);
     }
@@ -605,7 +609,7 @@ export function Settings() {
         body: JSON.stringify({}),
       });
       if (!res.ok) {
-        setGmailNotice({ type: 'error', text: 'Unable to disconnect. Try again.' });
+        setGmailNotice({ type: 'error', text: t('emailIntake.disconnectError') });
         return;
       }
       setGmailConnected(false);
@@ -613,7 +617,7 @@ export function Settings() {
       setGmailLabel('');
       setGmailAvailableLabels([]);
     } catch {
-      setGmailNotice({ type: 'error', text: 'Unable to disconnect. Try again.' });
+      setGmailNotice({ type: 'error', text: t('emailIntake.disconnectError') });
     }
   };
 
@@ -628,7 +632,7 @@ export function Settings() {
           ...(!isPageLoading ? sectionFade(0) : {}),
         }}
       >
-        Settings
+        {t('title')}
       </h1>
 
       <div className="space-y-[16px]">
@@ -638,7 +642,7 @@ export function Settings() {
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
-            BILLING
+            {t('billing.heading')}
           </div>
           {checkoutError && (
             <p
@@ -655,7 +659,7 @@ export function Settings() {
                   className="text-[9px] uppercase tracking-[0.1em] mb-[8px]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  CURRENT PLAN
+                  {t('billing.currentPlan')}
                 </div>
                 {isPageLoading ? (
                   <PulseBar width={200} height={32} />
@@ -691,7 +695,7 @@ export function Settings() {
                   className="text-[13px] mb-[16px]"
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
                 >
-                  Update your payment method, view invoices, or cancel your subscription anytime.
+                  {t('billing.managePaymentDesc')}
                 </p>
                 <button
                   type="button"
@@ -706,7 +710,7 @@ export function Settings() {
                     cursor: portalLoading ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {portalLoading ? 'OPENING…' : 'MANAGE BILLING →'}
+                  {portalLoading ? t('billing.opening') : t('billing.manageBilling')}
                 </button>
                 {portalError && (
                   <p
@@ -723,7 +727,7 @@ export function Settings() {
                   className="text-[11px] uppercase tracking-[0.12em] mb-[16px]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  CHOOSE A PLAN
+                  {t('billing.choosePlan')}
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-[16px]">
@@ -745,7 +749,7 @@ export function Settings() {
                             className="text-[9px] uppercase tracking-[0.12em] mb-[12px]"
                             style={{ fontFamily: 'var(--font-label)', color: '#c8a96e' }}
                           >
-                            RECOMMENDED
+                            {t('billing.recommended')}
                           </div>
                         )}
                         <div
@@ -767,7 +771,7 @@ export function Settings() {
                           className="text-[13px] mb-[20px]"
                           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                         >
-                          per month
+                          {t('billing.perMonth')}
                         </div>
                         <div
                           className="text-[13px] mb-[24px] flex-1"
@@ -788,13 +792,13 @@ export function Settings() {
                             cursor: isCurrent ? 'not-allowed' : 'pointer',
                           }}
                         >
-                          {isCurrent ? 'CURRENT PLAN' : 'SUBSCRIBE'}
+                          {isCurrent ? t('billing.currentPlanBtn') : t('billing.subscribe')}
                         </button>
                         <div
                           className="text-[11px] text-center mt-[12px]"
                           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                         >
-                          14-day free trial
+                          {t('billing.freeTrial')}
                         </div>
                       </div>
                     );
@@ -806,13 +810,13 @@ export function Settings() {
               <div className="border-b border-[var(--cv-subtle-border)] py-[14px]">
                 <div className="flex items-center justify-between mb-[12px]">
                   <label className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
-                    Agent seats
+                    {t('billing.agentSeats')}
                   </label>
                   {isPageLoading ? (
                     <PulseBar width={120} height={13} />
                   ) : (
                     <div className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}>
-                      {`${activeProfileCount} of ${formatSeatLimit(seatLimit)} active`}
+                      {t('billing.activeOf', { count: activeProfileCount, limit: formatSeatLimit(seatLimit) })}
                     </div>
                   )}
                 </div>
@@ -826,7 +830,7 @@ export function Settings() {
               </div>
               <div className="flex items-center justify-between border-b border-[var(--cv-subtle-border)] py-[14px]">
                 <label className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
-                  Evaluations this month
+                  {t('billing.evaluationsThisMonth')}
                 </label>
                 {isPageLoading ? (
                   <PulseBar width={32} height={13} />
@@ -838,7 +842,7 @@ export function Settings() {
               </div>
               <div className="flex items-center justify-between py-[14px]">
                 <label className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
-                  Renewal date
+                  {t('billing.renewalDate')}
                 </label>
                 {isPageLoading ? (
                   <PulseBar width={180} height={13} />
@@ -854,7 +858,7 @@ export function Settings() {
                   className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] no-underline inline-block"
                   style={{ fontFamily: 'var(--font-label)', borderColor: 'var(--cv-subtle-border)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}
                 >
-                  MANAGE SEATS
+                  {t('billing.manageSeats')}
                 </a>
                 <button
                   type="button"
@@ -862,7 +866,7 @@ export function Settings() {
                   className="px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
                   style={{ fontFamily: 'var(--font-label)', backgroundColor: 'var(--cv-primary-text)', color: 'var(--cv-background)', cursor: 'pointer', border: 'none' }}
                 >
-                  UPGRADE PLAN
+                  {t('billing.upgradePlan')}
                 </button>
               </div>
             </div>
@@ -875,7 +879,7 @@ export function Settings() {
             className="text-[11px] uppercase tracking-[0.12em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
-            TEAM ACTIVITY
+            {t('team.heading')}
           </div>
           <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
             <div>
@@ -884,25 +888,25 @@ export function Settings() {
                   className="flex-1 text-[10px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  AGENT
+                  {t('team.agent')}
                 </div>
                 <div
                   className="w-[180px] text-[10px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  EVALUATIONS THIS MONTH
+                  {t('team.evaluationsThisMonth')}
                 </div>
                 <div
                   className="w-[140px] text-[10px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  LAST ACTIVE
+                  {t('team.lastActive')}
                 </div>
                 <div
                   className="w-[100px] text-[10px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  STATUS
+                  {t('team.status')}
                 </div>
               </div>
 
@@ -921,7 +925,7 @@ export function Settings() {
                   className="py-[24px] text-[13px]"
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
-                  No team members found
+                  {t('team.noMembers')}
                 </div>
               ) : (
                 teamProfiles.map((member) => (
@@ -952,7 +956,7 @@ export function Settings() {
                       className="w-[140px] text-[13px]"
                       style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
                     >
-                      {formatLastActive(member.lastActiveAt)}
+                      {formatLastActive(member.lastActiveAt, t)}
                     </div>
                     <div className="w-[100px]">
                       <div
@@ -964,7 +968,7 @@ export function Settings() {
                           backgroundColor: 'transparent',
                         }}
                       >
-                        ACTIVE
+                        {t('team.active')}
                       </div>
                     </div>
                   </div>
@@ -976,7 +980,7 @@ export function Settings() {
               className="mt-[16px] text-[11px] italic"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
             >
-              Activity data resets on the 1st of each month.
+              {t('team.resetNotice')}
             </div>
           </div>
         </div>
@@ -987,7 +991,7 @@ export function Settings() {
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
-            AGENCY
+            {t('agency.heading')}
           </div>
           <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] space-y-[16px]">
             <div className="flex items-center justify-between">
@@ -995,14 +999,14 @@ export function Settings() {
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
               >
-                Agency Name
+                {t('agency.name')}
               </label>
               {isPageLoading ? (
                 <PulseBar width={320} height={40} />
               ) : (
                 <input
                   type="text"
-                  placeholder="Your Agency Name"
+                  placeholder={t('agency.namePlaceholder')}
                   value={agencyName}
                   onChange={(e) => {
                     setAgencyName(e.target.value);
@@ -1024,14 +1028,14 @@ export function Settings() {
                   className="text-[13px]"
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Primary Market
+                  {t('agency.primaryMarket')}
                 </label>
                 {isPageLoading ? (
                   <PulseBar width={320} height={40} />
                 ) : (
                   <input
                     type="text"
-                    placeholder="e.g. Dallas, Atlanta, New York..."
+                    placeholder={t('agency.marketPlaceholder')}
                     value={primaryMarket}
                     onChange={(e) => {
                       setPrimaryMarket(e.target.value);
@@ -1055,7 +1059,7 @@ export function Settings() {
                       className="text-[11px] mb-[8px] transition-colors hover:opacity-80"
                       style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                     >
-                      Suggestions {showMarketSuggestions ? '▴' : '▾'}
+                      {t('agency.suggestions')} {showMarketSuggestions ? '▴' : '▾'}
                     </button>
                     {showMarketSuggestions && (
                       <div className="flex flex-wrap gap-[8px]">
@@ -1086,13 +1090,13 @@ export function Settings() {
                   className="text-[13px]"
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
-                  AI Output Language
+                  {t('agency.aiOutputLanguage')}
                 </label>
                 <p
                   className="text-[11px] mt-[4px] max-w-[280px]"
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', opacity: 0.7 }}
                 >
-                  Applies to AI-written evaluation notes and extraction summaries. The app itself stays English.
+                  {t('agency.aiOutputLanguageDesc')}
                 </p>
               </div>
               {isPageLoading ? (
@@ -1137,7 +1141,7 @@ export function Settings() {
                   background: 'transparent',
                 }}
               >
-                {agencySaved ? '✓ SAVED' : savingAgency ? 'SAVING…' : 'SAVE CHANGES'}
+                {agencySaved ? t('agency.saved') : savingAgency ? t('agency.saving') : t('agency.saveChanges')}
               </button>
               )}
             </div>
@@ -1158,7 +1162,7 @@ export function Settings() {
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
-            EMAIL INTAKE
+            {t('emailIntake.heading')}
           </div>
           <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
             {gmailNotice && (
@@ -1176,7 +1180,7 @@ export function Settings() {
 
             {gmailLoading ? (
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
-                Loading…
+                {t('emailIntake.loading')}
               </p>
             ) : !gmailConnected ? (
               <div className="flex items-center justify-between">
@@ -1184,9 +1188,7 @@ export function Settings() {
                   className="text-[13px] max-w-[420px]"
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Connect Gmail and CastView will watch a label you choose for new
-                  prospect submissions — extracting names, measurements, and
-                  digitals into a review queue automatically.
+                  {t('emailIntake.connectDesc')}
                 </p>
                 <button
                   onClick={handleConnectGmail}
@@ -1200,7 +1202,7 @@ export function Settings() {
                     background: 'transparent',
                   }}
                 >
-                  {gmailConnecting ? 'CONNECTING…' : 'CONNECT GMAIL'}
+                  {gmailConnecting ? t('emailIntake.connecting') : t('emailIntake.connectGmail')}
                 </button>
               </div>
             ) : (
@@ -1215,7 +1217,7 @@ export function Settings() {
                       }}
                     />
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
-                      {gmailStatus === 'needs_reauth' ? 'Reconnect needed' : 'Connected'}
+                      {gmailStatus === 'needs_reauth' ? t('emailIntake.reconnectNeeded') : t('emailIntake.connected')}
                     </span>
                   </div>
                   {gmailStatus === 'needs_reauth' ? (
@@ -1231,7 +1233,7 @@ export function Settings() {
                         background: 'transparent',
                       }}
                     >
-                      {gmailConnecting ? 'CONNECTING…' : 'RECONNECT GMAIL'}
+                      {gmailConnecting ? t('emailIntake.connecting') : t('emailIntake.reconnectGmail')}
                     </button>
                   ) : (
                     <button
@@ -1239,7 +1241,7 @@ export function Settings() {
                       className="text-[11px] uppercase tracking-[0.1em]"
                       style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer', background: 'transparent', border: 'none' }}
                     >
-                      Disconnect
+                      {t('emailIntake.disconnect')}
                     </button>
                   )}
                 </div>
@@ -1249,9 +1251,7 @@ export function Settings() {
                     className="text-[12px] mb-[16px]"
                     style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                   >
-                    Google requires reconnecting roughly weekly while this integration
-                    is in review — labeled emails won&apos;t be processed until you
-                    reconnect.
+                    {t('emailIntake.reauthNotice')}
                   </p>
                 )}
 
@@ -1260,14 +1260,14 @@ export function Settings() {
                     className="text-[9px] uppercase tracking-[0.1em]"
                     style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                   >
-                    Watching label
+                    {t('emailIntake.watchingLabel')}
                   </label>
                   <button
                     onClick={loadGmailStatus}
                     className="text-[10px] uppercase tracking-[0.1em]"
                     style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer', background: 'transparent', border: 'none' }}
                   >
-                    Refresh
+                    {t('emailIntake.refresh')}
                   </button>
                 </div>
                 {gmailAvailableLabels.length === 0 ? (
@@ -1277,14 +1277,13 @@ export function Settings() {
                       className="w-full px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                       style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
                     >
-                      <option>No labels found in this Gmail account</option>
+                      <option>{t('emailIntake.noLabelsFound')}</option>
                     </select>
                     <p
                       className="mt-[12px] text-[11px]"
                       style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
                     >
-                      Create a label in Gmail (e.g. "CastView Submissions") for the
-                      emails you want processed, then click Refresh above.
+                      {t('emailIntake.noLabelsHelp')}
                     </p>
                   </>
                 ) : (
@@ -1310,12 +1309,12 @@ export function Settings() {
                       style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
                     >
                       {gmailLastSyncedAt
-                        ? `Last synced ${new Date(gmailLastSyncedAt).toLocaleString()}.`
-                        : 'Not synced yet — runs once daily.'}
+                        ? t('emailIntake.lastSynced', { date: new Date(gmailLastSyncedAt).toLocaleString() })
+                        : t('emailIntake.notSyncedYet')}
                       {gmailLastSyncFailedCount > 0 && (
                         <span style={{ color: '#d4a24a' }}>
                           {' '}
-                          {gmailLastSyncFailedCount} email{gmailLastSyncFailedCount !== 1 ? 's' : ''} failed to process last run.
+                          {t('emailIntake.failedCount', { count: gmailLastSyncFailedCount })}
                         </span>
                       )}
                     </p>
@@ -1332,19 +1331,19 @@ export function Settings() {
             className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
-            SUPPORT
+            {t('support.heading')}
           </div>
           <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
             <div className="flex items-center justify-between pb-[20px] mb-[20px] border-b border-[var(--cv-subtle-border)]">
               <label className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
-                Product Tutorial
+                {t('support.tutorial')}
               </label>
               <button
                 onClick={openTutorial}
                 className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
                 style={{ fontFamily: 'var(--font-mono)', borderColor: 'var(--cv-subtle-border)', color: 'var(--cv-primary-text)', cursor: 'pointer', background: 'transparent' }}
               >
-                LAUNCH TUTORIAL
+                {t('support.launchTutorial')}
               </button>
             </div>
             {supportSuccess ? (
@@ -1352,7 +1351,7 @@ export function Settings() {
                 className="text-center py-[24px]"
                 style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#4a7a4a' }}
               >
-                ✓ Message sent. We&apos;ll get back to you at {user?.email ?? 'your email'}.
+                {t('support.messageSent', { email: user?.email ?? 'your email' })}
               </p>
             ) : (
               <div className="space-y-[16px]">
@@ -1360,7 +1359,7 @@ export function Settings() {
                   className="text-[13px]"
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Report a bug, request a feature, or ask a question.
+                  {t('support.desc')}
                 </p>
                 <select
                   value={supportCategory}
@@ -1374,13 +1373,13 @@ export function Settings() {
                     color: 'var(--cv-primary-text)',
                   }}
                 >
-                  <option value="bug">Bug Report</option>
-                  <option value="feedback">Feature Request</option>
-                  <option value="other">General Question</option>
+                  <option value="bug">{t('support.bugReport')}</option>
+                  <option value="feedback">{t('support.featureRequest')}</option>
+                  <option value="other">{t('support.generalQuestion')}</option>
                 </select>
                 <input
                   type="text"
-                  placeholder="Brief description"
+                  placeholder={t('support.subjectPlaceholder')}
                   value={supportSubject}
                   onChange={(e) => setSupportSubject(e.target.value)}
                   className="w-full px-[16px] py-[10px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
@@ -1392,7 +1391,7 @@ export function Settings() {
                 />
                 <div>
                   <textarea
-                    placeholder="Describe the issue or feedback in detail..."
+                    placeholder={t('support.messagePlaceholder')}
                     value={supportMessage}
                     onChange={(e) => setSupportMessage(e.target.value)}
                     rows={4}
@@ -1430,7 +1429,7 @@ export function Settings() {
                       cursor: !canSubmitSupport ? 'not-allowed' : 'pointer',
                     }}
                   >
-                    {supportSending ? 'SENDING...' : 'SEND MESSAGE'}
+                    {supportSending ? t('support.sending') : t('support.sendMessage')}
                   </button>
                 </div>
                 {supportError && (
@@ -1453,7 +1452,7 @@ export function Settings() {
               className="text-[12px] hover:opacity-80 transition-opacity"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
             >
-              ADMIN: View Requests →
+              {t('admin.viewRequests')}
             </Link>
           </div>
         )}
@@ -1475,7 +1474,7 @@ export function Settings() {
               padding: 0,
             }}
           >
-            Log Out
+            {t('logOut')}
           </button>
         </div>
       </div>
