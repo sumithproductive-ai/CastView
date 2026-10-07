@@ -8,6 +8,7 @@ import React from 'react';
   import { TutorialProvider } from './app/context/TutorialContext';
   import { ThemeProvider, initThemeFromStorage } from './app/context/ThemeContext';
   import { attachCastviewDebug } from './lib/supabaseDebug';
+  import "./lib/i18n";
   import "./styles/index.css";
 
   initThemeFromStorage();
