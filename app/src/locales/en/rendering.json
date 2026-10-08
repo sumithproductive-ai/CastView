@@ -1,0 +1,34 @@
+{
+  "evaluationUnavailable": "Evaluation temporarily unavailable.",
+  "selectAtLeastOneContext": "Select at least one context to evaluate.",
+  "serviceUnavailable": "Evaluation service is temporarily unavailable. Please contact support.",
+  "profileLoadFailed": "Your account profile could not be loaded. Try logging out and back in.",
+  "contextsUnavailable_one": "{{count}} context unavailable. Showing completed results.",
+  "contextsUnavailable_other": "{{count}} contexts unavailable. Showing completed results.",
+  "steps": {
+    "analysingDigitals": "Analysing Digitals",
+    "alignment": "Alignment"
+  },
+  "statusLabel": {
+    "openingResults": "Opening results...",
+    "analysingDigitals": "Analysing digitals...",
+    "evaluatingContext": "Evaluating {{context}}..."
+  },
+  "notification": {
+    "title": "Evaluation Results Ready",
+    "body": "{{name}} · tap to view report"
+  },
+  "back": "← BACK",
+  "estimatedTime": "Estimated Time",
+  "estimatedTimeValue": "1-3 minutes",
+  "contextsComplete": "{{completed}} of {{total}} contexts complete",
+  "queue": {
+    "position": "QUEUE POSITION",
+    "estimatedTime": "ESTIMATED TIME",
+    "of": "of"
+  },
+  "queueAnother": "+ QUEUE ANOTHER PROSPECT",
+  "notifyOnComplete": "You'll be notified when this evaluation completes.",
+  "resultsReadyToast": "✓ Evaluation Results Ready — {{name}}",
+  "viewResults": "VIEW RESULTS"
+}

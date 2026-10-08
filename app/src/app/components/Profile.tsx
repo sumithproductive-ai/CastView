@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { ChevronRight, Lock } from 'lucide-react';
 
@@ -9,13 +10,14 @@ import { DigitalImage } from './DigitalImage';
 import { MARKET_SUGGESTIONS } from './LocationMarketField';
 
 const contexts = [
-  'Fragrance', 'Editorial', 'Runway', 
-  'Campaign', 'Beauty', 'Sportswear', 
+  'Fragrance', 'Editorial', 'Runway',
+  'Campaign', 'Beauty', 'Sportswear',
   'Swimwear', 'Couture', 'Street'
 ];
 
 
 export function Profile() {
+  const { t } = useTranslation('profile');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prospectName = searchParams.get('name')
@@ -38,23 +40,23 @@ export function Profile() {
 
   const digitals = entity?.digitalSets?.[0]
     ? [
-        { label: 'FRONT', image: entity.digitalSets[0].front },
-        { label: 'PROFILE', image: entity.digitalSets[0].profile },
-        { label: '3/4', image: entity.digitalSets[0].threeQuarter },
-        { label: 'FULL BODY', image: entity.digitalSets[0].fullBody },
+        { label: t('digitals.angleFront'), image: entity.digitalSets[0].front },
+        { label: t('digitals.angleProfile'), image: entity.digitalSets[0].profile },
+        { label: t('digitals.angleThreeQuarter'), image: entity.digitalSets[0].threeQuarter },
+        { label: t('digitals.angleFullBody'), image: entity.digitalSets[0].fullBody },
       ].filter((d) => d.image)
     : [];
 
   const measurementData = [
-    { key: 'Height', value: prospect?.height ?? '—' },
+    { key: t('measurements.height'), value: prospect?.height ?? '—' },
     {
-      key: 'Chest',
+      key: t('measurements.chest'),
       value: prospect?.measurements?.chest
         ? `${prospect.measurements.chest}"`
         : '—',
     },
     {
-      key: 'Waist',
+      key: t('measurements.waist'),
       value: prospect?.measurements?.waist
         ? `${prospect.measurements.waist}"`
         : '—',
@@ -88,15 +90,15 @@ export function Profile() {
   };
   
   const contextDescriptions: Record<string, string> = {
-    'Fragrance':  'Evaluate alignment with luxury fragrance campaign criteria',
-    'Editorial':  'Evaluate alignment with fashion editorial and magazine contexts',
-    'Runway':     'Evaluate alignment with catwalk and show presentation criteria',
-    'Campaign':   'Evaluate alignment with commercial brand advertising criteria',
-    'Beauty':     'Evaluate alignment with skincare and cosmetics campaign criteria',
-    'Sportswear': 'Evaluate alignment with athletic and activewear criteria',
-    'Couture':    'Evaluate alignment with haute couture and high fashion criteria',
-    'Swimwear':   'Evaluate alignment with swimwear and resort campaign criteria',
-    'Street':     'Evaluate alignment with contemporary street style criteria',
+    'Fragrance': t('contextDescriptions.Fragrance'),
+    'Editorial': t('contextDescriptions.Editorial'),
+    'Runway': t('contextDescriptions.Runway'),
+    'Campaign': t('contextDescriptions.Campaign'),
+    'Beauty': t('contextDescriptions.Beauty'),
+    'Sportswear': t('contextDescriptions.Sportswear'),
+    'Couture': t('contextDescriptions.Couture'),
+    'Swimwear': t('contextDescriptions.Swimwear'),
+    'Street': t('contextDescriptions.Street'),
   };
   
   return (
@@ -109,7 +111,7 @@ export function Profile() {
           letterSpacing: '0.05em',
           padding: '48px 0',
         }}>
-          Loading profile...
+          {t('loadingProfile')}
         </div>
       )}
       {!isLoading && !entity && prospectId && (
@@ -120,7 +122,7 @@ export function Profile() {
           letterSpacing: '0.05em',
           padding: '48px 0',
         }}>
-          Profile not found. It may have been deleted or the link is invalid.
+          {t('notFound')}
         </div>
       )}
       <button
@@ -141,12 +143,12 @@ export function Profile() {
           marginBottom: '24px',
         }}
       >
-        {profileType === 'model' ? '← BACK TO ROSTER' : '← BACK TO PROSPECTS'}
+        {profileType === 'model' ? t('backToRoster') : t('backToProspects')}
       </button>
 
       <div className="flex items-center gap-[8px] mb-[48px]">
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
-          {profileType === 'model' ? 'Roster' : 'Prospects'}
+          {profileType === 'model' ? t('breadcrumbRoster') : t('breadcrumbProspects')}
         </span>
         <ChevronRight size={14} style={{ color: 'var(--cv-secondary-text)' }} />
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
@@ -164,7 +166,7 @@ export function Profile() {
               color: 'var(--cv-secondary-text)',
               padding: '24px 0',
             }}>
-              Loading digitals...
+              {t('loadingDigitals')}
             </div>
           ) : digitals.length > 0 ? (
             <div className="grid grid-cols-2 gap-[16px] mb-[16px]">
@@ -191,7 +193,7 @@ export function Profile() {
                 fontSize: '12px',
               }}
             >
-              No digitals uploaded yet.
+              {t('digitals.noneUploaded')}
             </div>
           )}
 
@@ -202,7 +204,7 @@ export function Profile() {
               className="text-[11px]"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
             >
-              Digitals are stored securely and used only for evaluation.
+              {t('digitals.privacyNotice')}
             </div>
           </div>
 
@@ -212,7 +214,7 @@ export function Profile() {
                 className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
                 style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
-                Measurements
+                {t('measurements.heading')}
               </div>
               <div className="space-y-[12px]">
                 {measurementData.map((m) => (
@@ -259,18 +261,18 @@ export function Profile() {
                 className="text-[11px] uppercase tracking-[0.1em]"
                 style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
-                Agent Notes
+                {t('agentNotes')}
               </label>
               {notesSaved && (
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#4a7a4a', letterSpacing: '0.05em' }}>
-                  Saved
+                  {t('saved')}
                 </span>
               )}
             </div>
             <textarea
               className="w-full h-[120px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[16px] resize-none"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}
-              placeholder="Strong runway presence, versatile look..."
+              placeholder={t('agentNotesPlaceholder')}
               value={agentNotes}
               onChange={(e) => setAgentNotes(e.target.value)}
               onBlur={async () => {
@@ -295,7 +297,7 @@ export function Profile() {
                 marginBottom: '10px',
               }}
             >
-              Signed Status
+              {t('signedStatus.label')}
             </label>
             <select
               value={entity?.signed_status ?? 'pending'}
@@ -319,9 +321,9 @@ export function Profile() {
                 maxWidth: '200px',
               }}
             >
-              <option value="pending">PENDING</option>
-              <option value="signed">SIGNED</option>
-              <option value="passed">PASSED</option>
+              <option value="pending">{t('signedStatus.pending')}</option>
+              <option value="signed">{t('signedStatus.signed')}</option>
+              <option value="passed">{t('signedStatus.passed')}</option>
             </select>
           </div>
 
@@ -330,7 +332,7 @@ export function Profile() {
               className="text-[11px] uppercase tracking-[0.1em] mb-[24px]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              Run Evaluation
+              {t('runEvaluation.heading')}
             </div>
 
             <div className="mb-[32px]">
@@ -339,11 +341,11 @@ export function Profile() {
                   className="text-[11px] uppercase tracking-[0.1em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Select Alignment Contexts
+                  {t('runEvaluation.selectContexts')}
                 </label>
                 {selectedContexts.length > 0 && (
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#C8A96E', letterSpacing: '0.05em' }}>
-                    {selectedContexts.length} SELECTED
+                    {t('runEvaluation.selectedCount', { count: selectedContexts.length })}
                   </span>
                 )}
               </div>
@@ -389,7 +391,7 @@ export function Profile() {
                 className="mt-[12px]"
                 style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
               >
-                CastView analyses uploaded digitals against market context indicators. Results are alignment guidance — not objective judgments.
+                {t('runEvaluation.contextDisclaimer')}
               </p>
             </div>
 
@@ -401,11 +403,11 @@ export function Profile() {
                   className="text-[11px] uppercase tracking-[0.1em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Target Region
+                  {t('runEvaluation.targetRegion')}
                 </label>
                 {targetRegion && (
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#C8A96E', letterSpacing: '0.05em' }}>
-                    1 SELECTED
+                    {t('runEvaluation.oneSelected')}
                   </span>
                 )}
               </div>
@@ -434,8 +436,8 @@ export function Profile() {
                 className="mt-[12px]"
                 style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
               >
-                Optional — ground this read in the market you're pitching them to.
-                {homeLocation ? ` Home market: ${homeLocation}.` : ''} Leave unselected to evaluate without a specific target market.
+                {t('runEvaluation.targetRegionDisclaimer')}
+                {homeLocation ? ` ${t('runEvaluation.homeMarket', { market: homeLocation })}` : ''} {t('runEvaluation.targetRegionDisclaimerSuffix')}
               </p>
             </div>
 
@@ -449,7 +451,7 @@ export function Profile() {
                 cursor: 'pointer'
               }}
             >
-              Run Alignment Analysis
+              {t('runEvaluation.runButton')}
             </button>
           </div>
 

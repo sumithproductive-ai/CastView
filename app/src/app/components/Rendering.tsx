@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { getContextData } from '../constants/contextMockData';
@@ -24,8 +25,6 @@ import {
 } from '../utils/evaluationStorage';
 import { persistEvaluationToSupabase } from '../utils/evaluationPersist';
 import { requireAuthSession, SESSION_EXPIRED_MESSAGE } from '../../lib/apiAuth';
-
-const EVALUATION_UNAVAILABLE_MSG = 'Evaluation temporarily unavailable.';
 
 type ContextEvaluationResult = StoredContextEvaluation;
 
@@ -93,12 +92,13 @@ function showEvaluationReadyNotification(
   evaluationId: string,
   resultsPath: string,
   navigate: (path: string) => void,
+  t: (key: string, opts?: Record<string, unknown>) => string,
 ) {
   if (!('Notification' in window)) return;
 
   const notify = () => {
-    const notification = new Notification('Evaluation Results Ready', {
-      body: `${prospectName} · tap to view report`,
+    const notification = new Notification(t('notification.title'), {
+      body: t('notification.body', { name: prospectName }),
       icon: '/favicon.svg',
       tag: evaluationId,
     });
@@ -119,6 +119,7 @@ function showEvaluationReadyNotification(
 }
 
 export function Rendering() {
+  const { t } = useTranslation('rendering');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { getProspectById, updateProspect } = useProspects();
@@ -136,14 +137,14 @@ export function Rendering() {
 
   const steps = useMemo(
     () => [
-      { name: 'Analysing Digitals', duration: 2000 },
+      { name: t('steps.analysingDigitals'), duration: 2000 },
       ...selectedContexts.map((ctx) => ({
         name: ctx,
         duration: 2500,
       })),
-      { name: 'Alignment', duration: 2000 },
+      { name: t('steps.alignment'), duration: 2000 },
     ],
-    [selectedContexts],
+    [selectedContexts, t],
   );
 
   const prospectId = searchParams.get('prospectId') || '';
@@ -185,7 +186,7 @@ export function Rendering() {
     pendingTimersRef.current = [];
 
     if (totalSelectedContexts === 0) {
-      setEvaluationError('Select at least one context to evaluate.');
+      setEvaluationError(t('selectAtLeastOneContext'));
       setFlowFinished(true);
       setEvaluationReady(true);
       return;
@@ -266,7 +267,7 @@ export function Rendering() {
         });
 
         clearPendingTimers();
-        setEvaluatingContextLabel('Opening results...');
+        setEvaluatingContextLabel(t('statusLabel.openingResults'));
         setCurrentStep(steps.length);
         setProgress(100);
         setCompletedContextCount(totalSelectedContexts);
@@ -280,7 +281,7 @@ export function Rendering() {
         if (successfulContexts > 0) {
           if (unavailableContexts.length > 0) {
             setEvaluationError(
-              `${unavailableContexts.length} context(s) unavailable. Showing completed results.`,
+              t('contextsUnavailable', { count: unavailableContexts.length }),
             );
           }
 
@@ -289,6 +290,7 @@ export function Rendering() {
             evaluationId,
             resultsPath,
             navigate,
+            t,
           );
 
           logEvaluation('navigation_triggered', {
@@ -325,7 +327,7 @@ export function Rendering() {
           return;
         }
 
-        setEvaluationError(EVALUATION_UNAVAILABLE_MSG);
+        setEvaluationError(t('evaluationUnavailable'));
         if (import.meta.env.DEV) {
           saveEvaluationReport(
             buildMockEvaluationData(contextsToEvaluate, {
@@ -343,7 +345,7 @@ export function Rendering() {
           });
           navigate(resultsUrl, { replace: true });
         } else {
-          saveEvaluationError(EVALUATION_UNAVAILABLE_MSG);
+          saveEvaluationError(t('evaluationUnavailable'));
           logEvaluation('navigation_triggered', {
             evaluationId,
             resultsUrl,
@@ -387,7 +389,7 @@ export function Rendering() {
       setCurrentStep(0);
       setProgress(0);
       setCompletedContextCount(0);
-      setEvaluatingContextLabel('Analysing digitals...');
+      setEvaluatingContextLabel(t('statusLabel.analysingDigitals'));
 
       let prospect = getProspectById(prospectId);
       
@@ -481,7 +483,7 @@ export function Rendering() {
 
         setCurrentStep(stepIndex);
         setProgress(0);
-        setEvaluatingContextLabel(`Evaluating ${context}...`);
+        setEvaluatingContextLabel(t('statusLabel.evaluatingContext', { context }));
 
         logEvaluation('context_started', {
           evaluationId,
@@ -582,11 +584,9 @@ export function Rendering() {
                 parsed.reason === 'missing_env' ||
                 parsed.error === 'Server authentication is not configured'
               ) {
-                authMessage =
-                  'Evaluation service is temporarily unavailable. Please contact support.';
+                authMessage = t('serviceUnavailable');
               } else if (parsed.reason === 'profile_lookup_failed') {
-                authMessage =
-                  'Your account profile could not be loaded. Try logging out and back in.';
+                authMessage = t('profileLoadFailed');
               } else if (parsed.error) {
                 authMessage =
                   parsed.error === 'Invalid or expired session' ||
@@ -701,6 +701,7 @@ export function Rendering() {
     getModelById,
     updateModel,
     navigate,
+    t,
   ]);
 
   useEffect(() => {
@@ -776,7 +777,7 @@ export function Rendering() {
           padding: 0,
         }}
       >
-        ← BACK
+        {t('back')}
       </button>
       <div className="w-full max-w-[500px] mx-auto min-w-0">
         <h1 
@@ -889,13 +890,13 @@ export function Rendering() {
             className="text-[11px] uppercase tracking-[0.1em] mb-[8px]"
             style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
           >
-            Estimated Time
+            {t('estimatedTime')}
           </div>
-          <div 
-            className="text-[32px]" 
+          <div
+            className="text-[32px]"
             style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
           >
-            1-3 minutes
+            {t('estimatedTimeValue')}
           </div>
           {evaluatingContextLabel && (
             <div
@@ -918,7 +919,7 @@ export function Rendering() {
                 color: 'var(--cv-secondary-text)',
               }}
             >
-              {completedContextCount} of {selectedContexts.length} contexts complete
+              {t('contextsComplete', { completed: completedContextCount, total: selectedContexts.length })}
             </div>
           )}
         </div>
@@ -934,30 +935,30 @@ export function Rendering() {
               className="text-[10px] uppercase tracking-[0.12em]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              QUEUE POSITION
+              {t('queue.position')}
             </div>
-            <div 
+            <div
               className="text-[24px]"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
             >
-              {Math.min(completedContextCount + 1, selectedContexts.length)} of{' '}
+              {Math.min(completedContextCount + 1, selectedContexts.length)} {t('queue.of')}{' '}
               {selectedContexts.length || 1}
             </div>
           </div>
 
           {/* Estimated Time */}
           <div className="flex items-center justify-between mb-[16px]">
-            <div 
+            <div
               className="text-[10px] uppercase tracking-[0.12em]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              ESTIMATED TIME
+              {t('queue.estimatedTime')}
             </div>
-            <div 
+            <div
               className="text-[16px]"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}
             >
-              1-3 minutes
+              {t('estimatedTimeValue')}
             </div>
           </div>
 
@@ -987,13 +988,13 @@ export function Rendering() {
               color: 'var(--cv-secondary-text)'
             }}
           >
-            + QUEUE ANOTHER PROSPECT
+            {t('queueAnother')}
           </button>
-          <div 
+          <div
             className="text-[11px] italic mt-[8px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            You'll be notified when this evaluation completes.
+            {t('notifyOnComplete')}
           </div>
           {evaluationError && (
             <div
@@ -1015,7 +1016,7 @@ export function Rendering() {
               className="text-[13px]"
               style={{ fontFamily: 'var(--font-mono)' }}
             >
-              ✓ Evaluation Results Ready — {prospectName}
+              {t('resultsReadyToast', { name: prospectName })}
             </div>
             <button
               onClick={() => {
@@ -1027,7 +1028,7 @@ export function Rendering() {
               className="text-[11px] uppercase hover:underline"
               style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-background)' }}
             >
-              VIEW RESULTS
+              {t('viewResults')}
             </button>
           </div>
         )}
