@@ -1,0 +1,87 @@
+{
+  "steps": {
+    "basicInfo": "Información básica",
+    "digitals": "Digitales",
+    "review": "Revisión"
+  },
+  "fields": {
+    "fullName": "NOMBRE COMPLETO",
+    "fullNamePlaceholder": "p. ej. Sofia Andersen",
+    "location": "UBICACIÓN",
+    "locationPlaceholder": "p. ej. Dallas, TX",
+    "source": "ORIGEN",
+    "measurements": "MEDIDAS",
+    "height": "Altura",
+    "heightPlaceholder": "177cm",
+    "bust": "Busto",
+    "bustPlaceholder": "82cm",
+    "waist": "Cintura",
+    "waistPlaceholder": "61cm",
+    "hips": "Cadera",
+    "hipsPlaceholder": "89cm",
+    "shoe": "Calzado",
+    "shoePlaceholder": "39",
+    "hair": "Cabello",
+    "hairPlaceholder": "Castaño",
+    "agentNotes": "NOTAS DEL AGENTE",
+    "agentNotesPlaceholder": "Observaciones iniciales..."
+  },
+  "continueToDigitals": "CONTINUAR A DIGITALES →",
+  "digitals": {
+    "uploadHeading": "SUBIR DIGITALES",
+    "description": "Los digitales son fotos de agencia estándar con fondo neutro — de frente, de perfil, giro de 3/4 y cuerpo completo. Luz natural, sin estilismo, sin filtros.",
+    "requiredNote": "Las cuatro tomas son obligatorias. Luz natural clara, sin filtros.",
+    "angleFront": "FRENTE",
+    "angleProfile": "PERFIL",
+    "angleThreeQuarter": "3/4",
+    "angleFullBody": "CUERPO COMPLETO",
+    "uploaded": "Subido",
+    "clickOrDrag": "(haz clic o arrastra para subir)",
+    "fileRequirements": "JPG o PNG · Máx. 10MB por imagen · Mínimo 800px en el lado más corto",
+    "privacyNotice": "Fotos almacenadas de forma segura en EU-West (Irlanda) · Nunca usadas para entrenar modelos de IA · Eliminables en cualquier momento",
+    "back": "ATRÁS",
+    "errorAtLeastOne": "Sube al menos un digital para continuar.",
+    "continueToReview": "CONTINUAR A REVISIÓN →",
+    "completeLater": "Puedes completar los digitales faltantes más tarde."
+  },
+  "review": {
+    "notUploaded": "NO SUBIDO",
+    "backToEdit": "Volver a editar"
+  },
+  "prospect": {
+    "title": "Nuevo prospecto",
+    "reviewHeading": "REVISAR PROSPECTO",
+    "allUploadedMsg": "4 de 4 digitales subidos — listo para ejecutar la evaluación.",
+    "notAllUploadedMsg": "Sube los digitales para continuar — puedes añadir las tomas restantes desde el perfil del prospecto más tarde.",
+    "saveAsDraft": "GUARDAR COMO BORRADOR",
+    "saveAndRunEvaluation": "GUARDAR Y EJECUTAR EVALUACIÓN →"
+  },
+  "consent": {
+    "fallbackName": "el prospecto",
+    "headline": "Antes de continuar",
+    "body": "Antes de generar evaluaciones para {{name}}, queremos asegurarnos de que sepan que sus fotos se están utilizando.",
+    "bodyDetail": "CastView analiza los digitales subidos para generar evaluaciones estructuradas de alineación de contexto solo para uso interno de la agencia. Las evaluaciones no se comparten con clientes hasta que decidas compartirlas. Las fotos se pueden eliminar del perfil del prospecto en cualquier momento.",
+    "checkboxLabel": "He confirmado que {{name}} ha dado su consentimiento para que sus fotos se usen en la evaluación interna.",
+    "back": "ATRÁS",
+    "consentRecorded": "✓ CONSENTIMIENTO REGISTRADO",
+    "continueToDigitals": "CONTINUAR A DIGITALES",
+    "storedNotice": "Este registro de consentimiento se guarda con el perfil del prospecto.",
+    "storedLabel": "Guardado: {{name}} · {{date}} · Agente: {{agent}}",
+    "agentFallback": "Agente",
+    "agreementPrefix": "Al continuar aceptas el",
+    "agreementSuffix": " de CastView",
+    "dataProcessingAgreement": "Acuerdo de Procesamiento de Datos",
+    "and": "y la",
+    "privacyPolicy": "Política de Privacidad"
+  },
+  "model": {
+    "titleBasicInfo": "Nuevo modelo",
+    "titleDigitals": "Subir digitales",
+    "titleReview": "Revisar y añadir al elenco",
+    "reviewHeading": "REVISAR MODELO",
+    "allUploadedMsg": "4 de 4 digitales subidos — listo para añadir al elenco.",
+    "notAllUploadedMsg": "Sube los digitales para continuar — puedes añadir las tomas restantes desde el perfil del modelo más tarde.",
+    "addToRoster": "AÑADIR AL ELENCO",
+    "addingToRoster": "AÑADIENDO AL ELENCO..."
+  }
+}

@@ -1,18 +1,20 @@
 import React from 'react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams, Link } from 'react-router';
 import { savePendingProspectConsent } from '../../lib/prospectConsent';
 import { useAuth } from '../context/AuthContext';
 
 export function ProspectConsent() {
+  const { t } = useTranslation('newEntry');
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [isChecked, setIsChecked] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const prospectName = searchParams.get('name') 
-    ? decodeURIComponent(searchParams.get('name')!) 
-    : 'the prospect';
+  const prospectName = searchParams.get('name')
+    ? decodeURIComponent(searchParams.get('name')!)
+    : t('consent.fallbackName');
 
   const handleBack = () => {
     const currentParams = window.location.search;
@@ -52,7 +54,7 @@ export function ProspectConsent() {
         className="text-[36px] mb-[24px] text-center"
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
-        Before we continue
+        {t('consent.headline')}
       </h1>
 
       {/* Body Copy */}
@@ -66,9 +68,9 @@ export function ProspectConsent() {
           lineHeight: '1.8'
         }}
       >
-        Before we generate evaluations for {prospectName}, we want to make sure they know their photos are being used.
+        {t('consent.body', { name: prospectName })}
         <br /><br />
-        CastView analyses uploaded digitals to generate structured context alignment evaluations for internal agency use only. Evaluations are not shared with clients until you choose to share them. Photos can be deleted from the prospect's profile at any time.
+        {t('consent.bodyDetail')}
       </div>
 
       {/* Checkbox Row */}
@@ -94,7 +96,7 @@ export function ProspectConsent() {
             color: 'var(--cv-primary-text)'
           }}
         >
-          I've confirmed {prospectName} has consented to their photos being used for internal evaluation.
+          {t('consent.checkboxLabel', { name: prospectName })}
         </label>
       </div>
 
@@ -111,7 +113,7 @@ export function ProspectConsent() {
             cursor: 'pointer'
           }}
         >
-          BACK
+          {t('consent.back')}
         </button>
         <button
           onClick={handleContinue}
@@ -125,7 +127,7 @@ export function ProspectConsent() {
             opacity: isChecked ? 1 : 0.5
           }}
         >
-          {isConfirming ? '✓ CONSENT RECORDED' : 'CONTINUE TO DIGITALS'}
+          {isConfirming ? t('consent.consentRecorded') : t('consent.continueToDigitals')}
         </button>
       </div>
 
@@ -139,13 +141,13 @@ export function ProspectConsent() {
         }}
       >
         <div className="italic mb-[4px]">
-          This consent record is stored with the prospect's profile.
+          {t('consent.storedNotice')}
         </div>
         <div className="mb-[8px]">
-          Stored: {prospectName} · {new Date().toLocaleDateString()} · Agent: {user?.email ?? 'Agent'}
+          {t('consent.storedLabel', { name: prospectName, date: new Date().toLocaleDateString(), agent: user?.email ?? t('consent.agentFallback') })}
         </div>
         <div>
-          By continuing you agree to CastView's{' '}
+          {t('consent.agreementPrefix')}{' '}
           <Link
             to="/privacy#data-processing-agreement"
             target="_blank"
@@ -153,9 +155,9 @@ export function ProspectConsent() {
             className="underline"
             style={{ color: 'var(--cv-accent)' }}
           >
-            Data Processing Agreement
+            {t('consent.dataProcessingAgreement')}
           </Link>
-          {' '}and{' '}
+          {' '}{t('consent.and')}{' '}
           <Link
             to="/privacy"
             target="_blank"
@@ -163,9 +165,9 @@ export function ProspectConsent() {
             className="underline"
             style={{ color: 'var(--cv-accent)' }}
           >
-            Privacy Policy
+            {t('consent.privacyPolicy')}
           </Link>
-          .
+          {t('consent.agreementSuffix')}.
         </div>
       </div>
     </div>

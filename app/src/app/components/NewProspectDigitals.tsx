@@ -1,11 +1,13 @@
 import React from 'react';
 import { useRef, useState, type ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Upload, X, Check, Lock } from 'lucide-react';
 
 type DigitalImageKey = 'front' | 'profile' | 'three_quarter' | 'full_body';
 
 export function NewProspectDigitals() {
+  const { t } = useTranslation('newEntry');
   const navigate = useNavigate();
   const { prospectId: routeProspectId } = useParams();
   const [searchParams] = useSearchParams();
@@ -55,10 +57,10 @@ export function NewProspectDigitals() {
   };
 
   const uploadZones: { key: DigitalImageKey; label: string; uploaded: string | null }[] = [
-    { key: 'front', label: 'FRONT', uploaded: uploadedImages.front },
-    { key: 'profile', label: 'PROFILE', uploaded: uploadedImages.profile },
-    { key: 'three_quarter', label: '3/4', uploaded: uploadedImages.three_quarter },
-    { key: 'full_body', label: 'FULL BODY', uploaded: uploadedImages.full_body },
+    { key: 'front', label: t('digitals.angleFront'), uploaded: uploadedImages.front },
+    { key: 'profile', label: t('digitals.angleProfile'), uploaded: uploadedImages.profile },
+    { key: 'three_quarter', label: t('digitals.angleThreeQuarter'), uploaded: uploadedImages.three_quarter },
+    { key: 'full_body', label: t('digitals.angleFullBody'), uploaded: uploadedImages.full_body },
   ];
 
   const uploadedCount = uploadZones.filter(zone => zone.uploaded).length;
@@ -93,7 +95,7 @@ export function NewProspectDigitals() {
         className="text-[48px] mb-[32px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
-        New Prospect
+        {t('prospect.title')}
       </h1>
 
       {/* Step Indicator */}
@@ -113,7 +115,7 @@ export function NewProspectDigitals() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            Basic Info
+            {t('steps.basicInfo')}
           </span>
         </div>
 
@@ -136,7 +138,7 @@ export function NewProspectDigitals() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            Digitals
+            {t('steps.digitals')}
           </span>
         </div>
 
@@ -159,7 +161,7 @@ export function NewProspectDigitals() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            Review
+            {t('steps.review')}
           </span>
         </div>
       </div>
@@ -170,7 +172,7 @@ export function NewProspectDigitals() {
           className="text-[9px] uppercase tracking-[0.1em] mb-[8px]"
           style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
-          UPLOAD DIGITALS
+          {t('digitals.uploadHeading')}
         </div>
         <div 
           className="text-[11px] mb-[6px]"
@@ -180,13 +182,13 @@ export function NewProspectDigitals() {
             fontStyle: 'italic'
           }}
         >
-          Digitals are standard neutral-background agency photos — front-facing, profile, 3/4 turn, and full body. Natural light, no styling, no filters.
+          {t('digitals.description')}
         </div>
         <div 
           className="text-[12px]"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
-          All four shots are required. Clear, natural light, no filters.
+          {t('digitals.requiredNote')}
         </div>
       </div>
 
@@ -256,7 +258,7 @@ export function NewProspectDigitals() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {uploadFileNames[zone.key] ?? 'Uploaded'}
+                  {uploadFileNames[zone.key] ?? t('digitals.uploaded')}
                 </div>
                 <button
                   type="button"
@@ -310,7 +312,7 @@ export function NewProspectDigitals() {
                   className="text-[11px] text-center"
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
-                  (click or drag to upload)
+                  {t('digitals.clickOrDrag')}
                 </div>
               </div>
             )}
@@ -323,7 +325,7 @@ export function NewProspectDigitals() {
         className="text-[12px] mb-[8px]"
         style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
       >
-        JPG or PNG · Max 10MB per image · Minimum 800px on shortest side
+        {t('digitals.fileRequirements')}
       </div>
 
       {/* Privacy Notice */}
@@ -333,7 +335,7 @@ export function NewProspectDigitals() {
           className="text-[11px]"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
-          Photos stored securely in EU-West (Ireland) · Never used for model training · Deletable anytime
+          {t('digitals.privacyNotice')}
         </div>
       </div>
 
@@ -348,7 +350,7 @@ export function NewProspectDigitals() {
             cursor: 'pointer'
           }}
         >
-          BACK
+          {t('digitals.back')}
         </button>
         <div className="flex-1 flex flex-col items-end">
           {showDigitalsError && (
@@ -361,7 +363,7 @@ export function NewProspectDigitals() {
                 marginTop: '12px',
               }}
             >
-              Upload at least one digital to continue.
+              {t('digitals.errorAtLeastOne')}
             </p>
           )}
           <button
@@ -372,13 +374,13 @@ export function NewProspectDigitals() {
               color: 'var(--cv-background)'
             }}
           >
-            CONTINUE TO REVIEW →
+            {t('digitals.continueToReview')}
           </button>
           <div 
             className="text-[12px] mt-[8px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            You can complete missing digitals later.
+            {t('digitals.completeLater')}
           </div>
         </div>
       </div>

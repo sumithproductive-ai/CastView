@@ -1,11 +1,13 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { LocationMarketField } from './LocationMarketField';
 
 type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL';
 
 export function NewModelBasicInfo() {
+  const { t } = useTranslation('newEntry');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [name, setName] = useState('');
@@ -66,7 +68,7 @@ export function NewModelBasicInfo() {
           color: 'var(--cv-primary-text)',
         }}
       >
-        New Model
+        {t('model.titleBasicInfo')}
       </h1>
 
       <div className="flex items-center gap-[16px] mb-[48px]">
@@ -85,7 +87,7 @@ export function NewModelBasicInfo() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            Basic Info
+            {t('steps.basicInfo')}
           </span>
         </div>
 
@@ -106,7 +108,7 @@ export function NewModelBasicInfo() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            Digitals
+            {t('steps.digitals')}
           </span>
         </div>
 
@@ -127,7 +129,7 @@ export function NewModelBasicInfo() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            Review
+            {t('steps.review')}
           </span>
         </div>
       </div>
@@ -142,13 +144,13 @@ export function NewModelBasicInfo() {
               className="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              FULL NAME
+              {t('fields.fullName')}
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Sofia Andersen"
+              placeholder={t('fields.fullNamePlaceholder')}
               className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
               style={{
                 fontFamily: 'var(--font-mono)',
@@ -160,10 +162,10 @@ export function NewModelBasicInfo() {
 
           <div>
             <LocationMarketField
-              label="LOCATION"
+              label={t('fields.location')}
               value={location}
               onChange={setLocation}
-              placeholder="e.g. Dallas, TX"
+              placeholder={t('fields.locationPlaceholder')}
               labelClassName="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
             />
           </div>
@@ -173,7 +175,7 @@ export function NewModelBasicInfo() {
               className="block mb-[8px] text-[10px] uppercase tracking-[0.12em]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              SOURCE
+              {t('fields.source')}
             </label>
             <div className="flex gap-[8px]">
               {(
@@ -201,7 +203,7 @@ export function NewModelBasicInfo() {
               className="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              MEASUREMENTS
+              {t('fields.measurements')}
             </label>
             <div className="grid grid-cols-3 gap-[12px]">
               <div>
@@ -209,7 +211,7 @@ export function NewModelBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Height
+                  {t('fields.height')}
                 </label>
                 <input
                   type="text"
@@ -217,7 +219,7 @@ export function NewModelBasicInfo() {
                   onChange={(e) =>
                     setMeasurements((prev) => ({ ...prev, height: e.target.value }))
                   }
-                  placeholder="177cm"
+                  placeholder={t('fields.heightPlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{
                     fontFamily: 'var(--font-mono)',
@@ -232,7 +234,7 @@ export function NewModelBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Bust
+                  {t('fields.bust')}
                 </label>
                 <input
                   type="text"
@@ -240,7 +242,7 @@ export function NewModelBasicInfo() {
                   onChange={(e) =>
                     setMeasurements((prev) => ({ ...prev, bust: e.target.value }))
                   }
-                  placeholder="82cm"
+                  placeholder={t('fields.bustPlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{
                     fontFamily: 'var(--font-mono)',
@@ -255,7 +257,7 @@ export function NewModelBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Waist
+                  {t('fields.waist')}
                 </label>
                 <input
                   type="text"
@@ -263,7 +265,7 @@ export function NewModelBasicInfo() {
                   onChange={(e) =>
                     setMeasurements((prev) => ({ ...prev, waist: e.target.value }))
                   }
-                  placeholder="61cm"
+                  placeholder={t('fields.waistPlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{
                     fontFamily: 'var(--font-mono)',
@@ -278,7 +280,7 @@ export function NewModelBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Hips
+                  {t('fields.hips')}
                 </label>
                 <input
                   type="text"
@@ -286,7 +288,7 @@ export function NewModelBasicInfo() {
                   onChange={(e) =>
                     setMeasurements((prev) => ({ ...prev, hips: e.target.value }))
                   }
-                  placeholder="89cm"
+                  placeholder={t('fields.hipsPlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{
                     fontFamily: 'var(--font-mono)',
@@ -301,7 +303,7 @@ export function NewModelBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Shoe
+                  {t('fields.shoe')}
                 </label>
                 <input
                   type="text"
@@ -309,7 +311,7 @@ export function NewModelBasicInfo() {
                   onChange={(e) =>
                     setMeasurements((prev) => ({ ...prev, shoe: e.target.value }))
                   }
-                  placeholder="39"
+                  placeholder={t('fields.shoePlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{
                     fontFamily: 'var(--font-mono)',
@@ -324,7 +326,7 @@ export function NewModelBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Hair
+                  {t('fields.hair')}
                 </label>
                 <input
                   type="text"
@@ -332,7 +334,7 @@ export function NewModelBasicInfo() {
                   onChange={(e) =>
                     setMeasurements((prev) => ({ ...prev, hair: e.target.value }))
                   }
-                  placeholder="Brown"
+                  placeholder={t('fields.hairPlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{
                     fontFamily: 'var(--font-mono)',
@@ -349,12 +351,12 @@ export function NewModelBasicInfo() {
               className="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              AGENT NOTES
+              {t('fields.agentNotes')}
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Initial observations..."
+              placeholder={t('fields.agentNotesPlaceholder')}
               className="w-full h-[80px] px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none"
               style={{
                 fontFamily: 'var(--font-mono)',
@@ -372,7 +374,7 @@ export function NewModelBasicInfo() {
               color: 'var(--cv-background)',
             }}
           >
-            CONTINUE TO DIGITALS →
+            {t('continueToDigitals')}
           </button>
         </div>
       </div>

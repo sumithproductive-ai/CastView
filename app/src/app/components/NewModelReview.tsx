@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { useRoster, type RosterModel } from '../context/RosterContext';
@@ -10,6 +11,7 @@ import {
 } from '../utils/newModelDigitalsStorage';
 
 export function NewModelReview() {
+  const { t } = useTranslation('newEntry');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addModel } = useRoster();
@@ -35,18 +37,18 @@ export function NewModelReview() {
     name: modelName,
     markets: marketsFromParams,
     digitals: [
-      { label: 'FRONT', url: front || null },
-      { label: 'PROFILE', url: profile || null },
-      { label: '3/4', url: threeQuarter || null },
-      { label: 'FULL BODY', url: fullBody || null },
+      { label: t('digitals.angleFront'), url: front || null },
+      { label: t('digitals.angleProfile'), url: profile || null },
+      { label: t('digitals.angleThreeQuarter'), url: threeQuarter || null },
+      { label: t('digitals.angleFullBody'), url: fullBody || null },
     ],
-    measurements: {
-      Height: height,
-      Bust: bust,
-      Waist: waist,
-      Hips: hips,
-      Shoe: shoe,
-    },
+    measurements: [
+      { label: t('fields.height'), value: height },
+      { label: t('fields.bust'), value: bust },
+      { label: t('fields.waist'), value: waist },
+      { label: t('fields.hips'), value: hips },
+      { label: t('fields.shoe'), value: shoe },
+    ],
     notes: notesFromParams,
     allDigitalsUploaded: Boolean(front && profile && threeQuarter && fullBody),
   };
@@ -112,7 +114,7 @@ export function NewModelReview() {
           color: 'var(--cv-primary-text)',
         }}
       >
-        Review & Add to Roster
+        {t('model.titleReview')}
       </h1>
 
       <div className="flex items-center gap-[16px] mb-[48px]">
@@ -130,7 +132,7 @@ export function NewModelReview() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            Basic Info
+            {t('steps.basicInfo')}
           </span>
         </div>
 
@@ -150,7 +152,7 @@ export function NewModelReview() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            Digitals
+            {t('steps.digitals')}
           </span>
         </div>
 
@@ -171,7 +173,7 @@ export function NewModelReview() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            Review
+            {t('steps.review')}
           </span>
         </div>
       </div>
@@ -181,7 +183,7 @@ export function NewModelReview() {
           className="text-[9px] uppercase tracking-[0.1em]"
           style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
-          REVIEW MODEL
+          {t('model.reviewHeading')}
         </div>
       </div>
 
@@ -217,8 +219,8 @@ export function NewModelReview() {
           }}
         >
           {modelData.allDigitalsUploaded
-            ? '4 of 4 digitals uploaded — ready to add to roster.'
-            : 'Upload digitals to continue — you can add remaining shots from the model profile later.'}
+            ? t('model.allUploadedMsg')
+            : t('model.notAllUploadedMsg')}
         </div>
 
         <div className="grid grid-cols-4 gap-[12px] mb-[24px]">
@@ -247,7 +249,7 @@ export function NewModelReview() {
                   >
                     {digital.label}
                     <br />
-                    NOT UPLOADED
+                    {t('review.notUploaded')}
                   </div>
                 </div>
               )}
@@ -264,13 +266,13 @@ export function NewModelReview() {
         <div className="h-[1px] bg-[var(--cv-subtle-border)] mb-[24px]" />
 
         <div className="grid grid-cols-2 gap-x-[24px] gap-y-[12px] mb-[24px]">
-          {Object.entries(modelData.measurements).map(([key, value]) => (
-            <div key={key} className="flex justify-between">
+          {modelData.measurements.map(({ label, value }) => (
+            <div key={label} className="flex justify-between">
               <span
                 className="text-[11px] uppercase tracking-[0.05em]"
                 style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
-                {key}
+                {label}
               </span>
               <span
                 className="text-[13px]"
@@ -302,7 +304,7 @@ export function NewModelReview() {
               color: 'var(--cv-background)',
             }}
           >
-            {saving ? 'ADDING TO ROSTER...' : 'ADD TO ROSTER'}
+            {saving ? t('model.addingToRoster') : t('model.addToRoster')}
           </button>
           <button
             type="button"
@@ -312,7 +314,7 @@ export function NewModelReview() {
             className="w-full text-center text-[12px] transition-opacity hover:opacity-70"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            Back to edit
+            {t('review.backToEdit')}
           </button>
         </div>
       </div>

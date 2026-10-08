@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { useTutorial } from '../context/TutorialContext';
@@ -8,6 +9,7 @@ import { LocationMarketField } from './LocationMarketField';
 type Source = 'SCOUT' | 'INSTAGRAM' | 'EMAIL' | 'OPEN CALL' | 'REFERRAL';
 
 export function NewProspectBasicInfo() {
+  const { t } = useTranslation('newEntry');
   const navigate = useNavigate();
   const { isTutorialOpen } = useTutorial();
   const [searchParams] = useSearchParams();
@@ -75,7 +77,7 @@ export function NewProspectBasicInfo() {
         className="text-[48px] mb-[32px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
-        New Prospect
+        {t('prospect.title')}
       </h1>
 
       {/* Step Indicator */}
@@ -96,7 +98,7 @@ export function NewProspectBasicInfo() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            Basic Info
+            {t('steps.basicInfo')}
           </span>
         </div>
 
@@ -105,21 +107,21 @@ export function NewProspectBasicInfo() {
 
         {/* Step 2 - Inactive */}
         <div className="flex items-center gap-[12px]">
-          <div 
+          <div
             className="w-[32px] h-[32px] rounded-full border flex items-center justify-center text-[13px]"
-            style={{ 
-              fontFamily: 'var(--font-mono)', 
+            style={{
+              fontFamily: 'var(--font-mono)',
               borderColor: 'var(--cv-subtle-border)',
               color: 'var(--cv-secondary-text)'
             }}
           >
             2
           </div>
-          <span 
+          <span
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            Digitals
+            {t('steps.digitals')}
           </span>
         </div>
 
@@ -128,21 +130,21 @@ export function NewProspectBasicInfo() {
 
         {/* Step 3 - Inactive */}
         <div className="flex items-center gap-[12px]">
-          <div 
+          <div
             className="w-[32px] h-[32px] rounded-full border flex items-center justify-center text-[13px]"
-            style={{ 
-              fontFamily: 'var(--font-mono)', 
+            style={{
+              fontFamily: 'var(--font-mono)',
               borderColor: 'var(--cv-subtle-border)',
               color: 'var(--cv-secondary-text)'
             }}
           >
             3
           </div>
-          <span 
+          <span
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            Review
+            {t('steps.review')}
           </span>
         </div>
       </div>
@@ -156,13 +158,13 @@ export function NewProspectBasicInfo() {
               className="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              FULL NAME
+              {t('fields.fullName')}
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Sofia Andersen"
+              placeholder={t('fields.fullNamePlaceholder')}
               className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
               style={{ 
                 fontFamily: 'var(--font-mono)', 
@@ -175,10 +177,10 @@ export function NewProspectBasicInfo() {
           {/* Location Field */}
           <div>
             <LocationMarketField
-              label="LOCATION"
+              label={t('fields.location')}
               value={location}
               onChange={setLocation}
-              placeholder="e.g. Dallas, TX"
+              placeholder={t('fields.locationPlaceholder')}
               labelClassName="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
             />
           </div>
@@ -189,7 +191,7 @@ export function NewProspectBasicInfo() {
               className="block mb-[8px] text-[10px] uppercase tracking-[0.12em]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              SOURCE
+              {t('fields.source')}
             </label>
             <div className="flex gap-[8px]">
               {(['SCOUT', 'INSTAGRAM', 'EMAIL', 'OPEN CALL', 'REFERRAL'] as Source[]).map((src) => (
@@ -216,7 +218,7 @@ export function NewProspectBasicInfo() {
               className="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              MEASUREMENTS
+              {t('fields.measurements')}
             </label>
             <div className="grid grid-cols-3 gap-[12px]">
               {/* Height */}
@@ -225,13 +227,13 @@ export function NewProspectBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Height
+                  {t('fields.height')}
                 </label>
                 <input
                   type="text"
                   value={measurements.height}
                   onChange={(e) => setMeasurements(prev => ({ ...prev, height: e.target.value }))}
-                  placeholder="177cm"
+                  placeholder={t('fields.heightPlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
@@ -247,13 +249,13 @@ export function NewProspectBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Bust
+                  {t('fields.bust')}
                 </label>
                 <input
                   type="text"
                   value={measurements.bust}
                   onChange={(e) => setMeasurements(prev => ({ ...prev, bust: e.target.value }))}
-                  placeholder="82cm"
+                  placeholder={t('fields.bustPlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
@@ -269,13 +271,13 @@ export function NewProspectBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Waist
+                  {t('fields.waist')}
                 </label>
                 <input
                   type="text"
                   value={measurements.waist}
                   onChange={(e) => setMeasurements(prev => ({ ...prev, waist: e.target.value }))}
-                  placeholder="61cm"
+                  placeholder={t('fields.waistPlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
@@ -291,13 +293,13 @@ export function NewProspectBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Hips
+                  {t('fields.hips')}
                 </label>
                 <input
                   type="text"
                   value={measurements.hips}
                   onChange={(e) => setMeasurements(prev => ({ ...prev, hips: e.target.value }))}
-                  placeholder="89cm"
+                  placeholder={t('fields.hipsPlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
@@ -313,13 +315,13 @@ export function NewProspectBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Shoe
+                  {t('fields.shoe')}
                 </label>
                 <input
                   type="text"
                   value={measurements.shoe}
                   onChange={(e) => setMeasurements(prev => ({ ...prev, shoe: e.target.value }))}
-                  placeholder="39"
+                  placeholder={t('fields.shoePlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
@@ -335,13 +337,13 @@ export function NewProspectBasicInfo() {
                   className="block mb-[4px] text-[9px] uppercase tracking-[0.05em]"
                   style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
                 >
-                  Hair
+                  {t('fields.hair')}
                 </label>
                 <input
                   type="text"
                   value={measurements.hair}
                   onChange={(e) => setMeasurements(prev => ({ ...prev, hair: e.target.value }))}
-                  placeholder="Brown"
+                  placeholder={t('fields.hairPlaceholder')}
                   className="w-full px-[10px] py-[8px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                   style={{ 
                     fontFamily: 'var(--font-mono)', 
@@ -359,12 +361,12 @@ export function NewProspectBasicInfo() {
               className="block mb-[8px] text-[9px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
             >
-              AGENT NOTES
+              {t('fields.agentNotes')}
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Initial observations..."
+              placeholder={t('fields.agentNotesPlaceholder')}
               className="w-full h-[80px] px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none"
               style={{ 
                 fontFamily: 'var(--font-mono)', 
@@ -383,7 +385,7 @@ export function NewProspectBasicInfo() {
               color: 'var(--cv-background)'
             }}
           >
-            CONTINUE TO DIGITALS →
+            {t('continueToDigitals')}
           </button>
         </div>
       </div>
