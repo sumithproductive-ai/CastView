@@ -56,6 +56,24 @@
     "saveAsDraft": "GUARDAR COMO BORRADOR",
     "saveAndRunEvaluation": "GUARDAR Y EJECUTAR EVALUACIÓN →"
   },
+  "consent": {
+    "fallbackName": "el prospecto",
+    "headline": "Antes de continuar",
+    "body": "Antes de generar evaluaciones para {{name}}, queremos asegurarnos de que sepan que sus fotos se están utilizando.",
+    "bodyDetail": "CastView analiza los digitales subidos para generar evaluaciones estructuradas de alineación de contexto solo para uso interno de la agencia. Las evaluaciones no se comparten con clientes hasta que decidas compartirlas. Las fotos se pueden eliminar del perfil del prospecto en cualquier momento.",
+    "checkboxLabel": "He confirmado que {{name}} ha dado su consentimiento para que sus fotos se usen en la evaluación interna.",
+    "back": "ATRÁS",
+    "consentRecorded": "✓ CONSENTIMIENTO REGISTRADO",
+    "continueToDigitals": "CONTINUAR A DIGITALES",
+    "storedNotice": "Este registro de consentimiento se guarda con el perfil del prospecto.",
+    "storedLabel": "Guardado: {{name}} · {{date}} · Agente: {{agent}}",
+    "agentFallback": "Agente",
+    "agreementPrefix": "Al continuar aceptas el",
+    "agreementSuffix": " de CastView",
+    "dataProcessingAgreement": "Acuerdo de Procesamiento de Datos",
+    "and": "y la",
+    "privacyPolicy": "Política de Privacidad"
+  },
   "model": {
     "titleBasicInfo": "Nuevo modelo",
     "titleDigitals": "Subir digitales",

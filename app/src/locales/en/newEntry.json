@@ -56,6 +56,24 @@
     "saveAsDraft": "SAVE AS DRAFT",
     "saveAndRunEvaluation": "SAVE & RUN EVALUATION →"
   },
+  "consent": {
+    "fallbackName": "the prospect",
+    "headline": "Before we continue",
+    "body": "Before we generate evaluations for {{name}}, we want to make sure they know their photos are being used.",
+    "bodyDetail": "CastView analyses uploaded digitals to generate structured context alignment evaluations for internal agency use only. Evaluations are not shared with clients until you choose to share them. Photos can be deleted from the prospect's profile at any time.",
+    "checkboxLabel": "I've confirmed {{name}} has consented to their photos being used for internal evaluation.",
+    "back": "BACK",
+    "consentRecorded": "✓ CONSENT RECORDED",
+    "continueToDigitals": "CONTINUE TO DIGITALS",
+    "storedNotice": "This consent record is stored with the prospect's profile.",
+    "storedLabel": "Stored: {{name}} · {{date}} · Agent: {{agent}}",
+    "agentFallback": "Agent",
+    "agreementPrefix": "By continuing you agree to CastView's",
+    "agreementSuffix": "",
+    "dataProcessingAgreement": "Data Processing Agreement",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy"
+  },
   "model": {
     "titleBasicInfo": "New Model",
     "titleDigitals": "Upload Digitals",
