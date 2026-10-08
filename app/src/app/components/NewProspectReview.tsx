@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
 import { DigitalImage } from './DigitalImage';
 
 export function NewProspectReview() {
+  const { t } = useTranslation('newEntry');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addProspect } = useProspects();
@@ -27,17 +29,17 @@ export function NewProspectReview() {
     name: prospectName,
     markets: marketsFromParams.length > 0 ? marketsFromParams : ['NEW YORK', 'LONDON'],
     digitals: [
-      { label: 'FRONT', url: front || null },
-      { label: 'PROFILE', url: profile || null },
-      { label: '3/4', url: threeQuarter || null },
-      { label: 'FULL BODY', url: fullBody || null },
+      { label: t('digitals.angleFront'), url: front || null },
+      { label: t('digitals.angleProfile'), url: profile || null },
+      { label: t('digitals.angleThreeQuarter'), url: threeQuarter || null },
+      { label: t('digitals.angleFullBody'), url: fullBody || null },
     ],
-    measurements: {
-      Height: height,
-      Bust: bust,
-      Waist: waist,
-      Hips: hips,
-    },
+    measurements: [
+      { label: t('fields.height'), value: height },
+      { label: t('fields.bust'), value: bust },
+      { label: t('fields.waist'), value: waist },
+      { label: t('fields.hips'), value: hips },
+    ],
     notes: notesFromParams,
     allDigitalsUploaded: Boolean(front && profile && threeQuarter && fullBody),
   };
@@ -116,7 +118,7 @@ export function NewProspectReview() {
         className="text-[48px] mb-[32px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
-        New Prospect
+        {t('prospect.title')}
       </h1>
 
       {/* Step Indicator */}
@@ -136,7 +138,7 @@ export function NewProspectReview() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            Basic Info
+            {t('steps.basicInfo')}
           </span>
         </div>
 
@@ -158,7 +160,7 @@ export function NewProspectReview() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            Digitals
+            {t('steps.digitals')}
           </span>
         </div>
 
@@ -181,7 +183,7 @@ export function NewProspectReview() {
             className="text-[13px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
           >
-            Review
+            {t('steps.review')}
           </span>
         </div>
       </div>
@@ -192,7 +194,7 @@ export function NewProspectReview() {
           className="text-[9px] uppercase tracking-[0.1em]"
           style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
         >
-          REVIEW PROSPECT
+          {t('prospect.reviewHeading')}
         </div>
       </div>
 
@@ -225,8 +227,8 @@ export function NewProspectReview() {
           style={{ fontFamily: 'var(--font-mono)', color: prospectData.allDigitalsUploaded ? '#5d7d5d' : '#c4a05d' }}
         >
           {prospectData.allDigitalsUploaded
-            ? '4 of 4 digitals uploaded — ready to run evaluation.'
-            : 'Upload digitals to continue — you can add remaining shots from the prospect profile later.'}
+            ? t('prospect.allUploadedMsg')
+            : t('prospect.notAllUploadedMsg')}
         </div>
 
         {/* Digital Thumbnails */}
@@ -247,7 +249,7 @@ export function NewProspectReview() {
                     className="text-[7px] uppercase tracking-[0.05em] text-center px-[4px]"
                     style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)', lineHeight: 1.3 }}
                   >
-                    {digital.label}<br />NOT UPLOADED
+                    {digital.label}<br />{t('review.notUploaded')}
                   </div>
                 </div>
               )}
@@ -266,15 +268,15 @@ export function NewProspectReview() {
 
         {/* Measurements */}
         <div className="grid grid-cols-2 gap-x-[24px] gap-y-[12px] mb-[24px]">
-          {Object.entries(prospectData.measurements).map(([key, value]) => (
-            <div key={key} className="flex justify-between">
-              <span 
+          {prospectData.measurements.map(({ label, value }) => (
+            <div key={label} className="flex justify-between">
+              <span
                 className="text-[11px] uppercase tracking-[0.05em]"
                 style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
-                {key}
+                {label}
               </span>
-              <span 
+              <span
                 className="text-[13px]"
                 style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)' }}
               >
@@ -304,7 +306,7 @@ export function NewProspectReview() {
               color: 'var(--cv-primary-text)'
             }}
           >
-            SAVE AS DRAFT
+            {t('prospect.saveAsDraft')}
           </button>
           <button
             onClick={handleSaveAndRender}
@@ -314,14 +316,14 @@ export function NewProspectReview() {
               color: 'var(--cv-background)'
             }}
           >
-            SAVE & RUN EVALUATION →
+            {t('prospect.saveAndRunEvaluation')}
           </button>
           <button
             onClick={() => navigate(`/prospects/new/digitals${window.location.search}`)}
             className="w-full text-center text-[12px] transition-opacity hover:opacity-70"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            Back to edit
+            {t('review.backToEdit')}
           </button>
         </div>
       </div>

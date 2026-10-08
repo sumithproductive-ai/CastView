@@ -1,0 +1,69 @@
+{
+  "steps": {
+    "basicInfo": "Basic Info",
+    "digitals": "Digitals",
+    "review": "Review"
+  },
+  "fields": {
+    "fullName": "FULL NAME",
+    "fullNamePlaceholder": "e.g. Sofia Andersen",
+    "location": "LOCATION",
+    "locationPlaceholder": "e.g. Dallas, TX",
+    "source": "SOURCE",
+    "measurements": "MEASUREMENTS",
+    "height": "Height",
+    "heightPlaceholder": "177cm",
+    "bust": "Bust",
+    "bustPlaceholder": "82cm",
+    "waist": "Waist",
+    "waistPlaceholder": "61cm",
+    "hips": "Hips",
+    "hipsPlaceholder": "89cm",
+    "shoe": "Shoe",
+    "shoePlaceholder": "39",
+    "hair": "Hair",
+    "hairPlaceholder": "Brown",
+    "agentNotes": "AGENT NOTES",
+    "agentNotesPlaceholder": "Initial observations..."
+  },
+  "continueToDigitals": "CONTINUE TO DIGITALS →",
+  "digitals": {
+    "uploadHeading": "UPLOAD DIGITALS",
+    "description": "Digitals are standard neutral-background agency photos — front-facing, profile, 3/4 turn, and full body. Natural light, no styling, no filters.",
+    "requiredNote": "All four shots are required. Clear, natural light, no filters.",
+    "angleFront": "FRONT",
+    "angleProfile": "PROFILE",
+    "angleThreeQuarter": "3/4",
+    "angleFullBody": "FULL BODY",
+    "uploaded": "Uploaded",
+    "clickOrDrag": "(click or drag to upload)",
+    "fileRequirements": "JPG or PNG · Max 10MB per image · Minimum 800px on shortest side",
+    "privacyNotice": "Photos stored securely in EU-West (Ireland) · Never used for model training · Deletable anytime",
+    "back": "BACK",
+    "errorAtLeastOne": "Upload at least one digital to continue.",
+    "continueToReview": "CONTINUE TO REVIEW →",
+    "completeLater": "You can complete missing digitals later."
+  },
+  "review": {
+    "notUploaded": "NOT UPLOADED",
+    "backToEdit": "Back to edit"
+  },
+  "prospect": {
+    "title": "New Prospect",
+    "reviewHeading": "REVIEW PROSPECT",
+    "allUploadedMsg": "4 of 4 digitals uploaded — ready to run evaluation.",
+    "notAllUploadedMsg": "Upload digitals to continue — you can add remaining shots from the prospect profile later.",
+    "saveAsDraft": "SAVE AS DRAFT",
+    "saveAndRunEvaluation": "SAVE & RUN EVALUATION →"
+  },
+  "model": {
+    "titleBasicInfo": "New Model",
+    "titleDigitals": "Upload Digitals",
+    "titleReview": "Review & Add to Roster",
+    "reviewHeading": "REVIEW MODEL",
+    "allUploadedMsg": "4 of 4 digitals uploaded — ready to add to roster.",
+    "notAllUploadedMsg": "Upload digitals to continue — you can add remaining shots from the model profile later.",
+    "addToRoster": "ADD TO ROSTER",
+    "addingToRoster": "ADDING TO ROSTER..."
+  }
+}
