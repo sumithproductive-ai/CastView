@@ -1,0 +1,56 @@
+{
+  "loadingProfile": "Loading profile...",
+  "notFound": "Profile not found. It may have been deleted or the link is invalid.",
+  "backToRoster": "← BACK TO ROSTER",
+  "backToProspects": "← BACK TO PROSPECTS",
+  "breadcrumbRoster": "Roster",
+  "breadcrumbProspects": "Prospects",
+  "loadingDigitals": "Loading digitals...",
+  "digitals": {
+    "angleFront": "FRONT",
+    "angleProfile": "PROFILE",
+    "angleThreeQuarter": "3/4",
+    "angleFullBody": "FULL BODY",
+    "noneUploaded": "No digitals uploaded yet.",
+    "privacyNotice": "Digitals are stored securely and used only for evaluation."
+  },
+  "measurements": {
+    "heading": "Measurements",
+    "height": "Height",
+    "chest": "Chest",
+    "waist": "Waist"
+  },
+  "agentNotes": "Agent Notes",
+  "saved": "Saved",
+  "agentNotesPlaceholder": "Strong runway presence, versatile look...",
+  "signedStatus": {
+    "label": "Signed Status",
+    "pending": "PENDING",
+    "signed": "SIGNED",
+    "passed": "PASSED"
+  },
+  "runEvaluation": {
+    "heading": "Run Evaluation",
+    "selectContexts": "Select Alignment Contexts",
+    "selectedCount_one": "{{count}} SELECTED",
+    "selectedCount_other": "{{count}} SELECTED",
+    "contextDisclaimer": "CastView analyses uploaded digitals against market context indicators. Results are alignment guidance — not objective judgments.",
+    "targetRegion": "Target Region",
+    "oneSelected": "1 SELECTED",
+    "targetRegionDisclaimer": "Optional — ground this read in the market you're pitching them to.",
+    "homeMarket": "Home market: {{market}}.",
+    "targetRegionDisclaimerSuffix": "Leave unselected to evaluate without a specific target market.",
+    "runButton": "Run Alignment Analysis"
+  },
+  "contextDescriptions": {
+    "Fragrance": "Evaluate alignment with luxury fragrance campaign criteria",
+    "Editorial": "Evaluate alignment with fashion editorial and magazine contexts",
+    "Runway": "Evaluate alignment with catwalk and show presentation criteria",
+    "Campaign": "Evaluate alignment with commercial brand advertising criteria",
+    "Beauty": "Evaluate alignment with skincare and cosmetics campaign criteria",
+    "Sportswear": "Evaluate alignment with athletic and activewear criteria",
+    "Couture": "Evaluate alignment with haute couture and high fashion criteria",
+    "Swimwear": "Evaluate alignment with swimwear and resort campaign criteria",
+    "Street": "Evaluate alignment with contemporary street style criteria"
+  }
+}

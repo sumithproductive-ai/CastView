@@ -1,0 +1,56 @@
+{
+  "loadingProfile": "Cargando perfil...",
+  "notFound": "Perfil no encontrado. Puede haber sido eliminado o el enlace no es válido.",
+  "backToRoster": "← VOLVER AL ELENCO",
+  "backToProspects": "← VOLVER A PROSPECTOS",
+  "breadcrumbRoster": "Elenco",
+  "breadcrumbProspects": "Prospectos",
+  "loadingDigitals": "Cargando digitales...",
+  "digitals": {
+    "angleFront": "FRENTE",
+    "angleProfile": "PERFIL",
+    "angleThreeQuarter": "3/4",
+    "angleFullBody": "CUERPO COMPLETO",
+    "noneUploaded": "Aún no hay digitales subidos.",
+    "privacyNotice": "Los digitales se almacenan de forma segura y solo se usan para evaluación."
+  },
+  "measurements": {
+    "heading": "Medidas",
+    "height": "Altura",
+    "chest": "Pecho",
+    "waist": "Cintura"
+  },
+  "agentNotes": "Notas del agente",
+  "saved": "Guardado",
+  "agentNotesPlaceholder": "Presencia fuerte en pasarela, look versátil...",
+  "signedStatus": {
+    "label": "Estado de firma",
+    "pending": "PENDIENTE",
+    "signed": "FIRMADO",
+    "passed": "DESCARTADO"
+  },
+  "runEvaluation": {
+    "heading": "Ejecutar evaluación",
+    "selectContexts": "Seleccionar contextos de alineación",
+    "selectedCount_one": "{{count}} SELECCIONADO",
+    "selectedCount_other": "{{count}} SELECCIONADOS",
+    "contextDisclaimer": "CastView analiza los digitales subidos frente a indicadores de contexto de mercado. Los resultados son orientación de alineación, no juicios objetivos.",
+    "targetRegion": "Región objetivo",
+    "oneSelected": "1 SELECCIONADO",
+    "targetRegionDisclaimer": "Opcional — contextualiza esta lectura con el mercado al que lo estás presentando.",
+    "homeMarket": "Mercado de origen: {{market}}.",
+    "targetRegionDisclaimerSuffix": "Déjalo sin seleccionar para evaluar sin un mercado objetivo específico.",
+    "runButton": "Ejecutar análisis de alineación"
+  },
+  "contextDescriptions": {
+    "Fragrance": "Evalúa la alineación con criterios de campañas de fragancias de lujo",
+    "Editorial": "Evalúa la alineación con contextos editoriales de moda y revistas",
+    "Runway": "Evalúa la alineación con criterios de pasarela y presentación de desfiles",
+    "Campaign": "Evalúa la alineación con criterios de publicidad comercial de marca",
+    "Beauty": "Evalúa la alineación con criterios de campañas de belleza y cosmética",
+    "Sportswear": "Evalúa la alineación con criterios de ropa deportiva y activewear",
+    "Couture": "Evalúa la alineación con criterios de alta costura y alta moda",
+    "Swimwear": "Evalúa la alineación con criterios de trajes de baño y campañas de resort",
+    "Street": "Evalúa la alineación con criterios de street style contemporáneo"
+  }
+}
