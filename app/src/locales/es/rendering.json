@@ -1,0 +1,34 @@
+{
+  "evaluationUnavailable": "Evaluación temporalmente no disponible.",
+  "selectAtLeastOneContext": "Selecciona al menos un contexto para evaluar.",
+  "serviceUnavailable": "El servicio de evaluación no está disponible temporalmente. Por favor contacta con soporte.",
+  "profileLoadFailed": "No se pudo cargar el perfil de tu cuenta. Intenta cerrar sesión y volver a entrar.",
+  "contextsUnavailable_one": "{{count}} contexto no disponible. Mostrando resultados completados.",
+  "contextsUnavailable_other": "{{count}} contextos no disponibles. Mostrando resultados completados.",
+  "steps": {
+    "analysingDigitals": "Analizando digitales",
+    "alignment": "Alineación"
+  },
+  "statusLabel": {
+    "openingResults": "Abriendo resultados...",
+    "analysingDigitals": "Analizando digitales...",
+    "evaluatingContext": "Evaluando {{context}}..."
+  },
+  "notification": {
+    "title": "Resultados de evaluación listos",
+    "body": "{{name}} · toca para ver el informe"
+  },
+  "back": "← ATRÁS",
+  "estimatedTime": "Tiempo estimado",
+  "estimatedTimeValue": "1-3 minutos",
+  "contextsComplete": "{{completed}} de {{total}} contextos completados",
+  "queue": {
+    "position": "POSICIÓN EN COLA",
+    "estimatedTime": "TIEMPO ESTIMADO",
+    "of": "de"
+  },
+  "queueAnother": "+ AÑADIR OTRO PROSPECTO A LA COLA",
+  "notifyOnComplete": "Se te notificará cuando esta evaluación se complete.",
+  "resultsReadyToast": "✓ Resultados de evaluación listos — {{name}}",
+  "viewResults": "VER RESULTADOS"
+}

@@ -16,6 +16,8 @@ import enNewEntry from '../locales/en/newEntry.json';
 import esNewEntry from '../locales/es/newEntry.json';
 import enProfile from '../locales/en/profile.json';
 import esProfile from '../locales/es/profile.json';
+import enRendering from '../locales/en/rendering.json';
+import esRendering from '../locales/es/rendering.json';
 
 // Per-user display language — deliberately separate from the agency-level
 // "AI Output Language" setting (Settings → Agency), which only affects
@@ -37,8 +39,8 @@ export function readStoredLanguage(): SupportedLanguage {
 
 void i18n.use(initReactI18next).init({
   resources: {
-    en: { common: enCommon, dashboard: enDashboard, settings: enSettings, prospects: enProspects, roster: enRoster, inbox: enInbox, newEntry: enNewEntry, profile: enProfile },
-    es: { common: esCommon, dashboard: esDashboard, settings: esSettings, prospects: esProspects, roster: esRoster, inbox: esInbox, newEntry: esNewEntry, profile: esProfile },
+    en: { common: enCommon, dashboard: enDashboard, settings: enSettings, prospects: enProspects, roster: enRoster, inbox: enInbox, newEntry: enNewEntry, profile: enProfile, rendering: enRendering },
+    es: { common: esCommon, dashboard: esDashboard, settings: esSettings, prospects: esProspects, roster: esRoster, inbox: esInbox, newEntry: esNewEntry, profile: esProfile, rendering: esRendering },
   },
   lng: readStoredLanguage(),
   fallbackLng: 'en',
