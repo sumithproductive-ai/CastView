@@ -527,7 +527,7 @@ export function Results() {
     return () => {
       cancelled = true;
     };
-  }, [evaluationId]);
+  }, [evaluationId, t]);
 
   useEffect(() => {
     if (!import.meta.env.DEV || !isSumithProspect(prospectId, prospectName)) {
