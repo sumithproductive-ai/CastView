@@ -292,7 +292,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
     if (isOpen && agencyId) {
       loadNotifications();
     }
-  }, [isOpen, agencyId, prospects, models]);
+  }, [isOpen, agencyId, prospects, models, t]);
 
   const handleMarkAllRead = async () => {
     if (!agencyId) return;

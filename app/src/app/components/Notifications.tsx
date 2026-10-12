@@ -46,7 +46,7 @@ export function Notifications() {
   useEffect(() => {
     if (!agencyId) return;
     loadNotifications();
-  }, [agencyId, prospects, models]);
+  }, [agencyId, prospects, models, t]);
 
   const loadNotifications = async () => {
     setLoading(true);
