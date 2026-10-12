@@ -1,0 +1,66 @@
+{
+  "page": {
+    "title": "Notificaciones",
+    "subtitle": "Evaluaciones, mensajes y actualizaciones de estado.",
+    "markAllRead": "MARCAR TODO COMO LEÍDO",
+    "loading": "Cargando...",
+    "noneYet": "Aún no hay notificaciones. Aparecerán aquí a medida que uses CastView.",
+    "filters": {
+      "all": "TODAS",
+      "evaluations": "EVALUACIONES",
+      "messages": "MENSAJES",
+      "statusUpdates": "ACTUALIZACIONES DE ESTADO"
+    },
+    "timeAgo": {
+      "justNow": "justo ahora",
+      "minutes_one": "hace {{count}} minuto",
+      "minutes_other": "hace {{count}} minutos",
+      "hours_one": "hace {{count}} hora",
+      "hours_other": "hace {{count}} horas",
+      "days_one": "hace {{count}} día",
+      "days_other": "hace {{count}} días"
+    },
+    "titles": {
+      "evaluationConfirmed": "Evaluación confirmada",
+      "evaluationOverridden": "Evaluación anulada",
+      "statusUpdatedTo": "Estado del prospecto actualizado a {{status}}",
+      "messageSentTo": "Mensaje enviado a {{email}}"
+    },
+    "badges": {
+      "confirmed": "CONFIRMADO",
+      "overridden": "ANULADO",
+      "sent": "ENVIADO",
+      "reply": "RESPUESTA"
+    }
+  },
+  "panel": {
+    "heading": "NOTIFICACIONES",
+    "markAllRead": "MARCAR TODO COMO LEÍDO",
+    "noneYet": "Aún no hay notificaciones.",
+    "viewAll": "VER TODAS LAS NOTIFICACIONES",
+    "timeAgo": {
+      "justNow": "justo ahora",
+      "minutes": "hace {{count}}m",
+      "hours": "hace {{count}}h",
+      "days": "hace {{count}}d"
+    },
+    "titles": {
+      "evaluationConfirmed": "Evaluación confirmada",
+      "evaluationOverrideSaved": "Anulación de evaluación guardada",
+      "statusUpdatedTo": "Estado actualizado a {{status}}",
+      "newProspectAdded": "Nuevo prospecto añadido",
+      "messageSent": "Mensaje enviado",
+      "toEmail": "Para {{email}}",
+      "replied": "{{name}} respondió"
+    },
+    "badges": {
+      "confirmed": "CONFIRMADO",
+      "override": "ANULACIÓN",
+      "status": "ESTADO",
+      "new": "NUEVO",
+      "sent": "ENVIADO",
+      "event": "EVENTO",
+      "reply": "RESPUESTA"
+    }
+  }
+}

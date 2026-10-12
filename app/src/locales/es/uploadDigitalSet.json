@@ -1,0 +1,22 @@
+{
+  "angleFront": "FRENTE",
+  "angleProfile": "PERFIL",
+  "angleThreeQuarter": "3/4",
+  "angleFullBody": "CUERPO COMPLETO",
+  "breadcrumbRoster": "Elenco",
+  "breadcrumbProspects": "Prospectos",
+  "title": "Subir conjunto digital",
+  "setTitle": "TÍTULO DEL CONJUNTO",
+  "setTitlePlaceholder": "p. ej. Actualización mayo 2026",
+  "date": "FECHA",
+  "datePlaceholder": "p. ej. mayo 2026",
+  "fileRequirements": "JPG, PNG o WebP · Máx. 5MB por imagen",
+  "clearAria": "Eliminar {{label}}",
+  "uploaded": "Subido",
+  "clickToUpload": "Clic para subir",
+  "notes": "NOTAS",
+  "notesPlaceholder": "Notas opcionales sobre este conjunto",
+  "saving": "GUARDANDO...",
+  "save": "GUARDAR CONJUNTO DIGITAL",
+  "cancel": "CANCELAR"
+}

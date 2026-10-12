@@ -1,0 +1,66 @@
+{
+  "page": {
+    "title": "Notifications",
+    "subtitle": "Evaluations, messages, and status updates.",
+    "markAllRead": "MARK ALL READ",
+    "loading": "Loading...",
+    "noneYet": "No notifications yet. They will appear here as you use CastView.",
+    "filters": {
+      "all": "ALL",
+      "evaluations": "EVALUATIONS",
+      "messages": "MESSAGES",
+      "statusUpdates": "STATUS UPDATES"
+    },
+    "timeAgo": {
+      "justNow": "just now",
+      "minutes_one": "{{count}} minute ago",
+      "minutes_other": "{{count}} minutes ago",
+      "hours_one": "{{count}} hour ago",
+      "hours_other": "{{count}} hours ago",
+      "days_one": "{{count}} day ago",
+      "days_other": "{{count}} days ago"
+    },
+    "titles": {
+      "evaluationConfirmed": "Evaluation confirmed",
+      "evaluationOverridden": "Evaluation overridden",
+      "statusUpdatedTo": "Prospect status updated to {{status}}",
+      "messageSentTo": "Message sent to {{email}}"
+    },
+    "badges": {
+      "confirmed": "CONFIRMED",
+      "overridden": "OVERRIDDEN",
+      "sent": "SENT",
+      "reply": "REPLY"
+    }
+  },
+  "panel": {
+    "heading": "NOTIFICATIONS",
+    "markAllRead": "MARK ALL READ",
+    "noneYet": "No notifications yet.",
+    "viewAll": "VIEW ALL NOTIFICATIONS",
+    "timeAgo": {
+      "justNow": "just now",
+      "minutes": "{{count}}m ago",
+      "hours": "{{count}}h ago",
+      "days": "{{count}}d ago"
+    },
+    "titles": {
+      "evaluationConfirmed": "Evaluation confirmed",
+      "evaluationOverrideSaved": "Evaluation override saved",
+      "statusUpdatedTo": "Status updated to {{status}}",
+      "newProspectAdded": "New prospect added",
+      "messageSent": "Message sent",
+      "toEmail": "To {{email}}",
+      "replied": "{{name}} replied"
+    },
+    "badges": {
+      "confirmed": "CONFIRMED",
+      "override": "OVERRIDE",
+      "status": "STATUS",
+      "new": "NEW",
+      "sent": "SENT",
+      "event": "EVENT",
+      "reply": "REPLY"
+    }
+  }
+}

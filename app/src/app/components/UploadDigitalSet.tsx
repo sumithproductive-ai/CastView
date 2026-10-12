@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Upload, X } from 'lucide-react';
 import { useProspects } from '../context/ProspectsContext';
@@ -22,18 +23,18 @@ const formInputStyle = {
   color: 'var(--cv-primary-text)',
 };
 
-const uploadFields = [
-  { key: 'front' as const, label: 'FRONT' },
-  { key: 'profile' as const, label: 'PROFILE' },
-  { key: 'threeQuarter' as const, label: '3/4' },
-  { key: 'fullBody' as const, label: 'FULL BODY' },
-];
-
 function getDefaultUploadDate() {
   return new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }
 
 export function UploadDigitalSet() {
+  const { t } = useTranslation('uploadDigitalSet');
+  const uploadFields = [
+    { key: 'front' as const, label: t('angleFront') },
+    { key: 'profile' as const, label: t('angleProfile') },
+    { key: 'threeQuarter' as const, label: t('angleThreeQuarter') },
+    { key: 'fullBody' as const, label: t('angleFullBody') },
+  ];
   const navigate = useNavigate();
   const { prospectId } = useParams();
   const [searchParams] = useSearchParams();
@@ -115,7 +116,7 @@ export function UploadDigitalSet() {
           className="bg-transparent border-none hover:opacity-70 transition-opacity"
           style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)', cursor: 'pointer', padding: 0 }}
         >
-          {profileType === 'model' ? 'Roster' : 'Prospects'}
+          {profileType === 'model' ? t('breadcrumbRoster') : t('breadcrumbProspects')}
         </button>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>›</span>
         <button
@@ -128,7 +129,7 @@ export function UploadDigitalSet() {
         </button>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>›</span>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
-          Upload Digital Set
+          {t('title')}
         </span>
       </div>
 
@@ -142,7 +143,7 @@ export function UploadDigitalSet() {
           lineHeight: 1.1,
         }}
       >
-        Upload Digital Set
+        {t('title')}
       </h1>
 
       <p
@@ -160,26 +161,26 @@ export function UploadDigitalSet() {
         <div className="grid grid-cols-2 gap-[12px] mb-[16px]">
           <div>
             <label className="block mb-[8px]" style={formFieldLabelStyle}>
-              SET TITLE
+              {t('setTitle')}
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. May 2026 Update"
+              placeholder={t('setTitlePlaceholder')}
               className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
               style={formInputStyle}
             />
           </div>
           <div>
             <label className="block mb-[8px]" style={formFieldLabelStyle}>
-              DATE
+              {t('date')}
             </label>
             <input
               type="text"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              placeholder="e.g. May 2026"
+              placeholder={t('datePlaceholder')}
               className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
               style={formInputStyle}
             />
@@ -187,7 +188,7 @@ export function UploadDigitalSet() {
         </div>
 
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', marginBottom: '10px', letterSpacing: '0.03em' }}>
-          JPG, PNG, or WebP · Max 5MB per image
+          {t('fileRequirements')}
         </p>
         <div className="grid grid-cols-4 gap-[10px] mb-[16px]">
         {uploadFields.map((field) => {
@@ -253,7 +254,7 @@ export function UploadDigitalSet() {
                       cursor: 'pointer',
                       color: 'var(--cv-primary-text)',
                     }}
-                    aria-label={`Clear ${field.label}`}
+                    aria-label={t('clearAria', { label: field.label })}
                   >
                     <X size={14} />
                   </button>
@@ -273,7 +274,7 @@ export function UploadDigitalSet() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {fileNames[fieldKey] ?? 'Uploaded'}
+                      {fileNames[fieldKey] ?? t('uploaded')}
                     </div>
                   </div>
                 </div>
@@ -309,7 +310,7 @@ export function UploadDigitalSet() {
                         marginTop: '4px',
                       }}
                     >
-                      Click to upload
+                      {t('clickToUpload')}
                     </div>
                   </div>
                 </div>
@@ -321,13 +322,13 @@ export function UploadDigitalSet() {
 
         <div style={{ maxWidth: '500px' }}>
           <label className="block mb-[8px]" style={formFieldLabelStyle}>
-            NOTES
+            {t('notes')}
           </label>
           <textarea
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Optional notes about this set"
+            placeholder={t('notesPlaceholder')}
             className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none"
             style={formInputStyle}
           />
@@ -346,7 +347,7 @@ export function UploadDigitalSet() {
             opacity: saving ? 0.6 : 1,
           }}
         >
-          {saving ? 'SAVING...' : 'SAVE DIGITAL SET'}
+          {saving ? t('saving') : t('save')}
         </button>
 
         <button
@@ -359,7 +360,7 @@ export function UploadDigitalSet() {
             cursor: 'pointer',
           }}
         >
-          CANCEL
+          {t('cancel')}
         </button>
       </div>
     </div>
