@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Image as ImageIcon, MessageSquare, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { supabase } from '../../lib/supabase';
@@ -50,6 +51,7 @@ function mapEventToPanelItem(
   },
   resolveProfilePath: (entityId?: string) => string,
   resolveMessagesPath: (entityId?: string) => string,
+  t: (key: string, opts?: Record<string, unknown>) => string,
 ): PanelNotification {
   const metadata = (ev.metadata ?? {}) as Record<string, unknown>;
   const entityId = (metadata.prospectId ?? metadata.entityId) as string | undefined;
@@ -60,9 +62,9 @@ function mapEventToPanelItem(
       return {
         id: ev.id,
         unread: !ev.read_at,
-        title: 'Evaluation confirmed',
-        time: timeAgo(ev.created_at),
-        badge: { text: 'CONFIRMED', color: 'green' },
+        title: t('panel.titles.evaluationConfirmed'),
+        time: timeAgo(ev.created_at, t),
+        badge: { text: t('panel.badges.confirmed'), color: 'green' },
         path,
         type: 'eval',
         source: 'event',
@@ -72,9 +74,9 @@ function mapEventToPanelItem(
       return {
         id: ev.id,
         unread: !ev.read_at,
-        title: 'Evaluation override saved',
-        time: timeAgo(ev.created_at),
-        badge: { text: 'OVERRIDE', color: 'amber' },
+        title: t('panel.titles.evaluationOverrideSaved'),
+        time: timeAgo(ev.created_at, t),
+        badge: { text: t('panel.badges.override'), color: 'amber' },
         path,
         type: 'eval',
         source: 'event',
@@ -84,9 +86,9 @@ function mapEventToPanelItem(
       return {
         id: ev.id,
         unread: !ev.read_at,
-        title: `Status updated to ${(metadata.status as string) ?? ''}`,
-        time: timeAgo(ev.created_at),
-        badge: { text: 'STATUS', color: 'amber' },
+        title: t('panel.titles.statusUpdatedTo', { status: (metadata.status as string) ?? '' }),
+        time: timeAgo(ev.created_at, t),
+        badge: { text: t('panel.badges.status'), color: 'amber' },
         path,
         type: 'status',
         source: 'event',
@@ -96,9 +98,9 @@ function mapEventToPanelItem(
       return {
         id: ev.id,
         unread: !ev.read_at,
-        title: 'New prospect added',
-        time: timeAgo(ev.created_at),
-        badge: { text: 'NEW', color: 'teal' },
+        title: t('panel.titles.newProspectAdded'),
+        time: timeAgo(ev.created_at, t),
+        badge: { text: t('panel.badges.new'), color: 'teal' },
         path,
         type: 'prospect',
         source: 'event',
@@ -110,10 +112,10 @@ function mapEventToPanelItem(
       return {
         id: ev.id,
         unread: !ev.read_at,
-        title: 'Message sent',
-        body: preview || (toEmail ? `To ${toEmail}` : undefined),
-        time: timeAgo(ev.created_at),
-        badge: { text: 'SENT', color: 'teal' },
+        title: t('panel.titles.messageSent'),
+        body: preview || (toEmail ? t('panel.titles.toEmail', { email: toEmail }) : undefined),
+        time: timeAgo(ev.created_at, t),
+        badge: { text: t('panel.badges.sent'), color: 'teal' },
         path: entityId ? resolveMessagesPath(entityId) : '/prospects',
         type: 'message',
         source: 'event',
@@ -125,8 +127,8 @@ function mapEventToPanelItem(
         id: ev.id,
         unread: !ev.read_at,
         title: formatEventType(ev.event_type),
-        time: timeAgo(ev.created_at),
-        badge: { text: 'EVENT', color: 'teal' },
+        time: timeAgo(ev.created_at, t),
+        badge: { text: t('panel.badges.event'), color: 'teal' },
         path: '/notifications',
         type: 'event',
         source: 'event',
@@ -138,6 +140,7 @@ function mapEventToPanelItem(
 function mapInboundMessageToPanelItem(
   msg: InboundMessage,
   resolvePath: (entityId?: string) => string,
+  t: (key: string, opts?: Record<string, unknown>) => string,
 ): PanelNotification {
   const entityId = msg.prospect_id ?? null;
   const displayName = msg.prospect_name?.trim() || msg.from_email;
@@ -145,10 +148,10 @@ function mapInboundMessageToPanelItem(
   return {
     id: msg.id,
     unread: !msg.read_at,
-    title: `${displayName} replied`,
+    title: t('panel.titles.replied', { name: displayName }),
     body: messagePreviewText(msg),
-    time: timeAgo(msg.sent_at),
-    badge: { text: 'REPLY', color: 'reply' },
+    time: timeAgo(msg.sent_at, t),
+    badge: { text: t('panel.badges.reply'), color: 'reply' },
     path: entityId ? resolvePath(entityId) : '/prospects',
     type: 'message',
     source: 'message',
@@ -156,18 +159,19 @@ function mapInboundMessageToPanelItem(
   };
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   const hours = Math.floor(mins / 60);
   const days = Math.floor(hours / 24);
-  if (mins < 2) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return `${days}d ago`;
+  if (mins < 2) return t('panel.timeAgo.justNow');
+  if (mins < 60) return t('panel.timeAgo.minutes', { count: mins });
+  if (hours < 24) return t('panel.timeAgo.hours', { count: hours });
+  return t('panel.timeAgo.days', { count: days });
 }
 
 export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps) {
+  const { t } = useTranslation('notifications');
   const navigate = useNavigate();
   const { agencyId } = useAuth();
   const { prospects } = useProspects();
@@ -268,12 +272,13 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
               : null,
           },
           resolveMessagesPath,
+          t,
         ),
       );
     }
 
     for (const ev of events ?? []) {
-      items.push(mapEventToPanelItem(ev, resolveProfilePath, resolveMessagesPath));
+      items.push(mapEventToPanelItem(ev, resolveProfilePath, resolveMessagesPath, t));
     }
 
     items.sort((a, b) => {
@@ -359,11 +364,11 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
     >
       <div className="flex items-center justify-between px-[16px] py-[16px] border-b" style={{ borderColor: 'var(--cv-subtle-border)' }}>
         <h2 className="text-[11px] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-primary-text)' }}>
-          NOTIFICATIONS
+          {t('panel.heading')}
         </h2>
         <div className="flex items-center gap-[16px]">
           <button onClick={handleMarkAllRead} className="text-[12px] hover:opacity-70 transition-opacity" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
-            MARK ALL READ
+            {t('panel.markAllRead')}
           </button>
           <button onClick={onClose} className="hover:opacity-70 transition-opacity" style={{ color: 'var(--cv-secondary-text)' }}>
             <X size={16} />
@@ -374,7 +379,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
       <div className="flex-1 overflow-y-auto">
         {notifications.length === 0 ? (
           <div className="py-[48px] px-[16px] text-center" style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}>
-            No notifications yet.
+            {t('panel.noneYet')}
           </div>
         ) : (
           notifications.map((notification) => {
@@ -423,7 +428,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
           className="block w-full py-[12px] text-center border rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-elevated)] transition-colors"
           style={{ fontFamily: 'var(--font-label)', borderColor: 'var(--cv-subtle-border)', color: 'var(--cv-primary-text)' }}
         >
-          VIEW ALL NOTIFICATIONS
+          {t('panel.viewAll')}
         </a>
       </div>
     </div>

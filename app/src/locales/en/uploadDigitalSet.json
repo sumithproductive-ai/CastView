@@ -1,0 +1,22 @@
+{
+  "angleFront": "FRONT",
+  "angleProfile": "PROFILE",
+  "angleThreeQuarter": "3/4",
+  "angleFullBody": "FULL BODY",
+  "breadcrumbRoster": "Roster",
+  "breadcrumbProspects": "Prospects",
+  "title": "Upload Digital Set",
+  "setTitle": "SET TITLE",
+  "setTitlePlaceholder": "e.g. May 2026 Update",
+  "date": "DATE",
+  "datePlaceholder": "e.g. May 2026",
+  "fileRequirements": "JPG, PNG, or WebP · Max 5MB per image",
+  "clearAria": "Clear {{label}}",
+  "uploaded": "Uploaded",
+  "clickToUpload": "Click to upload",
+  "notes": "NOTES",
+  "notesPlaceholder": "Optional notes about this set",
+  "saving": "SAVING...",
+  "save": "SAVE DIGITAL SET",
+  "cancel": "CANCEL"
+}

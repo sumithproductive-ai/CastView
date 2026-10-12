@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image as ImageIcon, UserCheck, MessageSquare, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { supabase } from '../../lib/supabase';
@@ -21,18 +22,19 @@ interface NotificationItem {
   source: 'event' | 'message';
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   const hours = Math.floor(mins / 60);
   const days = Math.floor(hours / 24);
-  if (mins < 2) return 'just now';
-  if (mins < 60) return `${mins} minutes ago`;
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-  return `${days} day${days > 1 ? 's' : ''} ago`;
+  if (mins < 2) return t('page.timeAgo.justNow');
+  if (mins < 60) return t('page.timeAgo.minutes', { count: mins });
+  if (hours < 24) return t('page.timeAgo.hours', { count: hours });
+  return t('page.timeAgo.days', { count: days });
 }
 
 export function Notifications() {
+  const { t } = useTranslation('notifications');
   const navigate = useNavigate();
   const { agencyId } = useAuth();
   const { prospects } = useProspects();
@@ -75,11 +77,11 @@ export function Notifications() {
             id: ev.id,
             type: 'EVALUATIONS',
             unread: !ev.read_at,
-            title: `Evaluation ${ev.event_type === 'evaluation_confirmed' ? 'confirmed' : 'overridden'}`,
-            time: timeAgo(ev.created_at),
+            title: ev.event_type === 'evaluation_confirmed' ? t('page.titles.evaluationConfirmed') : t('page.titles.evaluationOverridden'),
+            time: timeAgo(ev.created_at, t),
             sortAt: ev.created_at,
             badge: {
-              text: ev.event_type === 'evaluation_confirmed' ? 'CONFIRMED' : 'OVERRIDDEN',
+              text: ev.event_type === 'evaluation_confirmed' ? t('page.badges.confirmed') : t('page.badges.overridden'),
               color: ev.event_type === 'evaluation_confirmed' ? 'green' : 'amber',
             },
             source: 'event',
@@ -90,8 +92,8 @@ export function Notifications() {
             id: ev.id,
             type: 'STATUS UPDATES',
             unread: !ev.read_at,
-            title: `Prospect status updated to ${(ev.metadata as { status?: string })?.status?.toUpperCase() ?? 'UNKNOWN'}`,
-            time: timeAgo(ev.created_at),
+            title: t('page.titles.statusUpdatedTo', { status: (ev.metadata as { status?: string })?.status?.toUpperCase() ?? 'UNKNOWN' }),
+            time: timeAgo(ev.created_at, t),
             sortAt: ev.created_at,
             badge: {
               text: (ev.metadata as { status?: string })?.status?.toUpperCase() ?? '',
@@ -114,10 +116,10 @@ export function Notifications() {
             unread: !ev.read_at,
             title: preview
               ? preview
-              : `Message sent to ${metadata.toEmail ?? 'contact'}`,
-            time: timeAgo(ev.created_at),
+              : t('page.titles.messageSentTo', { email: metadata.toEmail ?? 'contact' }),
+            time: timeAgo(ev.created_at, t),
             sortAt: ev.created_at,
-            badge: { text: 'SENT', color: 'teal' },
+            badge: { text: t('page.badges.sent'), color: 'teal' },
             path: resolveMessageTabPath(entityId, prospectIds, modelIds),
             source: 'event',
           });
@@ -133,9 +135,9 @@ export function Notifications() {
           type: 'MESSAGES',
           unread: !msg.read_at,
           title: `${entityName}: ${messagePreviewText(msg)}`,
-          time: timeAgo(msg.sent_at),
+          time: timeAgo(msg.sent_at, t),
           sortAt: msg.sent_at,
-          badge: { text: 'REPLY', color: 'green' },
+          badge: { text: t('page.badges.reply'), color: 'green' },
           path: resolveMessageTabPath(msg.prospect_id, prospectIds, modelIds),
           source: 'message',
         });
@@ -194,6 +196,12 @@ export function Notifications() {
   };
 
   const filters: FilterType[] = ['ALL', 'EVALUATIONS', 'MESSAGES', 'STATUS UPDATES'];
+  const filterLabels: Record<FilterType, string> = {
+    ALL: t('page.filters.all'),
+    EVALUATIONS: t('page.filters.evaluations'),
+    MESSAGES: t('page.filters.messages'),
+    'STATUS UPDATES': t('page.filters.statusUpdates'),
+  };
   const filtered =
     activeFilter === 'ALL'
       ? notifications
@@ -246,10 +254,10 @@ export function Notifications() {
               className="text-[40px] mb-[8px]"
               style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
             >
-              Notifications
+              {t('page.title')}
             </h1>
             <p className="text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
-              Evaluations, messages, and status updates.
+              {t('page.subtitle')}
             </p>
           </div>
           <button
@@ -257,7 +265,7 @@ export function Notifications() {
             className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}
           >
-            MARK ALL READ
+            {t('page.markAllRead')}
           </button>
         </div>
 
@@ -274,7 +282,7 @@ export function Notifications() {
                 color: activeFilter === filter ? 'var(--cv-background)' : 'var(--cv-secondary-text)',
               }}
             >
-              {filter}
+              {filterLabels[filter]}
             </button>
           ))}
         </div>
@@ -288,14 +296,14 @@ export function Notifications() {
               className="py-[48px] text-center"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
             >
-              Loading...
+              {t('page.loading')}
             </div>
           ) : filtered.length === 0 ? (
             <div
               className="py-[48px] text-center"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-secondary-text)' }}
             >
-              No notifications yet. They will appear here as you use CastView.
+              {t('page.noneYet')}
             </div>
           ) : (
             filtered.map((notification) => {

@@ -26,6 +26,10 @@ import enCompare from '../locales/en/compare.json';
 import esCompare from '../locales/es/compare.json';
 import enMessages from '../locales/en/messages.json';
 import esMessages from '../locales/es/messages.json';
+import enNotifications from '../locales/en/notifications.json';
+import esNotifications from '../locales/es/notifications.json';
+import enUploadDigitalSet from '../locales/en/uploadDigitalSet.json';
+import esUploadDigitalSet from '../locales/es/uploadDigitalSet.json';
 
 // Per-user display language — deliberately separate from the agency-level
 // "AI Output Language" setting (Settings → Agency), which only affects
@@ -47,8 +51,8 @@ export function readStoredLanguage(): SupportedLanguage {
 
 void i18n.use(initReactI18next).init({
   resources: {
-    en: { common: enCommon, dashboard: enDashboard, settings: enSettings, prospects: enProspects, roster: enRoster, inbox: enInbox, newEntry: enNewEntry, profile: enProfile, rendering: enRendering, renderHistory: enRenderHistory, results: enResults, compare: enCompare, messages: enMessages },
-    es: { common: esCommon, dashboard: esDashboard, settings: esSettings, prospects: esProspects, roster: esRoster, inbox: esInbox, newEntry: esNewEntry, profile: esProfile, rendering: esRendering, renderHistory: esRenderHistory, results: esResults, compare: esCompare, messages: esMessages },
+    en: { common: enCommon, dashboard: enDashboard, settings: enSettings, prospects: enProspects, roster: enRoster, inbox: enInbox, newEntry: enNewEntry, profile: enProfile, rendering: enRendering, renderHistory: enRenderHistory, results: enResults, compare: enCompare, messages: enMessages, notifications: enNotifications, uploadDigitalSet: enUploadDigitalSet },
+    es: { common: esCommon, dashboard: esDashboard, settings: esSettings, prospects: esProspects, roster: esRoster, inbox: esInbox, newEntry: esNewEntry, profile: esProfile, rendering: esRendering, renderHistory: esRenderHistory, results: esResults, compare: esCompare, messages: esMessages, notifications: esNotifications, uploadDigitalSet: esUploadDigitalSet },
   },
   lng: readStoredLanguage(),
   fallbackLng: 'en',
