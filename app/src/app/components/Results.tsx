@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import {
   createCastviewPdf,
@@ -61,13 +62,6 @@ import {
   DialogContent,
   DialogTitle,
 } from './ui/dialog';
-
-const DIGITAL_STRIP = [
-  { key: 'front' as const, label: 'FRONT' },
-  { key: 'profile' as const, label: 'PROFILE' },
-  { key: 'threeQuarter' as const, label: '3/4' },
-  { key: 'fullBody' as const, label: 'FULL BODY' },
-];
 
 const evaluationData = {
   overallSummary:
@@ -178,6 +172,7 @@ function DevelopmentPathwayModal({
   onClose,
   onGenerate,
 }: DevelopmentPathwayModalProps) {
+  const { t } = useTranslation('results');
   return (
     <Dialog
       open={open}
@@ -193,7 +188,7 @@ function DevelopmentPathwayModal({
         <div className="flex shrink-0 items-center gap-[16px] border-b border-[var(--cv-subtle-border)] px-[20px] py-[16px]">
           <DialogClose
             className="flex h-[36px] w-[36px] items-center justify-center rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-elevated)] text-[var(--cv-primary-text)] transition-opacity hover:opacity-80 focus:outline-none"
-            aria-label="Close development pathway"
+            aria-label={t('pathwayModal.closeAria')}
           >
             <ArrowLeft size={18} />
           </DialogClose>
@@ -206,7 +201,7 @@ function DevelopmentPathwayModal({
                 fontWeight: 400,
               }}
             >
-              Development Pathway
+              {t('pathwayModal.title')}
             </DialogTitle>
             {context && (
               <p
@@ -216,7 +211,7 @@ function DevelopmentPathwayModal({
                   color: 'var(--cv-secondary-text)',
                 }}
               >
-                {context} · AI Coaching
+                {context} · {t('pathwayModal.aiCoaching')}
               </p>
             )}
           </div>
@@ -231,15 +226,15 @@ function DevelopmentPathwayModal({
               color: 'var(--cv-secondary-text)',
             }}
           >
-            Your notes
+            {t('pathwayModal.yourNotes')}
           </div>
           <textarea
             value={note}
             onChange={(e) => onNoteChange(e.target.value)}
             placeholder={
               context
-                ? `e.g. "Strong bone structure — I think they have potential for ${context} but needs work on posture and styling direction."`
-                : 'Add notes about this prospect in this context...'
+                ? t('pathwayModal.notePlaceholderWithContext', { context })
+                : t('pathwayModal.notePlaceholder')
             }
             rows={4}
             className="mb-[16px] w-full resize-none rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-background)] px-[12px] py-[10px]"
@@ -262,7 +257,7 @@ function DevelopmentPathwayModal({
                 cursor: 'pointer',
               }}
             >
-              Generate development pathway
+              {t('pathwayModal.generate')}
             </button>
           )}
 
@@ -277,7 +272,7 @@ function DevelopmentPathwayModal({
                 cursor: 'pointer',
               }}
             >
-              Regenerate pathway
+              {t('pathwayModal.regenerate')}
             </button>
           )}
 
@@ -291,7 +286,7 @@ function DevelopmentPathwayModal({
                   color: 'var(--cv-secondary-text)',
                 }}
               >
-                Development recommendations
+                {t('pathwayModal.recommendationsHeading')}
               </div>
 
               <AnimatePresence mode="wait">
@@ -309,7 +304,7 @@ function DevelopmentPathwayModal({
                       color: 'var(--cv-secondary-text)',
                     }}
                   >
-                    Generating pathway...
+                    {t('pathwayModal.generating')}
                   </motion.div>
                 )}
 
@@ -343,8 +338,7 @@ function DevelopmentPathwayModal({
                       className="mb-[16px] text-[11px]"
                       style={evalBodyTextStyle}
                     >
-                      Based on the uploaded digitals and your notes, here is a suggested
-                      development pathway for {context} alignment:
+                      {t('pathwayModal.basedOnNotes', { context: context ?? '' })}
                     </div>
                     {pathway.summary && (
                       <p
@@ -394,6 +388,13 @@ function DevelopmentPathwayModal({
 }
 
 export function Results() {
+  const { t } = useTranslation('results');
+  const DIGITAL_STRIP = [
+    { key: 'front' as const, label: t('digitalStrip.angleFront') },
+    { key: 'profile' as const, label: t('digitalStrip.angleProfile') },
+    { key: 'threeQuarter' as const, label: t('digitalStrip.angleThreeQuarter') },
+    { key: 'fullBody' as const, label: t('digitalStrip.angleFullBody') },
+  ];
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { agencyId, agencyName } = useAuth();
@@ -501,7 +502,7 @@ export function Results() {
           error.code === '42703'
         ) {
           setOverrideSaveError(
-            'Override column missing — apply Manual Task 4 migration',
+            t('overrideColumnMissing'),
           );
         }
         return;
@@ -716,7 +717,7 @@ export function Results() {
       if (response.status === 402) {
         setPathwayErrorByContext((prev) => ({
           ...prev,
-          [contextKey]: 'Trial ended — choose a plan to continue.',
+          [contextKey]: t('pathwayModal.trialEnded'),
         }));
         return;
       }
@@ -736,13 +737,13 @@ export function Results() {
       } else {
         setPathwayErrorByContext((prev) => ({
           ...prev,
-          [contextKey]: 'Unable to generate pathway. Try again.',
+          [contextKey]: t('pathwayModal.generateFailed'),
         }));
       }
     } catch {
       setPathwayErrorByContext((prev) => ({
         ...prev,
-        [contextKey]: 'Unable to generate pathway. Try again.',
+        [contextKey]: t('pathwayModal.generateFailed'),
       }));
     } finally {
       setPathwayLoadingContext(null);
@@ -815,7 +816,7 @@ export function Results() {
 
   const handleDeleteEvaluation = async () => {
     if (!evaluationId || deletingEvaluation) return;
-    if (!window.confirm('Delete this evaluation? This cannot be undone.')) return;
+    if (!window.confirm(t('deleteEvaluationConfirm'))) return;
 
     setDeletingEvaluation(true);
     setDeleteEvalError(null);
@@ -829,14 +830,14 @@ export function Results() {
       }
       clearEvaluationStorage(evaluationId);
       if (!prospectId) {
-        throw new Error('Missing prospect reference for navigation');
+        throw new Error(t('deleteMissingProspectRef'));
       }
       navigate(
         profileType === 'model' ? `/roster/${prospectId}` : `/prospects/${prospectId}`,
       );
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to delete evaluation';
+        error instanceof Error ? error.message : t('deleteEvaluationFailed');
       console.error('[Results] delete evaluation error:', error);
       setDeleteEvalError(message);
     } finally {
@@ -846,7 +847,7 @@ export function Results() {
 
   const handleRemoveContext = async (context: string) => {
     if (!evaluationId || removingContext) return;
-    if (!window.confirm(`Remove ${context} from this evaluation?`)) return;
+    if (!window.confirm(t('removeContextConfirm', { context }))) return;
 
     setRemovingContext(context);
     setContextRemoveError(null);
@@ -901,7 +902,7 @@ export function Results() {
         );
         if (next.length === 0) {
           setAllContextsRemovedMessage(
-            'All contexts removed. Delete the full evaluation or run a new one.',
+            t('allContextsRemoved'),
           );
         }
         return next;
@@ -918,7 +919,7 @@ export function Results() {
       }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to remove context';
+        error instanceof Error ? error.message : t('removeContextFailed');
       console.error('[Results] remove context error:', error);
       setContextRemoveError(message);
     } finally {
@@ -1083,11 +1084,11 @@ export function Results() {
       } else {
         const data = await res.json().catch(() => ({}));
         setSendSendError(
-          (data as { error?: string }).error ?? 'Message could not be sent. Please try again.',
+          (data as { error?: string }).error ?? t('sendModal.sendFailed'),
         );
       }
     } catch {
-      setSendSendError('Message could not be sent. Please try again.');
+      setSendSendError(t('sendModal.sendFailed'));
     } finally {
       setSendingSend(false);
     }
@@ -1112,7 +1113,7 @@ export function Results() {
               padding: 0,
             }}
           >
-            {profileType === 'model' ? '← BACK TO ROSTER' : '← BACK TO PROSPECTS'}
+            {profileType === 'model' ? t('backToRoster') : t('backToProspects')}
           </button>
           <button
             type="button"
@@ -1135,7 +1136,7 @@ export function Results() {
               opacity: deletingEvaluation || !evaluationId ? 0.6 : 1,
             }}
           >
-            {deletingEvaluation ? 'DELETING...' : 'DELETE EVALUATION'}
+            {deletingEvaluation ? t('deleting') : t('deleteEvaluation')}
           </button>
           {deleteEvalError && (
             <p
@@ -1207,7 +1208,7 @@ export function Results() {
             whiteSpace: 'nowrap',
           }}
         >
-          {evalSaved ? '✓ SAVED' : savingEval ? 'SAVING…' : saveError ? 'SAVE FAILED — RETRY' : 'SAVE EVALUATION'}
+          {evalSaved ? t('saveEvaluation.saved') : savingEval ? t('saveEvaluation.saving') : saveError ? t('saveEvaluation.failed') : t('saveEvaluation.idle')}
         </button>
 
         <button
@@ -1219,7 +1220,7 @@ export function Results() {
             cursor: 'pointer',
           }}
         >
-          EXPORT PDF
+          {t('exportPdf')}
         </button>
 
         <button
@@ -1241,7 +1242,7 @@ export function Results() {
             opacity: !hasRealEvaluation || profileType === 'model' ? 0.4 : 1,
           }}
         >
-          SEND TO PROSPECT
+          {t('sendToProspect')}
         </button>
         </div>
       </div>
@@ -1250,7 +1251,7 @@ export function Results() {
         className="text-[48px] mb-[12px]" 
         style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--cv-primary-text)' }}
       >
-        {prospectName} — Context Alignment Report
+        {t('reportTitle', { name: prospectName })}
       </h1>
       <p
         style={{
@@ -1261,7 +1262,7 @@ export function Results() {
           marginBottom: '36px',
         }}
       >
-        AI-generated context alignment. Decision-support only — not a casting decision or a judgment of the individual.
+        {t('reportDisclaimer')}
       </p>
 
       {evaluationError && (
@@ -1381,7 +1382,7 @@ export function Results() {
                       {displayScore != null && data
                         ? `${displayScore}%  ${data.fitLabel}`
                         : unavailable
-                          ? 'UNAVAILABLE'
+                          ? t('unavailable')
                           : '—'}
                     </span>
                     <div className="flex items-center gap-[12px]">
@@ -1423,7 +1424,7 @@ export function Results() {
                         e.currentTarget.style.color = 'var(--cv-secondary-text)';
                       }}
                     >
-                      {removingContext === result.context ? 'Removing...' : 'Remove'}
+                      {removingContext === result.context ? t('removing') : t('remove')}
                     </button>
                   )}
                 </div>
@@ -1440,9 +1441,9 @@ export function Results() {
                         }}
                       >
                         {unavailable
-                          ? 'This context is temporarily unavailable.'
+                          ? t('contextUnavailable')
                           : evaluationError ||
-                            'Evaluation temporarily unavailable.'}
+                            t('evaluationUnavailable')}
                       </p>
                     ) : (
                     <>
@@ -1457,7 +1458,7 @@ export function Results() {
                             letterSpacing: '0.1em',
                           }}
                         >
-                          REASONING
+                          {t('sections.reasoning')}
                         </div>
                         <p
                           className="mb-[20px]"
@@ -1478,7 +1479,7 @@ export function Results() {
                             letterSpacing: '0.1em',
                           }}
                         >
-                          STRENGTHS
+                          {t('sections.strengths')}
                         </div>
                         <ContextArrowList items={data.strengths} body />
 
@@ -1491,7 +1492,7 @@ export function Results() {
                             letterSpacing: '0.1em',
                           }}
                         >
-                          RISKS
+                          {t('sections.risks')}
                         </div>
                         <ContextArrowList items={data.risks} body />
                       </div>
@@ -1506,7 +1507,7 @@ export function Results() {
                             letterSpacing: '0.1em',
                           }}
                         >
-                          MARKET SIGNALS
+                          {t('sections.marketSignals')}
                         </div>
                         <ContextArrowList items={data.marketSignals} />
 
@@ -1519,7 +1520,7 @@ export function Results() {
                             letterSpacing: '0.1em',
                           }}
                         >
-                          SUGGESTED NEXT STEPS
+                          {t('sections.suggestedNextSteps')}
                         </div>
                         <ContextArrowList items={data.suggestedNextSteps} />
                       </div>
@@ -1537,7 +1538,7 @@ export function Results() {
                             color: '#C8A96E',
                           }}
                         >
-                          DEVELOPMENT PATHWAY
+                          {t('developmentPathway.heading')}
                         </div>
                         <div
                           className="text-[9px] uppercase tracking-[0.08em] px-[8px] py-[3px] border border-[var(--cv-subtle-border)] rounded-[2px]"
@@ -1546,7 +1547,7 @@ export function Results() {
                             color: 'var(--cv-secondary-text)',
                           }}
                         >
-                          AI COACHING
+                          {t('developmentPathway.aiCoaching')}
                         </div>
                       </div>
 
@@ -1559,8 +1560,7 @@ export function Results() {
                           lineHeight: 1.7,
                         }}
                       >
-                        Add a note about this prospect's potential in this context
-                        and get AI-powered development recommendations.
+                        {t('developmentPathway.description')}
                       </p>
 
                       <button
@@ -1593,10 +1593,10 @@ export function Results() {
                       >
                         {pathwayLoadingContext === result.context &&
                         !getPathwayForContext(pathwaysByContext, result.context)
-                          ? 'GENERATING...'
+                          ? t('developmentPathway.generating')
                           : getPathwayForContext(pathwaysByContext, result.context)
-                            ? 'VIEW DEVELOPMENT PATHWAY'
-                            : 'GENERATE DEVELOPMENT PATHWAY'}
+                            ? t('developmentPathway.view')
+                            : t('developmentPathway.generate')}
                       </button>
                     </div>
                     </>
@@ -1620,7 +1620,7 @@ export function Results() {
                 className="text-[10px] uppercase tracking-[0.1em]"
                 style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
               >
-                Does This Align With Your Judgment?
+                {t('judgment.heading')}
               </div>
               <div className="flex gap-[8px]">
                 <button
@@ -1656,7 +1656,7 @@ export function Results() {
                   }}
                   disabled={agreed}
                 >
-                  {agreed ? '✓ Confirmed' : 'Confirm Alignment'}
+                  {agreed ? t('judgment.confirmed') : t('judgment.confirm')}
                 </button>
                 <button
                   onClick={async () => {
@@ -1686,19 +1686,19 @@ export function Results() {
                     cursor: 'pointer'
                   }}
                 >
-                  Override
+                  {t('judgment.override')}
                 </button>
               </div>
             </div>
-            
-            <p style={{ 
-              fontFamily: 'var(--font-mono)', 
-              fontSize: '11px', 
+
+            <p style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
               color: 'var(--cv-secondary-text)',
               marginTop: '8px',
               fontStyle: 'italic'
             }}>
-              Your feedback helps us improve recommendations.
+              {t('judgment.feedbackNote')}
             </p>
             
             {showOverride && (
@@ -1710,7 +1710,7 @@ export function Results() {
                     setOverrideSaved(false);
                     setOverrideSaveError(null);
                   }}
-                  placeholder="Add your assessment..."
+                  placeholder={t('judgment.assessmentPlaceholder')}
                   className="w-full h-[80px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[12px] resize-none mb-[8px]"
                   style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--cv-primary-text)' }}
                 />
@@ -1739,8 +1739,8 @@ export function Results() {
                       console.error('[Results] override save failed:', error.message);
                       setOverrideSaveError(
                         error.message.includes('booker_override') || error.code === '42703'
-                          ? 'Override column missing — apply Manual Task 4 migration'
-                          : 'Save failed — try again',
+                          ? t('overrideColumnMissing')
+                          : t('judgment.saveFailedRetry'),
                       );
                       return;
                     }
@@ -1767,12 +1767,12 @@ export function Results() {
                   }}
                 >
                   {overrideSaved
-                    ? '✓ Saved'
+                    ? t('judgment.saved')
                     : savingOverride
-                      ? 'Saving…'
+                      ? t('judgment.saving')
                       : overrideSaveError
-                        ? 'Save failed'
-                        : 'Save'}
+                        ? t('judgment.saveFailed')
+                        : t('judgment.save')}
                 </button>
                 {overrideSaveError && (
                   <p
@@ -1793,7 +1793,7 @@ export function Results() {
               className="mb-[8px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cv-secondary-text)' }}
             >
-              AGENT NOTES
+              {t('agentNotes.heading')}
             </div>
             <textarea
               value={agentNotes}
@@ -1801,7 +1801,7 @@ export function Results() {
                 setAgentNotes(e.target.value);
                 setNotesSaved(false);
               }}
-              placeholder="Add notes for this evaluation..."
+              placeholder={t('agentNotes.placeholder')}
               rows={4}
               style={{
                 width: '100%',
@@ -1840,7 +1840,7 @@ export function Results() {
                 textTransform: 'uppercase' as const,
               }}
             >
-              {notesSaved ? '✓ NOTES SAVED' : 'SAVE NOTES'}
+              {notesSaved ? t('agentNotes.saved') : t('agentNotes.save')}
             </button>
           </div>
         </div>
@@ -1885,7 +1885,7 @@ export function Results() {
           <div className="flex shrink-0 items-center gap-[16px] border-b border-[var(--cv-subtle-border)] px-[20px] py-[16px]">
             <DialogClose
               className="flex h-[36px] w-[36px] items-center justify-center rounded-[4px] border border-[var(--cv-subtle-border)] bg-[var(--cv-elevated)] text-[var(--cv-primary-text)] transition-opacity hover:opacity-80 focus:outline-none"
-              aria-label="Close"
+              aria-label={t('sendModal.closeAria')}
             >
               <ArrowLeft size={18} />
             </DialogClose>
@@ -1893,24 +1893,24 @@ export function Results() {
               className="text-[11px] uppercase tracking-[0.1em]"
               style={{ fontFamily: 'var(--font-mono)', color: '#C8A96E', fontWeight: 400 }}
             >
-              Send to Prospect
+              {t('sendModal.title')}
             </DialogTitle>
           </div>
 
           <div className="flex flex-col gap-[16px] p-[20px]">
             <div>
-              <label style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: '6px' }}>To</label>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: '6px' }}>{t('sendModal.to')}</label>
               <input
                 type="email"
                 value={sendModalEmail}
                 onChange={(e) => setSendModalEmail(e.target.value)}
-                placeholder="name@example.com"
+                placeholder={t('sendModal.emailPlaceholder')}
                 style={{ width: '100%', background: 'var(--cv-elevated)', border: '1px solid var(--cv-subtle-border)', borderRadius: '4px', padding: '8px 12px', fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', boxSizing: 'border-box' as const, outline: 'none' }}
               />
             </div>
 
             <div>
-              <label style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: '6px' }}>Subject</label>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: '6px' }}>{t('sendModal.subject')}</label>
               <input
                 type="text"
                 value={sendModalSubject}
@@ -1920,7 +1920,7 @@ export function Results() {
             </div>
 
             <div>
-              <label style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: '6px' }}>Message</label>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cv-secondary-text)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: '6px' }}>{t('sendModal.message')}</label>
               <textarea
                 value={sendModalBody}
                 onChange={(e) => setSendModalBody(e.target.value)}
@@ -1954,14 +1954,14 @@ export function Results() {
                   opacity: !sendModalEmail.trim() || !sendModalSubject.trim() || !sendModalBody.trim() ? 0.5 : 1,
                 }}
               >
-                {sendSendSuccess ? '✓ SENT' : sendingSend ? 'SENDING...' : 'SEND MESSAGE →'}
+                {sendSendSuccess ? t('sendModal.sent') : sendingSend ? t('sendModal.sending') : t('sendModal.send')}
               </button>
               <button
                 type="button"
                 onClick={() => setShowSendModal(false)}
                 style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
-                cancel
+                {t('sendModal.cancel')}
               </button>
             </div>
           </div>
