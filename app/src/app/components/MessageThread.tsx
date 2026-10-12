@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { authFetch } from '../../lib/apiAuth';
 import { messagePreviewText, normalizeMessageRow } from '../../lib/messageEntity';
 import { supabase } from '../../lib/supabase';
@@ -81,7 +82,7 @@ function formatMessageTimestamp(timestamp: string): string {
   return `${datePart} · ${timePart}`;
 }
 
-function groupIntoThreads(messages: Message[]): ThreadGroup[] {
+function groupIntoThreads(messages: Message[], t: (key: string) => string): ThreadGroup[] {
   const threadMap = new Map<string, Message[]>();
 
   for (const msg of messages) {
@@ -109,7 +110,7 @@ function groupIntoThreads(messages: Message[]): ThreadGroup[] {
         threadId,
         messages: sorted,
         startedAt,
-        subject: first.subject?.trim() || 'Message',
+        subject: first.subject?.trim() || t('subjectFallback'),
         lastPreview: messagePreviewText(last, 60),
       };
     })
@@ -223,6 +224,7 @@ function ThreadMessages({
 }
 
 export function MessageThread({ prospectId, prospectName, prospectEmail }: Props) {
+  const { t } = useTranslation('messages');
   const { agencyId, agencyName } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -267,7 +269,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
     setToEmail(prospectEmail ?? '');
   }, [prospectEmail]);
 
-  const threads = useMemo(() => groupIntoThreads(messages), [messages]);
+  const threads = useMemo(() => groupIntoThreads(messages, t), [messages, t]);
 
   useEffect(() => {
     if (loading || threads.length === 0) return;
@@ -358,7 +360,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
       } else {
         const data = await res.json().catch(() => ({}));
         setSendError(
-          (data as { error?: string }).error ?? 'Message could not be sent. Please try again.',
+          (data as { error?: string }).error ?? t('sendFailed'),
         );
       }
     } finally {
@@ -441,12 +443,12 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
               textTransform: 'uppercase',
             }}
           >
-            To
+            {t('to')}
           </label>
           <input
             id={`message-to-${prospectId}`}
             type="email"
-            placeholder="name@example.com"
+            placeholder={t('emailPlaceholder')}
             value={toEmail}
             onChange={(e) => setToEmail(e.target.value)}
             style={inputStyle}
@@ -470,7 +472,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                 color: 'var(--cv-secondary-text)',
               }}
             >
-              Loading...
+              {t('loading')}
             </div>
           )}
 
@@ -484,7 +486,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                 color: 'var(--cv-secondary-text)',
               }}
             >
-              No messages yet.
+              {t('noMessagesYet')}
             </div>
           )}
 
@@ -588,7 +590,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
 
                       <div style={{ marginTop: '12px' }}>
                         <textarea
-                          placeholder="Reply..."
+                          placeholder={t('replyPlaceholder')}
                           value={replyBody}
                           onChange={(e) =>
                             setReplyBodies((prev) => ({
@@ -629,7 +631,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                               !hasEmail || !replyBody.trim() ? 0.5 : 1,
                           }}
                         >
-                          {isSendingReply ? 'SENDING...' : 'SEND REPLY →'}
+                          {isSendingReply ? t('sending') : t('sendReply')}
                         </button>
                       </div>
                     </div>
@@ -658,7 +660,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                 cursor: 'pointer',
               }}
             >
-              + NEW CONVERSATION
+              {t('newConversation')}
             </button>
           )}
 
@@ -666,7 +668,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
             <div>
               <input
                 type="text"
-                placeholder="Subject"
+                placeholder={t('subjectPlaceholder')}
                 value={newSubject}
                 onChange={(e) => setNewSubject(e.target.value)}
                 disabled={sendingNew}
@@ -677,7 +679,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
               />
 
               <textarea
-                placeholder="Write your message..."
+                placeholder={t('writeMessagePlaceholder')}
                 value={newBody}
                 onChange={(e) => setNewBody(e.target.value)}
                 rows={3}
@@ -729,7 +731,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                         : 1,
                   }}
                 >
-                  {sendingNew ? 'SENDING...' : 'SEND MESSAGE →'}
+                  {sendingNew ? t('sending') : t('sendMessage')}
                 </button>
 
                 <button
@@ -749,7 +751,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
                     padding: 0,
                   }}
                 >
-                  cancel
+                  {t('cancel')}
                 </button>
               </div>
             </div>
