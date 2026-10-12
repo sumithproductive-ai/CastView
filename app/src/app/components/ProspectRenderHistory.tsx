@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ChevronRight, Upload, X } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
@@ -55,12 +56,12 @@ function getFitLabelColor(fitLabel: string) {
   return 'var(--cv-secondary-text)';
 }
 
-function digitalGridSlots(digitalSet: DigitalSet) {
+function digitalGridSlots(digitalSet: DigitalSet, t: (key: string) => string) {
   return [
-    { label: 'FRONT', url: digitalSet.front },
-    { label: 'PROFILE', url: digitalSet.profile },
-    { label: '3/4', url: digitalSet.threeQuarter },
-    { label: 'FULL BODY', url: digitalSet.fullBody },
+    { label: t('uploadForm.angleFront'), url: digitalSet.front },
+    { label: t('uploadForm.angleProfile'), url: digitalSet.profile },
+    { label: t('uploadForm.angleThreeQuarter'), url: digitalSet.threeQuarter },
+    { label: t('uploadForm.angleFullBody'), url: digitalSet.fullBody },
   ];
 }
 
@@ -173,6 +174,7 @@ function resolveProfileData(
 export function ProspectRenderHistory({
   profileType = 'prospect',
 }: ProspectRenderHistoryProps) {
+  const { t } = useTranslation('renderHistory');
   const { prospectId, modelId } = useParams();
   const [searchParams] = useSearchParams();
   const { agencyId } = useAuth();
@@ -302,7 +304,7 @@ export function ProspectRenderHistory({
   const canRunEvaluationOnSelected =
     selectedDigitalSetForEvaluation !== null &&
     (countDigitalsOnFile(selectedDigitalSetForEvaluation) > 0 || isProspect);
-  const runEvaluationDisabledTitle = 'Upload digitals before running evaluation';
+  const runEvaluationDisabledTitle = t('runEvaluationDisabled');
   const resolvedEntityId = isModel
     ? modelId ?? 'sumith-chittimalla-roster'
     : prospectId ?? 'sumith-chittimalla';
@@ -364,14 +366,14 @@ export function ProspectRenderHistory({
       if (openEvalId === evalId) setOpenEvalId(null);
     } catch (error) {
       console.error('[ProspectRenderHistory] delete evaluation failed:', error);
-      window.alert('Could not delete evaluation. Please try again.');
+      window.alert(t('deleteEvaluationFailed'));
     }
   };
 
   const handleBulkDelete = async () => {
     if (selectedEvalIds.size === 0) return;
     const confirmed = window.confirm(
-      `Delete ${selectedEvalIds.size} evaluation${selectedEvalIds.size !== 1 ? 's' : ''}? This cannot be undone.`,
+      t('deleteBulkConfirm', { count: selectedEvalIds.size }),
     );
     if (!confirmed) return;
     setBulkDeleting(true);
@@ -480,14 +482,14 @@ export function ProspectRenderHistory({
             className="text-[13px] mb-[16px]"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            Prospect not found.
+            {t('notFound.message')}
           </p>
           <Link
             to="/prospects"
             className="text-[13px] hover:opacity-70 transition-opacity"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
           >
-            ← Back to Prospects
+            {t('notFound.backLink')}
           </Link>
         </div>
       ) : (
@@ -498,7 +500,7 @@ export function ProspectRenderHistory({
           className="text-[13px] hover:opacity-70 transition-opacity"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
         >
-          {isModel ? 'Roster' : 'Prospects'}
+          {isModel ? t('breadcrumbRoster') : t('breadcrumbProspects')}
         </Link>
         <ChevronRight size={14} style={{ color: 'var(--cv-secondary-text)' }} />
         <span
@@ -539,7 +541,7 @@ export function ProspectRenderHistory({
           </div>
           <label
             style={{ cursor: 'pointer', display: 'block', marginTop: '6px' }}
-            title="Change profile photo"
+            title={t('changePhotoTitle')}
           >
             <div style={{
               fontFamily: 'var(--font-mono)',
@@ -549,7 +551,7 @@ export function ProspectRenderHistory({
               textAlign: 'center',
               textTransform: 'uppercase',
             }}>
-              CHANGE
+              {t('changePhoto')}
             </div>
             <input
               type="file"
@@ -574,7 +576,7 @@ export function ProspectRenderHistory({
         </div>
         <div className="flex-1 min-w-0">
           <p className="mb-[4px]" style={sectionLabelStyle}>
-            {isModel ? 'ROSTER MODEL' : 'PROSPECT PROFILE'}
+            {isModel ? t('rosterModel') : t('prospectProfile')}
           </p>
           <h1
             className="text-[40px] mb-[8px]"
@@ -583,9 +585,8 @@ export function ProspectRenderHistory({
             {activeProfile.name}
           </h1>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
-            {digitalSetCount} digital set{digitalSetCount !== 1 ? 's' : ''} · {totalEvaluations}{' '}
-            evaluation{totalEvaluations !== 1 ? 's' : ''} completed
-            {isProspect && activeProfile.signedDate ? ` · Signed ${activeProfile.signedDate}` : ''}
+            {t('digitalSetCount', { count: digitalSetCount })} · {t('evaluationCount', { count: totalEvaluations })}
+            {isProspect && activeProfile.signedDate ? t('signedSuffix', { date: activeProfile.signedDate }) : ''}
           </p>
         </div>
       </div>
@@ -615,9 +616,9 @@ export function ProspectRenderHistory({
                 opacity: canRunEvaluationOnSelected ? 1 : 0.4,
               }}
             >
-              RUN EVALUATION
+              {t('runEvaluation')}
               <span style={{ display: 'block', fontSize: '9px', opacity: 0.6, marginTop: '2px', letterSpacing: '0.08em' }}>
-                Select contexts →
+                {t('selectContexts')}
               </span>
             </button>
           </div>
@@ -631,7 +632,7 @@ export function ProspectRenderHistory({
                 className="flex items-center gap-[8px] bg-transparent border-none p-0 w-full mb-[0px]"
                 style={{ cursor: 'pointer' }}
               >
-                <span style={sectionLabelStyle}>MESSAGES</span>
+                <span style={sectionLabelStyle}>{t('messages')}</span>
                 <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
                   {isMessagesOpen ? '▲' : '▼'}
                 </span>
@@ -665,7 +666,7 @@ export function ProspectRenderHistory({
                 className="mb-[24px]"
                 style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}
               >
-                No digital sets uploaded yet.
+                {t('noDigitalSetsYet')}
               </p>
               <button
                 type="button"
@@ -675,7 +676,7 @@ export function ProspectRenderHistory({
                 className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
                 style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
               >
-                UPLOAD FIRST DIGITAL SET
+                {t('uploadFirstDigitalSet')}
               </button>
             </div>
           ) : allEvaluations.length > 0 ? (
@@ -688,7 +689,7 @@ export function ProspectRenderHistory({
                   style={{ cursor: 'pointer' }}
                 >
                   <span style={sectionLabelStyle}>
-                    EVALUATIONS {allEvaluations.length > 0 ? `(${allEvaluations.length})` : ''}
+                    {t('evaluationsHeading')} {allEvaluations.length > 0 ? `(${allEvaluations.length})` : ''}
                   </span>
                   <span style={{ ...sectionLabelStyle, fontSize: '8px' }}>
                     {evaluationsExpanded ? '▲' : '▼'}
@@ -714,7 +715,7 @@ export function ProspectRenderHistory({
                         marginRight: '12px',
                       }}
                     >
-                      {selectedEvalIds.size > 0 ? 'DESELECT ALL' : 'SELECT ALL'}
+                      {selectedEvalIds.size > 0 ? t('deselectAll') : t('selectAll')}
                     </span>
                     {selectedEvalIds.size > 0 && (
                       <button
@@ -735,7 +736,7 @@ export function ProspectRenderHistory({
                           cursor: 'pointer',
                         }}
                       >
-                        {bulkDeleting ? 'DELETING...' : `DELETE (${selectedEvalIds.size})`}
+                        {bulkDeleting ? t('deleting') : t('deleteCount', { count: selectedEvalIds.size })}
                       </button>
                     )}
                   </div>
@@ -824,9 +825,8 @@ export function ProspectRenderHistory({
                             flexShrink: 0,
                           }}
                         >
-                          {ev.contexts.length} context
-                          {ev.contexts.length !== 1 ? 's' : ''}
-                          {avgScore != null ? `  ·  avg ${avgScore}%` : ''}
+                          {t('contextCount', { count: ev.contexts.length })}
+                          {avgScore != null ? `  ·  ${t('avgScore', { score: avgScore })}` : ''}
                         </div>
 
                         <div
@@ -923,12 +923,12 @@ export function ProspectRenderHistory({
                               cursor: 'pointer',
                             }}
                           >
-                            VIEW FULL REPORT →
+                            {t('viewFullReport')}
                           </button>
                           <button
                             type="button"
                             onClick={async () => {
-                              if (!window.confirm('Delete this evaluation? This cannot be undone.')) return;
+                              if (!window.confirm(t('deleteEvaluationConfirm'))) return;
                               await removeEvaluationFromProfile(ev.id);
                             }}
                             style={{
@@ -944,7 +944,7 @@ export function ProspectRenderHistory({
                               textTransform: 'uppercase',
                             }}
                           >
-                            DELETE
+                            {t('delete')}
                           </button>
                         </div>
                       )}
@@ -978,10 +978,10 @@ export function ProspectRenderHistory({
                   textTransform: 'uppercase',
                 }}
               >
-                Signed Status
+                {t('signedStatus.label')}
               </div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cv-secondary-text)', opacity: 0.5, marginTop: '2px' }}>
-                Contract stage
+                {t('signedStatus.sublabel')}
               </div>
             </div>
             <select
@@ -1019,9 +1019,9 @@ export function ProspectRenderHistory({
                 width: '100%',
               }}
             >
-              <option value="pending">PENDING</option>
-              <option value="signed">SIGNED</option>
-              <option value="passed">PASSED</option>
+              <option value="pending">{t('signedStatus.pending')}</option>
+              <option value="signed">{t('signedStatus.signed')}</option>
+              <option value="passed">{t('signedStatus.passed')}</option>
             </select>
 
             <div style={{ marginTop: '16px', marginBottom: '6px' }}>
@@ -1034,10 +1034,10 @@ export function ProspectRenderHistory({
                   textTransform: 'uppercase',
                 }}
               >
-                Current Status
+                {t('currentStatus.label')}
               </div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cv-secondary-text)', opacity: 0.5, marginTop: '2px' }}>
-                Pipeline position
+                {t('currentStatus.sublabel')}
               </div>
             </div>
             <div
@@ -1059,7 +1059,7 @@ export function ProspectRenderHistory({
                   className="flex-1 px-[12px] py-[8px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
                 >
-                  SHORTLIST
+                  {t('shortlist')}
                 </button>
                 <button
                   type="button"
@@ -1067,7 +1067,7 @@ export function ProspectRenderHistory({
                   className="flex-1 px-[12px] py-[8px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
                 >
-                  PASS
+                  {t('pass')}
                 </button>
               </div>
             )}
@@ -1085,7 +1085,7 @@ export function ProspectRenderHistory({
                   textTransform: 'uppercase',
                 }}
               >
-                DIGITALS
+                {t('digitalsSection.heading')}
               </div>
               <button
                 type="button"
@@ -1103,7 +1103,7 @@ export function ProspectRenderHistory({
                   opacity: 0.7,
                 }}
               >
-                HOW TO USE
+                {t('digitalsSection.howToUse')}
               </button>
             </div>
             <div
@@ -1114,7 +1114,7 @@ export function ProspectRenderHistory({
                 marginBottom: '14px',
               }}
             >
-              {digitalSetCount} set{digitalSetCount !== 1 ? 's' : ''}
+              {t('digitalsSection.setCount', { count: digitalSetCount })}
             </div>
             <div className="flex flex-col gap-[8px]">
               <button
@@ -1123,7 +1123,7 @@ export function ProspectRenderHistory({
                 className="w-full px-[12px] py-[8px] border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] transition-colors"
                 style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
               >
-                VIEW DIGITALS
+                {t('digitalsSection.viewDigitals')}
               </button>
               <button
                 type="button"
@@ -1146,7 +1146,7 @@ export function ProspectRenderHistory({
                   opacity: canCompare ? 1 : 0.4,
                 }}
               >
-                {compareSelectMode ? 'CANCEL COMPARE' : 'COMPARE DIGITALS'}
+                {compareSelectMode ? t('digitalsSection.cancelCompare') : t('digitalsSection.compareDigitals')}
               </button>
               {!canCompare && (
                 <p
@@ -1160,7 +1160,7 @@ export function ProspectRenderHistory({
                     opacity: 0.6,
                   }}
                 >
-                  Add another set to compare progress.
+                  {t('digitalsSection.addAnotherToCompare')}
                 </p>
               )}
               <button
@@ -1172,7 +1172,7 @@ export function ProspectRenderHistory({
                 className="w-full px-[12px] py-[8px] border border-[var(--cv-subtle-border)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:border-[var(--cv-primary-text)] transition-colors"
                 style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}
               >
-                UPLOAD NEW DIGITAL SET
+                {t('digitalsSection.uploadNewSet')}
               </button>
             </div>
           </div>
@@ -1192,7 +1192,7 @@ export function ProspectRenderHistory({
                 className="w-full px-[12px] py-[8px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[10px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
                 style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
               >
-                SHARE DEVELOPMENT REPORT
+                {t('shareDevelopmentReport')}
               </button>
             </div>
           )}
@@ -1206,13 +1206,13 @@ export function ProspectRenderHistory({
               <div className="space-y-[16px]">
                 <div>
                   <label className="block mb-[8px]" style={formFieldLabelStyle}>
-                    SET TITLE
+                    {t('uploadForm.setTitle')}
                   </label>
                   <input
                     type="text"
                     value={uploadForm.title}
                     onChange={(e) => setUploadForm((prev) => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g. Post-Cut Digitals, July 2026 Update"
+                    placeholder={t('uploadForm.setTitlePlaceholder')}
                     className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                     style={formInputStyle}
                   />
@@ -1220,13 +1220,13 @@ export function ProspectRenderHistory({
 
                 <div>
                   <label className="block mb-[8px]" style={formFieldLabelStyle}>
-                    DATE
+                    {t('uploadForm.date')}
                   </label>
                   <input
                     type="text"
                     value={uploadForm.date}
                     onChange={(e) => setUploadForm((prev) => ({ ...prev, date: e.target.value }))}
-                    placeholder="e.g. June 2026"
+                    placeholder={t('uploadForm.datePlaceholder')}
                     className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                     style={formInputStyle}
                   />
@@ -1234,11 +1234,11 @@ export function ProspectRenderHistory({
 
                 {(
                   [
-                    { key: 'front' as const, label: 'FRONT' },
-                    { key: 'profile' as const, label: 'PROFILE' },
-                    { key: 'threeQuarter' as const, label: '3/4' },
-                    { key: 'fullBody' as const, label: 'FULL BODY' },
-                  ] as const
+                    { key: 'front' as const, label: t('uploadForm.angleFront') },
+                    { key: 'profile' as const, label: t('uploadForm.angleProfile') },
+                    { key: 'threeQuarter' as const, label: t('uploadForm.angleThreeQuarter') },
+                    { key: 'fullBody' as const, label: t('uploadForm.angleFullBody') },
+                  ]
                 ).map((field) => {
                   const fieldKey = field.key;
                   const imageUrl = uploadForm[fieldKey];
@@ -1318,7 +1318,7 @@ export function ProspectRenderHistory({
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            {uploadFileNames[fieldKey] ?? 'Uploaded'}
+                            {uploadFileNames[fieldKey] ?? t('uploadForm.uploaded')}
                           </div>
                           <button
                             type="button"
@@ -1390,13 +1390,13 @@ export function ProspectRenderHistory({
 
                 <div>
                   <label className="block mb-[8px]" style={formFieldLabelStyle}>
-                    NOTES
+                    {t('uploadForm.notes')}
                   </label>
                   <textarea
                     rows={2}
                     value={uploadForm.notes}
                     onChange={(e) => setUploadForm((prev) => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Optional notes about this set"
+                    placeholder={t('uploadForm.notesPlaceholder')}
                     className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none"
                     style={formInputStyle}
                   />
@@ -1404,13 +1404,13 @@ export function ProspectRenderHistory({
 
                 <div>
                   <label className="block mb-[8px]" style={formFieldLabelStyle}>
-                    TAGS
+                    {t('uploadForm.tags')}
                   </label>
                   <input
                     type="text"
                     value={uploadForm.tags}
                     onChange={(e) => setUploadForm((prev) => ({ ...prev, tags: e.target.value }))}
-                    placeholder="e.g. post-shoot, updated, cut"
+                    placeholder={t('uploadForm.tagsPlaceholder')}
                     className="w-full px-[12px] py-[12px] bg-[var(--cv-elevated)] border border-[var(--cv-subtle-border)] rounded-[4px]"
                     style={formInputStyle}
                   />
@@ -1428,7 +1428,7 @@ export function ProspectRenderHistory({
                       cursor: 'pointer',
                     }}
                   >
-                    SAVE DIGITAL SET
+                    {t('uploadForm.save')}
                   </button>
                   <button
                     type="button"
@@ -1436,7 +1436,7 @@ export function ProspectRenderHistory({
                     className="flex-1 py-[12px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
                     style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
                   >
-                    CANCEL
+                    {t('uploadForm.cancel')}
                   </button>
                 </div>
               </div>
@@ -1461,7 +1461,7 @@ export function ProspectRenderHistory({
                 color: 'var(--cv-primary-text)',
               }}
             >
-              Delete evaluation?
+              {t('deleteEvalModal.title')}
             </h3>
             <p
               className="mb-[24px]"
@@ -1472,8 +1472,7 @@ export function ProspectRenderHistory({
                 lineHeight: 1.8,
               }}
             >
-              This will permanently remove this evaluation from the digital set.
-              This cannot be undone.
+              {t('deleteEvalModal.body')}
             </p>
             <div className="flex gap-[12px]">
               <button
@@ -1485,7 +1484,7 @@ export function ProspectRenderHistory({
                   color: 'var(--cv-secondary-text)',
                 }}
               >
-                CANCEL
+                {t('deleteEvalModal.cancel')}
               </button>
               <button
                 type="button"
@@ -1497,7 +1496,7 @@ export function ProspectRenderHistory({
                   color: 'var(--cv-background)',
                 }}
               >
-                DELETE
+                {t('deleteEvalModal.delete')}
               </button>
             </div>
           </div>
@@ -1514,7 +1513,7 @@ export function ProspectRenderHistory({
           }}
         >
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
-            Status updated
+            {t('statusUpdated')}
           </span>
           <button
             onClick={handleUndoStatusChange}
@@ -1526,7 +1525,7 @@ export function ProspectRenderHistory({
               cursor: 'pointer',
             }}
           >
-            UNDO
+            {t('undo')}
           </button>
         </div>
       )}
@@ -1569,11 +1568,11 @@ export function ProspectRenderHistory({
                   marginBottom: '24px',
                 }}
               >
-                {compareSelectMode ? 'SELECT TWO DIGITALS TO COMPARE' : 'DIGITALS'}
+                {compareSelectMode ? t('digitalsModal.selectTwoToCompare') : t('digitalsModal.heading')}
               </div>
               {digitalSetsForDisplay.length === 0 ? (
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
-                  No digital sets uploaded yet.
+                  {t('digitalsModal.noneUploaded')}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1641,7 +1640,7 @@ export function ProspectRenderHistory({
                             {ds.title && ds.title !== 'Untitled Set' ? ds.title : ds.uploadedAt}
                           </div>
                           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
-                            {countDigitalsOnFile(ds)} digital{countDigitalsOnFile(ds) !== 1 ? 's' : ''} · {ds.uploadedAt}
+                            {t('digitalsModal.digitalCount', { count: countDigitalsOnFile(ds) })} · {ds.uploadedAt}
                           </div>
                         </div>
                       </button>
@@ -1670,7 +1669,7 @@ export function ProspectRenderHistory({
                     border: 'none',
                   }}
                 >
-                  CONFIRM COMPARISON →
+                  {t('digitalsModal.confirmComparison')}
                 </button>
               )}
               {compareSelectMode && !canCompare && (
@@ -1683,7 +1682,7 @@ export function ProspectRenderHistory({
                     fontStyle: 'italic',
                   }}
                 >
-                  Upload a second digital set to compare progression.
+                  {t('digitalsModal.uploadSecondToCompare')}
                 </p>
               )}
             </div>
@@ -1706,7 +1705,7 @@ export function ProspectRenderHistory({
                   display: 'block',
                 }}
               >
-                ← BACK
+                {t('digitalsModal.back')}
               </button>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', marginBottom: '4px' }}>
                 {selectedDigitalSet.title && selectedDigitalSet.title !== 'Untitled Set'
@@ -1717,7 +1716,7 @@ export function ProspectRenderHistory({
                 {selectedDigitalSet.uploadedAt}
               </div>
               <div className="grid grid-cols-2 gap-4">
-                {digitalGridSlots(selectedDigitalSet).map((d) => (
+                {digitalGridSlots(selectedDigitalSet, t).map((d) => (
                   <div key={d.label}>
                     <div
                       style={{
