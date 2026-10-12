@@ -22,6 +22,10 @@ import enRenderHistory from '../locales/en/renderHistory.json';
 import esRenderHistory from '../locales/es/renderHistory.json';
 import enResults from '../locales/en/results.json';
 import esResults from '../locales/es/results.json';
+import enCompare from '../locales/en/compare.json';
+import esCompare from '../locales/es/compare.json';
+import enMessages from '../locales/en/messages.json';
+import esMessages from '../locales/es/messages.json';
 
 // Per-user display language — deliberately separate from the agency-level
 // "AI Output Language" setting (Settings → Agency), which only affects
@@ -43,8 +47,8 @@ export function readStoredLanguage(): SupportedLanguage {
 
 void i18n.use(initReactI18next).init({
   resources: {
-    en: { common: enCommon, dashboard: enDashboard, settings: enSettings, prospects: enProspects, roster: enRoster, inbox: enInbox, newEntry: enNewEntry, profile: enProfile, rendering: enRendering, renderHistory: enRenderHistory, results: enResults },
-    es: { common: esCommon, dashboard: esDashboard, settings: esSettings, prospects: esProspects, roster: esRoster, inbox: esInbox, newEntry: esNewEntry, profile: esProfile, rendering: esRendering, renderHistory: esRenderHistory, results: esResults },
+    en: { common: enCommon, dashboard: enDashboard, settings: enSettings, prospects: enProspects, roster: enRoster, inbox: enInbox, newEntry: enNewEntry, profile: enProfile, rendering: enRendering, renderHistory: enRenderHistory, results: enResults, compare: enCompare, messages: enMessages },
+    es: { common: esCommon, dashboard: esDashboard, settings: esSettings, prospects: esProspects, roster: esRoster, inbox: esInbox, newEntry: esNewEntry, profile: esProfile, rendering: esRendering, renderHistory: esRenderHistory, results: esResults, compare: esCompare, messages: esMessages },
   },
   lng: readStoredLanguage(),
   fallbackLng: 'en',

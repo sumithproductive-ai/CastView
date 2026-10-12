@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import {
   createCastviewPdf,
@@ -25,10 +26,10 @@ import {
   type ComparisonStorageData,
 } from '../../lib/comparisonStorage';
 
-function getDigitalSetDisplayTitle(title: string | null | undefined): string {
+function getDigitalSetDisplayTitle(title: string | null | undefined, t: (key: string) => string): string {
   const trimmed = title?.trim();
   if (!trimmed || trimmed === 'Untitled Set') {
-    return 'Unnamed Set';
+    return t('unnamedSet');
   }
   return trimmed;
 }
@@ -45,17 +46,18 @@ function toScoreLabel(date: string | null | undefined) {
   return `${month.slice(0, 3).toUpperCase()} ${year}`;
 }
 
-function getCompareChangeTag(direction: ComparisonDirection) {
+function getCompareChangeTag(direction: ComparisonDirection, t: (key: string) => string) {
   if (direction === 'improved') {
-    return { text: 'IMPROVED', color: '#4a7a4a' };
+    return { text: t('results.improved'), color: '#4a7a4a' };
   }
   if (direction === 'declined') {
-    return { text: 'DECLINED', color: '#c87a7a' };
+    return { text: t('results.declined'), color: '#c87a7a' };
   }
-  return { text: 'STABLE', color: 'var(--cv-secondary-text)' };
+  return { text: t('results.stable'), color: 'var(--cv-secondary-text)' };
 }
 
 export function CompareResults() {
+  const { t } = useTranslation('compare');
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -86,6 +88,11 @@ export function CompareResults() {
   const generatePDF = () => {
     if (!comparisonData) return;
 
+    const pdfDisplayTitle = (title: string | null | undefined) => {
+      const trimmed = title?.trim();
+      return !trimmed || trimmed === 'Untitled Set' ? 'Unnamed Set' : trimmed;
+    };
+
     const pdf = createCastviewPdf();
     pdfDrawHeader(pdf);
     pdfDrawProspectSection(pdf, prospectName);
@@ -94,7 +101,7 @@ export function CompareResults() {
     pdfDrawSectionTitle(pdf, 'Progression Report');
     pdfDrawSubtitle(
       pdf,
-      `${getDigitalSetDisplayTitle(comparisonData.previousSet.title)} (${comparisonData.previousSet.date}) -> ${getDigitalSetDisplayTitle(comparisonData.currentSet.title)} (${comparisonData.currentSet.date})`,
+      `${pdfDisplayTitle(comparisonData.previousSet.title)} (${comparisonData.previousSet.date}) -> ${pdfDisplayTitle(comparisonData.currentSet.title)} (${comparisonData.currentSet.date})`,
     );
 
     comparisonData.results.forEach((result) => {
@@ -141,7 +148,7 @@ export function CompareResults() {
             color: 'var(--cv-secondary-text)',
           }}
         >
-          No comparison data found.
+          {t('results.noDataFound')}
         </p>
         <button
           type="button"
@@ -153,7 +160,7 @@ export function CompareResults() {
             cursor: 'pointer',
           }}
         >
-          BACK
+          {t('results.back')}
         </button>
       </div>
     );
@@ -182,7 +189,7 @@ export function CompareResults() {
             padding: 0,
           }}
         >
-          ← BACK TO PROFILE
+          {t('results.backToProfile')}
         </button>
 
         <button
@@ -195,7 +202,7 @@ export function CompareResults() {
             cursor: 'pointer',
           }}
         >
-          EXPORT PDF
+          {t('results.exportPdf')}
         </button>
       </div>
 
@@ -207,7 +214,7 @@ export function CompareResults() {
           color: 'var(--cv-primary-text)',
         }}
       >
-        {prospectName} — Progression Report
+        {t('results.title', { name: prospectName })}
       </h1>
 
       <p
@@ -218,8 +225,8 @@ export function CompareResults() {
           color: 'var(--cv-secondary-text)',
         }}
       >
-        {getDigitalSetDisplayTitle(comparisonData.previousSet.title)} →{' '}
-        {getDigitalSetDisplayTitle(comparisonData.currentSet.title)}
+        {getDigitalSetDisplayTitle(comparisonData.previousSet.title, t)} →{' '}
+        {getDigitalSetDisplayTitle(comparisonData.currentSet.title, t)}
       </p>
 
       <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[20px] mb-[32px] flex gap-[24px]">
@@ -227,19 +234,19 @@ export function CompareResults() {
           [
             {
               key: 'improved' as const,
-              label: 'IMPROVED',
+              label: t('results.improved'),
               color: '#4a7a4a',
               count: comparisonData.improvedCount,
             },
             {
               key: 'stable' as const,
-              label: 'STABLE',
+              label: t('results.stable'),
               color: 'var(--cv-secondary-text)',
               count: comparisonData.stableCount,
             },
             {
               key: 'declined' as const,
-              label: 'DECLINED',
+              label: t('results.declined'),
               color: '#c87a7a',
               count: comparisonData.declinedCount,
             },
@@ -273,7 +280,7 @@ export function CompareResults() {
 
       <div>
         {comparisonData.results.map((result) => {
-          const changeTag = getCompareChangeTag(result.direction);
+          const changeTag = getCompareChangeTag(result.direction, t);
           const isOpen = openContext === result.context;
           return (
             <div key={result.context}>
@@ -409,7 +416,7 @@ export function CompareResults() {
                       letterSpacing: '0.1em',
                     }}
                   >
-                    ANALYSIS
+                    {t('results.analysis')}
                   </div>
                   <p
                     className="mb-[16px]"
@@ -432,7 +439,7 @@ export function CompareResults() {
                       letterSpacing: '0.1em',
                     }}
                   >
-                    SUGGESTED NEXT STEP
+                    {t('results.suggestedNextStep')}
                   </div>
                   <p
                     className="mb-[16px]"
@@ -456,10 +463,10 @@ export function CompareResults() {
                     }}
                   >
                     {result.newScore > result.oldScore
-                      ? `▲ +${result.newScore - result.oldScore} from previous set`
+                      ? t('results.deltaIncrease', { delta: result.newScore - result.oldScore })
                       : result.newScore < result.oldScore
-                      ? `▼ ${result.newScore - result.oldScore} from previous set`
-                      : `→ No change from previous set`}
+                      ? t('results.deltaDecrease', { delta: result.newScore - result.oldScore })
+                      : t('results.deltaNoChange')}
                   </div>
 
                   <div
@@ -471,7 +478,7 @@ export function CompareResults() {
                       letterSpacing: '0.1em',
                     }}
                   >
-                    AGENT NOTE
+                    {t('results.agentNote')}
                   </div>
                   <textarea
                     value={agentNotes[result.context] ?? ''}
@@ -481,7 +488,7 @@ export function CompareResults() {
                         [result.context]: e.target.value,
                       }))
                     }
-                    placeholder="Add agent note for this context..."
+                    placeholder={t('results.agentNotePlaceholder')}
                     rows={2}
                     className="w-full px-[12px] py-[10px] bg-[var(--cv-background)] border border-[var(--cv-subtle-border)] rounded-[4px] resize-none"
                     style={{

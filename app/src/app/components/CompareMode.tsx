@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import type { DigitalSet } from '../types/talent';
 import { useProspects } from '../context/ProspectsContext';
@@ -23,10 +24,10 @@ type DigitalSetOption = {
   fullBody: string | null;
 };
 
-function getDigitalSetDisplayTitle(title: string | null | undefined): string {
+function getDigitalSetDisplayTitle(title: string | null | undefined, t: (key: string) => string): string {
   const trimmed = title?.trim();
   if (!trimmed || trimmed === 'Untitled Set') {
-    return 'Unnamed Set';
+    return t('unnamedSet');
   }
   return trimmed;
 }
@@ -79,6 +80,7 @@ const sectionLabelStyle = {
 };
 
 export function CompareMode() {
+  const { t } = useTranslation('compare');
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -169,7 +171,7 @@ export function CompareMode() {
           className="mb-[24px] max-w-[420px]"
           style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
         >
-          No digital sets on file. Upload digitals from the prospect profile to begin comparing.
+          {t('zeroState.noSets')}
         </p>
         <button
           type="button"
@@ -177,7 +179,7 @@ export function CompareMode() {
           className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
         >
-          UPLOAD NEW DIGITAL SET
+          {t('zeroState.uploadNewSet')}
         </button>
       </div>
     );
@@ -191,13 +193,13 @@ export function CompareMode() {
           className="mb-[12px] max-w-[420px]"
           style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
         >
-          Upload a second digital set to compare progression.
+          {t('zeroState.needSecondSet')}
         </p>
         <p
           className="mb-[24px]"
           style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)', lineHeight: 1.6 }}
         >
-          {getDigitalSetDisplayTitle(onlySet.title)} · {onlySet.date}
+          {getDigitalSetDisplayTitle(onlySet.title, t)} · {onlySet.date}
         </p>
         <button
           type="button"
@@ -205,7 +207,7 @@ export function CompareMode() {
           className="px-[16px] py-[10px] border border-[var(--cv-primary-text)] bg-transparent rounded-[4px] text-[11px] uppercase tracking-[0.1em] hover:bg-[var(--cv-primary-text)] hover:text-[var(--cv-background)] transition-colors"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-primary-text)', cursor: 'pointer' }}
         >
-          UPLOAD NEW DIGITAL SET
+          {t('zeroState.uploadNewSet')}
         </button>
       </div>
     );
@@ -238,7 +240,7 @@ export function CompareMode() {
     if (!previousSet || !currentSet) return;
 
     setIsComparing(true);
-    setComparingStatus('Compressing digitals...');
+    setComparingStatus(t('status.compressingDigitals'));
 
     try {
       // Compress images for both sets
@@ -268,7 +270,7 @@ export function CompareMode() {
         return compressed.filter((img): img is NonNullable<typeof img> => Boolean(img));
       };
 
-      setComparingStatus('Preparing digital sets...');
+      setComparingStatus(t('status.preparingSets'));
       const [prevImages, currImages] = await Promise.all([
         compressSet(previousSet, 'before'),
         compressSet(currentSet, 'after'),
@@ -287,10 +289,10 @@ export function CompareMode() {
         });
         setCompareError(
           prevImages.length === 0 && currImages.length === 0
-            ? 'Could not load images from either digital set. Re-upload digitals for both sets, then try again.'
+            ? t('errors.noImagesEither')
             : prevImages.length === 0
-              ? 'Could not load images from the BEFORE digital set. Re-upload digitals for that set, then try again.'
-              : 'Could not load images from the AFTER digital set. Re-upload digitals for that set, then try again.',
+              ? t('errors.noImagesBefore')
+              : t('errors.noImagesAfter'),
         );
         return;
       }
@@ -308,7 +310,7 @@ export function CompareMode() {
       for (let i = 0; i < selectedContexts.length; i++) {
         const context = selectedContexts[i];
         setComparingStatus(
-          `Evaluating ${context}... (${i + 1} of ${selectedContexts.length})`,
+          t('status.evaluatingContext', { context, current: i + 1, total: selectedContexts.length }),
         );
 
         // Evaluate previous and current set in parallel for this context
@@ -348,18 +350,18 @@ export function CompareMode() {
           reasoning: currEval.reasoning,
           nextStep:
             currEval.suggestedNextSteps?.[0] ??
-            'Reassess after next digital set upload.',
+            t('reassessFallback'),
         });
       }
 
       if (comparisonResults.length === 0) {
         setIsComparing(false);
         setComparingStatus('');
-        setCompareError('Evaluation failed for all selected contexts. Please try again.');
+        setCompareError(t('errors.allContextsFailed'));
         return;
       }
 
-      setComparingStatus('Building report...');
+      setComparingStatus(t('status.buildingReport'));
 
       const comparisonPayload = {
         results: comparisonResults,
@@ -389,7 +391,7 @@ export function CompareMode() {
       console.error('[CompareMode] comparison error:', err);
       setIsComparing(false);
       setComparingStatus('');
-      setCompareError('Something went wrong during comparison. Please try again.');
+      setCompareError(t('errors.somethingWrong'));
     }
   };
 
@@ -411,7 +413,7 @@ export function CompareMode() {
           display: 'block',
         }}
       >
-        ← BACK
+        {t('back')}
       </button>
 
       <div className="flex items-baseline justify-between mb-[20px] flex-shrink-0">
@@ -424,7 +426,7 @@ export function CompareMode() {
                 color: 'var(--cv-secondary-text)',
               }}
             >
-              Prospects › {prospectName} › Compare
+              {t('breadcrumbProspects')} › {prospectName} › {t('breadcrumbCompare')}
             </span>
           </div>
           <h1
@@ -436,7 +438,7 @@ export function CompareMode() {
               lineHeight: 1.1,
             }}
           >
-            Digital Set Comparison
+            {t('title')}
           </h1>
           <p
             style={{
@@ -446,8 +448,8 @@ export function CompareMode() {
               marginTop: '4px',
             }}
           >
-            {prospectName} · {getDigitalSetDisplayTitle(previousSet.title)} ·{' '}
-            {previousSet.date} → {getDigitalSetDisplayTitle(currentSet.title)} ·{' '}
+            {prospectName} · {getDigitalSetDisplayTitle(previousSet.title, t)} ·{' '}
+            {previousSet.date} → {getDigitalSetDisplayTitle(currentSet.title, t)} ·{' '}
             {currentSet.date}
           </p>
         </div>
@@ -466,14 +468,14 @@ export function CompareMode() {
             padding: 0,
           }}
         >
-          HOW TO USE COMPARE MODE
+          {t('howToUse')}
         </button>
       </div>
 
       {/* STEP 1 — Digital Set Selection */}
       <div className="mb-[32px]" data-tutorial="compare-selectors">
         <div className="mb-[12px]" style={sectionLabelStyle}>
-          SELECT 2 DIGITAL SETS TO COMPARE
+          {t('selectSetsLabel')}
         </div>
         <div className="space-y-[8px]">
           {prospectDigitalSets.map((set) => {
@@ -554,7 +556,7 @@ export function CompareMode() {
                       color: 'var(--cv-primary-text)',
                     }}
                   >
-                    {set.date || getDigitalSetDisplayTitle(set.title)}
+                    {set.date || getDigitalSetDisplayTitle(set.title, t)}
                   </div>
                   <div
                     style={{
@@ -578,7 +580,7 @@ export function CompareMode() {
                       flexShrink: 0,
                     }}
                   >
-                    {selectionIndex === 0 ? 'BEFORE' : 'AFTER'}
+                    {selectionIndex === 0 ? t('before') : t('after')}
                   </div>
                 )}
               </button>
@@ -594,9 +596,10 @@ export function CompareMode() {
               marginTop: '10px',
             }}
           >
-            Comparing{' '}
-            {prospectDigitalSets.find((s) => s.id === selectedSetIds[0])?.date} →{' '}
-            {prospectDigitalSets.find((s) => s.id === selectedSetIds[1])?.date}
+            {t('comparingDates', {
+              from: prospectDigitalSets.find((s) => s.id === selectedSetIds[0])?.date,
+              to: prospectDigitalSets.find((s) => s.id === selectedSetIds[1])?.date,
+            })}
           </div>
         )}
       </div>
@@ -604,7 +607,7 @@ export function CompareMode() {
       {/* STEP 2 — Context Selection */}
       <div className="mb-[24px]">
         <div className="mb-[12px]" style={sectionLabelStyle}>
-          SELECT CONTEXTS TO COMPARE
+          {t('selectContextsLabel')}
         </div>
         <div className="grid grid-cols-5 gap-[12px]" data-tutorial="compare-contexts">
           {contexts.map((context) => {
@@ -641,7 +644,7 @@ export function CompareMode() {
               padding: 0,
             }}
           >
-            SELECT ALL
+            {t('selectAll')}
           </button>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
             ·
@@ -659,7 +662,7 @@ export function CompareMode() {
               padding: 0,
             }}
           >
-            CLEAR
+            {t('clear')}
           </button>
         </div>
       </div>
@@ -683,7 +686,7 @@ export function CompareMode() {
             selectedContexts.length === 0 || selectedSetIds.length !== 2 ? 0.4 : 1,
         }}
       >
-        {isComparing ? comparingStatus || 'COMPARING...' : 'RUN COMPARISON'}
+        {isComparing ? comparingStatus || t('status.comparing') : t('runComparison')}
       </button>
 
       {compareError && (

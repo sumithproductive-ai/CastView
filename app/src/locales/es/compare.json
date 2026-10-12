@@ -1,0 +1,53 @@
+{
+  "unnamedSet": "Conjunto sin nombre",
+  "zeroState": {
+    "noSets": "No hay conjuntos digitales registrados. Sube digitales desde el perfil del prospecto para empezar a comparar.",
+    "uploadNewSet": "SUBIR NUEVO CONJUNTO DIGITAL",
+    "needSecondSet": "Sube un segundo conjunto digital para comparar el progreso."
+  },
+  "status": {
+    "compressingDigitals": "Comprimiendo digitales...",
+    "preparingSets": "Preparando conjuntos digitales...",
+    "evaluatingContext": "Evaluando {{context}}... ({{current}} de {{total}})",
+    "buildingReport": "Generando informe...",
+    "comparing": "COMPARANDO..."
+  },
+  "errors": {
+    "noImagesEither": "No se pudieron cargar imágenes de ninguno de los dos conjuntos digitales. Vuelve a subir los digitales de ambos conjuntos e inténtalo de nuevo.",
+    "noImagesBefore": "No se pudieron cargar imágenes del conjunto digital ANTES. Vuelve a subir los digitales de ese conjunto e inténtalo de nuevo.",
+    "noImagesAfter": "No se pudieron cargar imágenes del conjunto digital DESPUÉS. Vuelve a subir los digitales de ese conjunto e inténtalo de nuevo.",
+    "allContextsFailed": "La evaluación falló en todos los contextos seleccionados. Inténtalo de nuevo.",
+    "somethingWrong": "Algo salió mal durante la comparación. Inténtalo de nuevo."
+  },
+  "reassessFallback": "Reevaluar después de la próxima subida de conjunto digital.",
+  "back": "← ATRÁS",
+  "breadcrumbProspects": "Prospectos",
+  "breadcrumbCompare": "Comparar",
+  "title": "Comparación de conjuntos digitales",
+  "howToUse": "CÓMO USAR EL MODO COMPARAR",
+  "selectSetsLabel": "SELECCIONA 2 CONJUNTOS DIGITALES PARA COMPARAR",
+  "before": "ANTES",
+  "after": "DESPUÉS",
+  "comparingDates": "Comparando {{from}} → {{to}}",
+  "selectContextsLabel": "SELECCIONA CONTEXTOS PARA COMPARAR",
+  "selectAll": "SELECCIONAR TODO",
+  "clear": "LIMPIAR",
+  "runComparison": "EJECUTAR COMPARACIÓN",
+  "results": {
+    "noDataFound": "No se encontraron datos de comparación.",
+    "back": "ATRÁS",
+    "backToProfile": "← VOLVER AL PERFIL",
+    "exportPdf": "EXPORTAR PDF",
+    "title": "{{name}} — Informe de progresión",
+    "improved": "MEJORADO",
+    "stable": "ESTABLE",
+    "declined": "DISMINUIDO",
+    "analysis": "ANÁLISIS",
+    "suggestedNextStep": "PRÓXIMO PASO SUGERIDO",
+    "agentNote": "NOTA DEL AGENTE",
+    "agentNotePlaceholder": "Añade una nota del agente para este contexto...",
+    "deltaIncrease": "▲ +{{delta}} respecto al conjunto anterior",
+    "deltaDecrease": "▼ {{delta}} respecto al conjunto anterior",
+    "deltaNoChange": "→ Sin cambios respecto al conjunto anterior"
+  }
+}

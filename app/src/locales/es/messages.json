@@ -1,0 +1,16 @@
+{
+  "subjectFallback": "Mensaje",
+  "sendFailed": "No se pudo enviar el mensaje. Inténtalo de nuevo.",
+  "to": "Para",
+  "emailPlaceholder": "nombre@ejemplo.com",
+  "loading": "Cargando...",
+  "noMessagesYet": "Aún no hay mensajes.",
+  "replyPlaceholder": "Responder...",
+  "sending": "ENVIANDO...",
+  "sendReply": "ENVIAR RESPUESTA →",
+  "newConversation": "+ NUEVA CONVERSACIÓN",
+  "subjectPlaceholder": "Asunto",
+  "writeMessagePlaceholder": "Escribe tu mensaje...",
+  "sendMessage": "ENVIAR MENSAJE →",
+  "cancel": "cancelar"
+}

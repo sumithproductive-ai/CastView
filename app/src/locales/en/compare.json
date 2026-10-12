@@ -1,0 +1,53 @@
+{
+  "unnamedSet": "Unnamed Set",
+  "zeroState": {
+    "noSets": "No digital sets on file. Upload digitals from the prospect profile to begin comparing.",
+    "uploadNewSet": "UPLOAD NEW DIGITAL SET",
+    "needSecondSet": "Upload a second digital set to compare progression."
+  },
+  "status": {
+    "compressingDigitals": "Compressing digitals...",
+    "preparingSets": "Preparing digital sets...",
+    "evaluatingContext": "Evaluating {{context}}... ({{current}} of {{total}})",
+    "buildingReport": "Building report...",
+    "comparing": "COMPARING..."
+  },
+  "errors": {
+    "noImagesEither": "Could not load images from either digital set. Re-upload digitals for both sets, then try again.",
+    "noImagesBefore": "Could not load images from the BEFORE digital set. Re-upload digitals for that set, then try again.",
+    "noImagesAfter": "Could not load images from the AFTER digital set. Re-upload digitals for that set, then try again.",
+    "allContextsFailed": "Evaluation failed for all selected contexts. Please try again.",
+    "somethingWrong": "Something went wrong during comparison. Please try again."
+  },
+  "reassessFallback": "Reassess after next digital set upload.",
+  "back": "← BACK",
+  "breadcrumbProspects": "Prospects",
+  "breadcrumbCompare": "Compare",
+  "title": "Digital Set Comparison",
+  "howToUse": "HOW TO USE COMPARE MODE",
+  "selectSetsLabel": "SELECT 2 DIGITAL SETS TO COMPARE",
+  "before": "BEFORE",
+  "after": "AFTER",
+  "comparingDates": "Comparing {{from}} → {{to}}",
+  "selectContextsLabel": "SELECT CONTEXTS TO COMPARE",
+  "selectAll": "SELECT ALL",
+  "clear": "CLEAR",
+  "runComparison": "RUN COMPARISON",
+  "results": {
+    "noDataFound": "No comparison data found.",
+    "back": "BACK",
+    "backToProfile": "← BACK TO PROFILE",
+    "exportPdf": "EXPORT PDF",
+    "title": "{{name}} — Progression Report",
+    "improved": "IMPROVED",
+    "stable": "STABLE",
+    "declined": "DECLINED",
+    "analysis": "ANALYSIS",
+    "suggestedNextStep": "SUGGESTED NEXT STEP",
+    "agentNote": "AGENT NOTE",
+    "agentNotePlaceholder": "Add agent note for this context...",
+    "deltaIncrease": "▲ +{{delta}} from previous set",
+    "deltaDecrease": "▼ {{delta}} from previous set",
+    "deltaNoChange": "→ No change from previous set"
+  }
+}
