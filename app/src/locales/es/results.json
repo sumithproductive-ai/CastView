@@ -1,0 +1,96 @@
+{
+  "digitalStrip": {
+    "angleFront": "FRENTE",
+    "angleProfile": "PERFIL",
+    "angleThreeQuarter": "3/4",
+    "angleFullBody": "CUERPO COMPLETO"
+  },
+  "pathwayModal": {
+    "closeAria": "Cerrar ruta de desarrollo",
+    "title": "Ruta de desarrollo",
+    "aiCoaching": "Coaching con IA",
+    "yourNotes": "Tus notas",
+    "notePlaceholderWithContext": "p. ej. \"Estructura ósea fuerte — creo que tiene potencial para {{context}} pero necesita trabajar en postura y dirección de estilismo.\"",
+    "notePlaceholder": "Añade notas sobre este prospecto en este contexto...",
+    "generate": "Generar ruta de desarrollo",
+    "regenerate": "Regenerar ruta",
+    "recommendationsHeading": "Recomendaciones de desarrollo",
+    "generating": "Generando ruta...",
+    "basedOnNotes": "Basado en los digitales subidos y tus notas, aquí tienes una ruta de desarrollo sugerida para la alineación con {{context}}:",
+    "trialEnded": "Prueba finalizada — elige un plan para continuar.",
+    "generateFailed": "No se pudo generar la ruta. Inténtalo de nuevo."
+  },
+  "deleteEvaluationConfirm": "¿Eliminar esta evaluación? Esta acción no se puede deshacer.",
+  "removeContextConfirm": "¿Eliminar {{context}} de esta evaluación?",
+  "allContextsRemoved": "Todos los contextos eliminados. Elimina la evaluación completa o ejecuta una nueva.",
+  "overrideColumnMissing": "Falta la columna de anulación — aplica la Tarea Manual 4 de migración",
+  "backToRoster": "← VOLVER AL ELENCO",
+  "backToProspects": "← VOLVER A PROSPECTOS",
+  "deleting": "ELIMINANDO...",
+  "deleteEvaluation": "ELIMINAR EVALUACIÓN",
+  "deleteMissingProspectRef": "Falta la referencia del prospecto para la navegación",
+  "deleteEvaluationFailed": "No se pudo eliminar la evaluación",
+  "removeContextFailed": "No se pudo eliminar el contexto",
+  "saveEvaluation": {
+    "saved": "✓ GUARDADO",
+    "saving": "GUARDANDO…",
+    "failed": "ERROR AL GUARDAR — REINTENTAR",
+    "idle": "GUARDAR EVALUACIÓN"
+  },
+  "exportPdf": "EXPORTAR PDF",
+  "sendToProspect": "ENVIAR AL PROSPECTO",
+  "reportTitle": "{{name}} — Informe de alineación de contexto",
+  "reportDisclaimer": "Alineación de contexto generada por IA. Solo apoyo a la decisión — no es una decisión de casting ni un juicio sobre la persona.",
+  "unavailable": "NO DISPONIBLE",
+  "removing": "Eliminando...",
+  "remove": "Eliminar",
+  "contextUnavailable": "Este contexto no está disponible temporalmente.",
+  "evaluationUnavailable": "Evaluación temporalmente no disponible.",
+  "sections": {
+    "reasoning": "RAZONAMIENTO",
+    "strengths": "FORTALEZAS",
+    "risks": "RIESGOS",
+    "marketSignals": "SEÑALES DE MERCADO",
+    "suggestedNextSteps": "PRÓXIMOS PASOS SUGERIDOS"
+  },
+  "developmentPathway": {
+    "heading": "RUTA DE DESARROLLO",
+    "aiCoaching": "COACHING CON IA",
+    "description": "Añade una nota sobre el potencial de este prospecto en este contexto y obtén recomendaciones de desarrollo con IA.",
+    "generating": "GENERANDO...",
+    "view": "VER RUTA DE DESARROLLO",
+    "generate": "GENERAR RUTA DE DESARROLLO"
+  },
+  "judgment": {
+    "heading": "¿Esto coincide con tu criterio?",
+    "confirmed": "✓ Confirmado",
+    "confirm": "Confirmar alineación",
+    "override": "Anular",
+    "feedbackNote": "Tus comentarios nos ayudan a mejorar las recomendaciones.",
+    "assessmentPlaceholder": "Añade tu evaluación...",
+    "saved": "✓ Guardado",
+    "saving": "Guardando…",
+    "saveFailed": "Error al guardar",
+    "save": "Guardar",
+    "saveFailedRetry": "Error al guardar — inténtalo de nuevo"
+  },
+  "agentNotes": {
+    "heading": "NOTAS DEL AGENTE",
+    "placeholder": "Añade notas para esta evaluación...",
+    "saved": "✓ NOTAS GUARDADAS",
+    "save": "GUARDAR NOTAS"
+  },
+  "sendModal": {
+    "closeAria": "Cerrar",
+    "title": "Enviar al prospecto",
+    "to": "Para",
+    "subject": "Asunto",
+    "message": "Mensaje",
+    "emailPlaceholder": "nombre@ejemplo.com",
+    "sent": "✓ ENVIADO",
+    "sending": "ENVIANDO...",
+    "send": "ENVIAR MENSAJE →",
+    "cancel": "cancelar",
+    "sendFailed": "No se pudo enviar el mensaje. Inténtalo de nuevo."
+  }
+}

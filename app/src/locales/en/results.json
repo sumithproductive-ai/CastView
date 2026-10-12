@@ -1,0 +1,96 @@
+{
+  "digitalStrip": {
+    "angleFront": "FRONT",
+    "angleProfile": "PROFILE",
+    "angleThreeQuarter": "3/4",
+    "angleFullBody": "FULL BODY"
+  },
+  "pathwayModal": {
+    "closeAria": "Close development pathway",
+    "title": "Development Pathway",
+    "aiCoaching": "AI Coaching",
+    "yourNotes": "Your notes",
+    "notePlaceholderWithContext": "e.g. \"Strong bone structure — I think they have potential for {{context}} but needs work on posture and styling direction.\"",
+    "notePlaceholder": "Add notes about this prospect in this context...",
+    "generate": "Generate development pathway",
+    "regenerate": "Regenerate pathway",
+    "recommendationsHeading": "Development recommendations",
+    "generating": "Generating pathway...",
+    "basedOnNotes": "Based on the uploaded digitals and your notes, here is a suggested development pathway for {{context}} alignment:",
+    "trialEnded": "Trial ended — choose a plan to continue.",
+    "generateFailed": "Unable to generate pathway. Try again."
+  },
+  "deleteEvaluationConfirm": "Delete this evaluation? This cannot be undone.",
+  "removeContextConfirm": "Remove {{context}} from this evaluation?",
+  "allContextsRemoved": "All contexts removed. Delete the full evaluation or run a new one.",
+  "overrideColumnMissing": "Override column missing — apply Manual Task 4 migration",
+  "backToRoster": "← BACK TO ROSTER",
+  "backToProspects": "← BACK TO PROSPECTS",
+  "deleting": "DELETING...",
+  "deleteEvaluation": "DELETE EVALUATION",
+  "deleteMissingProspectRef": "Missing prospect reference for navigation",
+  "deleteEvaluationFailed": "Failed to delete evaluation",
+  "removeContextFailed": "Failed to remove context",
+  "saveEvaluation": {
+    "saved": "✓ SAVED",
+    "saving": "SAVING…",
+    "failed": "SAVE FAILED — RETRY",
+    "idle": "SAVE EVALUATION"
+  },
+  "exportPdf": "EXPORT PDF",
+  "sendToProspect": "SEND TO PROSPECT",
+  "reportTitle": "{{name}} — Context Alignment Report",
+  "reportDisclaimer": "AI-generated context alignment. Decision-support only — not a casting decision or a judgment of the individual.",
+  "unavailable": "UNAVAILABLE",
+  "removing": "Removing...",
+  "remove": "Remove",
+  "contextUnavailable": "This context is temporarily unavailable.",
+  "evaluationUnavailable": "Evaluation temporarily unavailable.",
+  "sections": {
+    "reasoning": "REASONING",
+    "strengths": "STRENGTHS",
+    "risks": "RISKS",
+    "marketSignals": "MARKET SIGNALS",
+    "suggestedNextSteps": "SUGGESTED NEXT STEPS"
+  },
+  "developmentPathway": {
+    "heading": "DEVELOPMENT PATHWAY",
+    "aiCoaching": "AI COACHING",
+    "description": "Add a note about this prospect's potential in this context and get AI-powered development recommendations.",
+    "generating": "GENERATING...",
+    "view": "VIEW DEVELOPMENT PATHWAY",
+    "generate": "GENERATE DEVELOPMENT PATHWAY"
+  },
+  "judgment": {
+    "heading": "Does This Align With Your Judgment?",
+    "confirmed": "✓ Confirmed",
+    "confirm": "Confirm Alignment",
+    "override": "Override",
+    "feedbackNote": "Your feedback helps us improve recommendations.",
+    "assessmentPlaceholder": "Add your assessment...",
+    "saved": "✓ Saved",
+    "saving": "Saving…",
+    "saveFailed": "Save failed",
+    "save": "Save",
+    "saveFailedRetry": "Save failed — try again"
+  },
+  "agentNotes": {
+    "heading": "AGENT NOTES",
+    "placeholder": "Add notes for this evaluation...",
+    "saved": "✓ NOTES SAVED",
+    "save": "SAVE NOTES"
+  },
+  "sendModal": {
+    "closeAria": "Close",
+    "title": "Send to Prospect",
+    "to": "To",
+    "subject": "Subject",
+    "message": "Message",
+    "emailPlaceholder": "name@example.com",
+    "sent": "✓ SENT",
+    "sending": "SENDING...",
+    "send": "SEND MESSAGE →",
+    "cancel": "cancel",
+    "sendFailed": "Message could not be sent. Please try again."
+  }
+}
