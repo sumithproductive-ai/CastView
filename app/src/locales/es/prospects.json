@@ -3,6 +3,7 @@
   "draftCount_one": "{{count}} borrador",
   "draftCount_other": "{{count}} borradores",
   "exportCsv": "EXPORTAR CSV",
+  "shareLinks": "ENLACES PARA COMPARTIR",
   "quickAdd": "AÑADIR RÁPIDO",
   "addProspect": "AÑADIR PROSPECTO",
   "searchPlaceholder": "Buscar prospectos...",

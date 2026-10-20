@@ -2,6 +2,7 @@
   "title": "Roster",
   "addModel": "+ ADD MODEL",
   "exportCsv": "EXPORT CSV",
+  "shareLinks": "SHARE LINKS",
   "searchPlaceholder": "Search models or location...",
   "filters": {
     "allStatuses": "All Statuses",

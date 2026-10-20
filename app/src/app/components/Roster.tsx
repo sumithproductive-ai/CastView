@@ -291,6 +291,14 @@ export function Roster() {
         >
           {t('exportCsv')}
         </button>
+        <button
+          type="button"
+          onClick={() => navigate('/mass-send')}
+          className="ml-[12px] px-[16px] py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)]"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
+        >
+          {t('shareLinks')}
+        </button>
       </div>
 
       {/* Controls Row */}

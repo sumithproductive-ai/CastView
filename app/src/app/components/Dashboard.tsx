@@ -296,13 +296,42 @@ export function Dashboard() {
       </h1>
 
       {/* Needs Your Attention — the point is replacing "check Inbox, check
-          Settings, check Notifications separately" with one list. */}
-      <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] mb-[48px]">
-        <div
-          className="text-[10px] uppercase tracking-[0.12em] mb-[16px]"
-          style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-        >
-          {t('attention.heading')}
+          Settings, check Notifications separately" with one list. Styled as
+          an unmissable banner (not a plain card like the stat tiles below)
+          so it reads as the real home screen, while /inbox stays its own
+          dedicated page for the actual review workflow. */}
+      <div
+        className="rounded-[4px] p-[24px] mb-[48px]"
+        style={{
+          backgroundColor: 'var(--cv-surface)',
+          border: '1px solid var(--cv-subtle-border)',
+          borderLeft: attentionItems.length > 0 ? '4px solid #C8A96E' : '1px solid var(--cv-subtle-border)',
+        }}
+      >
+        <div className="flex items-center justify-between mb-[16px]">
+          <div
+            className="uppercase tracking-[0.12em]"
+            style={{
+              fontFamily: 'var(--font-label)',
+              color: attentionItems.length > 0 ? 'var(--cv-primary-text)' : 'var(--cv-secondary-text)',
+              fontSize: attentionItems.length > 0 ? '13px' : '10px',
+            }}
+          >
+            {t('attention.heading')}
+          </div>
+          {attentionItems.length > 0 && (
+            <span
+              className="rounded-[4px] px-[10px] py-[2px]"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color: '#080808',
+                backgroundColor: '#C8A96E',
+              }}
+            >
+              {attentionItems.length}
+            </span>
+          )}
         </div>
 
         {attentionItems.length === 0 ? (
@@ -317,23 +346,35 @@ export function Dashboard() {
             {attentionItems.map((item, index) => {
               const Icon = item.icon;
               const toneColor = item.tone === 'warning' ? '#d4a24a' : 'var(--cv-primary-text)';
+              const isLead = index === 0;
               return (
                 <Link
                   key={item.id}
                   to={item.path}
-                  className="flex items-center gap-[14px] py-[10px] px-[12px] -mx-[12px] rounded-[4px] hover:bg-[var(--cv-elevated)] transition-colors"
-                  style={rowStagger(index, 0.04)}
+                  className="flex items-center gap-[14px] rounded-[4px] transition-colors"
+                  style={{
+                    ...rowStagger(index, 0.04),
+                    padding: isLead ? '16px' : '10px 12px',
+                    margin: isLead ? '0 0 8px 0' : '0 -12px',
+                    backgroundColor: isLead ? 'var(--cv-elevated)' : 'transparent',
+                  }}
                 >
-                  <Icon size={16} style={{ color: toneColor, flexShrink: 0 }} />
+                  <Icon size={isLead ? 20 : 16} style={{ color: toneColor, flexShrink: 0 }} />
                   <div className="flex-1 min-w-0">
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)' }}>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: isLead ? '16px' : '13px',
+                        color: 'var(--cv-primary-text)',
+                      }}
+                    >
                       {item.label}
                     </div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
                       {item.detail}
                     </div>
                   </div>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-secondary-text)' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: isLead ? '16px' : '13px', color: 'var(--cv-secondary-text)' }}>
                     →
                   </span>
                 </Link>

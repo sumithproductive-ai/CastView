@@ -331,6 +331,13 @@ export function ProspectsIndex() {
           {t('exportCsv')}
         </button>
         <button
+          onClick={() => navigate('/mass-send')}
+          className="px-[16px] py-[12px] border border-[var(--cv-subtle-border)] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] hover:text-[var(--cv-primary-text)] mr-[16px]"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
+        >
+          {t('shareLinks')}
+        </button>
+        <button
           onClick={() => setQuickAddOpen(true)}
           className="text-[11px] uppercase tracking-[0.05em] hover:opacity-70 transition-opacity mr-[12px]"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)', cursor: 'pointer' }}

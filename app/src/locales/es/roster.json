@@ -2,6 +2,7 @@
   "title": "Elenco",
   "addModel": "+ AÑADIR MODELO",
   "exportCsv": "EXPORTAR CSV",
+  "shareLinks": "ENLACES PARA COMPARTIR",
   "searchPlaceholder": "Buscar modelos o ubicación...",
   "filters": {
     "allStatuses": "Todos los estados",

@@ -3,6 +3,7 @@
   "draftCount_one": "{{count}} draft",
   "draftCount_other": "{{count}} drafts",
   "exportCsv": "EXPORT CSV",
+  "shareLinks": "SHARE LINKS",
   "quickAdd": "QUICK ADD",
   "addProspect": "ADD PROSPECT",
   "searchPlaceholder": "Search prospects...",

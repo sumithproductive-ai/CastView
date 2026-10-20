@@ -30,6 +30,7 @@
   "after": "AFTER",
   "comparingDates": "Comparing {{from}} → {{to}}",
   "selectContextsLabel": "SELECT CONTEXTS TO COMPARE",
+  "quickRead": "QUICK READ ({{contexts}})",
   "selectAll": "SELECT ALL",
   "clear": "CLEAR",
   "runComparison": "RUN COMPARISON",

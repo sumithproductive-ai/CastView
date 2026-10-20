@@ -12,6 +12,12 @@ import {
   compressImageUrlForEvaluation,
   fetchEvaluateContext,
 } from '../utils/compressEvaluationImage';
+import {
+  EVALUATION_CONTEXTS,
+  QUICK_READ_CONTEXTS,
+  readLastContexts,
+  writeLastContexts,
+} from '../../lib/evaluationContexts';
 
 type DigitalSetOption = {
   id: string;
@@ -58,18 +64,8 @@ function countImageUrls(set: DigitalSetOption): number {
     .length;
 }
 
-const contexts = [
-  'Fragrance',
-  'Editorial',
-  'Runway',
-  'Campaign',
-  'Beauty',
-  'Sportswear',
-  'Couture',
-  'Swimwear',
-  'Streetwear',
-  'E-commerce',
-];
+const contexts: string[] = [...EVALUATION_CONTEXTS];
+const COMPARE_CONTEXTS_SCOPE = 'compare';
 
 const sectionLabelStyle = {
   fontFamily: 'var(--font-mono)',
@@ -154,10 +150,9 @@ export function CompareMode() {
     if (sets.length === 1) return [sets[0].id];
     return [];
   });
-  const [selectedContexts, setSelectedContexts] = useState<string[]>([
-    'Fragrance',
-    'Editorial',
-  ]);
+  const [selectedContexts, setSelectedContexts] = useState<string[]>(
+    () => readLastContexts(COMPARE_CONTEXTS_SCOPE) ?? [...QUICK_READ_CONTEXTS]
+  );
   const [showTutorial, setShowTutorial] = useState(false);
   const [isComparing, setIsComparing] = useState(false);
   const [comparingStatus, setComparingStatus] = useState('');
@@ -234,8 +229,13 @@ export function CompareMode() {
     setSelectedContexts([]);
   };
 
+  const handleQuickRead = () => {
+    setSelectedContexts([...QUICK_READ_CONTEXTS]);
+  };
+
   const handleRunComparison = async () => {
     if (isComparing || selectedContexts.length === 0) return;
+    writeLastContexts(COMPARE_CONTEXTS_SCOPE, selectedContexts);
     setCompareError('');
     if (!previousSet || !currentSet) return;
 
@@ -631,6 +631,24 @@ export function CompareMode() {
           })}
         </div>
         <div className="flex items-center gap-[8px] mt-[12px]">
+          <button
+            type="button"
+            onClick={handleQuickRead}
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: '#C8A96E',
+              cursor: 'pointer',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+            }}
+          >
+            {t('quickRead', { contexts: QUICK_READ_CONTEXTS.join(' + ') })}
+          </button>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
+            ·
+          </span>
           <button
             type="button"
             onClick={handleSelectAll}

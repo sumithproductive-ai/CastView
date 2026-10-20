@@ -597,6 +597,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
 
   const updateProspect = useCallback(async (id: string, updates: Partial<Prospect>) => {
     if (!agencyId) return;
+    const previousStatus = prospects.find((p) => p.id === id)?.status;
     try {
       const { digitalSets, ...prospectFields } = updates;
 
@@ -657,6 +658,20 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
         }
 
         if (updateResult.error) throw updateResult.error;
+
+        if (prospectUpdate.status !== undefined && prospectUpdate.status !== previousStatus) {
+          try {
+            await supabase.from('events').insert({
+              agency_id: agencyId,
+              event_type: 'status_updated',
+              metadata: {
+                entityId: id,
+                fromStatus: previousStatus ?? null,
+                toStatus: prospectUpdate.status,
+              },
+            });
+          } catch { /* non-critical, ignore */ }
+        }
       }
 
       if (digitalSets !== undefined) {

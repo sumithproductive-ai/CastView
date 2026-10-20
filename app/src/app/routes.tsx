@@ -72,6 +72,9 @@ const ProspectConsent = lazy(() =>
     default: m.ProspectConsent,
   })),
 );
+const MassSend = lazy(() =>
+  import('./components/MassSend').then((m) => ({ default: m.MassSend })),
+);
 const CompareMode = lazy(() =>
   import('./components/CompareMode').then((m) => ({ default: m.CompareMode })),
 );
@@ -254,6 +257,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedLayoutRoute>
         <NewProspectReview />
+      </ProtectedLayoutRoute>
+    ),
+  },
+  {
+    path: '/mass-send',
+    element: (
+      <ProtectedLayoutRoute>
+        <MassSend />
       </ProtectedLayoutRoute>
     ),
   },

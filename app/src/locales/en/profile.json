@@ -40,7 +40,8 @@
     "targetRegionDisclaimer": "Optional — ground this read in the market you're pitching them to.",
     "homeMarket": "Home market: {{market}}.",
     "targetRegionDisclaimerSuffix": "Leave unselected to evaluate without a specific target market.",
-    "runButton": "Run Alignment Analysis"
+    "runButton": "Run Alignment Analysis",
+    "quickReadButton": "Quick Read — {{contexts}}"
   },
   "contextDescriptions": {
     "Fragrance": "Evaluate alignment with luxury fragrance campaign criteria",

@@ -30,6 +30,7 @@
   "after": "DESPUÉS",
   "comparingDates": "Comparando {{from}} → {{to}}",
   "selectContextsLabel": "SELECCIONA CONTEXTOS PARA COMPARAR",
+  "quickRead": "LECTURA RÁPIDA ({{contexts}})",
   "selectAll": "SELECCIONAR TODO",
   "clear": "LIMPIAR",
   "runComparison": "EJECUTAR COMPARACIÓN",

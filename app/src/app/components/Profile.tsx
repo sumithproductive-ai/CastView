@@ -8,12 +8,15 @@ import { useProspects } from '../context/ProspectsContext';
 import { useRoster } from '../context/RosterContext';
 import { DigitalImage } from './DigitalImage';
 import { MARKET_SUGGESTIONS } from './LocationMarketField';
+import {
+  EVALUATION_CONTEXTS,
+  QUICK_READ_CONTEXTS,
+  readLastContexts,
+  writeLastContexts,
+} from '../../lib/evaluationContexts';
 
-const contexts = [
-  'Fragrance', 'Editorial', 'Runway',
-  'Campaign', 'Beauty', 'Sportswear',
-  'Swimwear', 'Couture', 'Street'
-];
+const contexts: string[] = [...EVALUATION_CONTEXTS];
+const PROFILE_CONTEXTS_SCOPE = 'profile';
 
 
 export function Profile() {
@@ -63,7 +66,9 @@ export function Profile() {
     },
   ].filter((m) => m.value !== '—');
 
-  const [selectedContexts, setSelectedContexts] = useState<string[]>(['Fragrance', 'Editorial']);
+  const [selectedContexts, setSelectedContexts] = useState<string[]>(
+    () => readLastContexts(PROFILE_CONTEXTS_SCOPE) ?? [...QUICK_READ_CONTEXTS]
+  );
 
   const toggleContext = (context: string) => {
     setSelectedContexts(prev =>
@@ -82,12 +87,16 @@ export function Profile() {
     setTargetRegion(prev => (prev === region ? '' : region));
   };
 
-  const handleGenerate = () => {
-    const contextsParam = selectedContexts.join(',');
+  const handleGenerate = (contextsOverride?: string[]) => {
+    const contextsToRun = contextsOverride ?? selectedContexts;
+    writeLastContexts(PROFILE_CONTEXTS_SCOPE, contextsToRun);
+    const contextsParam = contextsToRun.join(',');
     navigate(
       `/rendering?name=${encodeURIComponent(prospectName)}&contexts=${contextsParam}&targetRegion=${encodeURIComponent(targetRegion)}&prospectId=${prospectId}&profileType=${profileType}`
     );
   };
+
+  const handleQuickRead = () => handleGenerate([...QUICK_READ_CONTEXTS]);
   
   const contextDescriptions: Record<string, string> = {
     'Fragrance': t('contextDescriptions.Fragrance'),
@@ -335,6 +344,21 @@ export function Profile() {
               {t('runEvaluation.heading')}
             </div>
 
+            <button
+              type="button"
+              onClick={handleQuickRead}
+              className="w-full mb-[24px] px-[16px] py-[14px] border rounded-[4px] text-[12px] uppercase tracking-[0.1em] transition-colors"
+              style={{
+                fontFamily: 'var(--font-label)',
+                borderColor: '#C8A96E',
+                color: '#C8A96E',
+                backgroundColor: 'transparent',
+                cursor: 'pointer',
+              }}
+            >
+              {t('runEvaluation.quickReadButton', { contexts: QUICK_READ_CONTEXTS.join(' + ') })}
+            </button>
+
             <div className="mb-[32px]">
               <div className="flex items-center justify-between mb-[16px]">
                 <label
@@ -442,7 +466,7 @@ export function Profile() {
             </div>
 
             <button
-              onClick={handleGenerate}
+              onClick={() => handleGenerate()}
               className="cv-btn-primary w-full py-[16px] rounded-[4px] text-[13px] uppercase tracking-[0.1em] transition-colors"
               style={{
                 fontFamily: 'var(--font-label)',

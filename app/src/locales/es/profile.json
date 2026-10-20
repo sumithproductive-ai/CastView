@@ -40,7 +40,8 @@
     "targetRegionDisclaimer": "Opcional — contextualiza esta lectura con el mercado al que lo estás presentando.",
     "homeMarket": "Mercado de origen: {{market}}.",
     "targetRegionDisclaimerSuffix": "Déjalo sin seleccionar para evaluar sin un mercado objetivo específico.",
-    "runButton": "Ejecutar análisis de alineación"
+    "runButton": "Ejecutar análisis de alineación",
+    "quickReadButton": "Lectura rápida — {{contexts}}"
   },
   "contextDescriptions": {
     "Fragrance": "Evalúa la alineación con criterios de campañas de fragancias de lujo",
