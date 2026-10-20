@@ -6,7 +6,8 @@
   "loading": "Loading…",
   "zeroState": {
     "noDrafts": "No drafts waiting on review.",
-    "hint": "New submissions land here once your labeled Gmail inbox is synced."
+    "hint": "New submissions land here once your labeled Gmail inbox is synced.",
+    "connectGmail": "Connect Gmail →"
   },
   "card": {
     "unknownSender": "UNKNOWN SENDER",

@@ -316,28 +316,18 @@ export function Settings() {
           email: string | null;
           role: string | null;
           created_at: string | null;
-          updated_at?: string | null;
         }> = [];
 
-        const { data: profilesWithUpdated, error: profilesError } = await supabase
+        // Note: `profiles` has no `updated_at` column — `created_at` is the only timestamp available.
+        const { data: profilesBasic, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, email, role, created_at, updated_at')
+          .select('id, email, role, created_at')
           .eq('agency_id', agencyId);
 
-        if (profilesError?.message?.includes('updated_at')) {
-          const { data: profilesBasic, error: basicError } = await supabase
-            .from('profiles')
-            .select('id, email, role, created_at')
-            .eq('agency_id', agencyId);
-          if (basicError) {
-            console.error('[Settings] profiles fetch failed:', basicError.message);
-          } else {
-            profileList = profilesBasic ?? [];
-          }
-        } else if (profilesError) {
+        if (profilesError) {
           console.error('[Settings] profiles fetch failed:', profilesError.message);
         } else {
-          profileList = profilesWithUpdated ?? [];
+          profileList = profilesBasic ?? [];
         }
         if (!cancelled) {
           setActiveProfileCount(profileList.length);
@@ -365,7 +355,7 @@ export function Settings() {
           id: profile.id,
           email: profile.email ?? '—',
           role: profile.role ?? 'member',
-          lastActiveAt: profile.updated_at ?? profile.created_at ?? null,
+          lastActiveAt: profile.created_at ?? null,
           evaluationsThisMonth:
             profileList.length === 1 || profile.id === ownerProfile?.id
               ? totalEvals

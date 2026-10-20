@@ -8,7 +8,7 @@
     "fullName": "FULL NAME",
     "fullNamePlaceholder": "e.g. Sofia Andersen",
     "location": "LOCATION",
-    "locationPlaceholder": "e.g. Dallas, TX",
+    "locationPlaceholder": "e.g. Dallas, Atlanta, New York",
     "source": "SOURCE",
     "measurements": "MEASUREMENTS",
     "height": "Height",
@@ -30,7 +30,7 @@
   "digitals": {
     "uploadHeading": "UPLOAD DIGITALS",
     "description": "Digitals are standard neutral-background agency photos — front-facing, profile, 3/4 turn, and full body. Natural light, no styling, no filters.",
-    "requiredNote": "All four shots are required. Clear, natural light, no filters.",
+    "requiredNote": "At least one shot is required to continue. Clear, natural light, no filters.",
     "angleFront": "FRONT",
     "angleProfile": "PROFILE",
     "angleThreeQuarter": "3/4",

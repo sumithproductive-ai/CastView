@@ -51,7 +51,7 @@ interface TutorialStep {
 const defaultTutorialSteps: TutorialStep[] = [
   {
     headline: 'Your workspace',
-    body: 'The sidebar is your main navigation. Prospects are unsigned talent you\'re evaluating. Roster is your signed models. Shared tracks client packages you\'ve sent out.',
+    body: 'The sidebar is your main navigation. Prospects are unsigned talent you\'re evaluating. Inbox holds new submissions pulled from your connected email, waiting for review. Roster is your signed models.',
     spotlightPosition: { top: 0, left: 0, width: 240, height: 1000 },
     tooltipPosition: 'right'
   },

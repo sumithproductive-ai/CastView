@@ -11,6 +11,7 @@ import { authFetch } from '../../lib/apiAuth';
  */
 export function useGmailConnectionStatus(agencyId: string | null | undefined) {
   const [needsReauth, setNeedsReauth] = useState(false);
+  const [connected, setConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!agencyId) return;
@@ -21,7 +22,10 @@ export function useGmailConnectionStatus(agencyId: string | null | undefined) {
         const res = await authFetch('/api/gmail?action=status');
         if (!res.ok) return;
         const data = await res.json();
-        if (!cancelled) setNeedsReauth(data.status === 'needs_reauth');
+        if (!cancelled) {
+          setNeedsReauth(data.status === 'needs_reauth');
+          setConnected(Boolean(data.connected));
+        }
       } catch {
         /* non-critical — Settings page surfaces the same state with more detail */
       }
@@ -35,5 +39,5 @@ export function useGmailConnectionStatus(agencyId: string | null | undefined) {
     };
   }, [agencyId]);
 
-  return { needsReauth };
+  return { needsReauth, connected };
 }

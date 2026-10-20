@@ -6,7 +6,8 @@
   "loading": "Cargando…",
   "zeroState": {
     "noDrafts": "No hay borradores esperando revisión.",
-    "hint": "Las nuevas solicitudes aparecerán aquí cuando se sincronice tu bandeja de Gmail etiquetada."
+    "hint": "Las nuevas solicitudes aparecerán aquí cuando se sincronice tu bandeja de Gmail etiquetada.",
+    "connectGmail": "Conectar Gmail →"
   },
   "card": {
     "unknownSender": "REMITENTE DESCONOCIDO",

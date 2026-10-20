@@ -3,6 +3,7 @@ import { useRef, useState, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Upload, X, Check, Lock } from 'lucide-react';
+import { saveNewProspectDigitals } from '../utils/newProspectDigitalsStorage';
 
 type DigitalImageKey = 'front' | 'profile' | 'three_quarter' | 'full_body';
 
@@ -80,11 +81,18 @@ export function NewProspectDigitals() {
 
     setShowDigitalsError(false);
 
+    saveNewProspectDigitals({
+      front: front || '',
+      profile: profile || '',
+      threeQuarter: threeQuarter || '',
+      fullBody: fullBody || '',
+    });
+
     const params = new URLSearchParams(window.location.search);
-    params.set('front', front || '');
-    params.set('profile', profile || '');
-    params.set('threeQuarter', threeQuarter || '');
-    params.set('fullBody', fullBody || '');
+    params.delete('front');
+    params.delete('profile');
+    params.delete('threeQuarter');
+    params.delete('fullBody');
     navigate(`/prospects/new/review?${params.toString()}`);
   };
 

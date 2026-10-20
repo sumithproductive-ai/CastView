@@ -1,9 +1,14 @@
 import React from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Check } from 'lucide-react';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
 import { DigitalImage } from './DigitalImage';
+import {
+  clearNewProspectDigitals,
+  loadNewProspectDigitals,
+} from '../utils/newProspectDigitalsStorage';
 
 export function NewProspectReview() {
   const { t } = useTranslation('newEntry');
@@ -12,10 +17,12 @@ export function NewProspectReview() {
   const { addProspect } = useProspects();
   const prospectName = searchParams.get('name')?.trim() || 'Prospect';
 
-  const front = searchParams.get('front') || '';
-  const profile = searchParams.get('profile') || '';
-  const threeQuarter = searchParams.get('threeQuarter') || '';
-  const fullBody = searchParams.get('fullBody') || '';
+  const storedDigitals = useMemo(() => loadNewProspectDigitals(), []);
+  const front = storedDigitals?.front || searchParams.get('front') || '';
+  const profile = storedDigitals?.profile || searchParams.get('profile') || '';
+  const threeQuarter =
+    storedDigitals?.threeQuarter || searchParams.get('threeQuarter') || '';
+  const fullBody = storedDigitals?.fullBody || searchParams.get('fullBody') || '';
   const marketsFromParams = searchParams.get('markets')?.split(',').filter(Boolean) ?? [];
   const height = searchParams.get('height') || '';
   const bust = searchParams.get('bust') || '';
@@ -100,12 +107,14 @@ export function NewProspectReview() {
 
   const handleSaveDraft = async () => {
     await addProspect(buildNewProspect('DRAFT'));
+    clearNewProspectDigitals();
     navigate('/prospects');
   };
 
   const handleSaveAndRender = async () => {
     const newProspect = buildNewProspect('IN REVIEW');
     await addProspect(newProspect);
+    clearNewProspectDigitals();
     navigate(
       `/profile?name=${encodeURIComponent(newProspect.name)}&prospectId=${newProspect.id}&profileType=prospect`,
     );

@@ -8,7 +8,7 @@
     "fullName": "NOMBRE COMPLETO",
     "fullNamePlaceholder": "p. ej. Sofia Andersen",
     "location": "UBICACIÓN",
-    "locationPlaceholder": "p. ej. Dallas, TX",
+    "locationPlaceholder": "p. ej. Dallas, Atlanta, Nueva York",
     "source": "ORIGEN",
     "measurements": "MEDIDAS",
     "height": "Altura",
@@ -30,7 +30,7 @@
   "digitals": {
     "uploadHeading": "SUBIR DIGITALES",
     "description": "Los digitales son fotos de agencia estándar con fondo neutro — de frente, de perfil, giro de 3/4 y cuerpo completo. Luz natural, sin estilismo, sin filtros.",
-    "requiredNote": "Las cuatro tomas son obligatorias. Luz natural clara, sin filtros.",
+    "requiredNote": "Se requiere al menos una toma para continuar. Luz natural clara, sin filtros.",
     "angleFront": "FRENTE",
     "angleProfile": "PERFIL",
     "angleThreeQuarter": "3/4",

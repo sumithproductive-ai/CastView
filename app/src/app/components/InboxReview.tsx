@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { Inbox as InboxIcon, AlertTriangle, X } from 'lucide-react';
 import { useProspects, type Prospect } from '../context/ProspectsContext';
 import { useAuth } from '../context/AuthContext';
+import { useGmailConnectionStatus } from '../hooks/useGmailConnectionStatus';
 import { DigitalImage } from './DigitalImage';
 import type { DigitalSet } from '../types/talent';
 
@@ -435,7 +436,8 @@ function BatchConsentModal({
 export function InboxReview() {
   const { t } = useTranslation('inbox');
   const { prospects, loading, updateProspect } = useProspects();
-  const { user } = useAuth();
+  const { user, agencyId } = useAuth();
+  const { connected: gmailConnected } = useGmailConnectionStatus(agencyId);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showConsentModal, setShowConsentModal] = useState(false);
@@ -516,6 +518,19 @@ export function InboxReview() {
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', marginTop: '6px', opacity: 0.7 }}>
             {t('zeroState.hint')}
           </div>
+          {gmailConnected === false && (
+            <Link
+              to="/settings"
+              className="mt-[16px] px-[16px] py-[10px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                backgroundColor: 'var(--cv-primary-text)',
+                color: 'var(--cv-background)',
+              }}
+            >
+              {t('zeroState.connectGmail')}
+            </Link>
+          )}
         </div>
       ) : (
         drafts.map((draft) => (
