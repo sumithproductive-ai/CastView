@@ -1,9 +1,10 @@
 import React, { lazy, Suspense } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter, Navigate, useLocation } from 'react-router';
 import { Layout } from './layouts/Layout';
 import { Login } from './components/Login';
 import { Signup } from './components/Signup';
 import { ResetPassword } from './components/ResetPassword';
+import { WelcomeSetup } from './components/WelcomeSetup';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { Terms } from './components/Terms';
 import { useAuth } from './context/AuthContext';
@@ -127,9 +128,13 @@ function LazySuspense({ children }: { children: React.ReactNode }) {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, session, loading } = useAuth();
+  const { user, session, loading, needsAgencyName } = useAuth();
+  const location = useLocation();
   if (loading) return <RouteLoadingFallback />;
   if (!user || !session?.access_token) return <Navigate to="/login" replace />;
+  if (needsAgencyName && location.pathname !== '/welcome') {
+    return <Navigate to="/welcome" replace />;
+  }
   return <>{children}</>;
 }
 
@@ -371,6 +376,10 @@ export const router = createBrowserRouter([
   {
     path: '/reset-password',
     element: <ResetPassword />,
+  },
+  {
+    path: '/welcome',
+    element: <WelcomeSetup />,
   },
   {
     path: '/privacy',

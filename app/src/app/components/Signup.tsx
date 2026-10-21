@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
+import { GoogleGIcon } from './GoogleGIcon';
 
 export function Signup() {
   const [agencyName, setAgencyName] = useState('');
@@ -10,8 +11,20 @@ export function Signup() {
   const [errorMsg, setErrorMsg] = useState('');
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { signUp } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+
+  const handleGoogleSignIn = async () => {
+    setErrorMsg('');
+    setGoogleLoading(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      setErrorMsg(error);
+      setGoogleLoading(false);
+    }
+    // on success, the browser redirects away to Google — no further action needed here
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +94,33 @@ export function Signup() {
             </Link>
           </div>
         ) : (
+        <>
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading}
+          className="w-full py-[14px] mb-[24px] rounded-[4px] text-[13px] transition-opacity hover:opacity-80 flex items-center justify-center gap-[10px]"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            backgroundColor: 'var(--cv-primary-text)',
+            color: 'var(--cv-background)',
+            opacity: googleLoading ? 0.6 : 1,
+            cursor: googleLoading ? 'not-allowed' : 'pointer',
+            border: 'none',
+          }}
+        >
+          <GoogleGIcon size={16} />
+          {googleLoading ? 'Redirecting...' : 'Continue with Google'}
+        </button>
+
+        <div className="flex items-center gap-[12px] mb-[24px]">
+          <div className="flex-1 h-[1px]" style={{ backgroundColor: 'var(--cv-subtle-border)' }} />
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
+            or create an account with email
+          </span>
+          <div className="flex-1 h-[1px]" style={{ backgroundColor: 'var(--cv-subtle-border)' }} />
+        </div>
+
         <form onSubmit={handleSubmit}>
           <div className="mb-[16px]">
             <input type="text" value={agencyName} onChange={e => setAgencyName(e.target.value)} placeholder="Agency name" required className="w-full px-[12px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', outline: 'none' }} />
@@ -95,10 +135,11 @@ export function Signup() {
             <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm password" required className="w-full px-[12px] py-[12px] bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px]" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--cv-primary-text)', outline: 'none' }} />
           </div>
           {errorMsg && <p className="mb-[16px] text-[12px]" style={{ fontFamily: 'var(--font-mono)', color: '#c87a7a' }}>{errorMsg}</p>}
-          <button type="submit" disabled={loading} className="w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80" style={{ fontFamily: 'var(--font-mono)', backgroundColor: 'var(--cv-primary-text)', color: 'var(--cv-background)', opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer', border: 'none' }}>
+          <button type="submit" disabled={loading} className="w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[var(--cv-elevated)]" style={{ fontFamily: 'var(--font-mono)', backgroundColor: 'transparent', color: 'var(--cv-primary-text)', border: '1px solid var(--cv-subtle-border)', opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
             {loading ? 'Creating account...' : 'Start Free Trial →'}
           </button>
         </form>
+        </>
         )}
         <p className="mt-[24px] text-center text-[11px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}>
           Already have an account?{' '}

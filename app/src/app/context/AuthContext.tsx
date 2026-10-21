@@ -14,7 +14,10 @@ type AuthContextType = {
   setupError: string | null;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, agencyName: string) => Promise<SignUpResult>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
+  completeAgencySetup: (agencyName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  needsAgencyName: boolean;
   agencyId: string | null;
   agencyName: string | null;
   plan: string;
@@ -96,7 +99,10 @@ const AuthContext = createContext<AuthContextType>({
   setupError: null,
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null }),
+  signInWithGoogle: async () => ({ error: null }),
+  completeAgencySetup: async () => ({ error: null }),
   signOut: async () => {},
+  needsAgencyName: false,
   agencyId: null,
   agencyName: null,
   plan: 'trial',
@@ -133,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
   const [tutorialShownAt, setTutorialShownAt] = useState<string | null>(null);
   const [setupError, setSetupError] = useState<string | null>(null);
+  const [needsAgencyName, setNeedsAgencyName] = useState(false);
 
   const applyAgencyPlan = async (resolvedAgencyId: string) => {
     setAgencyId(resolvedAgencyId);
@@ -160,6 +167,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       let resolvedAgencyId = await getProfileAgencyId(authUser.id);
+
+      if (!resolvedAgencyId && !authUser.user_metadata?.agency_name) {
+        // OAuth sign-ins (e.g. Google) never collect an agency name up front —
+        // route to /welcome to ask for one instead of auto-naming from the email.
+        setNeedsAgencyName(true);
+        setLoading(false);
+        return;
+      }
 
       if (!resolvedAgencyId) {
         const { error: provisionError } = await provisionAgencyForUser(authUser);
@@ -231,6 +246,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setTrialEndsAt(null);
           setTutorialShownAt(null);
           setSetupError(null);
+          setNeedsAgencyName(false);
           setLoading(false);
         }
       },
@@ -311,6 +327,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/` },
+    });
+    return { error: error?.message ?? null };
+  };
+
+  const completeAgencySetup = async (agencyNameInput: string) => {
+    if (!user) return { error: 'Not signed in' };
+    const { error } = await provisionAgencyForUser(user, agencyNameInput);
+    if (error) return { error };
+    setNeedsAgencyName(false);
+    setLoading(true);
+    await fetchAgencyId(user);
+    return { error: null };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setAgencyId(null);
@@ -318,6 +352,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setTrialEndsAt(null);
     setTutorialShownAt(null);
     setSetupError(null);
+    setNeedsAgencyName(false);
   };
 
   const markTutorialShown = async () => {
@@ -342,7 +377,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setupError,
         signIn,
         signUp,
+        signInWithGoogle,
+        completeAgencySetup,
         signOut,
+        needsAgencyName,
         agencyId,
         agencyName,
         plan,

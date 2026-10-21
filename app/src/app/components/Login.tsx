@@ -2,17 +2,30 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { GoogleGIcon } from './GoogleGIcon';
 
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+
+  const handleGoogleSignIn = async () => {
+    setErrorMsg('');
+    setGoogleLoading(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      setErrorMsg(error);
+      setGoogleLoading(false);
+    }
+    // on success, the browser redirects away to Google — no further action needed here
+  };
 
   const handleForgotPassword = async () => {
     if (!forgotEmail) return;
@@ -74,6 +87,32 @@ export function Login() {
           Agency Login
         </p>
 
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading}
+          className="w-full py-[14px] mb-[24px] rounded-[4px] text-[13px] transition-opacity hover:opacity-80 flex items-center justify-center gap-[10px]"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            backgroundColor: 'var(--cv-primary-text)',
+            color: 'var(--cv-background)',
+            opacity: googleLoading ? 0.6 : 1,
+            cursor: googleLoading ? 'not-allowed' : 'pointer',
+            border: 'none',
+          }}
+        >
+          <GoogleGIcon size={16} />
+          {googleLoading ? 'Redirecting...' : 'Continue with Google'}
+        </button>
+
+        <div className="flex items-center gap-[12px] mb-[24px]">
+          <div className="flex-1 h-[1px]" style={{ backgroundColor: 'var(--cv-subtle-border)' }} />
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--cv-secondary-text)' }}>
+            or sign in with email
+          </span>
+          <div className="flex-1 h-[1px]" style={{ backgroundColor: 'var(--cv-subtle-border)' }} />
+        </div>
+
         <form onSubmit={handleSubmit}>
           <div className="mb-[16px]">
             <input
@@ -118,11 +157,12 @@ export function Login() {
 
           <button
             type="submit"
-            className="w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-opacity hover:opacity-80"
+            className="w-full py-[14px] rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:bg-[var(--cv-elevated)]"
             style={{
               fontFamily: 'var(--font-mono)',
-              backgroundColor: 'var(--cv-primary-text)',
-              color: 'var(--cv-background)',
+              backgroundColor: 'transparent',
+              color: 'var(--cv-primary-text)',
+              border: '1px solid var(--cv-subtle-border)',
             }}
           >
             Sign In
