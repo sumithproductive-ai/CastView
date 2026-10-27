@@ -7,6 +7,7 @@ import { isAdminUser } from '../../lib/admin';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useTutorial } from '../context/TutorialContext';
+import { TutorialOverlay, gmailTutorialSteps } from './TutorialOverlay';
 import { MARKET_SUGGESTIONS } from './LocationMarketField';
 
 // Only affects AI-generated content (evaluation reasoning, brief-match
@@ -204,6 +205,7 @@ export function Settings() {
   const [gmailLastSyncFailedCount, setGmailLastSyncFailedCount] = useState(0);
   const [gmailLabelSaving, setGmailLabelSaving] = useState(false);
   const [gmailNotice, setGmailNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showGmailTutorial, setShowGmailTutorial] = useState(false);
 
   const { openTutorial } = useTutorial();
   const { agencyId, user, plan, planStatus, signOut, loading: authLoading } = useAuth();
@@ -1148,13 +1150,32 @@ export function Settings() {
 
         {/* Email Intake Block */}
         <div style={!isPageLoading ? sectionFade(4) : undefined}>
-          <div
-            className="text-[9px] uppercase tracking-[0.1em] mb-[12px]"
-            style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
-          >
-            {t('emailIntake.heading')}
+          <div className="flex items-center justify-between mb-[12px]">
+            <div
+              className="text-[9px] uppercase tracking-[0.1em]"
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}
+            >
+              {t('emailIntake.heading')}
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowGmailTutorial(true)}
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                color: 'var(--cv-secondary-text)',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                textUnderlineOffset: '3px',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+              }}
+            >
+              {t('emailIntake.howToUse')}
+            </button>
           </div>
-          <div className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
+          <div data-tutorial="email-intake-block" className="bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px]">
             {gmailNotice && (
               <p
                 className="text-[12px] mb-[16px]"
@@ -1181,6 +1202,7 @@ export function Settings() {
                   {t('emailIntake.connectDesc')}
                 </p>
                 <button
+                  data-tutorial="gmail-connect-button"
                   onClick={handleConnectGmail}
                   disabled={gmailConnecting}
                   className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)] shrink-0 ml-[16px]"
@@ -1196,7 +1218,7 @@ export function Settings() {
                 </button>
               </div>
             ) : (
-              <div>
+              <div data-tutorial="gmail-connected-panel">
                 <div className="flex items-center justify-between pb-[20px] mb-[20px] border-b border-[var(--cv-subtle-border)]">
                   <div className="flex items-center gap-[10px]">
                     <span
@@ -1468,6 +1490,13 @@ export function Settings() {
           </button>
         </div>
       </div>
+
+      {showGmailTutorial && (
+        <TutorialOverlay
+          onClose={() => setShowGmailTutorial(false)}
+          steps={gmailTutorialSteps}
+        />
+      )}
     </div>
   );
 }

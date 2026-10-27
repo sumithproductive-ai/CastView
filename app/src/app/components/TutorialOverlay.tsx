@@ -161,6 +161,39 @@ export const uploadTutorialSteps: TutorialStep[] = [
   },
 ];
 
+export const gmailTutorialSteps: TutorialStep[] = [
+  {
+    headline: 'Connecting your inbox',
+    body: 'Email Intake connects your Gmail account so new submissions land in CastView automatically — no more manually copying prospect details out of your inbox.',
+    spotlightSelector: '[data-tutorial="email-intake-block"]',
+    tooltipPosition: 'right',
+    requiredPath: '/settings',
+  },
+  {
+    headline: 'One click, scoped access',
+    body: 'Connect Gmail starts a Google consent screen. CastView only ever reads mail carrying the label you pick next — it never sees the rest of your inbox.',
+    // Only one of these renders at a time, depending on connection state.
+    spotlightSelector: '[data-tutorial="gmail-connect-button"], [data-tutorial="gmail-connected-panel"]',
+    tooltipPosition: 'below',
+    requiredPath: '/settings',
+  },
+  {
+    headline: 'Pick the label you watch',
+    body: 'Once connected, create a Gmail label (e.g. "CastView Submissions") and point CastView at it. Only mail under that label gets pulled in — everything else in your inbox stays untouched. CastView checks for new mail once a day.',
+    spotlightSelector: '[data-tutorial="gmail-connected-panel"], [data-tutorial="gmail-connect-button"]',
+    tooltipPosition: 'below',
+    requiredPath: '/settings',
+  },
+  {
+    headline: 'Drafts land in your Inbox',
+    body: 'Each matching email becomes a draft prospect here — name, measurements, and digitals extracted automatically. Review, fix anything that looks off, then confirm to move it into your pipeline.',
+    // Falls back to the zero state when the inbox has no drafts yet.
+    spotlightSelector: '[data-tutorial="inbox-draft-card"], [data-tutorial="inbox-empty-state"]',
+    tooltipPosition: 'below-center',
+    requiredPath: '/inbox',
+  },
+];
+
 interface TutorialOverlayProps {
   onClose: () => void;
   steps?: TutorialStep[];

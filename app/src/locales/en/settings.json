@@ -53,6 +53,7 @@
   },
   "emailIntake": {
     "heading": "EMAIL INTAKE",
+    "howToUse": "HOW GMAIL LINKING WORKS",
     "loading": "Loading…",
     "connectDesc": "Connect Gmail and CastView will watch a label you choose for new prospect submissions — extracting names, measurements, and digitals into a review queue automatically.",
     "connectGmail": "CONNECT GMAIL",

@@ -53,6 +53,7 @@
   },
   "emailIntake": {
     "heading": "RECEPCIÓN DE CORREOS",
+    "howToUse": "CÓMO FUNCIONA LA CONEXIÓN DE GMAIL",
     "loading": "Cargando…",
     "connectDesc": "Conecta Gmail y CastView vigilará una etiqueta que elijas para nuevas solicitudes de prospectos, extrayendo nombres, medidas y digitales a una cola de revisión automáticamente.",
     "connectGmail": "CONECTAR GMAIL",
