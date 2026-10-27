@@ -8,16 +8,6 @@ export type ContextMockEntry = {
   suggestedNextSteps: string[];
 };
 
-type ContextMockEntry = {
-  score: number;
-  fitLabel: string;
-  reasoning: string;
-  strengths: string[];
-  risks: string[];
-  marketSignals: string[];
-  suggestedNextSteps: string[];
-};
-
 export const CONTEXT_MOCK_DATA: Record<string, ContextMockEntry> = {
   Fragrance: {
     score: 94,

@@ -308,14 +308,16 @@ export function TutorialOverlay({
 
     rafRef.current = requestAnimationFrame(onFrame);
 
-    // Also listen for window resize
-    window.addEventListener('resize', measureElement, { passive: true });
+    // Also listen for window resize. Wrapped so the Event isn't passed
+    // through as measureElement's skipFallback argument.
+    const onResize = () => measureElement();
+    window.addEventListener('resize', onResize, { passive: true });
 
     return () => {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }
-      window.removeEventListener('resize', measureElement);
+      window.removeEventListener('resize', onResize);
     };
   }, [measureElement]);
 

@@ -219,7 +219,7 @@ export function ProspectsIndex() {
       if (p.status === 'PENDING_REVIEW') return false;
 
       const matchesSource = sourceFilters.size === 0
-        || (p.source && sourceFilters.has(p.source))
+        || (p.source && sourceFilters.has(p.source as Source))
         || (!p.source);
       const matchesSearch = search.trim() === '' 
         || p.name.toLowerCase()

@@ -309,8 +309,9 @@ export function Profile() {
               {t('signedStatus.label')}
             </label>
             <select
-              value={entity?.signed_status ?? 'pending'}
+              value={prospect?.signed_status ?? 'pending'}
               onChange={async (e) => {
+                if (!prospect) return;
                 const newStatus = e.target.value;
                 await updateProspect(prospectId, { signed_status: newStatus });
                 setSignedStatusSaveConfirmed(true);

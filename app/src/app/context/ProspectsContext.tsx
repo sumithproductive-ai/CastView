@@ -383,6 +383,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
   };
 
   const loadProspects = async () => {
+    if (!agencyId) return;
     setLoading(true);
     try {
       // 1. Fetch prospects without profile images (avoids timeout from large base64 blobs)
@@ -571,7 +572,7 @@ export function ProspectsProvider({ children }: { children: ReactNode }) {
             .select('*, context_evaluations(*)')
             .in('digital_set_id', setIds)
             .order('created_at', { ascending: false })
-        : { data: [] };
+        : { data: null };
 
       const evalsBySetId: Record<string, NonNullable<typeof allEvals>> = {};
       for (const ev of (allEvals ?? [])) {
