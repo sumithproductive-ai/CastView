@@ -272,6 +272,9 @@ export function Dashboard() {
       .flatMap((model) =>
         model.digitalSets.flatMap((ds) =>
           ds.evaluations.map((ev) => ({
+            // One row per evaluation, so a model can appear more than once —
+            // key rows by evaluation, link by model.
+            evaluationId: ev.id,
             id: model.id,
             name: model.name,
             image: model.image,
@@ -686,7 +689,7 @@ export function Dashboard() {
               <div className="space-y-[16px]">
                 {rosterActivity.map((item) => (
                   <Link
-                    key={item.id}
+                    key={item.evaluationId}
                     to={`/roster/${item.id}`}
                     className="flex items-center gap-[12px] hover:opacity-80 transition-opacity"
                   >
