@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { Sidebar } from '../components/Sidebar';
 import { TutorialOverlay } from '../components/TutorialOverlay';
 import { useTutorial } from '../context/TutorialContext';
+import { takePendingPlan } from '../../lib/pendingPlan';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { isTutorialOpen, closeTutorial } = useTutorial();
@@ -71,11 +72,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const upgradePlan = params.get('upgrade');
-    if (upgradePlan && agencyId && user?.email) {
+    if (!agencyId || !user?.email) return;
+    const upgradePlan = takePendingPlan();
+    if (upgradePlan) {
       // Remove the param from URL without reload
-      window.history.replaceState({}, '', window.location.pathname);
+      if (window.location.search.includes('upgrade=')) {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
       // Trigger upgrade flow
       handleUpgrade(upgradePlan);
     }
