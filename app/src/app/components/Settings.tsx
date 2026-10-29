@@ -7,7 +7,7 @@ import { isAdminUser } from '../../lib/admin';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useTutorial } from '../context/TutorialContext';
-import { TutorialOverlay, gmailTutorialSteps } from './TutorialOverlay';
+import { gmailTutorialSteps } from './TutorialOverlay';
 import { MARKET_SUGGESTIONS } from './LocationMarketField';
 
 // Only affects AI-generated content (evaluation reasoning, brief-match
@@ -205,7 +205,6 @@ export function Settings() {
   const [gmailLastSyncFailedCount, setGmailLastSyncFailedCount] = useState(0);
   const [gmailLabelSaving, setGmailLabelSaving] = useState(false);
   const [gmailNotice, setGmailNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [showGmailTutorial, setShowGmailTutorial] = useState(false);
 
   const { openTutorial } = useTutorial();
   const { agencyId, user, plan, planStatus, signOut, loading: authLoading } = useAuth();
@@ -1159,7 +1158,7 @@ export function Settings() {
             </div>
             <button
               type="button"
-              onClick={() => setShowGmailTutorial(true)}
+              onClick={() => openTutorial(gmailTutorialSteps)}
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '10px',
@@ -1351,7 +1350,7 @@ export function Settings() {
                 {t('support.tutorial')}
               </label>
               <button
-                onClick={openTutorial}
+                onClick={() => openTutorial()}
                 className="px-[16px] py-[10px] border rounded-[4px] text-[11px] uppercase tracking-[0.1em] transition-colors hover:border-[var(--cv-primary-text)]"
                 style={{ fontFamily: 'var(--font-mono)', borderColor: 'var(--cv-subtle-border)', color: 'var(--cv-primary-text)', cursor: 'pointer', background: 'transparent' }}
               >
@@ -1491,12 +1490,6 @@ export function Settings() {
         </div>
       </div>
 
-      {showGmailTutorial && (
-        <TutorialOverlay
-          onClose={() => setShowGmailTutorial(false)}
-          steps={gmailTutorialSteps}
-        />
-      )}
     </div>
   );
 }
