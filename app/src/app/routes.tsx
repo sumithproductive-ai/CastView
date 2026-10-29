@@ -2,7 +2,6 @@ import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate, useLocation } from 'react-router';
 import { Layout } from './layouts/Layout';
 import { Login } from './components/Login';
-import { Signup } from './components/Signup';
 import { ResetPassword } from './components/ResetPassword';
 import { WelcomeSetup } from './components/WelcomeSetup';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
@@ -146,6 +145,14 @@ function ProtectedLayoutRoute({ children }: { children: React.ReactNode }) {
       </LazySuspense>
     </ProtectedRoute>
   );
+}
+
+// /signup now lives as a tab on /login; keep old links (and ?upgrade=) working.
+function SignupRedirect() {
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  params.set('tab', 'signup');
+  return <Navigate to={`/login?${params.toString()}`} replace />;
 }
 
 export const router = createBrowserRouter([
@@ -371,7 +378,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/signup',
-    element: <Signup />,
+    element: <SignupRedirect />,
   },
   {
     path: '/reset-password',
