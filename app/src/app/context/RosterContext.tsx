@@ -255,7 +255,7 @@ export function RosterProvider({ children }: { children: ReactNode }) {
             .select('*, context_evaluations(*)')
             .in('digital_set_id', setIds)
             .order('created_at', { ascending: false })
-        : { data: [] };
+        : { data: null };
 
       const evalsBySetId: Record<string, NonNullable<typeof allEvals>> = {};
       for (const ev of (allEvals ?? [])) {

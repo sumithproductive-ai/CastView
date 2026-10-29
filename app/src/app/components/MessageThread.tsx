@@ -256,7 +256,7 @@ export function MessageThread({ prospectId, prospectName, prospectEmail }: Props
       .order('sent_at', { ascending: true });
 
     setMessages(
-      (data ?? []).map((row) => normalizeMessageRow(row as Record<string, unknown>)) as Message[],
+      (data ?? []).map((row) => normalizeMessageRow<Message & Record<string, unknown>>(row)),
     );
     setLoading(false);
   }, [prospectId, agencyId]);

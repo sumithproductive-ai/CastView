@@ -111,12 +111,20 @@ Payment data: billing is handled by Stripe. We receive subscription status and c
           body={`We send transactional email (account verification, password reset, billing notices) and agency-initiated messages to prospects or models when your team uses CastView messaging. Email delivery is handled by Resend. Inbound reply-by-email is optional and may not be enabled for all accounts during the pilot.`}
         />
         <Section
+          title="6a. Google User Data (Gmail Intake)"
+          body={`If your agency chooses to connect Gmail for automated intake, CastView requests read-only access (the "gmail.readonly" scope) to a single label you select, solely to extract new talent submissions — names, measurements, and photos — from emails in that label into your CastView review queue. We do not access any other part of your Gmail account, and CastView never sends, deletes, moves, or otherwise modifies email on your behalf.
+
+CastView's use and transfer of information received from Google APIs to any other app adheres to the Google API Services User Data Policy, including the Limited Use requirements. Specifically: we do not use Gmail data for advertising or marketing purposes; we do not allow humans to read Gmail data except (a) with your explicit consent, (b) as necessary for security purposes such as investigating abuse, (c) to comply with applicable law, or (d) where the data has been aggregated and anonymized; and we do not use Gmail data to train generalized, non-personalized AI or machine learning models.
+
+You can disconnect Gmail access at any time from Settings, which revokes CastView's access immediately. Submission data already imported into your review queue before disconnecting remains until your agency deletes it, consistent with Section 9 (Data Deletion) below.`}
+        />
+        <Section
           title="7. Storage and Security"
           body={`Data is stored using Supabase on AWS in the United States (us-west-2). Digital images and application data are encrypted in transit (TLS) and at rest. Access is restricted by authentication and row-level security so each agency's data is fully isolated from every other agency on the platform.`}
         />
         <Section
           title="8. Subprocessors"
-          body={`We use trusted infrastructure providers to run CastView, including Supabase (database, auth, storage), Anthropic (AI evaluations), Stripe (payments), Resend (email), and Vercel (application hosting). These providers process data only as needed to deliver the service.`}
+          body={`We use trusted infrastructure providers to run CastView, including Supabase (database, auth, storage), Anthropic (AI evaluations), Stripe (payments), Resend (email), Vercel (application hosting), and, for agencies who opt into Gmail intake, Google (Gmail API — see Section 6a). These providers process data only as needed to deliver the service.`}
         />
         <Section
           title="9. Data Deletion"

@@ -10,7 +10,7 @@ import { useTutorial } from '../context/TutorialContext';
 import { takePendingPlan } from '../../lib/pendingPlan';
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { isTutorialOpen, closeTutorial } = useTutorial();
+  const { isTutorialOpen, tutorialSteps, closeTutorial } = useTutorial();
   const { plan, planStatus, agencyId, user, setupError, loading: authLoading } = useAuth();
   const [daysLeft, setDaysLeft] = useState<number | null>(null);
   const [trialExpired, setTrialExpired] = useState(false);
@@ -339,7 +339,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
-      {isTutorialOpen && <TutorialOverlay onClose={closeTutorial} />}
+      {isTutorialOpen && <TutorialOverlay onClose={closeTutorial} steps={tutorialSteps} />}
     </div>
   );
 }

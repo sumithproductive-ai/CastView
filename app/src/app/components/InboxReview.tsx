@@ -170,6 +170,7 @@ function InboxDraftCard({
 
   return (
     <div
+      data-tutorial="inbox-draft-card"
       className="bg-[var(--cv-surface)] border rounded-[4px] p-[24px] mb-[20px] transition-colors"
       style={{ borderColor: selected ? 'var(--cv-primary-text)' : 'var(--cv-subtle-border)' }}
     >
@@ -508,6 +509,7 @@ export function InboxReview() {
         </div>
       ) : drafts.length === 0 ? (
         <div
+          data-tutorial="inbox-empty-state"
           className="flex flex-col items-center justify-center text-center py-[80px]"
           style={{ color: 'var(--cv-secondary-text)' }}
         >

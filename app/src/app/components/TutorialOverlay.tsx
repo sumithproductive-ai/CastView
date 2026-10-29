@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router';
 import { X } from 'lucide-react';
@@ -35,11 +35,20 @@ function getTooltipAnchorX(
   }
 }
 
-function isTooltipOffscreen(x: number): boolean {
-  return x > window.innerWidth - 200 || x < 0;
+const TOOLTIP_WIDTH = 340;
+const VIEWPORT_MARGIN = 16;
+// Vertical space a tooltip card needs above/below its target (card + gap).
+const TOOLTIP_CLEARANCE = 340;
+
+// True when the 340px tooltip, placed at anchor x, would spill past either
+// edge of the viewport. Centered positions anchor on the tooltip's midpoint.
+function isTooltipOffscreen(x: number, tooltipPosition: TutorialStep['tooltipPosition']): boolean {
+  const centered = tooltipPosition === 'below-center' || tooltipPosition === 'above';
+  const leftEdge = centered ? x - TOOLTIP_WIDTH / 2 : x;
+  return leftEdge < VIEWPORT_MARGIN || leftEdge + TOOLTIP_WIDTH > window.innerWidth - VIEWPORT_MARGIN;
 }
 
-interface TutorialStep {
+export interface TutorialStep {
   headline: string;
   body: string;
   spotlightSelector?: string;
@@ -161,6 +170,39 @@ export const uploadTutorialSteps: TutorialStep[] = [
   },
 ];
 
+export const gmailTutorialSteps: TutorialStep[] = [
+  {
+    headline: 'Connecting your inbox',
+    body: 'Email Intake connects your Gmail account so new submissions land in CastView automatically — no more manually copying prospect details out of your inbox.',
+    spotlightSelector: '[data-tutorial="email-intake-block"]',
+    tooltipPosition: 'above',
+    requiredPath: '/settings',
+  },
+  {
+    headline: 'One click, scoped access',
+    body: 'Connect Gmail starts a Google consent screen. CastView only ever reads mail carrying the label you pick next — it never sees the rest of your inbox.',
+    // Only one of these renders at a time, depending on connection state.
+    spotlightSelector: '[data-tutorial="gmail-connect-button"], [data-tutorial="gmail-connected-panel"]',
+    tooltipPosition: 'left',
+    requiredPath: '/settings',
+  },
+  {
+    headline: 'Pick the label you watch',
+    body: 'Once connected, create a Gmail label (e.g. "CastView Submissions") and point CastView at it. Only mail under that label gets pulled in — everything else in your inbox stays untouched. CastView checks for new mail once a day.',
+    spotlightSelector: '[data-tutorial="gmail-connected-panel"], [data-tutorial="gmail-connect-button"]',
+    tooltipPosition: 'left',
+    requiredPath: '/settings',
+  },
+  {
+    headline: 'Drafts land in your Inbox',
+    body: 'Each matching email becomes a draft prospect here — name, measurements, and digitals extracted automatically. Review, fix anything that looks off, then confirm to move it into your pipeline.',
+    // Falls back to the zero state when the inbox has no drafts yet.
+    spotlightSelector: '[data-tutorial="inbox-draft-card"], [data-tutorial="inbox-empty-state"]',
+    tooltipPosition: 'below-center',
+    requiredPath: '/inbox',
+  },
+];
+
 interface TutorialOverlayProps {
   onClose: () => void;
   steps?: TutorialStep[];
@@ -177,6 +219,15 @@ export function TutorialOverlay({
   const [spotlightRect, setSpotlightRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const [isVisible, setIsVisible] = useState(true);
   const [tooltipVisible, setTooltipVisible] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [tooltipHeight, setTooltipHeight] = useState(0);
+
+  // Track the card's rendered height (it varies per step) so it can be kept
+  // inside the viewport. Only updates state when the height actually changes.
+  useLayoutEffect(() => {
+    const h = tooltipRef.current?.offsetHeight ?? 0;
+    if (h !== tooltipHeight) setTooltipHeight(h);
+  });
 
   const step = tutorialSteps[currentStep];
   const totalSteps = tutorialSteps.length;
@@ -234,6 +285,27 @@ export function TutorialOverlay({
     const maxAttempts = 20; // 20 × 50ms = 1 second max
 
     const poll = () => {
+      // Bring an off-screen target into view first (e.g. Settings sections
+      // further down the page). Instant, so the measurement below is final.
+      const target = step.spotlightSelector && !step.spotlightPosition
+        ? document.querySelector(step.spotlightSelector)
+        : null;
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        const opensAbove = step.tooltipPosition === 'above';
+        const opensBelow = step.tooltipPosition === 'below' || step.tooltipPosition === 'below-center';
+        // Scroll when the target is cut off, or when there's no room for the
+        // tooltip on the side it opens toward.
+        const needsScroll =
+          rect.top < 0 ||
+          rect.bottom > window.innerHeight ||
+          (opensAbove && rect.top < TOOLTIP_CLEARANCE) ||
+          (opensBelow && window.innerHeight - rect.bottom < TOOLTIP_CLEARANCE);
+        if (needsScroll) {
+          const block: ScrollLogicalPosition = opensAbove ? 'end' : opensBelow ? 'start' : 'center';
+          target.scrollIntoView({ block, behavior: 'auto' });
+        }
+      }
       const found = measureElement(true); // skipFallback = true
       if (found) {
         setTimeout(() => setTooltipVisible(true), 200);
@@ -252,7 +324,7 @@ export function TutorialOverlay({
     // Short initial delay for navigation to fire, then poll
     const timer = setTimeout(poll, 100);
     return () => clearTimeout(timer);
-  }, [currentStep, measureElement]);
+  }, [currentStep, measureElement, step]);
 
   // Continuously track on scroll and resize using RAF
   // This updates spotlightRect (and therefore the tooltip
@@ -275,14 +347,16 @@ export function TutorialOverlay({
 
     rafRef.current = requestAnimationFrame(onFrame);
 
-    // Also listen for window resize
-    window.addEventListener('resize', measureElement, { passive: true });
+    // Also listen for window resize. Wrapped so the Event isn't passed
+    // through as measureElement's skipFallback argument.
+    const onResize = () => measureElement();
+    window.addEventListener('resize', onResize, { passive: true });
 
     return () => {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }
-      window.removeEventListener('resize', measureElement);
+      window.removeEventListener('resize', onResize);
     };
   }, [measureElement]);
 
@@ -347,34 +421,42 @@ export function TutorialOverlay({
     if (!spotlightRect) return {};
 
     const padding = 24;
+    // Keep the card fully on screen vertically when its target sits near an
+    // edge (e.g. a tall card on a short page). No-op until it's been measured.
+    const h = tooltipHeight;
+    const minY = VIEWPORT_MARGIN;
+    const maxY = window.innerHeight - VIEWPORT_MARGIN;
+    const clampCenter = (y: number) => (h ? Math.min(Math.max(y, minY + h / 2), maxY - h / 2) : y);
+    const clampTop = (y: number) => (h ? Math.max(Math.min(y, maxY - h), minY) : y);
+    const clampBottom = (y: number) => (h ? Math.min(Math.max(y, minY + h), maxY) : y);
 
     switch (step.tooltipPosition) {
       case 'right':
         return {
-          top: `${spotlightRect.top + spotlightRect.height / 2}px`,
+          top: `${clampCenter(spotlightRect.top + spotlightRect.height / 2)}px`,
           left: `${spotlightRect.left + spotlightRect.width + padding}px`,
           transform: 'translateY(-50%)',
         };
       case 'below':
         return {
-          top: `${spotlightRect.top + spotlightRect.height + padding}px`,
+          top: `${clampTop(spotlightRect.top + spotlightRect.height + padding)}px`,
           left: `${spotlightRect.left}px`,
         };
       case 'below-center':
         return {
-          top: `${spotlightRect.top + spotlightRect.height + padding}px`,
+          top: `${clampTop(spotlightRect.top + spotlightRect.height + padding)}px`,
           left: `${spotlightRect.left + spotlightRect.width / 2}px`,
           transform: 'translateX(-50%)',
         };
       case 'left':
         return {
-          top: `${spotlightRect.top + spotlightRect.height / 2}px`,
+          top: `${clampCenter(spotlightRect.top + spotlightRect.height / 2)}px`,
           left: `${spotlightRect.left - 340 - padding}px`,
           transform: 'translateY(-50%)',
         };
       case 'above':
         return {
-          top: `${spotlightRect.top - padding}px`,
+          top: `${clampBottom(spotlightRect.top - padding)}px`,
           left: `${spotlightRect.left + spotlightRect.width / 2}px`,
           transform: 'translate(-50%, -100%)',
         };
@@ -389,7 +471,7 @@ export function TutorialOverlay({
     }
 
     const anchorX = getTooltipAnchorX(spotlightRect, step.tooltipPosition);
-    if (isTooltipOffscreen(anchorX)) {
+    if (isTooltipOffscreen(anchorX, step.tooltipPosition)) {
       return { ...BOTTOM_CENTER_TOOLTIP, zIndex: TOOLTIP_Z_INDEX };
     }
 
@@ -442,12 +524,13 @@ export function TutorialOverlay({
 
           {/* Tooltip card */}
           <div
+            ref={tooltipRef}
             className="fixed bg-[var(--cv-surface)] border border-[var(--cv-subtle-border)] rounded-[4px] p-[24px] transition-opacity duration-200"
             style={{
               ...getTooltipStyle(),
-              maxWidth: isTooltipOffscreen(getTooltipAnchorX(spotlightRect, step.tooltipPosition))
+              maxWidth: isTooltipOffscreen(getTooltipAnchorX(spotlightRect, step.tooltipPosition), step.tooltipPosition)
                 ? '480px'
-                : '340px',
+                : `${TOOLTIP_WIDTH}px`,
               opacity: tooltipVisible ? 1 : 0,
               pointerEvents: tooltipVisible ? 'auto' : 'none',
             }}
