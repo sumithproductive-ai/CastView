@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { notifyFounder } from '../_founderAlert';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL!,
@@ -160,5 +161,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  return res.status(200).json({ checked: agencies?.length ?? 0, sent3d, sent1d, sentEnded, failed });
+  const newSignups = await sendSignupDigest();
+
+  return res.status(200).json({ checked: agencies?.length ?? 0, sent3d, sent1d, sentEnded, failed, newSignups });
+}
+
+/** Daily founder digest of agencies created in the last 24h (signup happens client-side, so there's no server hook). */
+async function sendSignupDigest(): Promise<number> {
+  const since = new Date(Date.now() - 86_400_000).toISOString();
+  const { data: signups, error } = await supabaseAdmin
+    .from('agencies')
+    .select('id, name, owner_email, plan, created_at')
+    .gte('created_at', since)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('[cron/trial-reminders] signup digest query failed:', error.message);
+    return 0;
+  }
+  if (!signups?.length) return 0;
+
+  const { data: connections } = await supabaseAdmin
+    .from('email_connections')
+    .select('agency_id')
+    .in('agency_id', signups.map((s) => s.id));
+  const connected = new Set((connections ?? []).map((c) => c.agency_id));
+
+  await notifyFounder(`${signups.length} new CastView signup${signups.length === 1 ? '' : 's'}`, [
+    'New agencies in the last 24 hours:',
+    '',
+    ...signups.map(
+      (s) =>
+        `• ${s.name ?? 'Unnamed agency'} (${s.owner_email || 'no email'}): plan ${s.plan ?? 'unknown'}, ` +
+        `Gmail ${connected.has(s.id) ? 'connected' : 'not connected'}`,
+    ),
+    '',
+    'Manage trials: https://app.castview.org/admin/requests',
+  ]);
+  return signups.length;
 }

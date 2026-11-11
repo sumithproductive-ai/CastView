@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { OAuth2Client } from "google-auth-library";
 import { requireEntitledAgency } from "./_auth";
 import { encryptToken } from "./_emailCrypto";
+import { notifyFounder } from "./_founderAlert";
 import {
   createServiceRoleClient,
   getValidAccessToken,
@@ -189,6 +190,18 @@ async function handleOauthCallback(req: VercelRequest, res: VercelResponse) {
       console.error("[gmail?oauth-callback] upsert failed:", upsertError.message);
       return res.redirect(302, `${SETTINGS_URL}?gmail_connect=error&reason=save_failed`);
     }
+
+    const { data: agency } = await supabaseAdmin
+      .from("agencies")
+      .select("name, owner_email, plan")
+      .eq("id", verified.agencyId)
+      .maybeSingle();
+    await notifyFounder(`Gmail connected: ${agency?.name ?? "an agency"}`, [
+      `${agency?.name ?? "Unknown agency"} just connected Gmail.`,
+      `Owner: ${agency?.owner_email ?? "unknown"}`,
+      `Plan: ${agency?.plan ?? "unknown"}`,
+      `Agency ID: ${verified.agencyId}`,
+    ]);
 
     return res.redirect(302, `${SETTINGS_URL}?gmail_connect=success`);
   } catch (err) {
