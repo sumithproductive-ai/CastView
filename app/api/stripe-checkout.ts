@@ -37,6 +37,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
+      // Founding agencies redeem their locked-rate promo code here.
+      allow_promotion_codes: true,
       customer_email: email,
       success_url: `https://app.castview.org/settings?upgraded=true`,
       cancel_url: `https://app.castview.org/settings?cancelled=true`,
