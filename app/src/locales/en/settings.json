@@ -57,6 +57,7 @@
     "loading": "Loading…",
     "connectDesc": "Connect Gmail and CastView will watch a label you choose for new prospect submissions — extracting names, measurements, and digitals into a review queue automatically.",
     "connectGmail": "CONNECT GMAIL",
+    "unverifiedNotice": "Heads up: while Google reviews CastView, you'll see a \"Google hasn't verified this app\" screen. Click Advanced → Go to CastView to continue. CastView only processes emails in the label you choose, and you can disconnect anytime.",
     "connecting": "CONNECTING…",
     "reconnectNeeded": "Reconnect needed",
     "connected": "Connected",
