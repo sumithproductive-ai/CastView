@@ -57,6 +57,7 @@
     "loading": "Cargando…",
     "connectDesc": "Conecta Gmail y CastView vigilará una etiqueta que elijas para nuevas solicitudes de prospectos, extrayendo nombres, medidas y digitales a una cola de revisión automáticamente.",
     "connectGmail": "CONECTAR GMAIL",
+    "unverifiedNotice": "Aviso: mientras Google revisa CastView, verás una pantalla de \"Google no ha verificado esta aplicación\". Haz clic en Configuración avanzada → Ir a CastView para continuar. CastView solo procesa los correos de la etiqueta que elijas, y puedes desconectarte cuando quieras.",
     "connecting": "CONECTANDO…",
     "reconnectNeeded": "Necesita reconexión",
     "connected": "Conectado",

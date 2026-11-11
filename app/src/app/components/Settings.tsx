@@ -1199,6 +1199,7 @@ export function Settings() {
                   style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-secondary-text)' }}
                 >
                   {t('emailIntake.connectDesc')}
+                  <span className="block mt-[8px] text-[12px]">{t('emailIntake.unverifiedNotice')}</span>
                 </p>
                 <button
                   data-tutorial="gmail-connect-button"
