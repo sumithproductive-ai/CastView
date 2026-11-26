@@ -3,8 +3,21 @@ import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 import { ENTITLEMENT_ERROR, getAuthedAgency, isAuthFailure, isEntitled } from './_auth';
 import { checkRateLimit } from './_rateLimit';
+import { hasPermanentAccess } from '../src/lib/admin';
 
 const SEND_MESSAGE_HOURLY_MAX = 50;
+
+const MESSAGING_LOCKED_ERROR =
+  'Messaging unlocks after a quick 15-minute setup call with Sumith. We verify every agency before it can send, so emails from CastView stay out of spam and your prospects stay protected. Email support@castview.org to book your call.';
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -50,16 +63,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { agencyId } = auth;
 
+  // Messaging is unlocked per agency by the founder (see /admin/requests) so
+  // bot signups can't send email from our domain.
+  const { data: agency } = await supabaseAdmin
+    .from('agencies')
+    .select('name, messaging_enabled_at')
+    .eq('id', agencyId)
+    .maybeSingle();
+
+  if (!hasPermanentAccess(auth.email) && !agency?.messaging_enabled_at) {
+    return res.status(403).json({ error: MESSAGING_LOCKED_ERROR, code: 'messaging_locked' });
+  }
+
   const rateLimit = await checkRateLimit(`send-message:${agencyId}`, 3600, SEND_MESSAGE_HOURLY_MAX);
   if (!rateLimit.allowed) {
     return res.status(429).json({ error: 'Too many messages sent recently. Please try again later.' });
   }
 
-  const { prospectId, toEmail, toName, subject, body, agencyName, thread_id } = req.body;
+  const { prospectId, toEmail, subject, body, thread_id } = req.body;
 
   if (!prospectId || !toEmail || !subject || !body) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
+
+  // Sender name comes from the agency record, not the client, and every
+  // user-supplied string is escaped before it goes into the HTML.
+  const agencyName = agency?.name?.trim() || 'CastView Agency';
+  const fromName = agencyName.replace(/[<>"\r\n]/g, '');
+  const safeAgencyName = escapeHtml(agencyName);
+  const safeSubject = escapeHtml(String(subject));
+  const safeBody = escapeHtml(String(body));
 
   const allowed = await entityBelongsToAgency(prospectId, agencyId);
   if (!allowed) {
@@ -68,7 +101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { error } = await resend.emails.send({
-      from: `${agencyName ?? 'CastView'} <${process.env.RESEND_FROM_EMAIL}>`,
+      from: `${fromName} <${process.env.RESEND_FROM_EMAIL}>`,
       to: [toEmail],
       subject,
       replyTo: `reply+${prospectId}@castview.org`,
@@ -87,13 +120,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         <tr>
           <td style="padding:40px 32px 32px;">
             <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:10px;color:#888880;letter-spacing:0.1em;text-transform:uppercase;">
-              Message from ${agencyName ?? 'Your Agency'}
+              Message from ${safeAgencyName}
             </p>
             <p style="margin:0 0 32px;font-family:'Georgia',serif;font-size:22px;font-weight:400;color:#080808;line-height:1.3;">
-              ${subject}
+              ${safeSubject}
             </p>
             <div style="border-top:1px solid #eeede9;padding-top:24px;">
-              <p style="margin:0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;color:#333330;line-height:1.7;white-space:pre-wrap;">${body}</p>
+              <p style="margin:0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;color:#333330;line-height:1.7;white-space:pre-wrap;">${safeBody}</p>
             </div>
           </td>
         </tr>

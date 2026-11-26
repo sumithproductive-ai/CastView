@@ -11,7 +11,7 @@ const supabaseAdmin = createClient(
 async function listAgencies(res: VercelResponse) {
   const { data, error } = await supabaseAdmin
     .from('agencies')
-    .select('id, name, owner_email, plan, plan_status, trial_ends_at, created_at')
+    .select('id, name, owner_email, plan, plan_status, trial_ends_at, messaging_enabled_at, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -55,7 +55,31 @@ async function extendTrial(req: VercelRequest, res: VercelResponse) {
   return res.status(200).json({ success: true });
 }
 
-/** Admin-only: GET lists all agencies, POST extends/sets a trial end date. */
+async function setMessaging(req: VercelRequest, res: VercelResponse) {
+  const { agencyId, enabled } = req.body ?? {};
+
+  if (!agencyId || typeof agencyId !== 'string' || typeof enabled !== 'boolean') {
+    return res.status(400).json({ error: 'Missing agencyId or enabled' });
+  }
+
+  const messagingEnabledAt = enabled ? new Date().toISOString() : null;
+  const { error } = await supabaseAdmin
+    .from('agencies')
+    .update({ messaging_enabled_at: messagingEnabledAt })
+    .eq('id', agencyId);
+
+  if (error) {
+    console.error('[admin/agencies] set-messaging update failed:', error.message);
+    return res.status(500).json({ error: 'Update failed' });
+  }
+
+  return res.status(200).json({ success: true, messagingEnabledAt });
+}
+
+/**
+ * Admin-only: GET lists all agencies. POST extends/sets a trial end date, or
+ * with action "set-messaging" locks/unlocks an agency's outbound email.
+ */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -70,5 +94,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'GET') return listAgencies(res);
+  if (req.body?.action === 'set-messaging') return setMessaging(req, res);
   return extendTrial(req, res);
 }

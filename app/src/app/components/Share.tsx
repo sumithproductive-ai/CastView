@@ -116,6 +116,7 @@ export function Share() {
   const [emailBody, setEmailBody] = useState('');
   const [emailSending, setEmailSending] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const { agencyId } = useAuth();
   const shareLinkInputRef = useRef<HTMLInputElement>(null);
   
@@ -689,6 +690,7 @@ export function Share() {
                     onClick={async () => {
                       if (!emailTo || !agencyId || !prospectId) return;
                       setEmailSending(true);
+                      setEmailError(null);
                       try {
                         const res = await authFetch('/api/send-message', {
                           method: 'POST',
@@ -701,7 +703,14 @@ export function Share() {
                             agencyName: 'CastView Agency',
                           }),
                         });
-                        if (res.ok) setEmailSent(true);
+                        if (res.ok) {
+                          setEmailSent(true);
+                        } else {
+                          const data = await res.json().catch(() => ({}));
+                          setEmailError((data as { error?: string }).error ?? 'Email send failed');
+                        }
+                      } catch {
+                        setEmailError('Email send failed');
                       } finally {
                         setEmailSending(false);
                       }
@@ -711,6 +720,11 @@ export function Share() {
                   >
                     {emailSending ? 'SENDING...' : 'SEND EMAIL →'}
                   </button>
+                )}
+                {emailError && (
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#c87a7a', marginTop: '10px', lineHeight: 1.6 }}>
+                    {emailError}
+                  </p>
                 )}
               </div>
           )}

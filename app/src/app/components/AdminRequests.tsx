@@ -23,6 +23,7 @@ type AgencyRow = {
   plan: string;
   plan_status: string;
   trial_ends_at: string | null;
+  messaging_enabled_at: string | null;
   created_at: string;
 };
 
@@ -78,6 +79,7 @@ export function AdminRequests() {
   const [agenciesLoading, setAgenciesLoading] = useState(true);
   const [agenciesError, setAgenciesError] = useState<string | null>(null);
   const [extendingId, setExtendingId] = useState<string | null>(null);
+  const [messagingId, setMessagingId] = useState<string | null>(null);
 
   const pendingCount = useMemo(
     () => rows.filter((row) => !row.approved_at).length,
@@ -201,6 +203,34 @@ export function AdminRequests() {
       setAgenciesError(err instanceof Error ? err.message : 'Extend failed');
     } finally {
       setExtendingId(null);
+    }
+  };
+
+  const handleToggleMessaging = async (row: AgencyRow) => {
+    setMessagingId(row.id);
+    try {
+      const res = await authFetch('/api/admin/agencies', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'set-messaging',
+          agencyId: row.id,
+          enabled: !row.messaging_enabled_at,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Update failed');
+
+      setAgencyRows((prev) =>
+        prev.map((item) =>
+          item.id === row.id ? { ...item, messaging_enabled_at: data.messagingEnabledAt ?? null } : item,
+        ),
+      );
+      setAgenciesError(null);
+    } catch (err) {
+      console.error('[AdminRequests] toggle messaging error:', err);
+      setAgenciesError(err instanceof Error ? err.message : 'Update failed');
+    } finally {
+      setMessagingId(null);
     }
   };
 
@@ -427,6 +457,9 @@ export function AdminRequests() {
           <div className="w-[200px] text-[10px] uppercase tracking-[0.05em]" style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}>
             Trial Status
           </div>
+          <div className="w-[110px] text-[10px] uppercase tracking-[0.05em]" style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}>
+            Messaging
+          </div>
           <div className="w-[220px] text-[10px] uppercase tracking-[0.05em] text-right" style={{ fontFamily: 'var(--font-label)', color: 'var(--cv-secondary-text)' }}>
             Extend
           </div>
@@ -460,6 +493,23 @@ export function AdminRequests() {
               </div>
               <div className="w-[200px] text-[13px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--cv-accent)' }}>
                 {formatTrialEndsAt(row.trial_ends_at)}
+              </div>
+              <div className="w-[110px]">
+                <button
+                  type="button"
+                  onClick={() => handleToggleMessaging(row)}
+                  disabled={messagingId === row.id}
+                  title={row.messaging_enabled_at ? 'Click to lock messaging' : 'Unlock after the onboarding call'}
+                  className="px-[10px] py-[6px] rounded-[4px] text-[10px] uppercase tracking-[0.08em] border border-[var(--cv-subtle-border)] hover:border-[var(--cv-primary-text)] transition-colors disabled:opacity-50"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    color: row.messaging_enabled_at ? '#4a7a4a' : 'var(--cv-primary-text)',
+                    cursor: messagingId === row.id ? 'not-allowed' : 'pointer',
+                    background: 'transparent',
+                  }}
+                >
+                  {row.messaging_enabled_at ? 'Unlocked' : 'Unlock'}
+                </button>
               </div>
               <div className="w-[220px] flex items-center justify-end gap-[6px]">
                 {EXTEND_PRESETS.map((days) => (
